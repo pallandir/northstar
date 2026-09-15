@@ -6,12 +6,12 @@ import { resolveXPath } from "../lib/xpath.js";
 import type { Message, PinModel, QueueStatus, Response, SendOutcome } from "../messages.js";
 import { onNavigate, probeElement } from "../probe/client.js";
 import type { ProbeResult } from "../probe/protocol.js";
-import type { DraftRequest, Operation, Rect } from "../types.js";
+import type { DraftRequest, Rect } from "../types.js";
 import { Drawer, type DrawerContext } from "./drawer.js";
 import { downloadHandoff } from "./handoff.js";
+import type { InspectorSubmission, InspectorTarget } from "./inspector.js";
 import { Surface } from "./surface.js";
-import { type Mode, type ToolId, Toolbar } from "./toolbar.js";
-import { openColorPanel, openTextEditor } from "./tools.js";
+import { type Mode, Toolbar } from "./toolbar.js";
 
 declare global {
   interface Window {
@@ -25,7 +25,7 @@ if (!window.__northstarLoaded) {
 }
 
 const STATUS_POLL_MS = 5000;
-const STYLE_ALLOWLIST = new Set(["color", "background-color"]);
+const STYLE_ALLOWLIST = new Set(["color", "background-color", "border-color"]);
 
 function pageMode(): Mode {
   return isLocalUrl(location.href) ? "local" : "remote";
@@ -108,7 +108,7 @@ function init(): void {
       stopPolling();
       st.stopNavigateListener?.();
       st.stopNavigateListener = null;
-      surface.closeActionMenu();
+      surface.closeInspector();
       surface.setSelection(null);
       surface.highlightHover(null);
       surface.setPins(
@@ -134,7 +134,7 @@ function init(): void {
     if (!on) {
       surface.highlightHover(null);
       surface.setSelection(null);
-      surface.closeActionMenu();
+      surface.closeInspector();
       st.interacting = false;
     }
     updateCursor();
@@ -175,75 +175,55 @@ function init(): void {
     true,
   );
 
+  // A click opens the one popover: Comment / Text / Colour tabs, a target header, and a shared
+  // footer. The probe round trip starts immediately so its answer is usually already in by the
+  // time the popover opens; the header upgrades from a bare tag to the resolved component once
+  // it lands, rather than blocking the popover on it.
   function pick(el: Element): void {
     surface.setSelection(el);
     render();
 
-    // Start the probe round trip as soon as the element is picked rather than waiting for
-    // record(), so the answer is usually already in by the time the user saves.
-    st.pendingProbe = probeElement(el);
+    const probe = probeElement(el);
+    st.pendingProbe = probe;
 
     st.interacting = true;
     updateCursor();
-    surface.showActionMenu(el, {
-      onComment: () => runTool("comment", el),
-      onColor: () => runTool("color", el),
-      onText: () => runTool("text", el),
-      onDismiss: () => {
-        st.interacting = false;
-        updateCursor();
-      },
-    });
-  }
 
-  function runTool(which: Exclude<ToolId, "select">, el: Element): void {
-    surface.closeActionMenu();
-    st.interacting = true;
-    updateCursor();
+    const r = el.getBoundingClientRect();
+    const rect: Rect = { x: r.x, y: r.y, w: r.width, h: r.height };
+    const target = captureTarget(el, rect);
+    const attributeSource = resolveSource(el);
+    const initialInfo: InspectorTarget = {
+      componentName: null,
+      source: attributeSource,
+      tag: target.tag,
+      selector: target.selector,
+    };
+
     const done = () => {
       st.interacting = false;
       updateCursor();
     };
 
-    if (which === "comment") {
-      surface.showComposer(
-        el,
-        async (commentText, { planFirst, attachScreenshot }) => {
-          done();
-          await record(el, {
-            comment: commentText,
-            operation: { type: "comment", property: null, from: null, to: null },
-            planFirst,
-            attachScreenshot,
-          });
-        },
-        done,
-      );
-    } else if (which === "color") {
-      openColorPanel(
-        surface,
-        el as HTMLElement,
-        (operation, summary) => {
-          done();
-          void record(el, { comment: summary, operation });
-        },
-        done,
-      );
-    } else {
-      openTextEditor(
-        surface,
-        el as HTMLElement,
-        (from, to) => {
-          done();
-          const comment = from ? `Change text from "${from}" to "${to}"` : `Set text to "${to}"`;
-          void record(el, {
-            comment,
-            operation: { type: "text", property: null, from, to },
-          });
-        },
-        done,
-      );
-    }
+    const handle = surface.showInspector(
+      el,
+      initialInfo,
+      (result) => {
+        done();
+        void record(el, result);
+      },
+      done,
+    );
+
+    void probe.then((probeResult) => {
+      if (!probeResult) return;
+      handle.updateTarget({
+        componentName: probeResult.component?.stack[0]?.name ?? null,
+        source: attributeSource ?? probeResult.source,
+        tag: target.tag,
+        selector: target.selector,
+      });
+    });
   }
 
   function toggleDrawer(): void {
@@ -256,14 +236,7 @@ function init(): void {
     return { mode, connected: Boolean(st.lastStatus?.serverReachable) };
   }
 
-  interface RecordPayload {
-    comment: string;
-    operation: Operation;
-    planFirst?: boolean;
-    attachScreenshot?: boolean;
-  }
-
-  async function record(el: Element, payload: RecordPayload): Promise<void> {
+  async function record(el: Element, payload: InspectorSubmission): Promise<void> {
     const { operator, elementText } = captureElement(el);
 
     const r = el.getBoundingClientRect();

@@ -11,7 +11,6 @@ import {
 } from "./icons.js";
 import type { Surface } from "./surface.js";
 
-export type ToolId = "select" | "comment" | "color" | "text";
 export type Mode = "local" | "remote";
 
 const POS_KEY = "cc-toolbar-pos";

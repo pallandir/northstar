@@ -1,23 +1,23 @@
 import { resolveXPath } from "../lib/xpath.js";
 import type { PinModel } from "../messages.js";
-import { ICON_COLOR, ICON_COMMENT, ICON_TEXT, ICON_WARNING, icon } from "./icons.js";
+import { ICON_COLOR, ICON_TEXT, ICON_WARNING, icon } from "./icons.js";
+import {
+  type InspectorHandle,
+  type InspectorOptions,
+  type InspectorSubmission,
+  type InspectorTarget,
+  buildInspector,
+} from "./inspector.js";
 import overlayCss from "./overlay.css?inline";
 import { TopLayer } from "./top-layer.js";
 
 const OVERLAY_MARGIN = 8;
-const COMPOSER_WIDTH = 264;
+const INSPECTOR_WIDTH = 300;
 
 interface ActivePin {
   model: PinModel;
   el: HTMLElement;
   anchor: Element | null;
-}
-
-export interface ActionMenuHandlers {
-  onComment: () => void;
-  onColor: () => void;
-  onText: () => void;
-  onDismiss: () => void;
 }
 
 export interface ModalAction {
@@ -33,13 +33,7 @@ export interface ModalOptions {
   onDismiss: () => void;
 }
 
-export interface ComposerOptions {
-  initialText?: string;
-  initialPlanFirst?: boolean;
-  initialAttachScreenshot?: boolean;
-  title?: string;
-  onDelete?: () => void;
-}
+export type { InspectorOptions, InspectorSubmission, InspectorTarget };
 
 export class Surface {
   private readonly host: HTMLElement;
@@ -48,11 +42,9 @@ export class Surface {
   private hoverBox: HTMLElement | null = null;
   private selectionBox: HTMLElement | null = null;
   private selectionEl: Element | null = null;
-  private composer: HTMLElement | null = null;
-  private composerHighlight: HTMLElement | null = null;
-  private composerAnchor: Element | null = null;
-  private actionMenu: HTMLElement | null = null;
-  private actionCleanup: (() => void) | null = null;
+  private inspector: InspectorHandle | null = null;
+  private inspectorHighlight: HTMLElement | null = null;
+  private inspectorAnchor: Element | null = null;
   private readonly topLayer = new TopLayer();
   private rafId = 0;
 
@@ -72,7 +64,7 @@ export class Surface {
   }
 
   unmount(): void {
-    this.closeActionMenu();
+    this.closeInspector();
     if (this.rafId) cancelAnimationFrame(this.rafId);
     this.rafId = 0;
     this.topLayer.detach();
@@ -132,66 +124,6 @@ export class Surface {
     return this.selectionEl;
   }
 
-  showActionMenu(target: Element, handlers: ActionMenuHandlers): void {
-    this.mount();
-    this.closeActionMenu();
-
-    const menu = document.createElement("div");
-    menu.className = "cc-actions-menu";
-    menu.append(
-      menuButton(icon(ICON_COMMENT, "cc-menu-icon"), "Comment", handlers.onComment),
-      menuButton(icon(ICON_COLOR, "cc-menu-icon"), "Color", handlers.onColor),
-      menuButton(icon(ICON_TEXT, "cc-menu-icon"), "Text", handlers.onText),
-    );
-    this.actionMenu = menu;
-    this.shadow.append(menu);
-
-    const rect = target.getBoundingClientRect();
-    const menuW = menu.offsetWidth || 188;
-    const menuH = menu.offsetHeight || 60;
-    const above = rect.top - menuH - 10;
-    const below = rect.bottom + 10;
-    const preferAbove = above > 8;
-    const topRaw = preferAbove ? above : below;
-    const clampedTop = Math.min(
-      Math.max(OVERLAY_MARGIN, topRaw),
-      window.innerHeight - menuH - OVERLAY_MARGIN,
-    );
-    const clampedLeft = Math.min(
-      Math.max(OVERLAY_MARGIN, rect.left),
-      window.innerWidth - menuW - OVERLAY_MARGIN,
-    );
-    menu.style.top = `${clampedTop}px`;
-    menu.style.left = `${clampedLeft}px`;
-
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        this.closeActionMenu();
-        handlers.onDismiss();
-      }
-    };
-    const onDoc = (event: Event) => {
-      if (event.composedPath().includes(menu)) return;
-      this.closeActionMenu();
-      handlers.onDismiss();
-    };
-    setTimeout(() => {
-      document.addEventListener("keydown", onKey, true);
-      document.addEventListener("click", onDoc, true);
-    }, 0);
-    this.actionCleanup = () => {
-      document.removeEventListener("keydown", onKey, true);
-      document.removeEventListener("click", onDoc, true);
-    };
-  }
-
-  closeActionMenu(): void {
-    this.actionCleanup?.();
-    this.actionCleanup = null;
-    this.actionMenu?.remove();
-    this.actionMenu = null;
-  }
-
   showModal(options: ModalOptions): void {
     this.mount();
 
@@ -244,131 +176,44 @@ export class Surface {
     this.shadow.append(backdrop);
   }
 
-  showComposer(
+  // One popover for all three ways to act on an element: leave a comment, edit its text, or
+  // recolour it. onSubmit fires at most once; onCancel fires on Esc, outside click, an empty
+  // save, or Cancel, and any live preview (colour, text) is reverted before it fires.
+  showInspector(
     target: Element,
-    onSubmit: (
-      text: string,
-      options: { planFirst: boolean; attachScreenshot: boolean },
-    ) => Promise<void> | void,
-    onCancel?: () => void,
-    opts?: ComposerOptions,
-  ): void {
+    info: InspectorTarget,
+    onSubmit: (result: InspectorSubmission) => void,
+    onCancel: () => void,
+    opts?: InspectorOptions,
+  ): InspectorHandle {
     this.mount();
-    this.closeComposer();
-    this.composerAnchor = target;
-
-    let planFirst = opts?.initialPlanFirst ?? false;
-    let attachScreenshot = opts?.initialAttachScreenshot ?? false;
+    this.closeInspector();
+    this.inspectorAnchor = target;
 
     const highlight = document.createElement("div");
     highlight.className = "cc-highlight";
 
-    const panel = document.createElement("div");
-    panel.className = "cc-panel";
+    const handle = buildInspector(
+      target as HTMLElement,
+      info,
+      (result) => {
+        this.closeInspectorDom();
+        onSubmit(result);
+      },
+      () => {
+        this.closeInspectorDom();
+        onCancel();
+      },
+      opts,
+    );
 
-    const head = document.createElement("div");
-    head.className = "cc-panel-head";
-    head.textContent = opts?.title ?? "Add comment";
-
-    const textarea = document.createElement("textarea");
-    textarea.placeholder = "What should your AI assistant change here?";
-    textarea.value = opts?.initialText ?? "";
-
-    const toggleRow = document.createElement("div");
-    toggleRow.className = "cc-toggle-row";
-
-    const screenshotBtn = document.createElement("button");
-    screenshotBtn.type = "button";
-    screenshotBtn.className = "cc-toggle";
-    screenshotBtn.setAttribute("role", "switch");
-    screenshotBtn.setAttribute("aria-pressed", String(attachScreenshot));
-    const screenshotLabel = document.createElement("span");
-    screenshotLabel.className = "cc-toggle-label";
-    screenshotLabel.textContent = "Attach screenshot";
-    const screenshotTrack = document.createElement("span");
-    screenshotTrack.className = "cc-switch";
-    screenshotBtn.append(screenshotLabel, screenshotTrack);
-    screenshotBtn.addEventListener("click", () => {
-      attachScreenshot = !attachScreenshot;
-      screenshotBtn.setAttribute("aria-pressed", String(attachScreenshot));
-    });
-
-    const planBtn = document.createElement("button");
-    planBtn.type = "button";
-    planBtn.className = "cc-toggle";
-    planBtn.setAttribute("role", "switch");
-    planBtn.setAttribute("aria-pressed", String(planFirst));
-    const planLabel = document.createElement("span");
-    planLabel.className = "cc-toggle-label";
-    planLabel.textContent = "Plan as a separate task";
-    const planTrack = document.createElement("span");
-    planTrack.className = "cc-switch";
-    planBtn.append(planLabel, planTrack);
-    planBtn.addEventListener("click", () => {
-      planFirst = !planFirst;
-      planBtn.setAttribute("aria-pressed", String(planFirst));
-    });
-
-    toggleRow.append(screenshotBtn, planBtn);
-
-    const hint = document.createElement("div");
-    hint.className = "cc-hint";
-    hint.textContent = "Shift+Enter for new line";
-
-    const actions = document.createElement("div");
-    actions.className = "cc-actions";
-    const save = document.createElement("button");
-    save.type = "button";
-    save.className = "cc-btn cc-btn--primary";
-    save.textContent = "Save";
-    const cancel = document.createElement("button");
-    cancel.type = "button";
-    cancel.className = "cc-btn cc-btn--secondary-danger";
-    cancel.textContent = "Cancel";
-
-    const dismiss = () => {
-      this.closeComposer();
-      onCancel?.();
-    };
-    const submit = async () => {
-      const value = textarea.value.trim();
-      if (!value) return dismiss();
-      this.closeComposer();
-      await onSubmit(value, { planFirst, attachScreenshot });
-    };
-
-    cancel.addEventListener("click", dismiss);
-    save.addEventListener("click", () => void submit());
-    textarea.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        dismiss();
-      } else if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault();
-        void submit();
-      }
-    });
-
-    actions.append(hint);
-    if (opts?.onDelete) {
-      const del = document.createElement("button");
-      del.type = "button";
-      del.className = "cc-btn cc-btn--ghost";
-      del.textContent = "Delete";
-      del.addEventListener("click", () => {
-        this.closeComposer();
-        opts.onDelete?.();
-      });
-      actions.append(del);
-    }
-    actions.append(cancel, save);
-    panel.append(head, textarea, toggleRow, actions);
-    this.composerHighlight = highlight;
-    this.composer = panel;
-    this.shadow.append(highlight, panel);
+    this.inspectorHighlight = highlight;
+    this.inspector = handle;
+    this.shadow.append(highlight, handle.panel);
     this.reposition();
     this.startTicker();
-    textarea.focus();
+    handle.focus();
+    return handle;
   }
 
   setPins(
@@ -411,11 +256,13 @@ export class Surface {
           event.stopPropagation();
           const anchor = resolveXPath(model.operator);
           if (!anchor) return;
-          this.showComposer(
+          this.showInspector(
             anchor,
-            (text, options) => onEdit(model.key, text, options),
-            undefined,
+            { componentName: null, source: null, tag: model.target, selector: model.operator },
+            (result) => onEdit(model.key, result.comment, result),
+            () => {},
             {
+              editOnly: true,
               initialText: model.text,
               initialPlanFirst: model.planFirst,
               initialAttachScreenshot: model.hasScreenshot,
@@ -443,15 +290,20 @@ export class Surface {
     if (target) target.el.classList.add("cc-pin-wrap--focus");
   }
 
-  private closeComposer(): void {
-    this.composer?.remove();
-    this.composerHighlight?.remove();
-    this.composer = null;
-    this.composerHighlight = null;
-    this.composerAnchor = null;
+  /** Closes the popover, reverting any live preview first. Safe to call when none is open. */
+  closeInspector(): void {
+    this.inspector?.cancel();
   }
 
-  // Anchors (pins, the selection box, the composer) ride DOM elements that can
+  private closeInspectorDom(): void {
+    this.inspector?.panel.remove();
+    this.inspectorHighlight?.remove();
+    this.inspector = null;
+    this.inspectorHighlight = null;
+    this.inspectorAnchor = null;
+  }
+
+  // Anchors (pins, the selection box, the inspector popover) ride DOM elements that can
   // move for reasons no scroll/resize event reports: transform-based scrolling,
   // animations, async layout shifts. A per-frame reconcile keeps them glued; it
   // self-stops once nothing is being tracked, so it costs nothing when idle.
@@ -465,7 +317,7 @@ export class Surface {
   }
 
   private hasTracked(): boolean {
-    return this.pins.length > 0 || this.selectionEl !== null || this.composerAnchor !== null;
+    return this.pins.length > 0 || this.selectionEl !== null || this.inspectorAnchor !== null;
   }
 
   private reposition(): void {
@@ -484,39 +336,22 @@ export class Surface {
     if (this.selectionEl?.isConnected && this.selectionBox)
       place(this.selectionBox, this.selectionEl);
 
-    if (this.composerAnchor && this.composerHighlight && this.composer) {
-      const rect = this.composerAnchor.getBoundingClientRect();
-      place(this.composerHighlight, this.composerAnchor);
-      const panelH = this.composer.offsetHeight || 220;
+    if (this.inspectorAnchor && this.inspectorHighlight && this.inspector) {
+      const rect = this.inspectorAnchor.getBoundingClientRect();
+      place(this.inspectorHighlight, this.inspectorAnchor);
+      const panelH = this.inspector.panel.offsetHeight || 320;
       const clampedLeft = Math.min(
         Math.max(OVERLAY_MARGIN, rect.left),
-        window.innerWidth - COMPOSER_WIDTH - OVERLAY_MARGIN,
+        window.innerWidth - INSPECTOR_WIDTH - OVERLAY_MARGIN,
       );
       const fitsBelow = rect.bottom + panelH + OVERLAY_MARGIN <= window.innerHeight;
       const topRaw = fitsBelow
         ? rect.bottom + OVERLAY_MARGIN
         : Math.max(OVERLAY_MARGIN, rect.top - panelH - OVERLAY_MARGIN);
-      this.composer.style.left = `${clampedLeft}px`;
-      this.composer.style.top = `${topRaw}px`;
+      this.inspector.panel.style.left = `${clampedLeft}px`;
+      this.inspector.panel.style.top = `${topRaw}px`;
     }
   }
-}
-
-function menuButton(glyphEl: SVGSVGElement, label: string, onClick: () => void): HTMLButtonElement {
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "cc-menu-btn";
-  const g = document.createElement("span");
-  g.className = "cc-menu-glyph";
-  g.append(glyphEl);
-  const l = document.createElement("span");
-  l.textContent = label;
-  btn.append(g, l);
-  btn.addEventListener("click", (event) => {
-    event.stopPropagation();
-    onClick();
-  });
-  return btn;
 }
 
 function place(box: HTMLElement, target: Element): void {
