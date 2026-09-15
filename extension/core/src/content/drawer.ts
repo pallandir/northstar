@@ -1,4 +1,4 @@
-import type { PinModel } from "../messages.js";
+import type { DeferralNotice, PinModel } from "../messages.js";
 import { ICON_CLOSE, icon } from "./icons.js";
 import type { Surface } from "./surface.js";
 import type { Mode } from "./toolbar.js";
@@ -14,6 +14,7 @@ export interface DrawerHandlers {
   onClose: () => void;
   onRevert: (key: string) => void;
   onHoverComment: (key: string | null) => void;
+  onDismissNotice: (commentId: string) => void;
 }
 
 export interface DrawerContext {
@@ -27,9 +28,11 @@ export class Drawer {
   private readonly root: HTMLElement;
   private readonly listEl: HTMLElement;
   private readonly tabsEl: HTMLElement;
+  private readonly noticesEl: HTMLElement;
   private readonly handlers: DrawerHandlers;
   private open = false;
   private pins: PinModel[] = [];
+  private notices: DeferralNotice[] = [];
   private ctx: DrawerContext = DEFAULT_CTX;
   private editing: string | null = null;
   private activeTab: "comments" | "history" = "comments";
@@ -53,10 +56,12 @@ export class Drawer {
     close.addEventListener("click", () => handlers.onClose());
     head.append(this.tabsEl, close);
 
+    this.noticesEl = document.createElement("div");
+
     this.listEl = document.createElement("div");
     this.listEl.className = "ns-drawer-list";
 
-    card.append(head, this.listEl);
+    card.append(head, this.noticesEl, this.listEl);
     this.root.append(card);
     surface.append(this.root);
   }
@@ -65,24 +70,80 @@ export class Drawer {
     return this.open;
   }
 
-  setOpen(open: boolean, pins: PinModel[], ctx: DrawerContext): void {
+  setOpen(
+    open: boolean,
+    pins: PinModel[],
+    ctx: DrawerContext,
+    notices: DeferralNotice[] = this.notices,
+  ): void {
     this.open = open;
     this.root.classList.toggle("ns-drawer--open", open);
     this.editing = null;
     this.ctx = ctx;
-    this.render(pins, ctx);
+    this.render(pins, ctx, notices);
   }
 
-  render(pins: PinModel[], ctx: DrawerContext = this.ctx): void {
+  render(
+    pins: PinModel[],
+    ctx: DrawerContext = this.ctx,
+    notices: DeferralNotice[] = this.notices,
+  ): void {
     this.pins = pins;
     this.ctx = ctx;
+    this.notices = notices;
     if (!this.open) return;
     this.renderTabs(pins);
+    this.renderNotices(notices);
     this.renderList(pins);
   }
 
   destroy(): void {
     this.root.remove();
+  }
+
+  // Comments the agent deferred as "needs a plan" surface here rather than as a floating
+  // toolbar card: they are still items in this list (their pin sits in History as wontfix),
+  // just ones asking for your attention before you discuss them further.
+  private renderNotices(notices: DeferralNotice[]): void {
+    this.noticesEl.replaceChildren();
+    if (notices.length === 0 || this.activeTab !== "comments") return;
+
+    const wrap = document.createElement("div");
+    wrap.className = "ns-notices";
+    const title = document.createElement("div");
+    title.className = "ns-notices-title";
+    title.textContent =
+      notices.length === 1 ? "1 comment needs a plan" : `${notices.length} comments need a plan`;
+    wrap.append(title);
+
+    for (const notice of notices) {
+      const row = document.createElement("div");
+      row.className = "ns-notice-row";
+
+      const body = document.createElement("div");
+      body.className = "ns-notice-body";
+      const route = document.createElement("code");
+      route.className = "ns-notice-route";
+      route.textContent = notice.page;
+      const summary = document.createElement("div");
+      summary.className = "ns-notice-summary";
+      summary.textContent = notice.summary;
+      const hint = document.createElement("div");
+      hint.className = "ns-notice-hint";
+      hint.textContent = "Understood, needs a plan. Discuss in chat.";
+      body.append(route, summary, hint);
+
+      const dismiss = document.createElement("button");
+      dismiss.type = "button";
+      dismiss.className = "ns-btn ns-btn--ghost ns-notice-dismiss";
+      dismiss.textContent = "Dismiss";
+      dismiss.addEventListener("click", () => this.handlers.onDismissNotice(notice.commentId));
+
+      row.append(body, dismiss);
+      wrap.append(row);
+    }
+
+    this.noticesEl.append(wrap);
   }
 
   private renderTabs(pins: PinModel[]): void {
@@ -97,6 +158,7 @@ export class Drawer {
     commentsTab.addEventListener("click", () => {
       this.activeTab = "comments";
       this.renderTabs(this.pins);
+      this.renderNotices(this.notices);
       this.renderList(this.pins);
     });
     const historyTab = document.createElement("button");
@@ -106,6 +168,7 @@ export class Drawer {
     historyTab.addEventListener("click", () => {
       this.activeTab = "history";
       this.renderTabs(this.pins);
+      this.renderNotices(this.notices);
       this.renderList(this.pins);
     });
     this.tabsEl.append(commentsTab, historyTab);

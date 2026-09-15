@@ -737,11 +737,29 @@
   flex-direction: column;
 }
 
+.ns-setup-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ns-s3);
+  margin-bottom: var(--ns-s2);
+}
+
+.ns-setup-row .ns-drawer-close {
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
+
+.ns-setup-row .ns-drawer-close-icon {
+  width: 13px;
+  height: 13px;
+}
+
 .ns-setup-title {
   font-size: var(--ns-fs-sm);
   font-weight: 500;
   color: var(--ns-chalk);
-  margin-bottom: var(--ns-s2);
 }
 
 .ns-setup-hint {

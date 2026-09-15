@@ -89,7 +89,6 @@ function init(): void {
         onSend: () => void handleSend(),
         onHandoff: handleHandoff,
         onReset: handleReset,
-        onDismissNotice: (id) => void handleDismissNotice(id),
         onTogglePick: () => setPicking(!st.picking),
       });
       drawer = new Drawer(surface, {
@@ -98,6 +97,7 @@ function init(): void {
         onClose: toggleDrawer,
         onRevert: (key) => void handleRevert(key),
         onHoverComment: (key) => surface.focusPin(key),
+        onDismissNotice: (id) => void handleDismissNotice(id),
       });
       void refresh();
       startPolling();
@@ -228,7 +228,7 @@ function init(): void {
 
   function toggleDrawer(): void {
     st.drawerOpen = !st.drawerOpen;
-    drawer?.setOpen(st.drawerOpen, st.lastPins, drawerCtx());
+    drawer?.setOpen(st.drawerOpen, st.lastPins, drawerCtx(), st.lastStatus?.notices ?? []);
     render();
   }
 
@@ -423,15 +423,17 @@ function init(): void {
 
   function render(): void {
     const activeCount = st.lastPins.filter((p) => p.status !== "resolved").length;
+    const notices = st.lastStatus?.notices ?? [];
     toolbar?.render({
       mode,
       count: activeCount,
+      noticeCount: notices.length,
       status: st.lastStatus,
       drawerOpen: st.drawerOpen,
       lastSend: st.lastSend,
       picking: st.picking,
     });
-    drawer?.render(st.lastPins, drawerCtx());
+    drawer?.render(st.lastPins, drawerCtx(), notices);
   }
 
   function updateCursor(): void {

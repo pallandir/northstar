@@ -1,6 +1,7 @@
 import { browser } from "../lib/browser.js";
-import type { DeferralNotice, QueueStatus, SendOutcome } from "../messages.js";
+import type { QueueStatus, SendOutcome } from "../messages.js";
 import {
+  ICON_CLOSE,
   ICON_COMMENT,
   ICON_GRIP,
   ICON_HANDOFF,
@@ -20,13 +21,13 @@ export interface ToolbarHandlers {
   onSend: () => void;
   onHandoff: () => void;
   onReset: () => void;
-  onDismissNotice: (commentId: string) => void;
   onTogglePick: () => void;
 }
 
 export interface ToolbarState {
   mode: Mode;
   count: number;
+  noticeCount: number;
   status: QueueStatus | null;
   drawerOpen: boolean;
   lastSend: SendOutcome | null;
@@ -41,13 +42,12 @@ export class Toolbar {
   private readonly sendBtn: HTMLButtonElement;
   private readonly handoffBtn: HTMLButtonElement;
   private readonly targetBtn: HTMLButtonElement;
-  private readonly handlers: ToolbarHandlers;
   private readonly sendLabel: Text;
   private panelKey = "";
+  private dismissedKey = "";
   private sentTimer = 0;
 
   constructor(surface: Surface, handlers: ToolbarHandlers) {
-    this.handlers = handlers;
     this.root = document.createElement("div");
     this.root.className = "ns-toolbar";
 
@@ -119,48 +119,64 @@ export class Toolbar {
     this.targetBtn.classList.toggle("ns-action--active", state.picking);
     this.targetBtn.dataset.tip = state.picking ? "Pause element picking" : "Resume element picking";
 
-    this.commentsLabel.textContent = `Comments (${state.count})`;
+    this.commentsLabel.textContent =
+      state.noticeCount > 0
+        ? `Comments (${state.count}) · ${state.noticeCount} ${state.noticeCount === 1 ? "needs" : "need"} a plan`
+        : `Comments (${state.count})`;
 
     if (state.mode === "remote") {
+      // A remote page never reaches the loopback server by design, so there is nothing to
+      // explain in a permanent card here: Handoff becomes the one thing to do, and its own
+      // tooltip and the popup say why.
       this.sendBtn.hidden = true;
       this.handoffBtn.classList.add("ns-action--primary");
-      this.setPanel("remote", () => remotePanel());
+      this.handoffBtn.dataset.tip =
+        "Comment freely, then export a handoff file for your developers";
+      this.clearPanel();
       return;
     }
 
     this.sendBtn.hidden = false;
+    this.handoffBtn.dataset.tip = "Download a Markdown handoff";
 
     const status = state.status;
     const reachable = Boolean(status?.serverReachable);
     this.sendBtn.disabled = !reachable || !status || status.queued === 0;
     this.handoffBtn.classList.toggle("ns-action--primary", !reachable);
 
-    const notices = status?.notices ?? [];
     const send = state.lastSend;
     const terminal = status?.terminal;
 
-    if (notices.length > 0) {
-      this.setPanel(`notices:${notices.map((n) => n.commentId).join(",")}`, () =>
-        this.noticePanel(notices),
-      );
-    } else if (send && !send.typed && send.reason) {
-      this.setPanel(`send:${send.reason}`, () =>
-        hintPanel("Comments saved, not announced", send.reason ?? ""),
-      );
+    // Only a real failure earns a strip, and only once per distinct problem: dismissing it
+    // keeps it dismissed while the same problem persists, rather than a poll cycle bringing
+    // it straight back.
+    if (send && !send.typed && send.reason) {
+      this.showFailure(`send:${send.reason}`, "Comments saved, not announced", send.reason);
     } else if (!reachable) {
-      this.setPanel("offline", () =>
-        hintPanel(
-          "No Northstar server on this machine",
-          "Start your AI agent in the project you are commenting on. Northstar runs alongside it.",
-        ),
+      this.showFailure(
+        "offline",
+        "No Northstar server on this machine",
+        "Start your AI agent in the project you are commenting on.",
       );
     } else if (terminal && !terminal.available) {
-      this.setPanel(`terminal:${terminal.reason ?? ""}`, () =>
-        hintPanel("Comments will not reach your agent", terminal.reason ?? ""),
+      this.showFailure(
+        `terminal:${terminal.reason ?? ""}`,
+        "Comments will not reach your agent",
+        terminal.reason ?? "",
       );
     } else {
       this.clearPanel();
     }
+  }
+
+  private showFailure(key: string, title: string, body: string): void {
+    if (key === this.dismissedKey) return;
+    this.setPanel(key, () => hintStrip(title, body, () => this.dismiss(key)));
+  }
+
+  private dismiss(key: string): void {
+    this.dismissedKey = key;
+    this.clearPanel();
   }
 
   flashSent(send: SendOutcome): void {
@@ -184,50 +200,6 @@ export class Toolbar {
     this.panelKey = "";
     this.panel.replaceChildren();
     this.panel.hidden = true;
-  }
-
-  private noticePanel(notices: DeferralNotice[]): HTMLElement {
-    const wrap = document.createElement("div");
-    wrap.className = "ns-notices";
-
-    const title = document.createElement("div");
-    title.className = "ns-notices-title";
-    title.textContent =
-      notices.length === 1 ? "1 comment needs a plan" : `${notices.length} comments need a plan`;
-    wrap.append(title);
-
-    for (const notice of notices) {
-      const row = document.createElement("div");
-      row.className = "ns-notice-row";
-
-      const body = document.createElement("div");
-      body.className = "ns-notice-body";
-
-      const route = document.createElement("code");
-      route.className = "ns-notice-route";
-      route.textContent = notice.page;
-
-      const summary = document.createElement("div");
-      summary.className = "ns-notice-summary";
-      summary.textContent = notice.summary;
-
-      const hint = document.createElement("div");
-      hint.className = "ns-notice-hint";
-      hint.textContent = "Understood, needs a plan. Discuss in chat.";
-
-      body.append(route, summary, hint);
-
-      const dismiss = document.createElement("button");
-      dismiss.type = "button";
-      dismiss.className = "ns-action ns-action--ghost ns-notice-dismiss";
-      dismiss.textContent = "Dismiss";
-      dismiss.addEventListener("click", () => this.handlers.onDismissNotice(notice.commentId));
-
-      row.append(body, dismiss);
-      wrap.append(row);
-    }
-
-    return wrap;
   }
 
   private makeDraggable(handle: HTMLElement): void {
@@ -295,28 +267,27 @@ function sep(): HTMLElement {
   return el;
 }
 
-function hintPanel(title: string, body: string): HTMLElement {
+// A one-line strip for a real, ongoing problem, never a permanent card: it carries its own
+// dismiss and only reappears if the underlying problem changes to something new.
+function hintStrip(title: string, body: string, onDismiss: () => void): HTMLElement {
   const wrap = document.createElement("div");
   wrap.className = "ns-setup";
+
+  const row = document.createElement("div");
+  row.className = "ns-setup-row";
   const heading = document.createElement("div");
   heading.className = "ns-setup-title";
   heading.textContent = title;
+  const dismiss = document.createElement("button");
+  dismiss.type = "button";
+  dismiss.className = "ns-drawer-close";
+  dismiss.append(icon(ICON_CLOSE, "ns-drawer-close-icon"));
+  dismiss.addEventListener("click", onDismiss);
+  row.append(heading, dismiss);
+
   const sub = document.createElement("div");
   sub.className = "ns-setup-hint";
   sub.textContent = body;
-  wrap.append(heading, sub);
-  return wrap;
-}
-
-function remotePanel(): HTMLElement {
-  const wrap = document.createElement("div");
-  wrap.className = "ns-setup";
-  const title = document.createElement("div");
-  title.className = "ns-setup-title";
-  title.textContent = "Remote page";
-  const sub = document.createElement("div");
-  sub.className = "ns-setup-hint";
-  sub.textContent = "Comment freely, then click Handoff to export a file for your developers.";
-  wrap.append(title, sub);
+  wrap.append(row, sub);
   return wrap;
 }
