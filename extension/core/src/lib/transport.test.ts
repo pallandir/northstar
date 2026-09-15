@@ -54,7 +54,11 @@ describe("flush", () => {
     url: "http://localhost:3000/",
     metadata: { page: "/", viewport: { w: 800, h: 600 }, elementText: "" },
     source: null,
+    component: null,
+    route: null,
+    target: null,
     screenshotDataUrl: null,
+    attachScreenshot: false,
   });
 
   function stubFetch(handler: (url: string, init?: RequestInit) => unknown) {

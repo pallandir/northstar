@@ -15,7 +15,8 @@ import {
   update,
 } from "./lib/transport.js";
 import type { Message, PinModel, QueueStatus, Response } from "./messages.js";
-import type { SourceLocation } from "./types.js";
+import { installProbe } from "./probe/probe-script.js";
+import type { ComponentInfo, RouteInfo, SourceLocation } from "./types.js";
 
 const ACTIVE_KEY = "cc-active";
 
@@ -32,11 +33,20 @@ browser.runtime.onInstalled.addListener(() => {
 async function injectOverlay(tabId: number): Promise<boolean> {
   try {
     await browser.scripting.executeScript({ target: { tabId }, files: [contentScript] });
-    return true;
   } catch {
     await browser.action.setBadgeText({ tabId, text: "n/a" });
     return false;
   }
+  try {
+    // Best effort: the main-world probe is what lets a comment name its component and route
+    // without the page installing anything. Some pages (chrome://, the PDF viewer, a strict
+    // sandboxed frame) refuse main-world injection even though the content script above
+    // succeeded; targeting then degrades to the DOM-only path rather than failing activation.
+    await browser.scripting.executeScript({ target: { tabId }, world: "MAIN", func: installProbe });
+  } catch {
+    // degrade silently
+  }
+  return true;
 }
 
 async function setOverlay(tabId: number, on: boolean): Promise<void> {
@@ -172,8 +182,8 @@ async function pagePins(url: string, tabUrl?: string): Promise<PinModel[]> {
         status: "pending",
         kind: q.operation.type,
         removable: true,
-        route: routeOf(q.url),
-        target: targetLabel(q.operator, q.source, q.metadata.elementText),
+        route: routeOf(q.route, q.url),
+        target: targetLabel(q.component, q.operator, q.source, q.metadata.elementText),
         planFirst: q.planFirst ?? false,
         hasScreenshot: Boolean(q.screenshotDataUrl),
         operation: { property: q.operation.property, from: q.operation.from, to: q.operation.to },
@@ -187,17 +197,23 @@ async function pagePins(url: string, tabUrl?: string): Promise<PinModel[]> {
         status: s.status === "open" ? "processing" : s.status,
         kind: s.operation.type,
         removable: false,
-        route: s.metadata.page,
-        target: targetLabel(s.operator, s.source ?? null, s.metadata.elementText),
+        route: routeOf(s.route ?? null, s.url),
+        target: targetLabel(
+          s.component ?? null,
+          s.operator,
+          s.source ?? null,
+          s.metadata.elementText,
+        ),
         planFirst: false,
-        hasScreenshot: false,
+        hasScreenshot: Boolean(s.screenshot),
         operation: { property: s.operation.property, from: s.operation.from, to: s.operation.to },
       }),
     ),
   ];
 }
 
-function routeOf(url: string): string {
+function routeOf(route: RouteInfo | null, url: string): string {
+  if (route?.pattern) return route.pattern;
   try {
     return new URL(url).pathname || "/";
   } catch {
@@ -205,7 +221,13 @@ function routeOf(url: string): string {
   }
 }
 
-function targetLabel(xpath: string, source: SourceLocation | null, elementText: string): string {
+function targetLabel(
+  component: ComponentInfo | null,
+  xpath: string,
+  source: SourceLocation | null,
+  elementText: string,
+): string {
+  if (component?.stack?.[0]?.name) return component.stack[0].name;
   if (source?.path) {
     const base = source.path.split(/[\\/]/).pop() ?? source.path;
     const name = base.replace(/\.[^.]+$/, "");

@@ -94,7 +94,11 @@ export class CommentStore {
       metadata: incoming.metadata,
       status: "open",
       source: safeSource,
+      component: incoming.component ?? null,
+      route: incoming.route ?? null,
+      target: incoming.target ?? null,
       screenshot,
+      attachScreenshot: incoming.attachScreenshot ?? false,
       planFirst: incoming.planFirst ?? false,
     };
     return this.enqueue(async () => {
@@ -251,6 +255,10 @@ function serialize(comments: Comment[]): string {
         `- source: ${c.source.path}:${c.source.line}:${c.source.column} (${c.source.via})`,
       );
     }
+    if (c.component) lines.push(`- component: ${JSON.stringify(c.component)}`);
+    if (c.route) lines.push(`- route: ${JSON.stringify(c.route)}`);
+    if (c.target) lines.push(`- target: ${JSON.stringify(c.target)}`);
+    if (c.attachScreenshot) lines.push("- attachscreenshot: true");
     if (c.planFirst) lines.push("- planfirst: true");
     lines.push(
       `- operator: ${c.operator}`,
@@ -309,7 +317,11 @@ function parse(raw: string): Comment[] {
       source: source
         ? { path: source[1], line: Number(source[2]), column: Number(source[3]), via: source[4] }
         : null,
+      component: safeJsonObject(kv.component),
+      route: safeJsonObject(kv.route),
+      target: safeJsonObject(kv.target),
       screenshot: current.screenshot ?? null,
+      attachScreenshot: kv.attachscreenshot === "true",
       planFirst: kv.planfirst === "true",
     });
   };
@@ -403,6 +415,15 @@ function safeJson(value?: string): string | undefined {
     return JSON.parse(value);
   } catch {
     return value;
+  }
+}
+
+function safeJsonObject<T>(value?: string): T | null {
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
   }
 }
 

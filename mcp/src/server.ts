@@ -17,8 +17,13 @@ starts from that line.
 
 1. Call list_comments with status "open" to fetch the batch. It returns full per-comment detail, so no \
 second lookup is needed.
-2. Implement each comment against the real source. The source location (file:line:column) is the most \
-reliable pointer; fall back to the operator selector and the element text when it is absent or stale.
+2. Implement each comment at the location it names. Each comment carries, in order of reliability: a \
+route (the page and, when the confidence is "exact", the route file that renders it), a component \
+stack (the rendering component and its ancestors), a source location (file:line:column, when the page \
+exposed one), and a target (a CSS selector plus tag/id/test-id/classes/attributes/text/ancestors). \
+Use these to go straight to the file; do not grep or search the codebase for the element unless every \
+one of these is absent, which should be rare. A route marked "inferred" is a guess from the URL shape, \
+not a confirmed route file, so treat it as a hint, not a fact.
 3. Call resolve_comment (or resolve_comments for the whole batch) to mark what you finished.
 4. Defer instead of implementing when a comment carries planFirst, is too heavy to do inline (a new \
 dependency, a cross-cutting change), or is too vague to act on. Use category "needs-plan" for the \
@@ -131,22 +136,55 @@ Give a one-line reason. The comment leaves the open work list and a notice appea
 }
 
 function render(c: Comment): string {
-  const lines = [`[${c.status}] ${c.id} · ${c.metadata.page} · ${c.operation.type}`, c.comment];
+  const lines = [`[${c.status}] ${c.id} · ${c.operation.type}`];
+
+  if (c.route) {
+    const bits = [c.route.router, c.route.routeFile, formatParams(c.route.params)].filter(Boolean);
+    const suffix = bits.length ? ` (${bits.join(" · ")})` : "";
+    lines.push(
+      `route: ${c.route.pattern}${suffix}${c.route.confidence === "inferred" ? "  [inferred, not confirmed]" : ""}`,
+    );
+  } else {
+    lines.push(`route: ${c.metadata.page}`);
+  }
+
+  if (c.component?.stack.length) {
+    lines.push(`component: ${c.component.stack.map((f) => f.name).join(" < ")}`);
+  }
+
+  if (c.source) {
+    lines.push(`source: ${c.source.path}:${c.source.line}:${c.source.column} (${c.source.via})`);
+  }
+
+  if (c.target) {
+    const tag = c.target.id ? `<${c.target.tag} id="${c.target.id}">` : `<${c.target.tag}>`;
+    lines.push(`element: ${tag}  selector: ${c.target.selector}`);
+    if (c.target.ownText) lines.push(`text: ${JSON.stringify(c.target.ownText)}`);
+  } else if (c.metadata.elementText) {
+    lines.push(`elementText: ${JSON.stringify(c.metadata.elementText)}`);
+  }
+  if (!c.source && !c.target) lines.push(`operator: ${c.operator}`);
+
   const op = c.operation;
   if (op.type === "style" && op.property && op.from !== null && op.to !== null) {
     lines.push(`operation: ${op.type} ${op.property}: ${op.from} -> ${op.to}`);
   } else if (op.type === "text" && op.from !== null && op.to !== null) {
     lines.push(`operation: ${op.type} ${JSON.stringify(op.from)} -> ${JSON.stringify(op.to)}`);
   }
-  if (c.source) {
-    lines.push(`source: ${c.source.path}:${c.source.line}:${c.source.column} (${c.source.via})`);
-  }
-  lines.push(`operator: ${c.operator}`);
-  lines.push(`elementText: ${JSON.stringify(c.metadata.elementText)}`);
+
+  lines.push(c.comment);
+
   if (c.screenshot) lines.push(`screenshot: ${c.screenshot}`);
   if (c.planFirst) lines.push("plan-first: true");
   lines.push(`url: ${c.url}`);
   return lines.join("\n");
+}
+
+function formatParams(params: Record<string, string> | null): string | null {
+  if (!params) return null;
+  const entries = Object.entries(params);
+  if (entries.length === 0) return null;
+  return entries.map(([k, v]) => `${k}=${v}`).join(",");
 }
 
 function text(value: string) {

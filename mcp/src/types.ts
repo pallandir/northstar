@@ -22,6 +22,43 @@ export interface CommentMetadata {
   elementText: string;
 }
 
+export interface ComponentFrame {
+  name: string;
+}
+
+export interface ComponentInfo {
+  stack: ComponentFrame[];
+}
+
+export interface RouteInfo {
+  pattern: string;
+  params: Record<string, string> | null;
+  router: string;
+  routeFile: string | null;
+  confidence: "exact" | "inferred";
+}
+
+export interface TargetAncestor {
+  tag: string;
+  id: string | null;
+  classes: string[];
+}
+
+export interface Target {
+  selector: string;
+  tag: string;
+  id: string | null;
+  testId: string | null;
+  role: string | null;
+  ariaLabel: string | null;
+  classes: string[];
+  attributes: Record<string, string>;
+  ownText: string;
+  ancestors: TargetAncestor[];
+  rect: { x: number; y: number; w: number; h: number };
+  outerHtml: string;
+}
+
 export interface Comment {
   id: string;
   createdAt: string;
@@ -32,7 +69,11 @@ export interface Comment {
   metadata: CommentMetadata;
   status: CommentStatus;
   source: SourceLocation | null;
+  component: ComponentInfo | null;
+  route: RouteInfo | null;
+  target: Target | null;
   screenshot: string | null;
+  attachScreenshot: boolean;
   planFirst?: boolean;
 }
 
@@ -61,6 +102,10 @@ export interface IncomingComment {
   url: string;
   metadata: CommentMetadata;
   source?: SourceLocation | null;
+  component?: ComponentInfo | null;
+  route?: RouteInfo | null;
+  target?: Target | null;
   screenshotDataUrl?: string | null;
+  attachScreenshot?: boolean;
   planFirst?: boolean;
 }

@@ -22,6 +22,47 @@ const sourceSchema = z
   })
   .strict();
 
+const componentSchema = z
+  .object({
+    stack: z.array(z.object({ name: z.string().max(200) }).strict()).max(12),
+  })
+  .strict();
+
+const routeSchema = z
+  .object({
+    pattern: z.string().max(MAX_SHORT),
+    params: z.record(z.string().max(200), z.string().max(500)).nullable(),
+    router: z.string().max(100),
+    routeFile: z.string().max(MAX_SHORT).nullable(),
+    confidence: z.enum(["exact", "inferred"]),
+  })
+  .strict();
+
+const targetAncestorSchema = z
+  .object({
+    tag: z.string().max(64),
+    id: z.string().max(200).nullable(),
+    classes: z.array(z.string().max(200)).max(20),
+  })
+  .strict();
+
+const targetSchema = z
+  .object({
+    selector: z.string().max(MAX_SHORT),
+    tag: z.string().max(64),
+    id: z.string().max(200).nullable(),
+    testId: z.string().max(200).nullable(),
+    role: z.string().max(100).nullable(),
+    ariaLabel: z.string().max(500).nullable(),
+    classes: z.array(z.string().max(200)).max(20),
+    attributes: z.record(z.string().max(100), z.string().max(500)),
+    ownText: z.string().max(2000),
+    ancestors: z.array(targetAncestorSchema).max(10),
+    rect: z.object({ x: z.number(), y: z.number(), w: z.number(), h: z.number() }).strict(),
+    outerHtml: z.string().max(2000),
+  })
+  .strict();
+
 const screenshotSchema = z
   .string()
   .regex(/^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/, "invalid screenshot data url")
@@ -52,7 +93,11 @@ export const incomingCommentSchema = z
     url: z.string().max(MAX_URL),
     metadata: metadataSchema,
     source: sourceSchema.nullish(),
+    component: componentSchema.nullish(),
+    route: routeSchema.nullish(),
+    target: targetSchema.nullish(),
     screenshotDataUrl: screenshotSchema,
+    attachScreenshot: z.boolean().optional(),
     planFirst: z.boolean().optional(),
   })
   .strict();

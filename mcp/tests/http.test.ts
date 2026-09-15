@@ -314,3 +314,70 @@ test("source.path with traversal segments is rejected with 400", async () => {
   const res = await call("POST", "/comments", jsonHeaders(), body);
   assert.equal(res.status, 400);
 });
+
+test("a batch carrying component, route and target round-trips through GET /state", async () => {
+  const body = JSON.stringify([
+    comment({
+      source: { path: "src/App.tsx", line: 12, column: 3, via: "react-fiber" },
+      component: { stack: [{ name: "TrafficSources" }, { name: "DashboardPage" }] },
+      route: {
+        pattern: "/users/:id",
+        params: { id: "8123" },
+        router: "react-router",
+        routeFile: "app/routes/users.$id.tsx",
+        confidence: "exact",
+      },
+      target: {
+        selector: '[data-testid="traffic"] > article.card',
+        tag: "article",
+        id: null,
+        testId: "traffic",
+        role: null,
+        ariaLabel: null,
+        classes: ["card"],
+        attributes: {},
+        ownText: "Traffic sources",
+        ancestors: [{ tag: "section", id: "dashboard", classes: [] }],
+        rect: { x: 0, y: 0, w: 100, h: 40 },
+        outerHtml: '<article class="card">Traffic sources</article>',
+      },
+      attachScreenshot: true,
+    }),
+  ]);
+  const post = await call("POST", "/comments", jsonHeaders(), body);
+  assert.equal(post.status, 201);
+  const postedId = JSON.parse(post.body).ids[0];
+
+  const state = await call("GET", "/state", headers());
+  const stored = JSON.parse(state.body).comments.find((c: { id: string }) => c.id === postedId);
+  assert.ok(stored, "posted comment should be present in /state");
+  assert.equal(stored.component.stack[0].name, "TrafficSources");
+  assert.equal(stored.route.pattern, "/users/:id");
+  assert.equal(stored.route.confidence, "exact");
+  assert.equal(stored.target.selector, '[data-testid="traffic"] > article.card');
+  assert.equal(stored.attachScreenshot, true);
+});
+
+test("rejects a target payload with an unknown field (strict schema)", async () => {
+  const body = JSON.stringify([
+    comment({
+      target: {
+        selector: "div",
+        tag: "div",
+        id: null,
+        testId: null,
+        role: null,
+        ariaLabel: null,
+        classes: [],
+        attributes: {},
+        ownText: "",
+        ancestors: [],
+        rect: { x: 0, y: 0, w: 0, h: 0 },
+        outerHtml: "<div></div>",
+        extra: "not allowed",
+      },
+    }),
+  ]);
+  const res = await call("POST", "/comments", jsonHeaders(), body);
+  assert.equal(res.status, 400);
+});

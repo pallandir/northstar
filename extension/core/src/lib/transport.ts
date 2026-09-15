@@ -7,10 +7,13 @@ import type {
 } from "../messages.js";
 import type {
   CommentMetadata,
+  ComponentInfo,
   DraftRequest,
   Operation,
   QueuedRequest,
+  RouteInfo,
   SourceLocation,
+  Target,
 } from "../types.js";
 import { browser } from "./browser.js";
 
@@ -35,6 +38,10 @@ export interface ServerComment {
   metadata: CommentMetadata;
   status: PinStatus;
   source?: SourceLocation | null;
+  component?: ComponentInfo | null;
+  route?: RouteInfo | null;
+  target?: Target | null;
+  screenshot?: string | null;
 }
 
 interface Health {

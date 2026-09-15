@@ -1,9 +1,11 @@
 import { browser } from "../lib/browser.js";
-import { captureElement } from "../lib/fingerprint.js";
+import { captureElement, captureTarget } from "../lib/fingerprint.js";
 import { resolveSource } from "../lib/source-map.js";
 import { isLocalUrl } from "../lib/transport.js";
 import { resolveXPath } from "../lib/xpath.js";
 import type { Message, PinModel, QueueStatus, Response, SendOutcome } from "../messages.js";
+import { onNavigate, probeElement } from "../probe/client.js";
+import type { ProbeResult } from "../probe/protocol.js";
 import type { DraftRequest, Operation, Rect } from "../types.js";
 import { Drawer, type DrawerContext } from "./drawer.js";
 import { downloadHandoff } from "./handoff.js";
@@ -38,6 +40,8 @@ interface ContentState {
   lastStatus: QueueStatus | null;
   lastSend: SendOutcome | null;
   pollTimer: number | null;
+  pendingProbe: Promise<ProbeResult | null> | null;
+  stopNavigateListener: (() => void) | null;
 }
 
 function init(): void {
@@ -50,6 +54,8 @@ function init(): void {
     lastStatus: null,
     lastSend: null,
     pollTimer: null,
+    pendingProbe: null,
+    stopNavigateListener: null,
   };
   const mode = pageMode();
 
@@ -95,8 +101,13 @@ function init(): void {
       });
       void refresh();
       startPolling();
+      // An SPA navigation (pushState/replaceState/popstate/hashchange) leaves the pin set and
+      // the route stale otherwise, since nothing else observes it.
+      st.stopNavigateListener = onNavigate(() => void refresh());
     } else {
       stopPolling();
+      st.stopNavigateListener?.();
+      st.stopNavigateListener = null;
       surface.closeActionMenu();
       surface.setSelection(null);
       surface.highlightHover(null);
@@ -168,6 +179,10 @@ function init(): void {
     surface.setSelection(el);
     render();
 
+    // Start the probe round trip as soon as the element is picked rather than waiting for
+    // record(), so the answer is usually already in by the time the user saves.
+    st.pendingProbe = probeElement(el);
+
     st.interacting = true;
     updateCursor();
     surface.showActionMenu(el, {
@@ -210,7 +225,7 @@ function init(): void {
         el as HTMLElement,
         (operation, summary) => {
           done();
-          void record(el, { comment: summary, operation, attachScreenshot: true });
+          void record(el, { comment: summary, operation });
         },
         done,
       );
@@ -224,7 +239,6 @@ function init(): void {
           void record(el, {
             comment,
             operation: { type: "text", property: null, from, to },
-            attachScreenshot: true,
           });
         },
         done,
@@ -255,10 +269,16 @@ function init(): void {
     const r = el.getBoundingClientRect();
     const rect: Rect = { x: r.x, y: r.y, w: r.width, h: r.height };
 
+    // Explicit consent only: undefined must not capture, and nothing forces a screenshot on the
+    // user's behalf any more.
+    const attachScreenshot = payload.attachScreenshot === true;
     let screenshot: string | null = null;
-    if (payload.attachScreenshot !== false) {
+    if (attachScreenshot) {
       screenshot = await captureHidden(rect);
     }
+
+    const probeResult = st.pendingProbe ? await st.pendingProbe : null;
+    st.pendingProbe = null;
 
     const draft: DraftRequest = {
       comment: payload.comment,
@@ -270,8 +290,12 @@ function init(): void {
         viewport: { w: window.innerWidth, h: window.innerHeight },
         elementText,
       },
-      source: resolveSource(el),
+      source: resolveSource(el) ?? probeResult?.source ?? null,
+      component: probeResult?.component ?? null,
+      route: probeResult?.route ?? null,
+      target: captureTarget(el, rect),
       screenshotDataUrl: screenshot,
+      attachScreenshot,
       planFirst: payload.planFirst ?? false,
     };
     await send({ type: "save-request", draft });

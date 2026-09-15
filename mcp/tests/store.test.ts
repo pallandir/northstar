@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, unlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, test } from "node:test";
@@ -128,6 +128,48 @@ test("text operation containing the arrow sequence round-trips intact", async ()
   const [got] = await store.list();
   assert.equal(got.operation.from, 'before " -> " after');
   assert.equal(got.operation.to, 'end " -> " done');
+});
+
+test("component, route, target and attachScreenshot survive the markdown fallback parse", async () => {
+  const store = new CommentStore(root);
+  await store.add(
+    sample({
+      component: { stack: [{ name: "TrafficSources" }, { name: "DashboardPage" }] },
+      route: {
+        pattern: "/users/:id",
+        params: { id: "8123" },
+        router: "react-router",
+        routeFile: "app/routes/users.$id.tsx",
+        confidence: "exact",
+      },
+      target: {
+        selector: "article.card",
+        tag: "article",
+        id: null,
+        testId: null,
+        role: null,
+        ariaLabel: null,
+        classes: ["card"],
+        attributes: {},
+        ownText: "Traffic sources",
+        ancestors: [],
+        rect: { x: 0, y: 0, w: 10, h: 10 },
+        outerHtml: '<article class="card"></article>',
+      },
+      attachScreenshot: true,
+    }),
+  );
+
+  // The store always writes both formats; forcing the JSON one away is the only way to exercise
+  // the hand-rolled markdown parser rather than a JSON.stringify/parse round trip.
+  await unlink(store.commentsPath);
+
+  const [got] = await store.list();
+  assert.equal(got.component?.stack[0].name, "TrafficSources");
+  assert.equal(got.route?.pattern, "/users/:id");
+  assert.equal(got.route?.params?.id, "8123");
+  assert.equal(got.target?.selector, "article.card");
+  assert.equal(got.attachScreenshot, true);
 });
 
 test("style operation with arrow-sequence values round-trips intact", async () => {

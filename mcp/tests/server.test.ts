@@ -175,3 +175,71 @@ test("the server exposes exactly the six comment tools", async () => {
 test("the watch prompt is gone", async () => {
   await assert.rejects(() => client.listPrompts());
 });
+
+test("list_comments leads with route, component, source and selector when present", async () => {
+  await store.add(
+    sample({
+      operator: "/html/body/main[1]",
+      source: {
+        path: "src/components/TrafficSources.tsx",
+        line: 42,
+        column: 8,
+        via: "react-fiber",
+      },
+      component: { stack: [{ name: "TrafficSources" }, { name: "DashboardPage" }] },
+      route: {
+        pattern: "/users/:id",
+        params: { id: "8123" },
+        router: "react-router",
+        routeFile: "app/routes/users.$id.tsx",
+        confidence: "exact",
+      },
+      target: {
+        selector: '[data-testid="traffic"] > article.card',
+        tag: "article",
+        id: null,
+        testId: "traffic",
+        role: null,
+        ariaLabel: null,
+        classes: ["card"],
+        attributes: {},
+        ownText: "Traffic sources",
+        ancestors: [],
+        rect: { x: 0, y: 0, w: 10, h: 10 },
+        outerHtml: '<article class="card">Traffic sources</article>',
+      },
+    }),
+  );
+
+  const result = await client.callTool({ name: "list_comments", arguments: {} });
+  const output = text(result);
+  assert.ok(output.includes("route: /users/:id"));
+  assert.ok(output.includes("react-router"));
+  assert.ok(output.includes("app/routes/users.$id.tsx"));
+  assert.ok(output.includes("component: TrafficSources < DashboardPage"));
+  assert.ok(output.includes("source: src/components/TrafficSources.tsx:42:8 (react-fiber)"));
+  assert.ok(output.includes('selector: [data-testid="traffic"] > article.card'));
+  assert.ok(!output.includes("[inferred"));
+});
+
+test("list_comments marks an inferred route so the agent does not treat it as fact", async () => {
+  await store.add(
+    sample({
+      route: {
+        pattern: "/users/:id",
+        params: null,
+        router: "unknown",
+        routeFile: null,
+        confidence: "inferred",
+      },
+    }),
+  );
+  const result = await client.callTool({ name: "list_comments", arguments: {} });
+  assert.ok(text(result).includes("[inferred, not confirmed]"));
+});
+
+test("list_comments falls back to the operator selector only when source and target are absent", async () => {
+  await store.add(sample());
+  const result = await client.callTool({ name: "list_comments", arguments: {} });
+  assert.ok(text(result).includes("operator: /html/body/main[1]"));
+});
