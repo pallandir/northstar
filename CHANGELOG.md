@@ -4,9 +4,11 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
-## [2.0.0] - 2026-09-07
+## [2.0.0] - 2026-09-15
 
 A rework around a single idea: **Send to AI** is the only thing that starts work.
+This release also makes that work land at the right place without help: every
+comment now names its own route, component and source.
 
 ### Changed
 
@@ -25,14 +27,53 @@ A rework around a single idea: **Send to AI** is the only thing that starts work
   `/handshake`, `/ping`, `/wait` and `/ratings`. Loopback binding, the Origin and
   Host allowlists, the body cap and schema validation all stay. See
   [SECURITY.md](./SECURITY.md) for what this trade does and does not cover.
+- **BREAKING: the comment wire shape widens.** Every comment now carries
+  `component`, `route` and `target` alongside `source`, validated by strict zod
+  schemas server-side; a client sending the old shape gets a clean `400` rather
+  than a comment that silently lacks them.
+- **BREAKING: the repo splits into `mcp/` and `extension/{core,chromium,firefox}`.**
+  `mcp-server/` becomes `mcp/`. The extension's source lives once, in
+  `extension/core/`; `extension/chromium/` and `extension/firefox/` hold only a
+  manifest, a Vite config and a store listing each, so a fix lands in both
+  builds together instead of drifting between two copies.
+- **The three-chip action menu becomes one popover.** Clicking an element used to
+  draw a selection box and a pill of three chips (Comment / Color / Text), each
+  opening its own separate panel. It is now one popover with a target header
+  (component, source, selector) and three tabs sharing one footer. Text and
+  colour edits preview live against the element and revert on Cancel, Esc, or
+  switching tabs.
+- **The design system is rewritten.** A navy ground with a single amber accent
+  replaces the light SaaS-card look; the selection/hover boxes become a
+  four-corner reticle instead of a full box; a real six-step spacing scale, a
+  three-step radius scale, and a declared z-scale replace ad hoc literals and
+  nine `--cc-z-*` references that were never actually defined. The popup drops
+  its own divergent button styles (32px, 8px radius) for the same
+  `styles/controls.css` the overlay uses (34px, 6px).
 
 ### Added
 
+- **Zero-config targeting.** A script injected into the page's own main world
+  reads React (18 and 19), Vue (2 and 3), Svelte and Angular debug state
+  directly, no build plugin required, and resolves the rendering component, an
+  exact `file:line:column` where the framework tracks one, and the route
+  (exact from Next.js, React Router, Vue Router or Nuxt; otherwise inferred from
+  the URL shape and marked as such). Every comment also carries a stable CSS
+  selector, preferring `data-testid`, then a real id, then a class chain scoped
+  to the nearest stable ancestor, verified unique before being accepted.
 - **Firefox support.** The extension builds for Gecko from the same source with
   `npm run build:firefox` and passes `web-ext lint` with no errors. Firefox 128 is
-  the floor, set by the Popover API the overlay needs.
+  the floor, set by the Popover API the overlay needs. A signing workflow
+  (`.github/workflows/publish-firefox.yml`), AMO listing copy, and a reviewer
+  source-archive script are ready for the first submission.
 - **Terminal controls.** `NORTHSTAR_TERMINAL` forces a driver, `NORTHSTAR_INJECT=0`
   turns the typing off.
+- **Screenshot consent is explicit end to end.** A comment now stores whether a
+  screenshot was actually requested (`attachScreenshot`), not just whether a
+  data URL happened to be attached, and the Handoff export honours the same
+  flag per item instead of including whatever a draft happened to carry.
+- **Deferred comments live in the drawer**, as a small callout above the list
+  with the same per-notice Dismiss action, rather than a separate floating
+  panel.
 
 ### Fixed
 
@@ -46,6 +87,22 @@ A rework around a single idea: **Send to AI** is the only thing that starts work
 - **Edits from the drawer silently dropped their flags.** `onEdit` was declared
   with two parameters but called with three, so `planFirst` and the screenshot
   option were lost when a comment was edited from the drawer rather than the pin.
+- **A screenshot could end up in the Handoff export, or be captured at all,
+  without being asked for.** The capture gate accepted an unset flag as consent
+  (`!== false` rather than `=== true`); the colour and text tools forced a
+  screenshot with no toggle to refuse it; and the export included an image
+  whenever a draft happened to carry one, never checking whether the user had
+  asked for it.
+- **A comment carried only an XPath and 120 characters of merged text when no
+  inspector plugin was installed**, which is why implementing one meant
+  grepping the codebase for the element. See "Zero-config targeting" above.
+- **The "Remote page" notice was a permanent, undismissable card.** An early
+  `return` in the toolbar's render path made the panel-clearing code
+  unreachable whenever the page was not `localhost`, so it stayed above the
+  toolbar for the whole session. On a remote page Handoff is now simply the
+  primary action; the remaining failure panel is a dismissible one-line strip
+  that never shows in the healthy case and stays dismissed while the same
+  problem persists.
 - **`.env.example` documented `NORTHSTAR_PORTS`**, a variable the server never
   read. The name is `NORTHSTAR_PORT`.
 
@@ -56,6 +113,9 @@ A rework around a single idea: **Send to AI** is the only thing that starts work
 - The setup checklist in the toolbar and the four-step tutorial in the popup.
 - Dead message handlers `clear-comments` and `count-all`, and the unused store
   helpers behind them.
+- `dompurify` and `marked`, along with the HTML-wrapping step in the Handoff
+  export they existed for; the export is real Markdown now, dropping the
+  content script bundle from 131KB to 64KB.
 
 ### Safety
 
@@ -65,6 +125,10 @@ A rework around a single idea: **Send to AI** is the only thing that starts work
 - Northstar reads the visible pane before typing and refuses while a numbered
   choice or yes/no prompt is showing, or if it cannot read the pane at all. Sends
   landing within a few seconds of each other are coalesced into one line.
+- The main-world probe reads only. It never assigns to a page object's
+  prototype and never calls back into the page beyond dispatching its own
+  events; every reader is wrapped so an unusual page can make it return
+  nothing, never throw.
 
 ## [1.0.0] - 2026-06-17
 

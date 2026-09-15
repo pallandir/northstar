@@ -30,14 +30,15 @@ and the notes turn into code.
 How it works
 
 Click the Northstar icon to bring up a lightweight toolbar over the current tab.
-From there you can point at any element and leave a comment, recolor its text or
-background live to try out an idea, or edit its copy inline to see how new wording
-reads. Every note is pinned to the element it belongs to, with a cropped screenshot
-and a stable reference so nothing gets lost in translation.
+From there you can point at any element and open one popover: leave a comment,
+recolor its text, background or border live to try out an idea, or edit its copy
+inline to see how new wording reads. Every note is pinned to the element it
+belongs to, with a stable reference and, only if you ask for one, a screenshot.
 
-When your dev build includes a framework inspector, each comment also carries the
-exact file, line, and column the element came from, so your assistant lands on the
-right code immediately instead of guessing.
+Northstar also reads the page itself to identify the component and route an
+element belongs to, wherever the framework exposes that (React, Vue, Svelte,
+Angular), so your assistant lands on the right code immediately instead of
+guessing or searching for it. Nothing to install for this.
 
 Your comments are delivered to a small companion server that runs on your own
 machine. Any assistant that speaks the Model Context Protocol can read them and act.
@@ -78,21 +79,25 @@ it happen in the codebase, this is that.
   click, and the access ends when the tab navigates.
 - **scripting**: injects the commenting toolbar into that one active tab on demand,
   in place of a declared content script, so the extension does not run on pages
-  automatically.
+  automatically. Also injects a small read-only script into the page's own main
+  world, the only place a framework's component and route state is visible, to
+  resolve precise targeting; that script writes nothing back to the page and has
+  no extension API access from that world.
 - **Host access (`http://localhost/*`, `http://127.0.0.1/*`, `http://*.localhost/*`)**:
   used only by the background service worker to reach the companion MCP server on
   loopback. This is not web-page access and does not let the extension contact any
   other site.
-- **storage / unlimitedStorage**: queues comments (which include screenshots)
-  locally so commenting works even when the assistant's server is not running, and
-  drains automatically when it is.
+- **storage / unlimitedStorage**: queues comments (which may include a screenshot
+  when you ask for one) locally so commenting works even when the assistant's
+  server is not running, and drains automatically when it is.
 
 ## Data use disclosures
 
 - Does not collect or transmit user data off the device.
 - No analytics, tracking, or third-party services.
-- All captured data (comment text, selector, screenshot, URL, source hint) stays on
-  the user's machine and is sent only to `127.0.0.1`.
+- All captured data (comment text, selector, target details, screenshot only when
+  requested, URL, source location) stays on the user's machine and is sent only to
+  `127.0.0.1`.
 
 ## Privacy policy URL
 

@@ -17,6 +17,14 @@ by your own AI coding assistant.
   is injected only into the single tab you activate, only after you click the
   toolbar button, under the `activeTab` grant, and that access is dropped as soon
   as the tab navigates. Visiting a page never gives the extension a foothold.
+- **The main-world probe reads only.** Resolving a component and a route requires
+  reading state a page's own framework attaches to its DOM nodes, which an
+  isolated-world content script cannot see. Northstar injects a second script
+  into the page's main world for this, on the same activation as the overlay.
+  That script never writes to a page object's prototype, never calls back into
+  the page beyond dispatching its own events, and has no extension API access
+  from that world; every reader is wrapped so an unusual page can make it return
+  nothing, never throw into that page's own execution.
 - **The network surface is loopback only.** The extension's only host permissions
   are `localhost`, `127.0.0.1`, and `*.localhost`, used solely by the background
   context to reach the ingest listener. It cannot make a network request to any

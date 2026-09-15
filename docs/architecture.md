@@ -10,13 +10,16 @@ keystrokes into the terminal the assistant runs in.
 
 ```mermaid
 flowchart TB
-    subgraph Browser["Browser extension (MV3, Chromium and Firefox)"]
+    subgraph Browser["Browser extension (one core, two build targets)"]
       Popup["Popup<br/>activate / deactivate"]
       Worker["Background<br/>message router, injection"]
       Content["Content script<br/>shadow-DOM overlay<br/>in the top layer"]
+      Probe["Main-world probe<br/>component / route / source"]
       Transport["Transport<br/>loopback client, queue"]
       Popup --> Worker
       Content --> Worker
+      Content -. "DOM attribute +<br/>CustomEvents" .-> Probe
+      Worker -- "injects, once per tab" --> Probe
       Worker --> Transport
     end
 
@@ -44,17 +47,28 @@ flowchart TB
 
 ### Browser extension
 
+The source lives once, in `extension/core/`. `extension/chromium/` and
+`extension/firefox/` each hold only a manifest, a Vite config, and a store listing;
+neither carries its own copy of the code, so a fix lands in both builds together.
+
 - **Popup** is the on and off switch. It reads the active tab's state, asks the
   background for the loopback host permission on Firefox, and asks it to inject or
   tear down the overlay.
 - **Background** is the extension's hub. It routes messages, verifies that every
-  message came from this extension, injects the content script on demand under the
-  `activeTab` grant, and delegates all networking to the transport layer. There is
-  no standing content script, so no page is touched until you activate it.
+  message came from this extension, injects the content script and the main-world
+  probe on demand under the `activeTab` grant, and delegates all networking to the
+  transport layer. There is no standing content script, so no page is touched until
+  you activate it.
 - **Content script** renders the whole UI inside a closed shadow DOM so page styles
   cannot leak in or out, and promotes that host into the **top layer** so no page
-  can stack above it. It draws the draggable toolbar, the hover and selection boxes,
-  pins, the composer, and the drawer.
+  can stack above it. It draws the draggable toolbar, the hover reticle, pins, the
+  inspector popover, and the drawer.
+- **Main-world probe** is the one piece of the extension that runs outside the
+  isolated world, because that is the only place a page's own framework state is
+  visible. It reads React, Vue, Svelte and Angular debug state to answer the
+  content script's requests with a component name, a source location, and a route,
+  over a DOM attribute and a pair of `CustomEvent`s, the one channel that crosses
+  the world boundary.
 - **Transport** is the only part that touches the network or storage. It discovers
   the server across the loopback port range, holds the comment queue in extension
   storage, and posts the whole batch in one request on Send.
@@ -84,7 +98,10 @@ One process exposes three faces.
 Everything the server persists lives under a single gitignored `.northstar/` folder
 at the project root: the comment store (`design-comments.md` and `.json`), the
 cropped screenshots (`design-shots/`), and the deferred list. The server also writes
-a `.gitignore` inside that folder so it can never be committed by accident.
+a `.gitignore` inside that folder so it can never be committed by accident. Each
+comment carries its route, its component stack, an optional exact source location,
+and a target descriptor (a stable selector, tag, classes, its own text, a short
+ancestor chain), alongside the comment text itself.
 
 ### AI assistant
 
