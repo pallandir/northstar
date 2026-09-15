@@ -4,7 +4,7 @@ export default {
     "scope-enum": [
       2,
       "always",
-      ["extension", "core", "chromium", "firefox", "mcp", "root", "deps", "ci", "docs"],
+      ["extension", "core", "chromium", "firefox", "mcp", "examples", "root", "deps", "ci", "docs"],
     ],
   },
 };

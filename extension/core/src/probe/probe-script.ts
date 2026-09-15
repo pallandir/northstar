@@ -341,11 +341,34 @@ export function installProbe(): void {
   function reactRouterRoute(el: Element | null): Route | null {
     let fiber = el ? (reactFiber(el) as Record<string, unknown> | null) : null;
     let guard = 0;
-    while (fiber && guard < 60) {
+    while (fiber && guard < 80) {
       guard++;
+      const memoizedProps = fiber.memoizedProps as Record<string, unknown> | undefined;
+
+      // React Router v6's <Routes> never mounts <Route> itself: it reads the path/element pairs
+      // as configuration and renders the matched element inside a RouteContext.Provider whose
+      // value carries the match, path and bound params. That provider is what is actually in the
+      // fiber tree, so this is the signal to look for, checked on every fiber regardless of type.
+      const value = memoizedProps?.value as Record<string, unknown> | undefined;
+      const matches = value?.matches as
+        | Array<{ route?: { path?: string }; params?: Record<string, string> }>
+        | undefined;
+      if (Array.isArray(matches) && matches.length > 0) {
+        const last = matches[matches.length - 1];
+        if (last?.route?.path) {
+          return {
+            pattern: last.route.path,
+            params: last.params ?? null,
+            router: "react-router",
+            routeFile: null,
+            confidence: "exact",
+          };
+        }
+      }
+
+      // Older usage (v5, or a <Route> rendered outside <Routes>) does mount it directly.
       const type = fiber.type as { displayName?: string; name?: string } | string | undefined;
       const name = typeof type === "object" ? (type?.displayName ?? type?.name) : undefined;
-      const memoizedProps = fiber.memoizedProps as Record<string, unknown> | undefined;
       if (
         (name === "Route" || name === "PathRouteProps") &&
         typeof memoizedProps?.path === "string"

@@ -4,7 +4,7 @@
 
 ## Scope
 
-<!-- Which workspace does this touch? core / chromium / firefox / mcp / root / deps / ci / docs -->
+<!-- Which workspace does this touch? extension / core / chromium / firefox / mcp / examples / root / deps / ci / docs -->
 
 ## Checklist
 

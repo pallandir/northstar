@@ -1,36 +1,11 @@
-const kpis = [
-  { id: "revenue", label: "Total revenue", value: "$48,200", delta: "+12.4%", up: true },
-  { id: "users", label: "Active users", value: "1,284", delta: "+3.1%", up: true },
-  { id: "churn", label: "Churn rate", value: "2.1%", delta: "-0.4%", up: true },
-  { id: "convert", label: "Conversion", value: "4.7%", delta: "-1.2%", up: false },
+import { Link, Route, Routes } from "react-router-dom";
+import { DashboardPage } from "./pages/DashboardPage.jsx";
+import { UserPage } from "./pages/UserPage.jsx";
+
+const nav = [
+  { label: "Dashboard", to: "/" },
+  { label: "Jamie Lee", to: "/users/8123" },
 ];
-
-const months = [
-  { m: "Jan", v: 42 },
-  { m: "Feb", v: 55 },
-  { m: "Mar", v: 48 },
-  { m: "Apr", v: 70 },
-  { m: "May", v: 63 },
-  { m: "Jun", v: 88 },
-];
-
-const gridLines = [100, 75, 50, 25, 0];
-
-const sources = [
-  { id: "direct", label: "Direct", pct: 38, color: "#0d99ff" },
-  { id: "organic", label: "Organic search", pct: 27, color: "#14ae5c" },
-  { id: "social", label: "Social", pct: 21, color: "#d97757" },
-  { id: "referral", label: "Referral", pct: 14, color: "#9b7cf6" },
-];
-
-const orders = [
-  { id: "#1042", customer: "Acme Corp", status: "Paid", amount: "$1,200" },
-  { id: "#1041", customer: "Globex", status: "Pending", amount: "$840" },
-  { id: "#1040", customer: "Initech", status: "Paid", amount: "$2,150" },
-  { id: "#1039", customer: "Umbrella", status: "Refunded", amount: "$320" },
-];
-
-const nav = ["Dashboard", "Analytics", "Customers", "Settings"];
 
 export function App() {
   return (
@@ -38,10 +13,10 @@ export function App() {
       <aside className="sidebar">
         <div className="brand">◆ Northwind</div>
         <nav className="nav">
-          {nav.map((item, i) => (
-            <a key={item} className={`nav-link${i === 0 ? " nav-link--active" : ""}`} href="#top">
-              {item}
-            </a>
+          {nav.map((item) => (
+            <Link key={item.to} className="nav-link" to={item.to}>
+              {item.label}
+            </Link>
           ))}
         </nav>
         <div className="sidebar-user">
@@ -54,115 +29,10 @@ export function App() {
       </aside>
 
       <main className="main">
-        <header className="topbar">
-          <div>
-            <h1 className="title">Overview</h1>
-            <p className="subtitle">Welcome back, here is how things look today.</p>
-          </div>
-          <div className="topbar-actions">
-            <input className="search" placeholder="Search…" />
-            <button className="cta" type="button">
-              New report
-            </button>
-          </div>
-        </header>
-
-        <section className="kpis">
-          {kpis.map((kpi) => (
-            <article key={kpi.id} className="card kpi">
-              <span className="kpi-label">{kpi.label}</span>
-              <strong className="kpi-value">{kpi.value}</strong>
-              <span className={`kpi-delta${kpi.up ? " kpi-delta--up" : " kpi-delta--down"}`}>
-                {kpi.delta}
-              </span>
-            </article>
-          ))}
-        </section>
-
-        <section className="panels">
-          <article className="card chart-card">
-            <div className="card-head">
-              <h2 className="card-title">Revenue by month</h2>
-              <span className="card-hint">Last 6 months</span>
-            </div>
-            <div className="chart">
-              <div className="chart-grid">
-                {gridLines.map((line) => (
-                  <div key={line} className="grid-line">
-                    <span className="grid-value">${line}k</span>
-                  </div>
-                ))}
-              </div>
-              <div className="bars">
-                {months.map((month) => (
-                  <div key={month.m} className="bar-col">
-                    <span className="bar-value">${month.v}k</span>
-                    <div className="bar" style={{ height: `${(month.v / 100) * 140}px` }} />
-                    <span className="bar-label">{month.m}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </article>
-
-          <article className="card sources-card">
-            <div className="card-head">
-              <h2 className="card-title">Traffic sources</h2>
-            </div>
-            <table className="table sources-table">
-              <thead>
-                <tr>
-                  <th>Source</th>
-                  <th className="num">Share</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sources.map((source) => (
-                  <tr key={source.id}>
-                    <td>
-                      <span className="source-dot" style={{ background: source.color }} />
-                      <span className="source-label">{source.label}</span>
-                    </td>
-                    <td className="num source-pct">{source.pct}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </article>
-        </section>
-
-        <section className="card table-card">
-          <div className="card-head">
-            <h2 className="card-title">Recent orders</h2>
-            <button className="link-btn" type="button">
-              View all
-            </button>
-          </div>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Order</th>
-                <th>Customer</th>
-                <th>Status</th>
-                <th className="num">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order) => (
-                <tr key={order.id}>
-                  <td className="mono">{order.id}</td>
-                  <td>{order.customer}</td>
-                  <td>
-                    <span className={`badge badge--${order.status.toLowerCase()}`}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="num">{order.amount}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+        <Routes>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/users/:id" element={<UserPage />} />
+        </Routes>
       </main>
 
       <style>{`
@@ -176,7 +46,6 @@ export function App() {
         .nav { display: flex; flex-direction: column; gap: 4px; }
         .nav-link { padding: 9px 12px; border-radius: 9px; font-size: 14px; color: #4b5563; }
         .nav-link:hover { background: #f4f5f7; }
-        .nav-link--active { background: #e8f4ff; color: #0d99ff; font-weight: 600; }
         .sidebar-user { display: flex; align-items: center; gap: 10px; margin-top: auto; padding-top: 16px; border-top: 1px solid #e6e6e6; }
         .avatar { width: 36px; height: 36px; border-radius: 50%; background: #0d99ff; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
         .user-name { font-size: 13px; font-weight: 600; }

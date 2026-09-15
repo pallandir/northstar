@@ -120,6 +120,34 @@ describe("installProbe", () => {
     expect(result?.component?.stack[0].name).toBe("TrafficSources.svelte");
   });
 
+  it("resolves an exact React Router v6 route from the RouteContext.Provider fiber", async () => {
+    // v6's <Routes> never mounts <Route> itself: it renders the matched element inside a
+    // RouteContext.Provider whose value carries the match. This fixture mimics that shape
+    // rather than a directly-mounted <Route path="...">, which is what v6 actually produces.
+    const providerFiber = {
+      type: {},
+      memoizedProps: {
+        value: {
+          matches: [{ route: { path: "/users/:id" }, params: { id: "8123" } }],
+        },
+      },
+      return: null,
+    };
+    const el = mount(document.createElement("div"));
+    (el as unknown as Record<string, unknown>).__reactFiber$xyz = {
+      type: function UserPage() {},
+      return: providerFiber,
+    };
+    const result = await ask(el);
+    expect(result?.route).toEqual({
+      pattern: "/users/:id",
+      params: { id: "8123" },
+      router: "react-router",
+      routeFile: null,
+      confidence: "exact",
+    });
+  });
+
   it("resolves an exact Next.js route from __NEXT_DATA__", async () => {
     (window as unknown as Record<string, unknown>).__NEXT_DATA__ = {
       page: "/users/[id]",
