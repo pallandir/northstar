@@ -73,7 +73,7 @@ gets there.
 | An MCP-capable AI coding assistant | reads comments and edits your source (Claude Code, Codex, Gemini, or any MCP client) | Yes |
 | Chrome, Edge, Brave, Arc, or Firefox 128+ | extension | Yes |
 | Your assistant started in tmux, iTerm2, or Terminal.app | lets Send to AI type into it | Yes |
-| Framework inspector plugin | precise `file:line:column` mapping | Yes |
+| React, Vue, Svelte, or Angular dev build | precise component, source and route resolution | No, automatic |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -116,10 +116,10 @@ For Firefox, build it yourself until the AMO listing is up:
 
 ```sh
 npm ci
-npm run build:firefox --workspace @northstar/extension
+npm run build:firefox
 ```
 
-Then load `extension/dist-firefox` through `about:debugging` > This Firefox >
+Then load `extension/firefox/dist` through `about:debugging` > This Firefox >
 Load Temporary Add-on. The first time you activate Northstar, Firefox asks for
 access to `localhost`. Grant it, or the extension cannot reach the server.
 
@@ -167,13 +167,16 @@ flowchart TD
 ```
 
 The extension activates per-tab when you click its toolbar icon. Each saved item
-carries a stable selector, visible text, computed styles, a cropped screenshot,
-and a precise `file:line:column` from the framework inspector plugin that anchors
-every edit to the right source location. On a `localhost` dev server the extension
-posts the whole batch to the MCP server running in your project, and the server
-types a one-line request into the terminal your assistant is running in. The
-assistant reads the batch through the MCP tools and applies it. Comments that need
-deeper thought are parked for later, and a notice appears in the browser toolbar.
+carries a stable selector, its own text, and, resolved automatically by a script
+Northstar injects into the page's own main world, the rendering component, the
+route, and, wherever the framework tracks it, a precise `file:line:column` that
+anchors the edit to the right source location. No plugin to install; it reads
+state a development build already exposes. On a `localhost` dev server the
+extension posts the whole batch to the MCP server running in your project, and the
+server types a one-line request into the terminal your assistant is running in. The
+assistant reads the batch through the MCP tools and applies it directly at the
+location named, rather than searching for it. Comments that need deeper thought
+are parked for later, and a notice appears in the browser toolbar.
 
 The line typed into your terminal is a fixed constant. Your comment text is never
 typed, it is read from the store, so nothing arriving over HTTP can influence what
@@ -193,9 +196,10 @@ lives.
 
 Your assistant runs in the repo and comments flow to it live over loopback.
 
-1. **Leave comments** with the four tools: **Select** to inspect an element,
-   **Comment** to leave a note, **Color** to change text or background color
-   live, **Text** to edit copy inline. Each saved item is pinned to its element
+1. **Leave comments.** Point at any element and one popover opens with three
+   tabs: **Comment** to leave a note, **Text** to edit its copy, **Colour** to
+   change its text, background, or border colour. Text and colour edits preview
+   live against the page as you type. Each saved item is pinned to its element
    and listed in the toolbar drawer.
 
 2. **Send to AI.** Saving queues an item locally; clicking **Send to AI**
@@ -222,18 +226,25 @@ assistant.
 
 ## Source mapping
 
-Comments carry a selector, element text, and bounding rect as a coarse anchor,
-and a precise `file:line:column` from the framework inspector data attribute
-your dev build exposes. That precise location is what lets the assistant edit
-the exact source that renders each element.
+Comments always carry a stable CSS selector, the element's own text, and its
+route as a baseline. On top of that, Northstar injects a small script into the
+page's own main world the moment you activate it, the only place a framework's
+debug state is visible, and asks it directly for the rendering component, the
+exact source location, and the route pattern. Nothing to install for this; it
+reads state your development build already exposes.
 
-Add the matching plugin to your dev build:
+| Framework | What resolves |
+|---|---|
+| React (18 and 19) | Component stack, `file:line:column`, route (Next.js, React Router) |
+| Vue 2 and 3 | Component stack, source file, route (Vue Router, Nuxt) |
+| Svelte | Component location |
+| Angular | Component name, source file where the build exposes it |
 
-| Framework | Plugin | Notes |
-|---|---|---|
-| React / Next.js | [`react-dev-inspector`](https://github.com/zthxxx/react-dev-inspector) | |
-| Vue / Nuxt | [`vite-plugin-vue-inspector`](https://github.com/webfansplz/vite-plugin-vue-inspector) | Set `Inspector({ cleanHtml: false })`. The default strips `data-v-inspector` from the DOM, so Northstar cannot read it. |
-| Svelte / SvelteKit | Svelte Inspector (built into `@sveltejs/vite-plugin-svelte`) | |
+When none of that is reachable, for a production build, or a framework outside
+this list, a comment still carries the stable selector and route rather than
+degrading to a raw XPath. A route Northstar could not confirm against the page's
+own router is marked as inferred, so your assistant treats it as a hint rather
+than a fact.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -243,9 +254,10 @@ Northstar's MCP server speaks standard MCP over stdio and works with any
 MCP-capable AI coding assistant, Claude Code, Cursor, Windsurf, and similar
 clients all connect the same way.
 
-The extension is Manifest V3 and builds for both engines: Chrome, Edge, Brave and
-Arc from `npm run build`, Firefox 128+ from `npm run build:firefox`. Firefox 128 is
-the floor because the overlay needs the Popover API to reach the top layer.
+The extension is Manifest V3 and builds for both engines from one source tree:
+`npm run build:chromium` for Chrome, Edge, Brave and Arc, `npm run build:firefox`
+for Firefox 128+. Plain `npm run build` builds both, plus the MCP server. Firefox
+128 is the floor because the overlay needs the Popover API to reach the top layer.
 
 ### Terminals
 

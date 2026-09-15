@@ -1,0 +1,6 @@
+{
+  "version": {
+    "approval_notes": "Build from source:\n\n1. Node 20 (see .nvmrc).\n2. npm ci\n3. npm run build:firefox\n4. The reviewable output is extension/firefox/dist/\n\nThe submitted zip is that directory, packaged with `web-ext build`.\n\nNote: the background entry chunk filename (assets/background.ts-<hash>.js) embeds a content hash that varies with the absolute build path, so a rebuild in a different directory yields a different hash. manifest.json and service-worker-loader.js reference it consistently within any single build; all other chunk names are stable.\n\nThe extension talks only to a loopback MCP server the developer runs locally (127.0.0.1, localhost); it makes no other network requests.",
+    "release_notes": { "en-US": "See CHANGELOG.md in the source archive." }
+  }
+}

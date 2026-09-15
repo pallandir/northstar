@@ -1,0 +1,66 @@
+name: Publish extension to AMO
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-firefox-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - run: npm run build --workspace @northstar/firefox
+
+      - name: Manifest version must match the tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          built=$(node -p "require('./extension/firefox/dist/manifest.json').version")
+          if [ "$built" != "${TAG#v}" ]; then
+            echo "manifest version $built does not match tag ${TAG#v}" >&2
+            exit 1
+          fi
+
+      - name: AMO validator
+        run: npx web-ext lint -s extension/firefox/dist
+
+      - name: Source archive for review
+        run: npm run source --workspace @northstar/firefox
+
+      - name: Submit listed version to AMO
+        working-directory: extension/firefox
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+        run: >
+          npx web-ext sign
+          --no-input
+          --channel listed
+          --source-dir dist
+          --artifacts-dir web-ext-artifacts
+          --upload-source-code web-ext-artifacts/northstar-source.zip
+          --amo-metadata amo-metadata.json
+          --approval-timeout 0
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: firefox-submission
+          path: extension/firefox/web-ext-artifacts/*.zip
+          retention-days: 14

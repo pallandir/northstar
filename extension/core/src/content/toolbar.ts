@@ -1,0 +1,293 @@
+import { browser } from "../lib/browser.js";
+import type { QueueStatus, SendOutcome } from "../messages.js";
+import {
+  ICON_CLOSE,
+  ICON_COMMENT,
+  ICON_GRIP,
+  ICON_HANDOFF,
+  ICON_SEND,
+  ICON_TARGET,
+  ICON_TRASH,
+  icon,
+} from "./icons.js";
+import type { Surface } from "./surface.js";
+
+export type Mode = "local" | "remote";
+
+const POS_KEY = "cc-toolbar-pos";
+
+export interface ToolbarHandlers {
+  onComments: () => void;
+  onSend: () => void;
+  onHandoff: () => void;
+  onReset: () => void;
+  onTogglePick: () => void;
+}
+
+export interface ToolbarState {
+  mode: Mode;
+  count: number;
+  noticeCount: number;
+  status: QueueStatus | null;
+  drawerOpen: boolean;
+  lastSend: SendOutcome | null;
+  picking: boolean;
+}
+
+export class Toolbar {
+  private readonly root: HTMLElement;
+  private readonly panel: HTMLElement;
+  private readonly commentsBtn: HTMLButtonElement;
+  private readonly commentsLabel: Text;
+  private readonly sendBtn: HTMLButtonElement;
+  private readonly handoffBtn: HTMLButtonElement;
+  private readonly targetBtn: HTMLButtonElement;
+  private readonly sendLabel: Text;
+  private panelKey = "";
+  private dismissedKey = "";
+  private sentTimer = 0;
+
+  constructor(surface: Surface, handlers: ToolbarHandlers) {
+    this.root = document.createElement("div");
+    this.root.className = "ns-toolbar";
+
+    this.panel = document.createElement("div");
+    this.panel.className = "ns-tb-panel";
+    this.panel.hidden = true;
+
+    const grip = document.createElement("div");
+    grip.className = "ns-grip ns-has-tip";
+    grip.append(icon(ICON_GRIP, "ns-action-glyph"));
+    grip.dataset.tip = "Drag to move";
+    this.makeDraggable(grip);
+
+    this.targetBtn = document.createElement("button");
+    this.targetBtn.type = "button";
+    this.targetBtn.className = "ns-action ns-action--icon ns-action--active ns-has-tip";
+    this.targetBtn.dataset.tip = "Pause element picking";
+    this.targetBtn.append(icon(ICON_TARGET, "ns-action-glyph"));
+    this.targetBtn.addEventListener("click", () => handlers.onTogglePick());
+
+    this.commentsLabel = document.createTextNode("Comments");
+    this.commentsBtn = document.createElement("button");
+    this.commentsBtn.type = "button";
+    this.commentsBtn.className = "ns-action ns-has-tip";
+    this.commentsBtn.dataset.tip = "Open the comments panel";
+    this.commentsBtn.append(icon(ICON_COMMENT, "ns-action-glyph"), this.commentsLabel);
+    this.commentsBtn.addEventListener("click", () => handlers.onComments());
+
+    this.sendLabel = document.createTextNode("Send to AI");
+    this.sendBtn = document.createElement("button");
+    this.sendBtn.type = "button";
+    this.sendBtn.className = "ns-action ns-action--primary ns-has-tip";
+    this.sendBtn.dataset.tip = "Send all comments to your AI assistant";
+    this.sendBtn.append(icon(ICON_SEND, "ns-action-glyph"), this.sendLabel);
+    this.sendBtn.addEventListener("click", () => handlers.onSend());
+
+    this.handoffBtn = action(ICON_HANDOFF, "Handoff", "Download a Markdown handoff", () =>
+      handlers.onHandoff(),
+    );
+
+    const resetBtn = document.createElement("button");
+    resetBtn.type = "button";
+    resetBtn.className = "ns-action ns-action--icon ns-action--danger ns-has-tip";
+    resetBtn.dataset.tip = "Delete all comments on this page";
+    resetBtn.append(icon(ICON_TRASH, "ns-action-glyph"));
+    resetBtn.addEventListener("click", () => handlers.onReset());
+
+    this.root.append(
+      this.panel,
+      grip,
+      this.targetBtn,
+      sep(),
+      this.commentsBtn,
+      sep(),
+      this.sendBtn,
+      this.handoffBtn,
+      resetBtn,
+    );
+    surface.append(this.root);
+    void this.restorePosition();
+  }
+
+  destroy(): void {
+    window.clearTimeout(this.sentTimer);
+    this.root.remove();
+  }
+
+  render(state: ToolbarState): void {
+    this.targetBtn.classList.toggle("ns-action--active", state.picking);
+    this.targetBtn.dataset.tip = state.picking ? "Pause element picking" : "Resume element picking";
+
+    this.commentsLabel.textContent =
+      state.noticeCount > 0
+        ? `Comments (${state.count}) · ${state.noticeCount} ${state.noticeCount === 1 ? "needs" : "need"} a plan`
+        : `Comments (${state.count})`;
+
+    if (state.mode === "remote") {
+      // A remote page never reaches the loopback server by design, so there is nothing to
+      // explain in a permanent card here: Handoff becomes the one thing to do, and its own
+      // tooltip and the popup say why.
+      this.sendBtn.hidden = true;
+      this.handoffBtn.classList.add("ns-action--primary");
+      this.handoffBtn.dataset.tip =
+        "Comment freely, then export a handoff file for your developers";
+      this.clearPanel();
+      return;
+    }
+
+    this.sendBtn.hidden = false;
+    this.handoffBtn.dataset.tip = "Download a Markdown handoff";
+
+    const status = state.status;
+    const reachable = Boolean(status?.serverReachable);
+    this.sendBtn.disabled = !reachable || !status || status.queued === 0;
+    this.handoffBtn.classList.toggle("ns-action--primary", !reachable);
+
+    const send = state.lastSend;
+    const terminal = status?.terminal;
+
+    // Only a real failure earns a strip, and only once per distinct problem: dismissing it
+    // keeps it dismissed while the same problem persists, rather than a poll cycle bringing
+    // it straight back.
+    if (send && !send.typed && send.reason) {
+      this.showFailure(`send:${send.reason}`, "Comments saved, not announced", send.reason);
+    } else if (!reachable) {
+      this.showFailure(
+        "offline",
+        "No Northstar server on this machine",
+        "Start your AI agent in the project you are commenting on.",
+      );
+    } else if (terminal && !terminal.available) {
+      this.showFailure(
+        `terminal:${terminal.reason ?? ""}`,
+        "Comments will not reach your agent",
+        terminal.reason ?? "",
+      );
+    } else {
+      this.clearPanel();
+    }
+  }
+
+  private showFailure(key: string, title: string, body: string): void {
+    if (key === this.dismissedKey) return;
+    this.setPanel(key, () => hintStrip(title, body, () => this.dismiss(key)));
+  }
+
+  private dismiss(key: string): void {
+    this.dismissedKey = key;
+    this.clearPanel();
+  }
+
+  flashSent(send: SendOutcome): void {
+    if (!send.typed) return;
+    window.clearTimeout(this.sentTimer);
+    this.sendLabel.textContent = send.sent === 1 ? "Sent 1" : `Sent ${send.sent}`;
+    this.sentTimer = window.setTimeout(() => {
+      this.sendLabel.textContent = "Send to AI";
+    }, 1600);
+  }
+
+  private setPanel(key: string, build: () => HTMLElement): void {
+    if (this.panelKey === key) return;
+    this.panelKey = key;
+    this.panel.replaceChildren(build());
+    this.panel.hidden = false;
+  }
+
+  private clearPanel(): void {
+    if (this.panelKey === "") return;
+    this.panelKey = "";
+    this.panel.replaceChildren();
+    this.panel.hidden = true;
+  }
+
+  private makeDraggable(handle: HTMLElement): void {
+    handle.classList.add("ns-drag");
+    let startX = 0;
+    let startY = 0;
+    let originLeft = 0;
+    let originTop = 0;
+
+    const onMove = (event: PointerEvent) => {
+      this.root.style.left = `${Math.max(0, originLeft + (event.clientX - startX))}px`;
+      this.root.style.top = `${Math.max(0, originTop + (event.clientY - startY))}px`;
+      this.root.style.transform = "none";
+      this.root.style.bottom = "auto";
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      void browser.storage.local.set({
+        [POS_KEY]: { left: this.root.style.left, top: this.root.style.top },
+      });
+    };
+    handle.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      const rect = this.root.getBoundingClientRect();
+      startX = event.clientX;
+      startY = event.clientY;
+      originLeft = rect.left;
+      originTop = rect.top;
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+    });
+  }
+
+  private async restorePosition(): Promise<void> {
+    const stored = await browser.storage.local.get(POS_KEY);
+    const pos = stored[POS_KEY] as { left: string; top: string } | undefined;
+    if (pos?.left && pos.top) {
+      this.root.style.left = pos.left;
+      this.root.style.top = pos.top;
+      this.root.style.transform = "none";
+      this.root.style.bottom = "auto";
+    }
+  }
+}
+
+function action(
+  iconNode: string,
+  label: string,
+  tip: string,
+  onClick: () => void,
+): HTMLButtonElement {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "ns-action ns-has-tip";
+  btn.dataset.tip = tip;
+  btn.append(icon(iconNode, "ns-action-glyph"), label);
+  btn.addEventListener("click", onClick);
+  return btn;
+}
+
+function sep(): HTMLElement {
+  const el = document.createElement("span");
+  el.className = "ns-sep";
+  return el;
+}
+
+// A one-line strip for a real, ongoing problem, never a permanent card: it carries its own
+// dismiss and only reappears if the underlying problem changes to something new.
+function hintStrip(title: string, body: string, onDismiss: () => void): HTMLElement {
+  const wrap = document.createElement("div");
+  wrap.className = "ns-setup";
+
+  const row = document.createElement("div");
+  row.className = "ns-setup-row";
+  const heading = document.createElement("div");
+  heading.className = "ns-setup-title";
+  heading.textContent = title;
+  const dismiss = document.createElement("button");
+  dismiss.type = "button";
+  dismiss.className = "ns-drawer-close";
+  dismiss.append(icon(ICON_CLOSE, "ns-drawer-close-icon"));
+  dismiss.addEventListener("click", onDismiss);
+  row.append(heading, dismiss);
+
+  const sub = document.createElement("div");
+  sub.className = "ns-setup-hint";
+  sub.textContent = body;
+  wrap.append(row, sub);
+  return wrap;
+}

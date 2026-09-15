@@ -1,0 +1,53 @@
+{
+  "name": "@pallandir/northstar",
+  "version": "2.0.0",
+  "description": "MCP server that ingests real-time UI comments from the Northstar extension and exposes them to an AI coding assistant.",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "type": "module",
+  "homepage": "https://github.com/pallandir/northstar#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pallandir/northstar.git",
+    "directory": "mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/pallandir/northstar/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai-coding-assistant",
+    "ui-feedback",
+    "design-review"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "northstar": "dist/index.js"
+  },
+  "files": ["dist", "LICENSE.md", "README.md"],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "prepack": "node -e \"require('fs').copyFileSync('../LICENSE.md','LICENSE.md')\"",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.13.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

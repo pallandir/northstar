@@ -8,10 +8,13 @@ real source files.
 ## The short version
 
 You click the Northstar icon to turn it on for the current tab. A small floating
-toolbar appears. You point at an element, leave a note (or recolor it, or edit its
-text), and the note is pinned to that element. When you are ready, you click **Send
-to AI**. Northstar writes the batch to disk and types one line into the terminal your
-assistant is already running in, then presses Enter for you.
+toolbar appears. You point at an element and one popover opens: a Comment tab, a
+Text tab, and a Colour tab, so there is one surface for everything you might do to
+that element, not three separate menus. Text and colour edits preview live against
+the page as you type, and the note is pinned to the element once you save. When you
+are ready, you click **Send to AI**. Northstar writes the batch to disk and types one
+line into the terminal your assistant is already running in, then presses Enter for
+you.
 
 There is nothing to pair and nothing to paste. Nothing leaves your machine either:
 the browser and the server meet on `127.0.0.1`.
@@ -33,11 +36,35 @@ flowchart TD
     J -- "No" --> L["Defer with a reason,<br/>notice shown in toolbar"]
 ```
 
-Each saved item carries more than the text you typed. It records a stable selector
-for the element, its visible text, a cropped screenshot, the page URL, and, when your
-dev build exposes an inspector attribute, an exact `file:line:column` pointer into
-the source. That bundle is what lets the assistant find the right code even when the
-selector alone would be ambiguous.
+Each saved item carries more than the text you typed. Before you even finish reading
+the popover's header, Northstar has asked the page itself: a script running in the
+page's own main world reads whatever the framework already knows about the element
+(React, Vue, Svelte and Angular are covered) and reports back the rendering
+component, the route that renders that page, and, wherever the framework tracks it,
+an exact `file:line:column`. Nothing needs installing in your app for this; it reads
+state that is already there in a development build. Alongside that, Northstar builds
+a stable CSS selector, the element's own text, and, only if you asked for one, a
+screenshot. That bundle is what lets the assistant land on the right file directly
+instead of grepping the codebase for the element.
+
+## Finding the code
+
+A content script runs in an isolated JavaScript world, on purpose: it is how the
+overlay stays invisible to the page's own scripts. The cost is that it cannot see the
+expando properties a framework attaches to its own DOM nodes, `__reactFiber$…` and
+the rest, which is where the component name, the source location and the route
+actually live. So Northstar injects a second, much smaller script into the page's
+**main world** the moment you activate it, and the two talk across the world
+boundary the only way that is possible: a DOM attribute and a pair of
+`CustomEvent`s. That script only ever reads; it never assigns to anything on a page
+object's prototype, and a reader that finds nothing or hits something unexpected
+returns null rather than throwing into your page.
+
+A route can come back one of two ways. When the page's own router state is
+reachable (a Next.js page, a matched React Router or Vue Router route), the pattern
+is exact and carries its params. Otherwise Northstar infers a pattern from the URL's
+own shape, numeric and UUID-looking segments become `:id`, and marks it
+`inferred`, so the assistant treats it as a hint rather than a confirmed route file.
 
 ## The handoff
 

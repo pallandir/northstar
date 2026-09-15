@@ -1,0 +1,100 @@
+@import "../styles/tokens.css";
+@import "../styles/controls.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: 280px;
+  font-family: var(--ns-font);
+  font-size: var(--ns-fs-base);
+  color: var(--ns-chalk);
+  background: var(--ns-ink);
+}
+
+.ns-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px var(--ns-s4) 10px;
+  border-bottom: 1px solid var(--ns-ink-3);
+}
+
+.ns-wordmark {
+  font-size: var(--ns-fs-base);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ns-bearing);
+}
+
+.ns-badge {
+  font-size: var(--ns-fs-sm);
+  font-weight: 500;
+  color: var(--ns-haze);
+}
+
+.ns-badge--live {
+  color: var(--ns-sent);
+}
+
+.ns-body {
+  padding: var(--ns-s3) var(--ns-s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ns-s3);
+}
+
+.ns-activate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ns-s3);
+}
+
+.ns-activate-label {
+  font-size: var(--ns-fs-base);
+  font-weight: 500;
+}
+
+.ns-activate-sub {
+  font-size: var(--ns-fs-sm);
+  color: var(--ns-haze);
+  margin-top: 1px;
+}
+
+.ns-divider {
+  height: 1px;
+  background: var(--ns-ink-3);
+  margin: 0 calc(var(--ns-s4) * -1);
+}
+
+.ns-status {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ns-status-label {
+  font-size: var(--ns-fs-base);
+  font-weight: 500;
+  color: var(--ns-chalk);
+}
+
+.ns-status-sub {
+  font-size: var(--ns-fs-sm);
+  color: var(--ns-haze);
+  line-height: 1.5;
+}
+
+.ns-unavailable {
+  padding: var(--ns-s4);
+  text-align: center;
+  color: var(--ns-haze);
+  font-size: var(--ns-fs-sm);
+  line-height: 1.5;
+}

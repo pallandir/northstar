@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": ["dist", "dist-firefox", "node_modules", ".husky/_"]
+    "ignore": ["dist", "node_modules", ".husky/_"]
   },
   "formatter": {
     "enabled": true,

@@ -1,0 +1,20 @@
+{
+  "name": "@northstar/chromium",
+  "version": "2.0.0",
+  "description": "Chromium MV3 build target for the Northstar extension.",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "package": "npm run build && cd dist && zip -qr -FS ../northstar-chrome.zip . -x '*.DS_Store' '*.map' && cd ..",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.6.1",
+    "@northstar/core": "*",
+    "@types/node": "^22.10.5",
+    "vite": "^8.0.16"
+  }
+}

@@ -1,0 +1,1159 @@
+@import "../styles/tokens.css";
+@import "../styles/controls.css";
+
+/* `all: initial` resets z-index to auto, which left the host painting at the page's own level:
+   any positioned page element with a positive z-index covered the whole overlay. The host is
+   promoted into the top layer at runtime, and this value is the fallback where that is missing. */
+:host {
+  all: initial;
+  display: block;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: none;
+  font-size: var(--ns-fs-base);
+  z-index: 2147483647;
+}
+
+:host::backdrop {
+  display: none;
+}
+
+.ns-toolbar,
+.ns-drawer,
+.ns-panel,
+.ns-pin-wrap,
+.ns-modal-backdrop {
+  pointer-events: auto;
+}
+
+.ns-toolbar *,
+.ns-drawer *,
+.ns-panel * {
+  box-sizing: border-box;
+}
+
+/* Author display rules outrank the UA [hidden] rule, so hidden toolbar
+   controls (the reconnect button on remote pages) would otherwise stay
+   visible. Re-assert it. */
+[hidden] {
+  display: none !important;
+}
+
+/* An empty data-tip would render as a small floating dot on hover. */
+.ns-has-tip:not([data-tip])::after,
+.ns-has-tip[data-tip=""]::after {
+  content: none;
+}
+
+/* ============================================================
+   Reticle: the one bold move. A page element gets four amber corner
+   ticks, not a full box, so it reads as a bearing taken on the page
+   rather than another rounded-rectangle overlay. A 1px dark stroke
+   rides along with it so the ticks hold up on a light or dark page
+   underneath them.
+   ============================================================ */
+.ns-hover,
+.ns-selection,
+.ns-highlight {
+  box-sizing: border-box;
+  position: absolute;
+  pointer-events: none;
+  --tick: 10px;
+  --tick-w: 2px;
+  background-repeat: no-repeat;
+  background-image: linear-gradient(var(--ns-bearing), var(--ns-bearing)),
+    linear-gradient(var(--ns-bearing), var(--ns-bearing)),
+    linear-gradient(var(--ns-bearing), var(--ns-bearing)),
+    linear-gradient(var(--ns-bearing), var(--ns-bearing)),
+    linear-gradient(var(--ns-bearing), var(--ns-bearing)),
+    linear-gradient(var(--ns-bearing), var(--ns-bearing)),
+    linear-gradient(var(--ns-bearing), var(--ns-bearing)),
+    linear-gradient(var(--ns-bearing), var(--ns-bearing));
+  background-size:
+    var(--tick) var(--tick-w), var(--tick-w) var(--tick), var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick), var(--tick) var(--tick-w), var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w), var(--tick-w) var(--tick);
+  background-position: top left, top left, top right, top right, bottom left, bottom left, bottom
+    right, bottom right;
+  filter: drop-shadow(1px 0 0 var(--ns-ink)) drop-shadow(-1px 0 0 var(--ns-ink))
+    drop-shadow(0 1px 0 var(--ns-ink)) drop-shadow(0 -1px 0 var(--ns-ink));
+  transition: all 0.08s linear;
+}
+
+.ns-hover {
+  z-index: var(--ns-z-hover);
+  opacity: 0.7;
+}
+
+.ns-selection,
+.ns-highlight {
+  z-index: var(--ns-z-leader);
+}
+
+/* Pins */
+.ns-pin-wrap {
+  position: absolute;
+  width: 0;
+  height: 0;
+  z-index: var(--ns-z-pin);
+}
+
+.ns-pin {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50% 50% 50% 2px;
+  background: var(--ns-bearing);
+  border: 2px solid var(--ns-ink);
+  box-shadow: var(--ns-shadow-pin);
+  transform: rotate(-45deg);
+  color: var(--ns-on-bearing);
+  font: 500 var(--ns-fs-sm) / 1 var(--ns-font);
+  animation: ns-pop 0.32s var(--ns-ease);
+  transition: transform 0.14s var(--ns-ease);
+}
+
+.ns-pin > span {
+  transform: rotate(45deg);
+}
+
+.ns-pin-glyph {
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+
+.ns-pin-wrap--resolved .ns-pin {
+  background: var(--ns-sent);
+  box-shadow: 0 2px 8px rgba(98, 208, 164, 0.4);
+}
+
+.ns-pin-wrap--hidden {
+  display: none;
+}
+
+.ns-pin-wrap--focus {
+  display: block !important;
+}
+
+.ns-pin-wrap--focus .ns-pin {
+  box-shadow: 0 0 0 2px var(--ns-bearing), var(--ns-shadow-pin);
+  transform: rotate(-45deg) scale(1.22);
+}
+
+.ns-pin-wrap--wontfix .ns-pin {
+  background: var(--ns-haze);
+  box-shadow: none;
+}
+
+.ns-pin-wrap--processing .ns-pin {
+  background: var(--ns-bearing);
+}
+
+.ns-pin-wrap--processing .ns-pin::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--ns-on-bearing);
+  animation: ns-spin 0.8s linear infinite;
+}
+
+.ns-pin-wrap:hover .ns-pin {
+  transform: rotate(-45deg) scale(1.12);
+}
+
+.ns-pin-card {
+  position: absolute;
+  left: 16px;
+  top: -10px;
+  width: 220px;
+  padding: var(--ns-s3) var(--ns-s3);
+  border-radius: var(--ns-radius-surface);
+  background: var(--ns-ink-2);
+  color: var(--ns-chalk);
+  font: var(--ns-fs-sm) / 1.4 var(--ns-font);
+  border: 1px solid var(--ns-ink-3);
+  box-shadow: var(--ns-shadow);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(2px);
+  transition: opacity 0.14s var(--ns-ease), transform 0.14s var(--ns-ease), visibility 0s 0.14s;
+  pointer-events: none;
+}
+
+.ns-pin-wrap:hover .ns-pin-card {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+  transition: opacity 0.14s var(--ns-ease), transform 0.14s var(--ns-ease), visibility 0s 0s;
+}
+
+.ns-pin-card-preview {
+  line-height: 1.45;
+  word-break: break-word;
+  color: var(--ns-chalk);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ns-pin-card {
+    transition: opacity 0.01s, visibility 0s;
+  }
+}
+
+/* ============================================================
+   Panel surface: the common chrome for the inspector popover and
+   (via .ns-modal, separately) the confirm dialog.
+   ============================================================ */
+.ns-panel {
+  position: absolute;
+  z-index: var(--ns-z-panel);
+  background: var(--ns-ink);
+  color: var(--ns-chalk);
+  font-family: var(--ns-font);
+  font-size: var(--ns-fs-sm);
+  border: 1px solid var(--ns-ink-3);
+  border-radius: var(--ns-radius-surface);
+  box-shadow: var(--ns-shadow);
+  animation: ns-fade-scale var(--ns-dur-enter) var(--ns-ease);
+}
+
+.ns-hint {
+  margin-top: var(--ns-s2);
+  font-size: var(--ns-fs-sm);
+  color: var(--ns-haze);
+}
+
+.ns-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ns-s2);
+  margin-top: var(--ns-s3);
+}
+
+.ns-actions .ns-hint {
+  margin-right: auto;
+}
+
+/* ============================================================
+   Inspector: one popover, three tabs. A hairline connector on the
+   edge facing the target stands in for a literal leader line, the
+   same job a tooltip's caret does.
+   ============================================================ */
+.ns-inspector {
+  width: 300px;
+  padding: var(--ns-s4);
+}
+
+.ns-inspector::before {
+  content: "";
+  position: absolute;
+  left: 20px;
+  width: 10px;
+  height: 10px;
+  background: var(--ns-ink);
+  border: 1px solid var(--ns-ink-3);
+  border-right: none;
+  border-bottom: none;
+  transform: rotate(45deg);
+}
+
+.ns-inspector--below::before {
+  top: -6px;
+}
+
+.ns-inspector--above::before {
+  bottom: -6px;
+  border: none;
+  border-top: 1px solid var(--ns-ink-3);
+  border-left: 1px solid var(--ns-ink-3);
+}
+
+.ns-inspector-target {
+  padding-bottom: var(--ns-s3);
+  margin-bottom: var(--ns-s3);
+  border-bottom: 1px solid var(--ns-ink-3);
+}
+
+.ns-inspector-target-name {
+  font-size: var(--ns-fs-base);
+  font-weight: 600;
+  color: var(--ns-chalk);
+}
+
+.ns-inspector-target-source,
+.ns-inspector-target-selector {
+  margin-top: 2px;
+  font-family: var(--ns-font-mono);
+  font-size: var(--ns-fs-2xs);
+  color: var(--ns-haze);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ns-inspector-tabs {
+  display: flex;
+  gap: var(--ns-s4);
+  margin-bottom: var(--ns-s3);
+  border-bottom: 1px solid var(--ns-ink-3);
+}
+
+.ns-inspector-tab {
+  padding: var(--ns-s2) 0 var(--ns-s2);
+  margin-bottom: -1px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--ns-haze);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--ns-dur-state) var(--ns-ease), border-color var(--ns-dur-state)
+    var(--ns-ease);
+}
+
+.ns-inspector-tab:hover {
+  color: var(--ns-chalk);
+}
+
+.ns-inspector-tab--active {
+  color: var(--ns-chalk);
+  border-bottom-color: var(--ns-bearing);
+}
+
+.ns-inspector-body {
+  min-height: 96px;
+}
+
+.ns-inspector-tab-body textarea,
+.ns-inspector-tab-body input[type="text"] {
+  width: 100%;
+  padding: var(--ns-s2) var(--ns-s3);
+  border: 1px solid var(--ns-ink-3);
+  border-radius: var(--ns-radius-control);
+  background: var(--ns-ink-2);
+  color: var(--ns-chalk);
+  font: inherit;
+  outline: none;
+}
+
+.ns-inspector-tab-body textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.ns-inspector-tab-body textarea:focus,
+.ns-inspector-tab-body input[type="text"]:focus {
+  border-color: var(--ns-bearing);
+  box-shadow: 0 0 0 3px var(--ns-bearing-soft);
+}
+
+.ns-inspector-tab-body input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ns-inspector-current-text {
+  margin-bottom: var(--ns-s2);
+  padding: var(--ns-s2) var(--ns-s3);
+  border-radius: var(--ns-radius-control);
+  background: var(--ns-ink-2);
+  color: var(--ns-haze);
+  font-size: var(--ns-fs-sm);
+  line-height: 1.4;
+}
+
+.ns-inspector-property-row {
+  display: flex;
+  gap: var(--ns-s1);
+  margin-bottom: var(--ns-s3);
+}
+
+.ns-inspector-property {
+  flex: 1;
+  padding: var(--ns-s1) var(--ns-s2);
+  border: 1px solid var(--ns-ink-3);
+  border-radius: var(--ns-radius-control);
+  background: var(--ns-ink-2);
+  color: var(--ns-haze);
+  font: inherit;
+  font-size: var(--ns-fs-xs);
+  cursor: pointer;
+  transition: background var(--ns-dur-state) var(--ns-ease), color var(--ns-dur-state)
+    var(--ns-ease), border-color var(--ns-dur-state) var(--ns-ease);
+}
+
+.ns-inspector-property--active {
+  background: var(--ns-bearing-soft);
+  border-color: var(--ns-bearing);
+  color: var(--ns-bearing);
+}
+
+.ns-inspector-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ns-s2);
+  margin-bottom: var(--ns-s3);
+}
+
+.ns-inspector-swatch {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--ns-ink-3);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 100ms var(--ns-ease);
+}
+
+.ns-inspector-swatch:hover {
+  transform: scale(1.12);
+}
+
+.ns-inspector-color-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--ns-s2);
+}
+
+.ns-inspector-color-controls input[type="color"] {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--ns-ink-3);
+  border-radius: var(--ns-radius-control);
+  background: none;
+  cursor: pointer;
+}
+
+.ns-inspector-hex {
+  flex: 1;
+  font-family: var(--ns-font-mono);
+  text-transform: lowercase;
+}
+
+.ns-inspector-footer {
+  margin-top: var(--ns-s4);
+  padding-top: var(--ns-s3);
+  border-top: 1px solid var(--ns-ink-3);
+}
+
+/* ============================================================
+   Shared control rows: toggles, used only by the inspector footer.
+   ============================================================ */
+.ns-toggle-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ns-s1);
+  margin-bottom: var(--ns-s2);
+}
+
+.ns-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ns-s3);
+  padding: var(--ns-s2) var(--ns-s3);
+  border: 1px solid var(--ns-ink-3);
+  border-radius: var(--ns-radius-control);
+  background: var(--ns-ink-2);
+  color: var(--ns-chalk);
+  font: inherit;
+  font-size: var(--ns-fs-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--ns-dur-state) var(--ns-ease);
+}
+.ns-toggle:hover {
+  border-color: var(--ns-ink-4);
+}
+.ns-toggle-label {
+  flex: 1;
+}
+.ns-switch {
+  flex: none;
+  position: relative;
+  width: 32px;
+  height: 18px;
+  border-radius: var(--ns-radius-pill);
+  background: var(--ns-ink-3);
+  transition: background 0.2s var(--ns-ease);
+}
+.ns-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ns-chalk);
+  transition: transform 0.2s var(--ns-ease);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+.ns-toggle[aria-pressed="true"] .ns-switch {
+  background: var(--ns-bearing);
+}
+.ns-toggle[aria-pressed="true"] .ns-switch::after {
+  transform: translateX(14px);
+}
+
+/* ============================================================
+   Toolbar: fully open, centered on the bottom.
+   ============================================================ */
+.ns-toolbar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--ns-z-toolbar);
+  display: flex;
+  align-items: center;
+  gap: var(--ns-s2);
+  padding: 7px 9px;
+  border-radius: 16px;
+  background: var(--ns-ink);
+  color: var(--ns-chalk);
+  font-family: var(--ns-font);
+  font-size: var(--ns-fs-sm);
+  border: 1px solid var(--ns-ink-3);
+  box-shadow: var(--ns-shadow);
+  animation: ns-rise 0.26s var(--ns-ease);
+}
+
+.ns-grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--ns-control-h);
+  cursor: grab;
+  color: var(--ns-ink-4);
+  padding: 0 var(--ns-s1);
+  font-size: var(--ns-fs-base);
+  user-select: none;
+}
+
+.ns-grip:active {
+  cursor: grabbing;
+}
+
+/* Stops a touch drag from also scrolling the page underneath it. */
+.ns-drag {
+  touch-action: none;
+}
+
+.ns-sep {
+  width: 1px;
+  align-self: stretch;
+  background: var(--ns-ink-3);
+  margin: var(--ns-s1) 3px;
+}
+
+.ns-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ns-s2);
+  box-sizing: border-box;
+  height: var(--ns-control-h);
+  padding: 0 var(--ns-s4);
+  border: 1px solid var(--ns-ink-3);
+  border-radius: var(--ns-radius-control);
+  background: var(--ns-ink);
+  color: var(--ns-chalk);
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--ns-dur-state) var(--ns-ease), border-color var(--ns-dur-state)
+    var(--ns-ease), transform 100ms var(--ns-ease);
+}
+
+.ns-action:hover {
+  background: var(--ns-ink-2);
+}
+
+.ns-action:active {
+  transform: scale(0.97);
+}
+
+.ns-action--primary {
+  background: var(--ns-bearing);
+  border-color: var(--ns-bearing);
+  color: var(--ns-on-bearing);
+  font-weight: 500;
+}
+
+.ns-toolbar .ns-action--primary:hover {
+  background: var(--ns-bearing-strong);
+  border-color: var(--ns-bearing-strong);
+  color: var(--ns-on-bearing);
+}
+
+.ns-action--active {
+  background: var(--ns-bearing-soft);
+  border-color: var(--ns-bearing);
+  color: var(--ns-bearing);
+  font-weight: 500;
+}
+
+.ns-action--danger:hover {
+  background: var(--ns-danger-soft);
+  border-color: rgba(255, 122, 102, 0.4);
+  color: var(--ns-danger);
+}
+
+.ns-action--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ns-haze);
+}
+
+.ns-action--ghost:hover {
+  background: var(--ns-ink-2);
+  color: var(--ns-chalk);
+}
+
+.ns-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.ns-action:disabled:hover {
+  background: var(--ns-ink);
+  transform: none;
+}
+
+.ns-action--primary:disabled,
+.ns-toolbar .ns-action--primary:disabled:hover {
+  background: var(--ns-bearing);
+  border-color: var(--ns-bearing);
+  color: var(--ns-on-bearing);
+  transform: none;
+}
+
+.ns-action--icon {
+  width: var(--ns-control-h);
+  padding: 0;
+}
+
+.ns-action-glyph {
+  display: block;
+  width: 15px;
+  height: 15px;
+}
+
+@keyframes ns-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================
+   Toolbar panel: notices and status hints, floating above the bar.
+   A one-line strip, not a permanent card — see toolbar.ts.
+   ============================================================ */
+.ns-tb-panel {
+  position: absolute;
+  bottom: calc(100% + var(--ns-s2));
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  max-width: 86vw;
+  padding: var(--ns-s3) var(--ns-s4);
+  border-radius: var(--ns-radius-surface);
+  background: var(--ns-ink);
+  border: 1px solid var(--ns-ink-3);
+  box-shadow: var(--ns-shadow);
+  animation: ns-rise 0.22s var(--ns-ease);
+}
+
+.ns-notices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ns-s3);
+}
+
+.ns-notices-title {
+  font-size: var(--ns-fs-sm);
+  font-weight: 500;
+  color: var(--ns-chalk);
+}
+
+.ns-notice-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ns-s3);
+  padding: var(--ns-s2) 0;
+  border-top: 1px solid var(--ns-ink-3);
+}
+
+.ns-notice-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.ns-notice-route {
+  font-family: var(--ns-font-mono);
+  font-size: var(--ns-fs-sm);
+  color: var(--ns-bearing);
+  display: block;
+  margin-bottom: 3px;
+}
+
+.ns-notice-summary {
+  font-size: var(--ns-fs-sm);
+  color: var(--ns-chalk);
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ns-notice-hint {
+  font-size: var(--ns-fs-sm);
+  color: var(--ns-haze);
+  margin-top: 3px;
+}
+
+.ns-notice-dismiss {
+  flex: none;
+  font-size: var(--ns-fs-sm);
+  padding: var(--ns-s1) var(--ns-s3);
+}
+
+.ns-setup {
+  display: flex;
+  flex-direction: column;
+}
+
+.ns-setup-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ns-s3);
+  margin-bottom: var(--ns-s2);
+}
+
+.ns-setup-row .ns-drawer-close {
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
+
+.ns-setup-row .ns-drawer-close-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.ns-setup-title {
+  font-size: var(--ns-fs-sm);
+  font-weight: 500;
+  color: var(--ns-chalk);
+}
+
+.ns-setup-hint {
+  font-size: var(--ns-fs-sm);
+  color: var(--ns-haze);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* ============================================================
+   Confirm modal.
+   ============================================================ */
+.ns-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--ns-z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  animation: ns-fade-in 0.16s var(--ns-ease);
+}
+
+.ns-modal {
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  padding: var(--ns-s6);
+  border-radius: var(--ns-radius-surface);
+  background: var(--ns-ink);
+  color: var(--ns-chalk);
+  font-family: var(--ns-font);
+  border: 1px solid var(--ns-ink-3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  animation: ns-fade-scale 0.2s var(--ns-ease);
+}
+
+.ns-modal-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 0 auto var(--ns-s3);
+  border-radius: 50%;
+  background: var(--ns-danger-soft);
+  color: var(--ns-danger);
+}
+
+.ns-modal-warning-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.ns-modal-title {
+  font-size: var(--ns-fs-base);
+  font-weight: 600;
+  margin-bottom: var(--ns-s2);
+}
+
+.ns-modal-body {
+  margin: 0 0 var(--ns-s5);
+  font-size: var(--ns-fs-sm);
+  line-height: 1.5;
+  color: var(--ns-haze);
+}
+
+.ns-modal-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: var(--ns-s2);
+}
+
+/* ============================================================
+   Hover tooltips.
+   ============================================================ */
+.ns-has-tip {
+  position: relative;
+}
+
+.ns-has-tip::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + var(--ns-s2));
+  transform: translateX(-50%) translateY(4px);
+  padding: var(--ns-s1) var(--ns-s2);
+  border-radius: var(--ns-radius-control);
+  background: var(--ns-ink-2);
+  color: var(--ns-chalk);
+  font: var(--ns-fs-sm) var(--ns-font);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: var(--ns-shadow);
+  transition: opacity 0.14s var(--ns-ease), transform 0.14s var(--ns-ease);
+}
+
+.ns-has-tip:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ============================================================
+   Comments drawer: floating, scrollable, animated.
+   ============================================================ */
+.ns-drawer {
+  position: fixed;
+  top: 64px;
+  right: var(--ns-s4);
+  width: 312px;
+  max-height: 90vh;
+  overflow: visible;
+  z-index: var(--ns-z-drawer);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ns-s3);
+  font-family: var(--ns-font);
+  font-size: var(--ns-fs-sm);
+  opacity: 0;
+  transform: translateX(calc(100% + 32px));
+  pointer-events: none;
+  transition: opacity 0.26s var(--ns-ease), transform 0.3s var(--ns-ease);
+}
+
+.ns-drawer--open {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.ns-drawer-card {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  min-height: 0;
+  background: var(--ns-ink);
+  color: var(--ns-chalk);
+  border: 1px solid var(--ns-ink-3);
+  border-radius: var(--ns-radius-surface);
+}
+
+.ns-comments-card {
+  flex: 0 0 auto;
+}
+
+.ns-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ns-s2);
+  padding: var(--ns-s3) var(--ns-s3) 0;
+}
+
+.ns-drawer-tabs {
+  display: flex;
+  gap: var(--ns-s4);
+}
+
+.ns-drawer-tab {
+  padding: var(--ns-s1) 0 var(--ns-s2);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--ns-haze);
+  font: inherit;
+  font-size: var(--ns-fs-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ns-drawer-tab--active {
+  color: var(--ns-chalk);
+  border-bottom-color: var(--ns-bearing);
+}
+
+.ns-drawer-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--ns-radius-control);
+  background: transparent;
+  color: var(--ns-haze);
+  cursor: pointer;
+  transition: background var(--ns-dur-state) var(--ns-ease), color var(--ns-dur-state)
+    var(--ns-ease);
+}
+
+.ns-drawer-close:hover {
+  background: var(--ns-ink-2);
+  color: var(--ns-chalk);
+}
+
+.ns-drawer-close-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.ns-drawer-list {
+  overflow-y: auto;
+  max-height: 60vh;
+  padding: var(--ns-s2) var(--ns-s3) var(--ns-s3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ns-s2);
+}
+
+.ns-drawer-empty {
+  padding: var(--ns-s4) 0;
+  text-align: center;
+  color: var(--ns-haze);
+  font-size: var(--ns-fs-sm);
+}
+
+.ns-drawer-item {
+  padding: var(--ns-s2) var(--ns-s2);
+  border-radius: var(--ns-radius-control);
+  transition: background var(--ns-dur-state) var(--ns-ease);
+}
+
+.ns-drawer-item:hover {
+  background: var(--ns-ink-2);
+}
+
+.ns-drawer-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--ns-s2);
+  margin-bottom: var(--ns-s1);
+}
+
+.ns-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ns-haze);
+}
+
+.ns-dot--resolved {
+  background: var(--ns-sent);
+}
+
+.ns-dot--wontfix {
+  background: var(--ns-haze);
+}
+
+.ns-dot--processing {
+  background: var(--ns-bearing);
+}
+
+.ns-dot--pending,
+.ns-dot--open {
+  background: var(--ns-bearing);
+}
+
+.ns-drawer-tag {
+  font-size: var(--ns-fs-xs);
+  color: var(--ns-haze);
+}
+
+.ns-drawer-target {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--ns-font-mono);
+  font-size: var(--ns-fs-xs);
+  color: var(--ns-haze);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ns-drawer-text {
+  font-size: var(--ns-fs-sm);
+  color: var(--ns-chalk);
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.ns-drawer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ns-s2);
+  margin-top: var(--ns-s2);
+}
+
+.ns-drawer-edit {
+  width: 100%;
+  min-height: 64px;
+  margin-top: var(--ns-s1);
+  padding: var(--ns-s2) var(--ns-s3);
+  border: 1px solid var(--ns-ink-3);
+  border-radius: var(--ns-radius-control);
+  background: var(--ns-ink-2);
+  color: var(--ns-chalk);
+  font: inherit;
+  resize: vertical;
+  outline: none;
+}
+
+.ns-drawer-edit:focus {
+  border-color: var(--ns-bearing);
+  box-shadow: 0 0 0 3px var(--ns-bearing-soft);
+}
+
+.ns-drawer-edit-screenshot {
+  display: flex;
+  align-items: center;
+  gap: var(--ns-s2);
+  margin-top: var(--ns-s2);
+  color: var(--ns-haze);
+  font-size: var(--ns-fs-sm);
+  cursor: pointer;
+}
+
+.ns-drawer-edit-actions {
+  margin-top: var(--ns-s2);
+}
+
+.ns-drawer-del {
+  color: var(--ns-danger);
+  background: transparent;
+  border-color: transparent;
+}
+
+.ns-drawer-del:hover {
+  background: var(--ns-danger-soft);
+}
+
+/* ============================================================
+   Motion.
+   ============================================================ */
+@keyframes ns-rise {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 14px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes ns-pop {
+  0% {
+    transform: rotate(-45deg) scale(0);
+  }
+  60% {
+    transform: rotate(-45deg) scale(1.15);
+  }
+  100% {
+    transform: rotate(-45deg) scale(1);
+  }
+}
+
+@keyframes ns-fade-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ns-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ns-toolbar,
+  .ns-tb-panel,
+  .ns-panel,
+  .ns-modal-backdrop,
+  .ns-modal,
+  .ns-pin {
+    animation: none;
+  }
+  .ns-hover,
+  .ns-selection,
+  .ns-highlight {
+    transition: none;
+  }
+}

@@ -36,5 +36,5 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run build:firefox --workspace @northstar/extension
-      - run: npx web-ext lint -s extension/dist-firefox
+      - run: npm run build --workspace @northstar/firefox
+      - run: npx web-ext lint -s extension/firefox/dist
