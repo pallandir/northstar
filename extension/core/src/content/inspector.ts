@@ -67,13 +67,13 @@ export function buildInspector(
   let attachScreenshot = opts.initialAttachScreenshot ?? false;
 
   const panel = document.createElement("div");
-  panel.className = "cc-panel cc-inspector";
+  panel.className = "ns-panel ns-inspector";
 
   const header = buildTargetHeader(info);
   panel.append(header.el);
 
   const bodyHost = document.createElement("div");
-  bodyHost.className = "cc-inspector-body";
+  bodyHost.className = "ns-inspector-body";
 
   const commentTab = buildCommentTab(opts.initialText);
   const textTab = buildTextTab(el);
@@ -83,7 +83,7 @@ export function buildInspector(
   let active: TabController = tabs[0];
 
   const tabStrip = document.createElement("div");
-  tabStrip.className = "cc-inspector-tabs";
+  tabStrip.className = "ns-inspector-tabs";
   tabStrip.setAttribute("role", "tablist");
   const tabButtons = new Map<InspectorTabId, HTMLButtonElement>();
 
@@ -92,7 +92,7 @@ export function buildInspector(
     active = next;
     for (const [id, btn] of tabButtons) {
       const isActive = id === next.id;
-      btn.classList.toggle("cc-inspector-tab--active", isActive);
+      btn.classList.toggle("ns-inspector-tab--active", isActive);
       btn.setAttribute("aria-selected", String(isActive));
     }
     bodyHost.replaceChildren(next.body);
@@ -103,7 +103,7 @@ export function buildInspector(
     for (const tab of tabs) {
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "cc-inspector-tab";
+      btn.className = "ns-inspector-tab";
       btn.setAttribute("role", "tab");
       btn.textContent = tab.label;
       btn.addEventListener("click", () => selectTab(tab));
@@ -122,10 +122,10 @@ export function buildInspector(
   selectTab(active);
 
   const footer = document.createElement("div");
-  footer.className = "cc-inspector-footer";
+  footer.className = "ns-inspector-footer";
 
   const toggleRow = document.createElement("div");
-  toggleRow.className = "cc-toggle-row";
+  toggleRow.className = "ns-toggle-row";
   const screenshotToggle = buildToggle("Attach screenshot", attachScreenshot, (value) => {
     attachScreenshot = value;
   });
@@ -138,9 +138,9 @@ export function buildInspector(
   }
 
   const actions = document.createElement("div");
-  actions.className = "cc-actions";
+  actions.className = "ns-actions";
   const hint = document.createElement("div");
-  hint.className = "cc-hint";
+  hint.className = "ns-hint";
   hint.textContent = "Esc to cancel";
   actions.append(hint);
 
@@ -155,7 +155,7 @@ export function buildInspector(
   if (opts.onDelete) {
     const del = document.createElement("button");
     del.type = "button";
-    del.className = "cc-btn cc-btn--ghost";
+    del.className = "ns-btn ns-btn--ghost";
     del.textContent = "Delete";
     del.addEventListener("click", () => {
       cancelled = true;
@@ -167,13 +167,13 @@ export function buildInspector(
 
   const cancelBtn = document.createElement("button");
   cancelBtn.type = "button";
-  cancelBtn.className = "cc-btn cc-btn--secondary-danger";
+  cancelBtn.className = "ns-btn ns-btn--secondary-danger";
   cancelBtn.textContent = "Cancel";
   cancelBtn.addEventListener("click", cancel);
 
   const saveBtn = document.createElement("button");
   saveBtn.type = "button";
-  saveBtn.className = "cc-btn cc-btn--primary";
+  saveBtn.className = "ns-btn ns-btn--primary";
   saveBtn.textContent = "Save";
   const submit = () => {
     const collected = active.collect();
@@ -210,14 +210,14 @@ function buildTargetHeader(initial: InspectorTarget): {
   update: (info: InspectorTarget) => void;
 } {
   const el = document.createElement("div");
-  el.className = "cc-inspector-target";
+  el.className = "ns-inspector-target";
 
   const name = document.createElement("div");
-  name.className = "cc-inspector-target-name";
+  name.className = "ns-inspector-target-name";
   const source = document.createElement("div");
-  source.className = "cc-inspector-target-source";
+  source.className = "ns-inspector-target-source";
   const selector = document.createElement("div");
-  selector.className = "cc-inspector-target-selector";
+  selector.className = "ns-inspector-target-selector";
   el.append(name, source, selector);
 
   const update = (info: InspectorTarget) => {
@@ -238,7 +238,7 @@ function buildTargetHeader(initial: InspectorTarget): {
 
 function buildCommentTab(initialText?: string): TabController {
   const body = document.createElement("div");
-  body.className = "cc-inspector-tab-body";
+  body.className = "ns-inspector-tab-body";
   const textarea = document.createElement("textarea");
   textarea.placeholder = "What should your AI assistant change here?";
   textarea.value = initialText ?? "";
@@ -263,14 +263,14 @@ function buildCommentTab(initialText?: string): TabController {
 
 function buildTextTab(el: HTMLElement): TabController {
   const body = document.createElement("div");
-  body.className = "cc-inspector-tab-body";
+  body.className = "ns-inspector-tab-body";
 
   const isLeaf = el.children.length === 0;
   const originalNodes = Array.from(el.childNodes).map((node) => node.cloneNode(true));
   const from = (el.textContent ?? "").trim();
 
   const current = document.createElement("div");
-  current.className = "cc-inspector-current-text";
+  current.className = "ns-inspector-current-text";
   current.textContent = from || "(empty)";
 
   const input = document.createElement("input");
@@ -320,7 +320,7 @@ function buildTextTab(el: HTMLElement): TabController {
 
 function buildColorTab(el: HTMLElement): TabController {
   const body = document.createElement("div");
-  body.className = "cc-inspector-tab-body";
+  body.className = "ns-inspector-tab-body";
 
   const computed = getComputedStyle(el);
   const originals: Record<string, string> = {
@@ -338,12 +338,12 @@ function buildColorTab(el: HTMLElement): TabController {
   let property: (typeof COLOR_PROPERTIES)[number]["key"] = "color";
 
   const propertyRow = document.createElement("div");
-  propertyRow.className = "cc-inspector-property-row";
+  propertyRow.className = "ns-inspector-property-row";
   const propertyButtons = new Map<string, HTMLButtonElement>();
   for (const p of COLOR_PROPERTIES) {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "cc-inspector-property";
+    btn.className = "ns-inspector-property";
     btn.textContent = p.label;
     btn.addEventListener("click", () => {
       property = p.key;
@@ -354,11 +354,11 @@ function buildColorTab(el: HTMLElement): TabController {
   }
 
   const swatchRow = document.createElement("div");
-  swatchRow.className = "cc-inspector-swatches";
+  swatchRow.className = "ns-inspector-swatches";
   for (const hex of samplePageColors(el)) {
     const swatch = document.createElement("button");
     swatch.type = "button";
-    swatch.className = "cc-inspector-swatch";
+    swatch.className = "ns-inspector-swatch";
     swatch.style.background = hex;
     swatch.title = hex;
     swatch.addEventListener("click", () => applyColor(hex));
@@ -366,17 +366,17 @@ function buildColorTab(el: HTMLElement): TabController {
   }
 
   const controlsRow = document.createElement("div");
-  controlsRow.className = "cc-inspector-color-controls";
+  controlsRow.className = "ns-inspector-color-controls";
   const colorInput = document.createElement("input");
   colorInput.type = "color";
   const hexInput = document.createElement("input");
   hexInput.type = "text";
-  hexInput.className = "cc-inspector-hex";
+  hexInput.className = "ns-inspector-hex";
   controlsRow.append(colorInput, hexInput);
 
   function syncControls(): void {
     for (const [key, btn] of propertyButtons) {
-      btn.classList.toggle("cc-inspector-property--active", key === property);
+      btn.classList.toggle("ns-inspector-property--active", key === property);
     }
     const value = toHex(changed[property] ?? from[property]);
     colorInput.value = value;
@@ -452,14 +452,14 @@ function buildToggle(
   let value = initial;
   const btn = document.createElement("button");
   btn.type = "button";
-  btn.className = "cc-toggle";
+  btn.className = "ns-toggle";
   btn.setAttribute("role", "switch");
   btn.setAttribute("aria-pressed", String(value));
   const labelEl = document.createElement("span");
-  labelEl.className = "cc-toggle-label";
+  labelEl.className = "ns-toggle-label";
   labelEl.textContent = label;
   const track = document.createElement("span");
-  track.className = "cc-switch";
+  track.className = "ns-switch";
   btn.append(labelEl, track);
   btn.addEventListener("click", () => {
     value = !value;

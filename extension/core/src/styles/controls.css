@@ -1,0 +1,93 @@
+@import "./tokens.css";
+
+/* The button family, shared verbatim by the overlay (shadow DOM) and the popup (its own
+   document): the two can never share a live stylesheet, so this file is imported by both instead
+   of each hand-copying values that then drift, which is how the popup ended up at 32px buttons
+   while the overlay sat at 34px. */
+.ns-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ns-s2);
+  box-sizing: border-box;
+  height: var(--ns-control-h);
+  padding: 0 var(--ns-s4);
+  border: 1px solid var(--ns-ink-3);
+  border-radius: var(--ns-radius-control);
+  background: var(--ns-ink-2);
+  color: var(--ns-chalk);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--ns-dur-state) var(--ns-ease), border-color var(--ns-dur-state)
+    var(--ns-ease), color var(--ns-dur-state) var(--ns-ease), transform 100ms var(--ns-ease);
+}
+.ns-btn:hover {
+  background: var(--ns-ink-3);
+}
+.ns-btn:active {
+  transform: scale(0.97);
+}
+.ns-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+.ns-btn:disabled:hover {
+  background: var(--ns-ink-2);
+  transform: none;
+}
+
+.ns-btn--primary {
+  background: var(--ns-bearing);
+  border-color: var(--ns-bearing);
+  color: var(--ns-on-bearing);
+}
+.ns-btn--primary:hover {
+  background: var(--ns-bearing-strong);
+  border-color: var(--ns-bearing-strong);
+}
+.ns-btn--primary:disabled,
+.ns-btn--primary:disabled:hover {
+  background: var(--ns-bearing);
+  border-color: var(--ns-bearing);
+  color: var(--ns-on-bearing);
+}
+
+.ns-btn--secondary {
+  background: var(--ns-bearing-soft);
+  border-color: var(--ns-bearing);
+  color: var(--ns-bearing);
+}
+.ns-btn--secondary:hover {
+  background: rgba(255, 178, 63, 0.24);
+}
+
+.ns-btn--secondary-danger {
+  background: var(--ns-danger-soft);
+  border-color: rgba(255, 122, 102, 0.4);
+  color: var(--ns-danger);
+}
+.ns-btn--secondary-danger:hover {
+  background: rgba(255, 122, 102, 0.22);
+  border-color: var(--ns-danger);
+}
+
+.ns-btn--danger {
+  background: var(--ns-danger);
+  border-color: var(--ns-danger);
+  color: var(--ns-ink);
+}
+.ns-btn--danger:hover {
+  filter: brightness(0.9);
+}
+
+.ns-btn--ghost {
+  border-color: transparent;
+  color: var(--ns-haze);
+  background: transparent;
+}
+.ns-btn--ghost:hover {
+  background: var(--ns-ink-3);
+  color: var(--ns-chalk);
+}

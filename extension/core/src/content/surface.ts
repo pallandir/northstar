@@ -97,7 +97,7 @@ export class Surface {
     this.mount();
     if (!this.hoverBox) {
       this.hoverBox = document.createElement("div");
-      this.hoverBox.className = "cc-hover";
+      this.hoverBox.className = "ns-hover";
       this.shadow.append(this.hoverBox);
     }
     place(this.hoverBox, target);
@@ -113,7 +113,7 @@ export class Surface {
     this.mount();
     if (!this.selectionBox) {
       this.selectionBox = document.createElement("div");
-      this.selectionBox.className = "cc-selection";
+      this.selectionBox.className = "ns-selection";
       this.shadow.append(this.selectionBox);
     }
     place(this.selectionBox, target);
@@ -128,22 +128,22 @@ export class Surface {
     this.mount();
 
     const backdrop = document.createElement("div");
-    backdrop.className = "cc-modal-backdrop";
+    backdrop.className = "ns-modal-backdrop";
 
     const card = document.createElement("div");
-    card.className = "cc-modal";
+    card.className = "ns-modal";
 
     const warnEl = document.createElement("div");
-    warnEl.className = "cc-modal-icon";
-    warnEl.append(icon(ICON_WARNING, "cc-modal-warning-icon"));
+    warnEl.className = "ns-modal-icon";
+    warnEl.append(icon(ICON_WARNING, "ns-modal-warning-icon"));
     const title = document.createElement("div");
-    title.className = "cc-modal-title";
+    title.className = "ns-modal-title";
     title.textContent = options.title;
     const body = document.createElement("p");
-    body.className = "cc-modal-body";
+    body.className = "ns-modal-body";
     body.textContent = options.body;
     const actions = document.createElement("div");
-    actions.className = "cc-modal-actions";
+    actions.className = "ns-modal-actions";
 
     const close = () => {
       document.removeEventListener("keydown", onKey, true);
@@ -157,7 +157,7 @@ export class Surface {
     for (const def of options.actions) {
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = `cc-modal-btn${def.variant ? ` cc-modal-btn--${def.variant}` : ""}`;
+      btn.className = `ns-btn${def.variant ? ` ns-btn--${def.variant}` : " ns-btn--secondary"}`;
       btn.textContent = def.label;
       btn.addEventListener("click", () => {
         close();
@@ -191,7 +191,7 @@ export class Surface {
     this.inspectorAnchor = target;
 
     const highlight = document.createElement("div");
-    highlight.className = "cc-highlight";
+    highlight.className = "ns-highlight";
 
     const handle = buildInspector(
       target as HTMLElement,
@@ -231,22 +231,22 @@ export class Surface {
     this.pins = models.map((model) => {
       const wrap = document.createElement("div");
       wrap.dataset.key = model.key;
-      const classes = ["cc-pin-wrap", `cc-pin-wrap--${model.status}`];
-      if (model.status === "resolved") classes.push("cc-pin-wrap--hidden");
+      const classes = ["ns-pin-wrap", `ns-pin-wrap--${model.status}`];
+      if (model.status === "resolved") classes.push("ns-pin-wrap--hidden");
       wrap.className = classes.join(" ");
 
       const marker = document.createElement("div");
-      marker.className = "cc-pin";
+      marker.className = "ns-pin";
       const glyphEl = document.createElement("span");
       const g = glyph(model.kind);
       if (g) glyphEl.append(g);
       marker.append(glyphEl);
 
       const card = document.createElement("div");
-      card.className = "cc-pin-card";
+      card.className = "ns-pin-card";
 
       const preview = document.createElement("div");
-      preview.className = "cc-pin-card-preview";
+      preview.className = "ns-pin-card-preview";
       preview.textContent = model.text;
       card.append(preview);
 
@@ -283,11 +283,11 @@ export class Surface {
 
   focusPin(key: string | null): void {
     for (const pin of this.pins) {
-      pin.el.classList.remove("cc-pin-wrap--focus");
+      pin.el.classList.remove("ns-pin-wrap--focus");
     }
     if (!key) return;
     const target = this.pins.find((p) => p.model.key === key);
-    if (target) target.el.classList.add("cc-pin-wrap--focus");
+    if (target) target.el.classList.add("ns-pin-wrap--focus");
   }
 
   /** Closes the popover, reverting any live preview first. Safe to call when none is open. */
@@ -350,6 +350,8 @@ export class Surface {
         : Math.max(OVERLAY_MARGIN, rect.top - panelH - OVERLAY_MARGIN);
       this.inspector.panel.style.left = `${clampedLeft}px`;
       this.inspector.panel.style.top = `${topRaw}px`;
+      this.inspector.panel.classList.toggle("ns-inspector--below", fitsBelow);
+      this.inspector.panel.classList.toggle("ns-inspector--above", !fitsBelow);
     }
   }
 }
@@ -363,7 +365,7 @@ function place(box: HTMLElement, target: Element): void {
 }
 
 function glyph(kind: PinModel["kind"]): SVGSVGElement | null {
-  if (kind === "style") return icon(ICON_COLOR, "cc-pin-glyph");
-  if (kind === "text") return icon(ICON_TEXT, "cc-pin-glyph");
+  if (kind === "style") return icon(ICON_COLOR, "ns-pin-glyph");
+  if (kind === "text") return icon(ICON_TEXT, "ns-pin-glyph");
   return null;
 }

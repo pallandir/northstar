@@ -1,47 +1,77 @@
 :host,
 :root {
   /* Tier 1 — primitives: raw values live only here */
-  --blue-500: #009efa;
-  --blue-600: #0086d6;
-  --grey-900: #1e1e1e;
-  --grey-500: #6b7280;
-  --grey-400: #9aa0a6;
-  --grey-300: #c2c6cc;
-  --grey-200: #e6e6e6;
-  --grey-100: #f5f6f7;
+  --navy-950: #0b1f2a;
+  --navy-900: #14303d;
+  --navy-800: #1d4150;
+  --navy-700: #2a5464;
+  --chalk-100: #eef4f3;
+  --haze-400: #8aa6b2;
+  --amber-500: #ffb23f;
+  --amber-600: #e69a26;
+  --mint-500: #62d0a4;
+  --coral-500: #ff7a66;
   --white: #ffffff;
-  --green-500: #14ae5c;
-  --red-600: #9e3b2e;
 
-  /* Tier 2 — semantic: three UI roles + functional status */
+  /* Tier 2 — semantic. Northstar reads as an instrument laid over someone else's page, not
+     another SaaS card, so the ground is a real marine navy rather than a tinted black, and amber
+     is the only accent: it marks the one thing that matters (the target, the active tab, the
+     primary action) and nothing else borrows it. */
+  --ns-ink: var(--navy-950);
+  --ns-ink-2: var(--navy-900);
+  --ns-ink-3: var(--navy-800);
+  --ns-ink-4: var(--navy-700);
+  --ns-chalk: var(--chalk-100);
+  --ns-haze: var(--haze-400);
+  --ns-bearing: var(--amber-500);
+  --ns-bearing-strong: var(--amber-600);
+  --ns-on-bearing: var(--ns-ink);
+  --ns-bearing-soft: rgba(255, 178, 63, 0.16);
+  --ns-on-ink: var(--white);
 
-  /* role: primary (CTAs, active fills) */
-  --cc-primary: var(--blue-500);
-  /* role: accent (hover, emphasis — deeper blue) */
-  --cc-accent: var(--blue-600);
-  --cc-primary-soft: rgba(0, 158, 250, 0.1);
-  --cc-on-primary: var(--white);
+  /* functional status: state feedback only, never decoration */
+  --ns-sent: var(--mint-500);
+  --ns-danger: var(--coral-500);
+  --ns-danger-soft: rgba(255, 122, 102, 0.14);
 
-  /* role: neutral/default — surfaces, text, borders, shadows */
-  --cc-bg: var(--white);
-  --cc-muted: var(--grey-100);
-  --cc-border: var(--grey-200);
-  --cc-border-strong: var(--grey-300);
-  --cc-text: var(--grey-900);
-  --cc-text-2: var(--grey-500);
-  --cc-text-3: var(--grey-400);
-  --cc-shadow: 0 6px 24px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.06);
-  --cc-shadow-pin: 0 2px 8px rgba(0, 0, 0, 0.18);
-  --cc-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ns-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.28);
+  --ns-shadow-pin: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --ns-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ns-dur-state: 120ms;
+  --ns-dur-enter: 180ms;
 
-  /* functional status: success + danger (state feedback only, never decoration) */
-  --cc-success: var(--green-500);
-  --cc-danger: var(--red-600);
+  /* Spacing: six steps, nothing improvised in between. */
+  --ns-s1: 4px;
+  --ns-s2: 8px;
+  --ns-s3: 12px;
+  --ns-s4: 16px;
+  --ns-s5: 20px;
+  --ns-s6: 24px;
 
-  /* typography scale */
-  --cc-fs-base: 1rem;
-  --cc-fs-sm: 0.9rem;
-  --cc-fs-lg: 1.25rem;
-  --cc-fs-xl: 1.5rem;
-  --cc-fs-2xl: 2rem;
+  /* Radius: controls, surfaces, pills. Three steps, not nine. */
+  --ns-radius-control: 6px;
+  --ns-radius-surface: 10px;
+  --ns-radius-pill: 999px;
+
+  /* The control height every button/toggle/grip shares, so the popup and the overlay read as one
+     product instead of two independently-guessed heights. */
+  --ns-control-h: 34px;
+
+  /* z-scale: declared, unlike the nine `--cc-z-*` references the previous pass left undefined. */
+  --ns-z-leader: 10;
+  --ns-z-hover: 20;
+  --ns-z-pin: 30;
+  --ns-z-toolbar: 40;
+  --ns-z-drawer: 50;
+  --ns-z-panel: 60;
+  --ns-z-modal: 70;
+
+  /* Type: one system stack, four sizes, sentence case labels, no all-caps. Monospace is reserved
+     for values that really are code: selectors, file paths, hex. */
+  --ns-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ns-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ns-fs-2xs: 0.6875rem;
+  --ns-fs-xs: 0.75rem;
+  --ns-fs-sm: 0.8125rem;
+  --ns-fs-base: 0.9375rem;
 }

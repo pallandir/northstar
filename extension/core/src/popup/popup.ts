@@ -32,7 +32,7 @@ async function init(): Promise<void> {
 
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
   if (!tab?.id) {
-    const unavailable = el("p", "rl-unavailable");
+    const unavailable = el("p", "ns-unavailable");
     unavailable.textContent = "No active tab found.";
     app.replaceChildren(unavailable);
     return;
@@ -69,20 +69,20 @@ function render(app: HTMLElement, state: State): void {
   const reachable = Boolean(status?.serverReachable);
   const terminal = status?.terminal;
 
-  const header = el("div", "rl-header");
-  const wordmark = el("span", "rl-wordmark");
+  const header = el("div", "ns-header");
+  const wordmark = el("span", "ns-wordmark");
   wordmark.textContent = "Northstar";
-  const badge = el("span", isActive ? "rl-badge rl-badge--live" : "rl-badge");
+  const badge = el("span", isActive ? "ns-badge ns-badge--live" : "ns-badge");
   badge.textContent = isActive ? "Active" : "";
   header.append(wordmark, badge);
 
-  const body = el("div", "rl-body");
+  const body = el("div", "ns-body");
 
-  const activateRow = el("div", "rl-activate");
+  const activateRow = el("div", "ns-activate");
   const activateText = el("div", "");
-  const activateLabel = el("div", "rl-activate-label");
+  const activateLabel = el("div", "ns-activate-label");
   activateLabel.textContent = isActive ? "Overlay active" : "Activate on this page";
-  const activateSub = el("div", "rl-activate-sub");
+  const activateSub = el("div", "ns-activate-sub");
   activateSub.textContent = isActive
     ? "Click elements to leave comments."
     : "Enables element picking and the comment toolbar.";
@@ -90,7 +90,7 @@ function render(app: HTMLElement, state: State): void {
 
   const activateBtn = el(
     "button",
-    `cc-btn ${isActive ? "cc-btn--secondary" : "cc-btn--primary"}`,
+    `ns-btn ${isActive ? "ns-btn--secondary" : "ns-btn--primary"}`,
   ) as HTMLButtonElement;
   activateBtn.textContent = isActive ? "Deactivate" : "Activate";
   activateBtn.addEventListener("click", async () => {
@@ -104,15 +104,15 @@ function render(app: HTMLElement, state: State): void {
   });
 
   activateRow.append(activateText, activateBtn);
-  body.append(activateRow, el("div", "rl-divider"), statusRow(reachable, terminal));
+  body.append(activateRow, el("div", "ns-divider"), statusRow(reachable, terminal));
 
   app.replaceChildren(header, body);
 }
 
 function statusRow(reachable: boolean, terminal: QueueStatus["terminal"]): HTMLElement {
-  const wrap = el("div", "rl-status");
-  const label = el("div", "rl-status-label");
-  const sub = el("div", "rl-status-sub");
+  const wrap = el("div", "ns-status");
+  const label = el("div", "ns-status-label");
+  const sub = el("div", "ns-status-sub");
 
   if (!reachable) {
     label.textContent = "No project connected";

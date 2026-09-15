@@ -1,4 +1,5 @@
 @import "../styles/tokens.css";
+@import "../styles/controls.css";
 
 *,
 *::before,
@@ -10,125 +11,90 @@
 
 body {
   width: 280px;
-  font-family: system-ui, sans-serif;
-  font-size: var(--cc-fs-base);
-  color: var(--cc-text);
-  background: var(--cc-bg);
+  font-family: var(--ns-font);
+  font-size: var(--ns-fs-base);
+  color: var(--ns-chalk);
+  background: var(--ns-ink);
 }
 
-.rl-header {
+.ns-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px 10px;
-  border-bottom: 1px solid var(--cc-border);
+  padding: 14px var(--ns-s4) 10px;
+  border-bottom: 1px solid var(--ns-ink-3);
 }
 
-.rl-wordmark {
-  font-size: var(--cc-fs-base);
+.ns-wordmark {
+  font-size: var(--ns-fs-base);
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: var(--cc-primary);
+  color: var(--ns-bearing);
 }
 
-.rl-badge {
-  font-size: var(--cc-fs-sm);
+.ns-badge {
+  font-size: var(--ns-fs-sm);
   font-weight: 500;
-  color: var(--cc-text-2);
+  color: var(--ns-haze);
 }
 
-.rl-badge--live {
-  color: var(--cc-success);
+.ns-badge--live {
+  color: var(--ns-sent);
 }
 
-.rl-body {
-  padding: 12px 16px;
+.ns-body {
+  padding: var(--ns-s3) var(--ns-s4);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--ns-s3);
 }
 
-.rl-activate {
+.ns-activate {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: var(--ns-s3);
 }
 
-.rl-activate-label {
-  font-size: var(--cc-fs-base);
+.ns-activate-label {
+  font-size: var(--ns-fs-base);
   font-weight: 500;
 }
 
-.rl-activate-sub {
-  font-size: var(--cc-fs-sm);
-  color: var(--cc-text-2);
+.ns-activate-sub {
+  font-size: var(--ns-fs-sm);
+  color: var(--ns-haze);
   margin-top: 1px;
 }
 
-.cc-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  height: 32px;
-  padding: 0 14px;
-  border: none;
-  border-radius: 8px;
-  font: 500 var(--cc-fs-sm) / 1 system-ui, sans-serif;
-  cursor: pointer;
-  transition: background 0.12s var(--cc-ease), color 0.12s var(--cc-ease);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.cc-btn--primary {
-  background: var(--cc-primary);
-  color: var(--cc-on-primary);
-}
-
-.cc-btn--primary:hover {
-  background: var(--cc-accent);
-}
-
-.cc-btn--secondary {
-  background: var(--cc-muted);
-  color: var(--cc-text);
-  border: 1px solid var(--cc-border);
-}
-
-.cc-btn--secondary:hover {
-  background: var(--cc-border);
-}
-
-.rl-divider {
+.ns-divider {
   height: 1px;
-  background: var(--cc-border);
-  margin: 0 -16px;
+  background: var(--ns-ink-3);
+  margin: 0 calc(var(--ns-s4) * -1);
 }
 
-.rl-status {
+.ns-status {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.rl-status-label {
-  font-size: var(--cc-fs-base);
+.ns-status-label {
+  font-size: var(--ns-fs-base);
   font-weight: 500;
-  color: var(--cc-text);
+  color: var(--ns-chalk);
 }
 
-.rl-status-sub {
-  font-size: var(--cc-fs-sm);
-  color: var(--cc-text-2);
+.ns-status-sub {
+  font-size: var(--ns-fs-sm);
+  color: var(--ns-haze);
   line-height: 1.5;
 }
 
-.rl-unavailable {
-  padding: 16px;
+.ns-unavailable {
+  padding: var(--ns-s4);
   text-align: center;
-  color: var(--cc-text-2);
-  font-size: var(--cc-fs-sm);
+  color: var(--ns-haze);
+  font-size: var(--ns-fs-sm);
   line-height: 1.5;
 }

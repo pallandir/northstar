@@ -49,39 +49,39 @@ export class Toolbar {
   constructor(surface: Surface, handlers: ToolbarHandlers) {
     this.handlers = handlers;
     this.root = document.createElement("div");
-    this.root.className = "cc-toolbar";
+    this.root.className = "ns-toolbar";
 
     this.panel = document.createElement("div");
-    this.panel.className = "cc-tb-panel";
+    this.panel.className = "ns-tb-panel";
     this.panel.hidden = true;
 
     const grip = document.createElement("div");
-    grip.className = "cc-grip cc-has-tip";
-    grip.append(icon(ICON_GRIP, "cc-action-glyph"));
+    grip.className = "ns-grip ns-has-tip";
+    grip.append(icon(ICON_GRIP, "ns-action-glyph"));
     grip.dataset.tip = "Drag to move";
     this.makeDraggable(grip);
 
     this.targetBtn = document.createElement("button");
     this.targetBtn.type = "button";
-    this.targetBtn.className = "cc-action cc-action--icon cc-action--active cc-has-tip";
+    this.targetBtn.className = "ns-action ns-action--icon ns-action--active ns-has-tip";
     this.targetBtn.dataset.tip = "Pause element picking";
-    this.targetBtn.append(icon(ICON_TARGET, "cc-action-glyph"));
+    this.targetBtn.append(icon(ICON_TARGET, "ns-action-glyph"));
     this.targetBtn.addEventListener("click", () => handlers.onTogglePick());
 
     this.commentsLabel = document.createTextNode("Comments");
     this.commentsBtn = document.createElement("button");
     this.commentsBtn.type = "button";
-    this.commentsBtn.className = "cc-action cc-has-tip";
+    this.commentsBtn.className = "ns-action ns-has-tip";
     this.commentsBtn.dataset.tip = "Open the comments panel";
-    this.commentsBtn.append(icon(ICON_COMMENT, "cc-action-glyph"), this.commentsLabel);
+    this.commentsBtn.append(icon(ICON_COMMENT, "ns-action-glyph"), this.commentsLabel);
     this.commentsBtn.addEventListener("click", () => handlers.onComments());
 
     this.sendLabel = document.createTextNode("Send to AI");
     this.sendBtn = document.createElement("button");
     this.sendBtn.type = "button";
-    this.sendBtn.className = "cc-action cc-action--primary cc-has-tip";
+    this.sendBtn.className = "ns-action ns-action--primary ns-has-tip";
     this.sendBtn.dataset.tip = "Send all comments to your AI assistant";
-    this.sendBtn.append(icon(ICON_SEND, "cc-action-glyph"), this.sendLabel);
+    this.sendBtn.append(icon(ICON_SEND, "ns-action-glyph"), this.sendLabel);
     this.sendBtn.addEventListener("click", () => handlers.onSend());
 
     this.handoffBtn = action(ICON_HANDOFF, "Handoff", "Download a Markdown handoff", () =>
@@ -90,9 +90,9 @@ export class Toolbar {
 
     const resetBtn = document.createElement("button");
     resetBtn.type = "button";
-    resetBtn.className = "cc-action cc-action--icon cc-action--danger cc-has-tip";
+    resetBtn.className = "ns-action ns-action--icon ns-action--danger ns-has-tip";
     resetBtn.dataset.tip = "Delete all comments on this page";
-    resetBtn.append(icon(ICON_TRASH, "cc-action-glyph"));
+    resetBtn.append(icon(ICON_TRASH, "ns-action-glyph"));
     resetBtn.addEventListener("click", () => handlers.onReset());
 
     this.root.append(
@@ -116,14 +116,14 @@ export class Toolbar {
   }
 
   render(state: ToolbarState): void {
-    this.targetBtn.classList.toggle("cc-action--active", state.picking);
+    this.targetBtn.classList.toggle("ns-action--active", state.picking);
     this.targetBtn.dataset.tip = state.picking ? "Pause element picking" : "Resume element picking";
 
     this.commentsLabel.textContent = `Comments (${state.count})`;
 
     if (state.mode === "remote") {
       this.sendBtn.hidden = true;
-      this.handoffBtn.classList.add("cc-action--primary");
+      this.handoffBtn.classList.add("ns-action--primary");
       this.setPanel("remote", () => remotePanel());
       return;
     }
@@ -133,7 +133,7 @@ export class Toolbar {
     const status = state.status;
     const reachable = Boolean(status?.serverReachable);
     this.sendBtn.disabled = !reachable || !status || status.queued === 0;
-    this.handoffBtn.classList.toggle("cc-action--primary", !reachable);
+    this.handoffBtn.classList.toggle("ns-action--primary", !reachable);
 
     const notices = status?.notices ?? [];
     const send = state.lastSend;
@@ -188,38 +188,38 @@ export class Toolbar {
 
   private noticePanel(notices: DeferralNotice[]): HTMLElement {
     const wrap = document.createElement("div");
-    wrap.className = "cc-notices";
+    wrap.className = "ns-notices";
 
     const title = document.createElement("div");
-    title.className = "cc-notices-title";
+    title.className = "ns-notices-title";
     title.textContent =
       notices.length === 1 ? "1 comment needs a plan" : `${notices.length} comments need a plan`;
     wrap.append(title);
 
     for (const notice of notices) {
       const row = document.createElement("div");
-      row.className = "cc-notice-row";
+      row.className = "ns-notice-row";
 
       const body = document.createElement("div");
-      body.className = "cc-notice-body";
+      body.className = "ns-notice-body";
 
       const route = document.createElement("code");
-      route.className = "cc-notice-route";
+      route.className = "ns-notice-route";
       route.textContent = notice.page;
 
       const summary = document.createElement("div");
-      summary.className = "cc-notice-summary";
+      summary.className = "ns-notice-summary";
       summary.textContent = notice.summary;
 
       const hint = document.createElement("div");
-      hint.className = "cc-notice-hint";
+      hint.className = "ns-notice-hint";
       hint.textContent = "Understood, needs a plan. Discuss in chat.";
 
       body.append(route, summary, hint);
 
       const dismiss = document.createElement("button");
       dismiss.type = "button";
-      dismiss.className = "cc-action cc-action--ghost cc-notice-dismiss";
+      dismiss.className = "ns-action ns-action--ghost ns-notice-dismiss";
       dismiss.textContent = "Dismiss";
       dismiss.addEventListener("click", () => this.handlers.onDismissNotice(notice.commentId));
 
@@ -231,7 +231,7 @@ export class Toolbar {
   }
 
   private makeDraggable(handle: HTMLElement): void {
-    handle.classList.add("cc-drag");
+    handle.classList.add("ns-drag");
     let startX = 0;
     let startY = 0;
     let originLeft = 0;
@@ -282,27 +282,27 @@ function action(
 ): HTMLButtonElement {
   const btn = document.createElement("button");
   btn.type = "button";
-  btn.className = "cc-action cc-has-tip";
+  btn.className = "ns-action ns-has-tip";
   btn.dataset.tip = tip;
-  btn.append(icon(iconNode, "cc-action-glyph"), label);
+  btn.append(icon(iconNode, "ns-action-glyph"), label);
   btn.addEventListener("click", onClick);
   return btn;
 }
 
 function sep(): HTMLElement {
   const el = document.createElement("span");
-  el.className = "cc-sep";
+  el.className = "ns-sep";
   return el;
 }
 
 function hintPanel(title: string, body: string): HTMLElement {
   const wrap = document.createElement("div");
-  wrap.className = "cc-setup";
+  wrap.className = "ns-setup";
   const heading = document.createElement("div");
-  heading.className = "cc-setup-title";
+  heading.className = "ns-setup-title";
   heading.textContent = title;
   const sub = document.createElement("div");
-  sub.className = "cc-setup-hint";
+  sub.className = "ns-setup-hint";
   sub.textContent = body;
   wrap.append(heading, sub);
   return wrap;
@@ -310,12 +310,12 @@ function hintPanel(title: string, body: string): HTMLElement {
 
 function remotePanel(): HTMLElement {
   const wrap = document.createElement("div");
-  wrap.className = "cc-setup";
+  wrap.className = "ns-setup";
   const title = document.createElement("div");
-  title.className = "cc-setup-title";
+  title.className = "ns-setup-title";
   title.textContent = "Remote page";
   const sub = document.createElement("div");
-  sub.className = "cc-setup-hint";
+  sub.className = "ns-setup-hint";
   sub.textContent = "Comment freely, then click Handoff to export a file for your developers.";
   wrap.append(title, sub);
   return wrap;

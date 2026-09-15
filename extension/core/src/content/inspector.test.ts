@@ -25,7 +25,7 @@ const NO_TARGET: InspectorTarget = {
 };
 
 function tabButton(panel: HTMLElement, label: string): HTMLButtonElement {
-  const btn = Array.from(panel.querySelectorAll<HTMLButtonElement>(".cc-inspector-tab")).find(
+  const btn = Array.from(panel.querySelectorAll<HTMLButtonElement>(".ns-inspector-tab")).find(
     (b) => b.textContent === label,
   );
   if (!btn) throw new Error(`no tab button labelled ${label}`);
@@ -33,14 +33,14 @@ function tabButton(panel: HTMLElement, label: string): HTMLButtonElement {
 }
 
 function saveButton(panel: HTMLElement): HTMLButtonElement {
-  return must(panel.querySelector<HTMLButtonElement>(".cc-btn--primary"));
+  return must(panel.querySelector<HTMLButtonElement>(".ns-btn--primary"));
 }
 
 describe("buildInspector", () => {
   it("shows three tabs by default: Comment, Text, Colour", () => {
     const el = mount(document.createElement("div"));
     const { panel } = buildInspector(el, NO_TARGET, vi.fn(), vi.fn());
-    const labels = Array.from(panel.querySelectorAll(".cc-inspector-tab")).map(
+    const labels = Array.from(panel.querySelectorAll(".ns-inspector-tab")).map(
       (b) => b.textContent,
     );
     expect(labels).toEqual(["Comment", "Text", "Colour"]);
@@ -49,7 +49,7 @@ describe("buildInspector", () => {
   it("hides the tab strip in editOnly mode", () => {
     const el = mount(document.createElement("div"));
     const { panel } = buildInspector(el, NO_TARGET, vi.fn(), vi.fn(), { editOnly: true });
-    expect(panel.querySelector(".cc-inspector-tabs")).toBeNull();
+    expect(panel.querySelector(".ns-inspector-tabs")).toBeNull();
   });
 
   describe("target header", () => {
@@ -61,8 +61,8 @@ describe("buildInspector", () => {
         vi.fn(),
         vi.fn(),
       );
-      expect(panel.querySelector(".cc-inspector-target-name")?.textContent).toBe("TrafficSources");
-      expect(panel.querySelector(".cc-inspector-target-selector")?.textContent).toBe(
+      expect(panel.querySelector(".ns-inspector-target-name")?.textContent).toBe("TrafficSources");
+      expect(panel.querySelector(".ns-inspector-target-selector")?.textContent).toBe(
         "article.card",
       );
     });
@@ -75,7 +75,7 @@ describe("buildInspector", () => {
         vi.fn(),
         vi.fn(),
       );
-      expect(panel.querySelector(".cc-inspector-target-name")?.textContent).toBe("Not resolved");
+      expect(panel.querySelector(".ns-inspector-target-name")?.textContent).toBe("Not resolved");
     });
 
     it("updateTarget refreshes the header after the async probe answers", () => {
@@ -87,10 +87,10 @@ describe("buildInspector", () => {
         tag: "div",
         selector: "div",
       });
-      expect(handle.panel.querySelector(".cc-inspector-target-name")?.textContent).toBe(
+      expect(handle.panel.querySelector(".ns-inspector-target-name")?.textContent).toBe(
         "TrafficSources",
       );
-      expect(handle.panel.querySelector(".cc-inspector-target-source")?.textContent).toBe(
+      expect(handle.panel.querySelector(".ns-inspector-target-source")?.textContent).toBe(
         "src/A.tsx:4:1",
       );
     });
@@ -144,7 +144,7 @@ describe("buildInspector", () => {
       const { panel } = buildInspector(el, NO_TARGET, vi.fn(), vi.fn());
       tabButton(panel, "Text").click();
       const input = must(
-        panel.querySelector<HTMLInputElement>('.cc-inspector-tab-body input[type="text"]'),
+        panel.querySelector<HTMLInputElement>('.ns-inspector-tab-body input[type="text"]'),
       );
       input.value = "Save changes";
       input.dispatchEvent(new Event("input"));
@@ -158,7 +158,7 @@ describe("buildInspector", () => {
       const { panel } = buildInspector(el, NO_TARGET, vi.fn(), onCancel);
       tabButton(panel, "Text").click();
       const input = must(
-        panel.querySelector<HTMLInputElement>('.cc-inspector-tab-body input[type="text"]'),
+        panel.querySelector<HTMLInputElement>('.ns-inspector-tab-body input[type="text"]'),
       );
       input.value = "Save changes";
       input.dispatchEvent(new Event("input"));
@@ -176,7 +176,7 @@ describe("buildInspector", () => {
       const { panel } = buildInspector(el, NO_TARGET, onSubmit, vi.fn());
       tabButton(panel, "Text").click();
       const input = must(
-        panel.querySelector<HTMLInputElement>('.cc-inspector-tab-body input[type="text"]'),
+        panel.querySelector<HTMLInputElement>('.ns-inspector-tab-body input[type="text"]'),
       );
       expect(input.disabled).toBe(true);
     });
@@ -200,7 +200,7 @@ describe("buildInspector", () => {
       const { panel } = buildInspector(el, NO_TARGET, onSubmit, vi.fn());
       tabButton(panel, "Text").click();
       const input = must(
-        panel.querySelector<HTMLInputElement>('.cc-inspector-tab-body input[type="text"]'),
+        panel.querySelector<HTMLInputElement>('.ns-inspector-tab-body input[type="text"]'),
       );
       input.value = "Save changes";
       input.dispatchEvent(new Event("input"));
@@ -218,7 +218,7 @@ describe("buildInspector", () => {
       const el = mount(document.createElement("div"));
       const { panel } = buildInspector(el, NO_TARGET, vi.fn(), vi.fn());
       tabButton(panel, "Colour").click();
-      const hexInput = must(panel.querySelector<HTMLInputElement>(".cc-inspector-hex"));
+      const hexInput = must(panel.querySelector<HTMLInputElement>(".ns-inspector-hex"));
       hexInput.value = "#ff0000";
       hexInput.dispatchEvent(new Event("change"));
       // happy-dom does not normalize CSSOM color values the way a real browser does, so this
@@ -232,7 +232,7 @@ describe("buildInspector", () => {
       el.style.color = "blue";
       const { panel } = buildInspector(el, NO_TARGET, vi.fn(), vi.fn());
       tabButton(panel, "Colour").click();
-      const hexInput = must(panel.querySelector<HTMLInputElement>(".cc-inspector-hex"));
+      const hexInput = must(panel.querySelector<HTMLInputElement>(".ns-inspector-hex"));
       hexInput.value = "#ff0000";
       hexInput.dispatchEvent(new Event("change"));
       panel.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
@@ -256,11 +256,11 @@ describe("buildInspector", () => {
       const { panel } = buildInspector(el, NO_TARGET, onSubmit, vi.fn());
       tabButton(panel, "Colour").click();
       const propButtons = Array.from(
-        panel.querySelectorAll<HTMLButtonElement>(".cc-inspector-property"),
+        panel.querySelectorAll<HTMLButtonElement>(".ns-inspector-property"),
       );
       const bgButton = must(propButtons.find((b) => b.textContent === "Background"));
       bgButton.click();
-      const hexInput = must(panel.querySelector<HTMLInputElement>(".cc-inspector-hex"));
+      const hexInput = must(panel.querySelector<HTMLInputElement>(".ns-inspector-hex"));
       hexInput.value = "#00ff00";
       hexInput.dispatchEvent(new Event("change"));
       saveButton(panel).click();
@@ -278,7 +278,7 @@ describe("buildInspector", () => {
       const { panel } = buildInspector(el, NO_TARGET, vi.fn(), vi.fn());
       tabButton(panel, "Text").click();
       const input = must(
-        panel.querySelector<HTMLInputElement>('.cc-inspector-tab-body input[type="text"]'),
+        panel.querySelector<HTMLInputElement>('.ns-inspector-tab-body input[type="text"]'),
       );
       input.value = "Changed";
       input.dispatchEvent(new Event("input"));
@@ -305,7 +305,7 @@ describe("buildInspector", () => {
       const onSubmit = vi.fn();
       const onCancel = vi.fn();
       const { panel } = buildInspector(el, NO_TARGET, onSubmit, onCancel);
-      must(panel.querySelector<HTMLButtonElement>(".cc-btn--secondary-danger")).click();
+      must(panel.querySelector<HTMLButtonElement>(".ns-btn--secondary-danger")).click();
       expect(onSubmit).not.toHaveBeenCalled();
       expect(onCancel).toHaveBeenCalledOnce();
     });

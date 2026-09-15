@@ -37,24 +37,24 @@ export class Drawer {
   constructor(surface: Surface, handlers: DrawerHandlers) {
     this.handlers = handlers;
     this.root = document.createElement("div");
-    this.root.className = "cc-drawer";
+    this.root.className = "ns-drawer";
 
     const card = document.createElement("div");
-    card.className = "cc-drawer-card cc-comments-card";
+    card.className = "ns-drawer-card ns-comments-card";
 
     const head = document.createElement("div");
-    head.className = "cc-drawer-head";
+    head.className = "ns-drawer-head";
     this.tabsEl = document.createElement("div");
-    this.tabsEl.className = "cc-drawer-tabs";
+    this.tabsEl.className = "ns-drawer-tabs";
     const close = document.createElement("button");
     close.type = "button";
-    close.className = "cc-drawer-close";
-    close.append(icon(ICON_CLOSE, "cc-drawer-close-icon"));
+    close.className = "ns-drawer-close";
+    close.append(icon(ICON_CLOSE, "ns-drawer-close-icon"));
     close.addEventListener("click", () => handlers.onClose());
     head.append(this.tabsEl, close);
 
     this.listEl = document.createElement("div");
-    this.listEl.className = "cc-drawer-list";
+    this.listEl.className = "ns-drawer-list";
 
     card.append(head, this.listEl);
     this.root.append(card);
@@ -67,7 +67,7 @@ export class Drawer {
 
   setOpen(open: boolean, pins: PinModel[], ctx: DrawerContext): void {
     this.open = open;
-    this.root.classList.toggle("cc-drawer--open", open);
+    this.root.classList.toggle("ns-drawer--open", open);
     this.editing = null;
     this.ctx = ctx;
     this.render(pins, ctx);
@@ -92,7 +92,7 @@ export class Drawer {
     this.tabsEl.replaceChildren();
     const commentsTab = document.createElement("button");
     commentsTab.type = "button";
-    commentsTab.className = `cc-drawer-tab${this.activeTab === "comments" ? " cc-drawer-tab--active" : ""}`;
+    commentsTab.className = `ns-drawer-tab${this.activeTab === "comments" ? " ns-drawer-tab--active" : ""}`;
     commentsTab.textContent = `Comments (${active.length})`;
     commentsTab.addEventListener("click", () => {
       this.activeTab = "comments";
@@ -101,7 +101,7 @@ export class Drawer {
     });
     const historyTab = document.createElement("button");
     historyTab.type = "button";
-    historyTab.className = `cc-drawer-tab${this.activeTab === "history" ? " cc-drawer-tab--active" : ""}`;
+    historyTab.className = `ns-drawer-tab${this.activeTab === "history" ? " ns-drawer-tab--active" : ""}`;
     historyTab.textContent = `History (${history.length})`;
     historyTab.addEventListener("click", () => {
       this.activeTab = "history";
@@ -121,7 +121,7 @@ export class Drawer {
 
     if (list.length === 0) {
       const empty = document.createElement("div");
-      empty.className = "cc-drawer-empty";
+      empty.className = "ns-drawer-empty";
       empty.textContent =
         this.activeTab === "comments"
           ? "No comments on this page yet."
@@ -137,20 +137,20 @@ export class Drawer {
 
   private item(pin: PinModel): HTMLElement {
     const row = document.createElement("div");
-    row.className = "cc-drawer-item";
+    row.className = "ns-drawer-item";
 
     row.addEventListener("mouseenter", () => this.handlers.onHoverComment(pin.key));
     row.addEventListener("mouseleave", () => this.handlers.onHoverComment(null));
 
     const meta = document.createElement("div");
-    meta.className = "cc-drawer-meta";
+    meta.className = "ns-drawer-meta";
     const dot = document.createElement("span");
-    dot.className = `cc-dot cc-dot--${pin.status}`;
+    dot.className = `ns-dot ns-dot--${pin.status}`;
     const tag = document.createElement("span");
-    tag.className = "cc-drawer-tag";
+    tag.className = "ns-drawer-tag";
     tag.textContent = pin.removable ? kindLabel(pin) : `${kindLabel(pin)} · synced`;
     const target = document.createElement("span");
-    target.className = "cc-drawer-target";
+    target.className = "ns-drawer-target";
     target.textContent = pin.target;
     target.title = `${pin.target} · ${pin.route}`;
     meta.append(dot, tag, target);
@@ -158,15 +158,15 @@ export class Drawer {
 
     if (pin.status === "resolved") {
       const body = document.createElement("div");
-      body.className = "cc-drawer-text";
+      body.className = "ns-drawer-text";
       body.textContent = pin.text;
       row.append(body);
 
       const actions = document.createElement("div");
-      actions.className = "cc-drawer-actions";
+      actions.className = "ns-drawer-actions";
       const revert = document.createElement("button");
       revert.type = "button";
-      revert.className = "cc-btn cc-btn--secondary";
+      revert.className = "ns-btn ns-btn--secondary";
       revert.textContent = "Revert";
       revert.addEventListener("click", () => this.handlers.onRevert(pin.key));
       actions.append(revert);
@@ -176,21 +176,21 @@ export class Drawer {
 
     if (this.editing === pin.key && pin.removable) {
       const textarea = document.createElement("textarea");
-      textarea.className = "cc-drawer-edit";
+      textarea.className = "ns-drawer-edit";
       textarea.value = pin.text;
 
       const screenshotRow = document.createElement("label");
-      screenshotRow.className = "cc-drawer-edit-screenshot";
+      screenshotRow.className = "ns-drawer-edit-screenshot";
       const screenshotCheckbox = document.createElement("input");
       screenshotCheckbox.type = "checkbox";
       screenshotCheckbox.checked = pin.hasScreenshot;
       screenshotRow.append(screenshotCheckbox, document.createTextNode(" Attach screenshot"));
 
       const actions = document.createElement("div");
-      actions.className = "cc-drawer-actions cc-drawer-edit-actions";
+      actions.className = "ns-drawer-actions ns-drawer-edit-actions";
       const save = document.createElement("button");
       save.type = "button";
-      save.className = "cc-btn cc-btn--primary";
+      save.className = "ns-btn ns-btn--primary";
       save.textContent = "Save";
       save.addEventListener("click", () => {
         const value = textarea.value.trim();
@@ -211,7 +211,7 @@ export class Drawer {
       });
       const cancel = document.createElement("button");
       cancel.type = "button";
-      cancel.className = "cc-btn cc-btn--secondary-danger";
+      cancel.className = "ns-btn ns-btn--secondary-danger";
       cancel.textContent = "Cancel";
       cancel.addEventListener("click", () => {
         this.editing = null;
@@ -223,16 +223,16 @@ export class Drawer {
     }
 
     const body = document.createElement("div");
-    body.className = "cc-drawer-text";
+    body.className = "ns-drawer-text";
     body.textContent = pin.text;
     row.append(body);
 
     if (pin.removable) {
       const actions = document.createElement("div");
-      actions.className = "cc-drawer-actions";
+      actions.className = "ns-drawer-actions";
       const edit = document.createElement("button");
       edit.type = "button";
-      edit.className = "cc-btn cc-btn--secondary";
+      edit.className = "ns-btn ns-btn--secondary";
       edit.textContent = "Edit";
       edit.addEventListener("click", () => {
         this.editing = pin.key;
@@ -240,7 +240,7 @@ export class Drawer {
       });
       const del = document.createElement("button");
       del.type = "button";
-      del.className = "cc-btn cc-drawer-del";
+      del.className = "ns-btn ns-drawer-del";
       del.textContent = "Delete";
       del.addEventListener("click", () => this.handlers.onRemove(pin.key));
       actions.append(edit, del);
