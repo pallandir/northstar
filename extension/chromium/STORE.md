@@ -1,10 +1,8 @@
-# Store listing
+# Chrome Web Store listing
 
-Reference copy for submitting the Northstar extension. Build the upload artifacts
-with `npm run package --workspace @northstar/extension` and
-`npm run package:firefox --workspace @northstar/extension`, which produce
-`extension/northstar-chrome.zip` and `extension/northstar-firefox.zip`, each with
-the manifest at the zip root.
+Reference copy for submitting Northstar to the Chrome Web Store. Build the upload
+artifact with `npm run package:chromium`, which produces
+`extension/chromium/northstar-chrome.zip` with the manifest at the zip root.
 
 ## Single purpose
 

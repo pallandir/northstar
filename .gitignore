@@ -5,20 +5,21 @@ node_modules/
 
 # Build output
 dist/
-dist-firefox/
 *.zip
 build/
 *.tsbuildinfo
 .vite/
 
-# Packaged release artifacts
-northstar-extension*.zip
-
 # Self-hosted extension pack artifacts (store uses the zip; Google re-signs)
 *.crx
 *.pem
 # Copied into the package at pack/publish time by the prepack script
-mcp-server/LICENSE.md
+mcp/LICENSE.md
+
+# Firefox signing artifacts (web-ext writes these into the source dir)
+web-ext-artifacts/
+.web-extension-id
+.amo-upload-uuid
 
 # Husky internals
 .husky/_/

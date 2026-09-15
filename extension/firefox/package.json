@@ -1,0 +1,25 @@
+{
+  "name": "@northstar/firefox",
+  "version": "2.0.0",
+  "description": "Firefox (Gecko MV3) build target for the Northstar extension.",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "watch": "vite build --watch",
+    "build": "vite build",
+    "package": "npm run build && web-ext build",
+    "lint:amo": "npm run build && web-ext lint",
+    "start": "web-ext run",
+    "source": "mkdir -p web-ext-artifacts && git -C ../.. archive --format=zip --prefix=northstar/ HEAD > web-ext-artifacts/northstar-source.zip",
+    "sign": "web-ext sign",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.6.1",
+    "@northstar/core": "*",
+    "@types/node": "^22.10.5",
+    "vite": "^8.0.16",
+    "web-ext": "^8.10.0"
+  }
+}

@@ -25,11 +25,12 @@ npm run build
 
 ## How the repo is laid out
 
-- `mcp-server/` is the MCP server. It speaks MCP over stdio to the assistant and
-  runs a loopback HTTP listener for the extension.
-- `extension/` is the Chromium MV3 extension, built with Vite and crxjs.
-- `plugin/` is the Claude Code plugin, which registers the server and bundles the
-  design-scoring skill.
+- `mcp/` is the MCP server. It speaks MCP over stdio to the assistant and runs a
+  loopback HTTP listener for the extension.
+- `extension/core/` is the extension source and tests, shared by both browser
+  targets. `extension/chromium/` and `extension/firefox/` each hold one Vite
+  config, one manifest, and one store listing; neither carries its own copy of
+  the source.
 - `docs/` is the architecture and flow documentation. Start there if you want to
   understand how a comment travels from the browser to your source.
 - `examples/` holds a sample app for trying things out.
@@ -47,11 +48,12 @@ npm run dev --workspace @pallandir/northstar
 For the extension:
 
 ```sh
-npm run dev --workspace @northstar/extension
+npm run dev --workspace @northstar/chromium
 ```
 
-Then load `extension/dist` as an unpacked extension from `chrome://extensions`
-with Developer mode turned on. Reload the extension card after a rebuild.
+Then load `extension/chromium/dist` as an unpacked extension from
+`chrome://extensions` with Developer mode turned on. Reload the extension card
+after a rebuild.
 
 ## Checks to run before you push
 

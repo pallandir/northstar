@@ -8,7 +8,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pallandir/northstar.git",
-    "directory": "mcp-server"
+    "directory": "mcp"
   },
   "bugs": {
     "url": "https://github.com/pallandir/northstar/issues"
