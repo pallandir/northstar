@@ -178,6 +178,14 @@ export class Drawer {
       const textarea = document.createElement("textarea");
       textarea.className = "cc-drawer-edit";
       textarea.value = pin.text;
+
+      const screenshotRow = document.createElement("label");
+      screenshotRow.className = "cc-drawer-edit-screenshot";
+      const screenshotCheckbox = document.createElement("input");
+      screenshotCheckbox.type = "checkbox";
+      screenshotCheckbox.checked = pin.hasScreenshot;
+      screenshotRow.append(screenshotCheckbox, document.createTextNode(" Attach screenshot"));
+
       const actions = document.createElement("div");
       actions.className = "cc-drawer-actions cc-drawer-edit-actions";
       const save = document.createElement("button");
@@ -187,8 +195,19 @@ export class Drawer {
       save.addEventListener("click", () => {
         const value = textarea.value.trim();
         this.editing = null;
-        if (value) this.handlers.onEdit(pin.key, value, { planFirst: pin.planFirst });
-        else this.render(this.pins);
+        if (value) {
+          // Only tell the caller to change the screenshot when the checkbox state actually
+          // differs from what is already stored: turning it off clears the shot, turning it on
+          // when there was none triggers a fresh capture, and leaving it as found is a no-op
+          // rather than a needless re-capture on every edit.
+          const attachScreenshot =
+            screenshotCheckbox.checked === pin.hasScreenshot
+              ? undefined
+              : screenshotCheckbox.checked;
+          this.handlers.onEdit(pin.key, value, { planFirst: pin.planFirst, attachScreenshot });
+        } else {
+          this.render(this.pins);
+        }
       });
       const cancel = document.createElement("button");
       cancel.type = "button";
@@ -199,7 +218,7 @@ export class Drawer {
         this.render(this.pins);
       });
       actions.append(cancel, save);
-      row.append(textarea, actions);
+      row.append(textarea, screenshotRow, actions);
       return row;
     }
 

@@ -1,14 +1,14 @@
-import DOMPurify from "dompurify";
-import { marked } from "marked";
-import { escapeHtml } from "../lib/sanitize.js";
-import type { QueuedRequest } from "../types.js";
+import type { ComponentInfo, QueuedRequest, RouteInfo } from "../types.js";
 
-function buildHandoffMarkdown(requests: QueuedRequest[]): string {
+// Mirrors the block shape mcp/src/server.ts renders for the agent, so a comment reads with the
+// same precision whether it goes through the MCP tool or through this file: route, component and
+// source first, the element and its selector next, the operation, then the comment itself.
+export function buildHandoffMarkdown(requests: QueuedRequest[]): string {
   const source = requests.length ? safeHost(requests[0].url) : "frontend";
   const lines = [
     "---",
     "title: Design handoff",
-    `source: ${escapeHtml(source)}`,
+    `source: ${source}`,
     `generated: ${new Date().toISOString()}`,
     `count: ${requests.length}`,
     "---",
@@ -20,59 +20,65 @@ function buildHandoffMarkdown(requests: QueuedRequest[]): string {
   ];
 
   requests.forEach((r, i) => {
-    lines.push(`## ${i + 1}. ${kindLabel(r)} · ${escapeHtml(r.metadata.page)}`, "");
-    if (r.comment) lines.push(`<blockquote>${escapeHtml(r.comment)}</blockquote>`, "");
-    const op = r.operation;
-    if (op.type === "style" && op.property && op.from !== null && op.to !== null) {
-      lines.push(
-        `- <code>${escapeHtml(op.property)}</code>: <code>${escapeHtml(String(op.from))}</code> → <code>${escapeHtml(String(op.to))}</code>`,
-      );
-    }
-    if (op.type === "text" && op.from !== null && op.to !== null) {
-      lines.push(
-        `- text: <q>${escapeHtml(String(op.from))}</q> → <q>${escapeHtml(String(op.to))}</q>`,
-      );
-    }
+    lines.push(`## ${i + 1}. ${kindLabel(r)}`, "");
+    lines.push(`- Route: ${formatRoute(r.route, r.metadata.page)}`);
+
+    const component = formatComponent(r.component);
+    if (component) lines.push(`- Component: ${component}`);
+
     if (r.source) {
       lines.push(
-        `- Source: <code>${escapeHtml(r.source.path)}:${r.source.line}:${r.source.column}</code>`,
+        `- Source: \`${r.source.path}:${r.source.line}:${r.source.column}\` (${r.source.via})`,
       );
     }
-    lines.push(`- Element: <code>${escapeHtml(r.operator)}</code>`);
-    lines.push(`- Page: ${escapeHtml(r.url)}`, "");
-    if (r.screenshotDataUrl && isDataImageUrl(r.screenshotDataUrl))
-      lines.push(`<img alt="item ${i + 1}" src="${r.screenshotDataUrl}">`, "");
+
+    if (r.target) {
+      const tag = r.target.id ? `<${r.target.tag} id="${r.target.id}">` : `<${r.target.tag}>`;
+      lines.push(`- Element: \`${tag}\`  Selector: \`${r.target.selector}\``);
+    } else {
+      lines.push(`- Element: \`${r.operator}\``);
+    }
+    lines.push(`- Page: ${r.url}`, "");
+
+    const op = r.operation;
+    if (op.type === "style" && op.property && op.from !== null && op.to !== null) {
+      lines.push(`- \`${op.property}\`: \`${op.from}\` → \`${op.to}\``);
+    } else if (op.type === "text" && op.from !== null && op.to !== null) {
+      lines.push(`- text: "${op.from}" → "${op.to}"`);
+    }
+
+    if (r.comment) lines.push("", `> ${r.comment.split("\n").join("\n> ")}`);
+
+    // Only when the user actually asked for this item to carry a screenshot: attachScreenshot is
+    // the stored consent, not merely whether a data URL happens to be present.
+    if (r.attachScreenshot && r.screenshotDataUrl && isDataImageUrl(r.screenshotDataUrl)) {
+      lines.push("", `![item ${i + 1}](${r.screenshotDataUrl})`);
+    }
+    lines.push("");
   });
 
   return lines.join("\n");
 }
 
-function buildHandoffHtml(requests: QueuedRequest[]): string {
-  const md = buildHandoffMarkdown(requests);
-  const rawHtml = marked.parse(md) as string;
-  const body = DOMPurify.sanitize(rawHtml, { FORCE_BODY: true });
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Design handoff</title>
-<style>
-body{font-family:system-ui,sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;color:#1a1a1a}
-blockquote{border-left:3px solid #d97757;margin:0;padding:.25rem .75rem;color:#444}
-code{background:#f4f4f4;padding:.1em .3em;border-radius:3px;font-size:.9em}
-img{max-width:100%;border:1px solid #ddd;border-radius:4px;margin:.5rem 0}
-</style>
-</head>
-<body>${body}</body>
-</html>`;
+function formatRoute(route: RouteInfo | null, pageFallback: string): string {
+  if (!route) return pageFallback;
+  const bits = [route.router, route.routeFile].filter((v): v is string => Boolean(v));
+  const suffix = bits.length ? ` (${bits.join(" · ")})` : "";
+  const hedge = route.confidence === "inferred" ? " _(inferred, not confirmed)_" : "";
+  return `${route.pattern}${suffix}${hedge}`;
+}
+
+function formatComponent(component: ComponentInfo | null): string | null {
+  if (!component?.stack.length) return null;
+  return component.stack.map((f) => f.name).join(" < ");
 }
 
 export function downloadHandoff(requests: QueuedRequest[]): void {
-  const blob = new Blob([buildHandoffHtml(requests)], { type: "text/html" });
+  const blob = new Blob([buildHandoffMarkdown(requests)], { type: "text/markdown" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `design-handoff-${safeHost(location.href)}.html`;
+  link.download = `design-handoff-${safeHost(location.href)}.md`;
   link.click();
   URL.revokeObjectURL(url);
 }

@@ -12,15 +12,12 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.0.287",
-    "@types/dompurify": "^3.0.5",
     "@vitest/coverage-v8": "^3.2.6",
     "happy-dom": "^17.6.3",
     "vite": "^8.0.16",
     "vitest": "^3.2.6"
   },
   "dependencies": {
-    "@material-symbols/svg-400": "^0.45.4",
-    "dompurify": "^3.4.11",
-    "marked": "^18.0.5"
+    "@material-symbols/svg-400": "^0.45.4"
   }
 }
