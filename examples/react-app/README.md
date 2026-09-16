@@ -1,68 +1,60 @@
-# cc-example-react
+# Northstar local demo
 
-A demo dashboard for exercising the Redline extension end to end. It is a
-plain Vite + React app with `@react-dev-inspector/babel-plugin` enabled, so every
-element carries `data-inspector-*` source attributes and comments resolve to
-`src/App.jsx:line:column`.
+This small Vite and React app is a local fixture for trying the Northstar
+extension. It is intentionally outside the root npm workspaces and CI, so a
+clone must install its dependencies separately.
 
-## Run
+## Build and run
 
-```bash
-npm install
-npm run dev        # http://localhost:3001
-```
-
-## Full end-to-end with Claude Code
-
-The MCP server writes the comment store into the directory of the Claude Code
-session that spawns it, and source paths are relative to this app — so run Claude
-Code **from this folder**.
-
-1. Start this app (above) and make sure the extension is loaded and activated
-   (click the toolbar icon → badge ON).
-2. From `examples/react-app`, open Claude Code:
-   ```bash
-   claude
-   ```
-   This spawns the `redline` MCP server on `:7474`; the toolbar status dot
-   turns green.
-3. In the browser at `http://localhost:3001`, leave comments, change a color, or
-   edit text, then click **⤴ Send** in the toolbar.
-4. In Claude Code, run **`/comments`**. It reads the comments, views the
-   screenshots, proposes a plan, applies the changes to `src/App.jsx`, and marks
-   each one resolved.
-
-The store lands in `examples/react-app/.claude/design-comments.md` with screenshots
-in `examples/react-app/.claude/design-shots/`.
-
-## Notes
-
-- Green status dot = a Claude Code session is running (that is what spawns the
-  server). Comments queue locally otherwise and sync on the next Send.
-- One project at a time (single port 7474).
-- This is a throwaway fixture; its `.claude/` output is local only.
-
-## Test sandbox contract
-
-This app is a fixed fixture. The baseline source is committed so it can never
-disappear, but the parent `examples/` folder is gitignored, so anything you or an
-AI assistant changes while testing stays local and is never committed. Iterate
-freely, the repo baseline does not move.
-
-The baseline files are tracked with `skip-worktree`, which hides local edits from
-git. After a fresh clone, lock them on your machine with:
+Run these commands from the repository root, in order:
 
 ```bash
-git update-index --skip-worktree \
-  examples/react-app/README.md \
-  examples/react-app/index.html \
-  examples/react-app/vite.config.js \
-  examples/react-app/package.json \
-  examples/react-app/package-lock.json \
-  examples/react-app/src/App.jsx \
-  examples/react-app/src/main.jsx
+npm ci
+npm ci --prefix examples/react-app
+npm run build --workspace @pallandir/northstar
+npm run build:chromium
+npm run build:firefox
+npm run lint:amo
 ```
 
-To intentionally update the committed baseline, reverse the flag with
-`git update-index --no-skip-worktree <files>`, make your edit, commit, then set
-`--skip-worktree` again.
+Then start the demo in a second terminal:
+
+```bash
+npm run dev --prefix examples/react-app
+```
+
+The app is served at `http://localhost:3001` and has two routes:
+
+- `http://localhost:3001/`
+- `http://localhost:3001/users/8123`
+
+## Load the local extensions
+
+In Chrome or another Chromium browser, open `chrome://extensions`, enable
+Developer mode, choose **Load unpacked**, and select
+`extension/chromium/dist`.
+
+In Firefox, open `about:debugging` > **This Firefox** > **Load Temporary Add-on**
+and select `extension/firefox/dist/manifest.json`. Grant the extension access to
+`localhost` when Firefox asks.
+
+## Connect Codex to the local MCP server
+
+After the MCP build above, run this from `examples/react-app`:
+
+```bash
+codex mcp add northstar -- node ../../mcp/dist/index.js
+```
+
+This registers the local server command with Codex. Start Codex from
+`examples/react-app` so its working directory is the demo, the server writes
+`.northstar/` there, and source paths match the demo files.
+
+Activate Northstar in the browser, click an element, leave a comment, and use
+**Send to AI**. Exercise both routes and confirm that Codex can read the local
+comment through the `list_comments` MCP tool. Comments and screenshots remain
+in the gitignored `.northstar/` directory.
+
+The example's `react-router-dom` dependency is installed by the dedicated
+`npm ci --prefix examples/react-app` command above; it is not supplied by the
+root install.

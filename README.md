@@ -33,6 +33,7 @@
 - [What is Northstar](#what-is-northstar)
 - [Prerequisites](#prerequisites)
 - [Getting started](#getting-started)
+- [Try the local demo](#try-the-local-demo)
 - [How it works](#how-it-works)
 - [Usage](#usage)
 - [Source mapping](#source-mapping)
@@ -70,7 +71,7 @@ gets there.
 | Need | Why | Required? |
 |---|---|---|
 | Node 20+ | runs the MCP server via `npx` | Yes |
-| An MCP-capable AI coding assistant | reads comments and edits your source (Claude Code, Codex, Gemini, or any MCP client) | Yes |
+| An MCP-capable AI coding assistant | reads comments and edits your source (Codex, Claude Code, Gemini, or any MCP client) | Yes |
 | Chrome, Edge, Brave, Arc, or Firefox 128+ | extension | Yes |
 | Your assistant started in tmux, iTerm2, or Terminal.app | lets Send to AI type into it | Yes |
 | React, Vue, Svelte, or Angular dev build | precise component, source and route resolution | No, automatic |
@@ -85,10 +86,10 @@ The server is published on npm as
 [`@pallandir/northstar`](https://www.npmjs.com/package/@pallandir/northstar) and
 runs on demand via `npx`, no global install needed.
 
-**Claude Code**, register it with a single command:
+**Codex**, register it with a single command:
 
 ```sh
-claude mcp add northstar -- npx -y @pallandir/northstar
+codex mcp add northstar -- npx -y @pallandir/northstar
 ```
 
 **Any other MCP client**, add the same command to your MCP configuration:
@@ -134,10 +135,17 @@ the page, then click **Send to AI**.
 That is the whole setup. Northstar finds the terminal your assistant runs in,
 waits for it to be idle, and types a one-line request followed by Enter.
 
+## Try the local demo
+
+Clone the repository and follow the [local demo guide](./examples/react-app/README.md)
+to build the MCP server and both browser extensions, load them from your
+working tree, and exercise the sample React app with Codex. The example is
+intentionally outside the root npm workspaces and CI, so install its dependencies
+with `npm ci --prefix examples/react-app`.
+
 > [!TIP]
 > **Run your assistant in auto mode** so it applies changes without stopping on
-> every edit. In Claude Code press `Shift+Tab` to cycle to "accept edits", or
-> start with `claude --permission-mode acceptEdits`. Northstar will not answer a
+> every edit. Northstar will not answer a
 > permission prompt for you: if one is on screen when you send, your comments are
 > saved and the toolbar tells you they were not announced.
 
@@ -354,8 +362,8 @@ telemetry. See [PRIVACY.md](./PRIVACY.md).
 
 Two pieces. Install the extension from the
 [Chrome Web Store](https://chromewebstore.google.com/detail/northstar/mmpgoabhnlkcgboiiaebeahcbbeeaggb),
-then register the MCP server with your assistant, for Claude Code that is
-`claude mcp add northstar -- npx -y @pallandir/northstar`. See
+then register the MCP server with your assistant, for Codex that is
+`codex mcp add northstar -- npx -y @pallandir/northstar`. See
 [Getting started](#getting-started) for the full walkthrough.
 </details>
 
