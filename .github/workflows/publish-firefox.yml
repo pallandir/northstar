@@ -31,20 +31,20 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         run: |
-          built=$(node -p "require('./extension/firefox/dist/manifest.json').version")
+          built=$(node -p "require('./extensions/firefox/dist/manifest.json').version")
           if [ "$built" != "${TAG#v}" ]; then
             echo "manifest version $built does not match tag ${TAG#v}" >&2
             exit 1
           fi
 
       - name: AMO validator
-        run: npx web-ext lint -s extension/firefox/dist
+        run: npx web-ext lint -s extensions/firefox/dist
 
       - name: Source archive for review
         run: npm run source --workspace @northstar/firefox
 
       - name: Submit listed version to AMO
-        working-directory: extension/firefox
+          working-directory: extensions/firefox
         env:
           WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
           WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
@@ -62,5 +62,5 @@ jobs:
         if: always()
         with:
           name: firefox-submission
-          path: extension/firefox/web-ext-artifacts/*.zip
+          path: extensions/firefox/web-ext-artifacts/*.zip
           retention-days: 14

@@ -2,7 +2,7 @@
 
 Reference copy for submitting Northstar to addons.mozilla.org. Build the upload
 artifact with `npm run package:firefox`, which produces
-`extension/firefox/web-ext-artifacts/northstar-firefox-<version>.zip`.
+`extensions/firefox/web-ext-artifacts/northstar-firefox-<version>.zip`.
 
 AMO requires a source-code package for this add-on because the shipped code is
 bundled and minified by Vite. Produce it with `npm run source --workspace @northstar/firefox`,

@@ -11,7 +11,7 @@ release:
 
 - root `package.json`
 - `mcp/package.json` for the npm package
-- `extension/core/manifest.base.ts` (both browser targets read it)
+- `extensions/core/manifest.base.ts` (both browser targets read it)
 
 There is no automatic sync, so bump all three when you cut a release.
 
@@ -32,7 +32,7 @@ this repository's `release` environment. Nothing further to set up per release.
 ### Cutting a release
 
 1. Bump the version in `mcp/package.json`, root `package.json`, and
-   `extension/core/manifest.base.ts` (see above).
+   `extensions/core/manifest.base.ts` (see above).
 2. Update `CHANGELOG.md`.
 3. Commit the bump.
 4. Tag the release and push the tag. The npm and Firefox workflows both trigger
@@ -63,7 +63,7 @@ though the file is gitignored.
 
 ## Packaging the extension for the stores
 
-Chrome and Firefox build from the same `extension/core/` source into separate
+Chrome and Firefox build from the same `extensions/core/` source into separate
 `dist/` directories, because Gecko has no extension service worker and needs its
 own `browser_specific_settings`. Each is a zip with the manifest at the zip root.
 
@@ -75,12 +75,12 @@ own `browser_specific_settings`. Each is a zip with the manifest at the zip root
    npm run package:chromium
    ```
 
-   This produces `extension/chromium/northstar-chrome.zip`.
+   This produces `extensions/chromium/northstar-chrome.zip`.
 
 2. Verify the zip is a coherent build before you upload it:
 
    ```sh
-   unzip -l extension/chromium/northstar-chrome.zip
+   unzip -l extensions/chromium/northstar-chrome.zip
    ```
 
    Confirm it contains `manifest.json` at the root, all four icons, the
@@ -90,7 +90,7 @@ own `browser_specific_settings`. Each is a zip with the manifest at the zip root
    the zip and the manifest come from the same build.
 
 3. Submit using the listing copy in
-   [extension/chromium/STORE.md](../extension/chromium/STORE.md): the
+   [extensions/chromium/STORE.md](../extensions/chromium/STORE.md): the
    description, the permission justifications, the data-use disclosures, and the
    privacy-policy URL. Make sure the repo is public so the privacy-policy URL
    resolves.
@@ -131,16 +131,16 @@ secrets are added, so tagging never submits to AMO by accident.
 5. Pushing the `v*` tag runs the workflow, which builds, asserts the built
    manifest version matches the tag, runs the AMO validator, and calls
    `web-ext sign --channel listed --approval-timeout 0`, uploading the source
-   archive and the reviewer notes in `extension/firefox/amo-metadata.json`. The
+   archive and the reviewer notes in `extensions/firefox/amo-metadata.json`. The
    submission then waits in AMO's human review queue; the workflow does not
    block on that.
 
-Listing copy lives in [extension/firefox/STORE.md](../extension/firefox/STORE.md).
+Listing copy lives in [extensions/firefox/STORE.md](../extensions/firefox/STORE.md).
 
 ## Release checklist
 
 - [ ] Versions bumped and matching across root `package.json`, `mcp/package.json`
-      and `extension/core/manifest.base.ts`.
+      and `extensions/core/manifest.base.ts`.
 - [ ] `CHANGELOG.md` updated for the release.
 - [ ] `npm run lint`, `npm run typecheck`, and `npm test` pass.
 - [ ] `npm pack --dry-run` tarball looks right.

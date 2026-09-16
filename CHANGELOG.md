@@ -31,9 +31,9 @@ comment now names its own route, component and source.
   `component`, `route` and `target` alongside `source`, validated by strict zod
   schemas server-side; a client sending the old shape gets a clean `400` rather
   than a comment that silently lacks them.
-- **BREAKING: the repo splits into `mcp/` and `extension/{core,chromium,firefox}`.**
+- **BREAKING: the repo splits into `mcp/` and `extensions/{core,chromium,firefox}`.**
   `mcp-server/` becomes `mcp/`. The extension's source lives once, in
-  `extension/core/`; `extension/chromium/` and `extension/firefox/` hold only a
+  `extensions/core/`; `extensions/chromium/` and `extensions/firefox/` hold only a
   manifest, a Vite config and a store listing each, so a fix lands in both
   builds together instead of drifting between two copies.
 - **The three-chip action menu becomes one popover.** Clicking an element used to

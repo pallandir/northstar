@@ -38,14 +38,14 @@ npm run lint:amo                                # AMO validator against firefox/
 npm test --workspace @northstar/core            # vitest
 ```
 
-Load `extension/chromium/dist` via `chrome://extensions` → Developer mode → Load
+Load `extensions/chromium/dist` via `chrome://extensions` → Developer mode → Load
 unpacked.
 
-For Firefox, load `extension/firefox/dist` via `about:debugging` → This Firefox →
+For Firefox, load `extensions/firefox/dist` via `about:debugging` → This Firefox →
 Load Temporary Add-on, or run `npm run start --workspace @northstar/firefox`.
 
 Both targets build from `core/`, one copy of the source. The Vite `root` is
-`extension/core`, so every manifest entry path is relative to that directory;
+`extensions/core`, so every manifest entry path is relative to that directory;
 each target's `build.outDir` points back into its own directory.
 
 The CRXJS dev *server* (`vite`, not `vite build --watch`) does not work for this

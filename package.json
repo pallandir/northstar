@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Leave real-time comments on any interface and let your local AI coding assistant act on them.",
   "license": "PolyForm-Noncommercial-1.0.0",
-  "workspaces": ["extension/core", "extension/chromium", "extension/firefox", "mcp"],
+  "workspaces": ["extensions/core", "extensions/chromium", "extensions/firefox", "mcp"],
   "engines": {
     "node": ">=20"
   },

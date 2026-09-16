@@ -2,7 +2,7 @@
 
 Reference copy for submitting Northstar to the Chrome Web Store. Build the upload
 artifact with `npm run package:chromium`, which produces
-`extension/chromium/northstar-chrome.zip` with the manifest at the zip root.
+`extensions/chromium/northstar-chrome.zip` with the manifest at the zip root.
 
 ## Single purpose
 

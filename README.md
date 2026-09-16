@@ -120,7 +120,7 @@ npm ci
 npm run build:firefox
 ```
 
-Then load `extension/firefox/dist` through `about:debugging` > This Firefox >
+Then load `extensions/firefox/dist` through `about:debugging` > This Firefox >
 Load Temporary Add-on. The first time you activate Northstar, Firefox asks for
 access to `localhost`. Grant it, or the extension cannot reach the server.
 

@@ -27,8 +27,8 @@ npm run build
 
 - `mcp/` is the MCP server. It speaks MCP over stdio to the assistant and runs a
   loopback HTTP listener for the extension.
-- `extension/core/` is the extension source and tests, shared by both browser
-  targets. `extension/chromium/` and `extension/firefox/` each hold one Vite
+- `extensions/core/` is the extension source and tests, shared by both browser
+  targets. `extensions/chromium/` and `extensions/firefox/` each hold one Vite
   config, one manifest, and one store listing; neither carries its own copy of
   the source.
 - `docs/` is the architecture and flow documentation. Start there if you want to
@@ -51,7 +51,7 @@ For the extension:
 npm run dev --workspace @northstar/chromium
 ```
 
-Then load `extension/chromium/dist` as an unpacked extension from
+Then load `extensions/chromium/dist` as an unpacked extension from
 `chrome://extensions` with Developer mode turned on. Reload the extension card
 after a rebuild.
 

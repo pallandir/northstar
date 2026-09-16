@@ -47,8 +47,8 @@ flowchart TB
 
 ### Browser extension
 
-The source lives once, in `extension/core/`. `extension/chromium/` and
-`extension/firefox/` each hold only a manifest, a Vite config, and a store listing;
+The source lives once, in `extensions/core/`. `extensions/chromium/` and
+`extensions/firefox/` each hold only a manifest, a Vite config, and a store listing;
 neither carries its own copy of the code, so a fix lands in both builds together.
 
 - **Popup** is the on and off switch. It reads the active tab's state, asks the
