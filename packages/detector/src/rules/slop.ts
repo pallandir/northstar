@@ -188,7 +188,7 @@ export const slopChecks: Check[] = [
   },
   {
     id: "NS-LOOK-DEFAULT-PALETTE",
-    kinds: [...MARKUP],
+    kinds: ["css", ...MARKUP],
     run(ctx) {
       for (const { str, tokens } of classLists(ctx)) {
         const from = tokens.some((t) =>
@@ -198,6 +198,23 @@ export const slopChecks: Check[] = [
           /^to-(blue|cyan|sky|pink|fuchsia|indigo|violet|purple)-\d{2,3}$/.test(t),
         );
         if (from && to) ctx.report("NS-LOOK-DEFAULT-PALETTE", str.index);
+      }
+      const known = ctx.param("NS-LOOK-DEFAULT-PALETTE", "tailwind_defaults");
+      const min = Number(ctx.param("NS-LOOK-DEFAULT-PALETTE", "min_distinct") ?? 3);
+      if (!Array.isArray(known)) return;
+      const defaults = new Set(known.map((hex) => hex.toLowerCase()));
+      const used = new Map<string, number>();
+      for (const match of ctx.text.matchAll(/#[0-9a-fA-F]{6}\b/g)) {
+        const hex = match[0].toLowerCase();
+        if (defaults.has(hex) && !used.has(hex)) used.set(hex, match.index ?? 0);
+      }
+      if (used.size >= min) {
+        const first = Math.min(...used.values());
+        ctx.report(
+          "NS-LOOK-DEFAULT-PALETTE",
+          first,
+          `${used.size} colours come straight from the Tailwind default palette`,
+        );
       }
     },
   },

@@ -102,3 +102,29 @@ conflicts:
       impeccable: Asks for restraint and a clear structure that follows the content.
     resolution: The dials are guidance and start from the mode, never from a fixed default. Operate starts at a low variance and a high density, Read and Persuade sit in the middle, and only Experience starts high. The designer's answer, recorded in DESIGN.md prose, overrides the mode default, and the accessibility floor still applies at every setting.
     rules: [NS-LAYOUT-TASTE-DIALS, NS-LAYOUT-CENTER-EVERYTHING, NS-LAYOUT-SPACING-RHYTHM]
+
+  - id: depth-model
+    topic: Shadows, borders or a flat surface
+    positions:
+      make-interfaces-feel-better: Layered soft shadows with a thin ring beat solid borders, since shadows adapt to any background.
+      taste-skill: Soft tinted shadows for calm looks, no shadows at all for minimalist and brutalist looks.
+      impeccable: Refuses hard offset shadows and decorative glass.
+    resolution: The archetype decides the depth model and DESIGN.md records it. Soft looks use two or three tinted layers, minimalist and editorial looks use a ring and background steps, brutalist looks need an allow entry for hard shadows. A single black layer is never right, and a flat system is valid when the brief says flat.
+    rules: [NS-FINISH-FLAT-SHADOW, NS-SLOP-HARD-SHADOW, NS-SLOP-DECOR-GLASS]
+
+  - id: motion-frequency
+    topic: Atmosphere versus restraint in motion
+    positions:
+      taste-skill: Motion intensity high on landing pages, with scroll choreography and hover physics.
+      emil-design-eng: Animate less the more often an action happens, never animate keyboard actions, and keep interface motion under 300ms.
+      impeccable: One authored moment per page.
+    resolution: The mode sets the budget and frequency sets the amount. Operate animates feedback only, Persuade gets one signature moment, Experience may choreograph with a reduced motion path. Actions repeated all day and anything triggered by keyboard stay instant, and interface transitions stay under 300ms outside Experience.
+    rules: [NS-MOTION-ONE-MOMENT, NS-MOTION-DURATION, NS-MOTION-EASE-IN, NS-A11Y-REDUCED-MOTION]
+
+  - id: generated-tokens
+    topic: Generated tokens versus a supplied brand
+    positions:
+      northstar: design_tokens_generate builds a tinted ramp from a hue, a shape and a density.
+      brief: A designer or brand guide may already fix the colours, fonts and radii.
+    resolution: A supplied brand always wins. Seed the generator with the brand colour, keep the supplied fonts and radii, and use the generated neutrals, shadows and motion tokens only for what the brief leaves open. Contrast must still pass for every pair.
+    rules: [NS-LOOK-DEFAULT-PALETTE, NS-COLOR-RAW-VALUES, NS-A11Y-CONTRAST]

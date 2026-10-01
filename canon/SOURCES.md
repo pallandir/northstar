@@ -9,6 +9,9 @@ Every rule in `canon/rules` lists the works it draws on in its `sources` field, 
 | `ui-ux-pro-max` | ui-ux-pro-max by Next Level Builder | MIT |
 | `top-design` | top-design in wondelai skills | MIT |
 | `taste-skill` | taste-skill by Leon Lin and blueemi | MIT |
+| `make-interfaces-feel-better` | make-interfaces-feel-better by Jakub Krehel | MIT |
+| `emil-design-eng` | emil-design-eng in Emil Kowalski's skills | MIT |
+| `web-interface-guidelines` | Web Interface Guidelines by Vercel | MIT |
 | `shadcn-lint` | the shadcn lint rules for agent first Tailwind projects | MIT |
 | `northstar` | original to this project | MIT |
 

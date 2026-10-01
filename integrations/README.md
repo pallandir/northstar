@@ -26,4 +26,4 @@ Generated from the same plans that `northstar install` uses. Use these when you 
 
 Claude Code registers the server with its own cli at user scope: `claude mcp add --env NORTHSTAR_PACKS=all --transport stdio --scope user northstar -- npx -y @pallandir/northstar`.
 
-The skill folder is `plugin/skills/northstar` in this repository, copy it to the destination shown.
+The skill folders are `plugin/skills/northstar` and the `plugin/skills/northstar-*` folders in this repository, copy each one next to the destination shown.

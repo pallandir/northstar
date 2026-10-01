@@ -11,6 +11,10 @@ Load when: building a palette, defining theme tokens, choosing status colours, o
 - Meaning is never carried by colour alone. Pair status colour with an icon or text.
 - Choose the default theme from the use scene (NS-COLOR-THEME-CHOICE). Support both when the audience varies.
 
+## Generated ramps
+
+Prefer `design_tokens_generate` to hand picked hexes. It builds a 12 step neutral ramp tinted toward the hue (or cool, warm or pure when the brief says so), derives the accent and status colours by searching lightness until each pair passes, and writes both themes. A supplied brand colour seeds the hue through `brand`, so the ramp matches the brand instead of defaulting to a Tailwind grey and blue (`NS-LOOK-DEFAULT-PALETTE`).
+
 ## Do
 - Build in OKLCH so lightness steps are perceptually even: `oklch(0.62 0.17 255)`.
 - Hold hue, vary lightness, and lower chroma at the extremes.

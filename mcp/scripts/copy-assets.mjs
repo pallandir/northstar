@@ -16,9 +16,7 @@ cpSync(canonRoot, join(assets, "canon"), {
   recursive: true,
   filter: (source) => !skip.some((name) => relative(canonRoot, source).split(sep).includes(name)),
 });
-cpSync(join(repoRoot, "plugin", "skills", "northstar"), join(assets, "skill"), {
-  recursive: true,
-});
+cpSync(join(repoRoot, "plugin", "skills"), join(assets, "skills"), { recursive: true });
 cpSync(join(repoRoot, "packages", "data", "json"), join(assets, "data"), { recursive: true });
 cpSync(
   join(repoRoot, "packages", "data", "LICENSE-ui-ux-pro-max.txt"),

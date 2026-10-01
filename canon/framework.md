@@ -6,9 +6,15 @@ Northstar steers an AI coding agent through professional UI work: designing, ref
 
 Agents produce competent but generic interfaces. They converge on the same palettes, the same card grids, the same gradient headline, and they hand roll components that mature libraries already provide. Northstar fixes this with a short method, one set of rules with one arbitration order, and a library first policy. It is advice with teeth: some rules are checked by a detector, the rest are checked by critique.
 
+## One engine, many styles
+
+Northstar is the UI and UX orchestrator, so a project needs one design skill and not ten. Direction picks an archetype, or a blend of two, from twelve recipes. System turns it into contrast checked tokens with `design_tokens_generate`. Compose builds with libraries, Polish applies the finish layer, and `ui_audit` opens a refine pass on code that already exists. Two people share the loop: engineers build fast, designers refine what was built, in the editor or from the browser extension.
+
+Four workflow skills cover the common jobs, `northstar-build`, `northstar-refine`, `northstar-finish` and `northstar-review`, and they read the same canon as this one.
+
 ## The DESIGN.md gate
 
-No UI file is created or edited until `DESIGN.md` exists, parses, has no unfilled placeholders and names a mode. This holds for every task, including a small tweak, a polish pass and a browser comment. `northstar_context` reports it in the `gate` field, and the Claude Code edit hook blocks UI edits while it is closed. Open it with `design_md_normalize` when the designer supplied a direction, or with `design_system_propose` after the questions, then fix every error from `design_md_validate`. Skipping it needs an explicit instruction from the user, logged in `design/decisions.md`.
+No UI file is created or edited until `DESIGN.md` exists, parses, has no unfilled placeholders and names a mode. This holds for every task, including a small tweak, a polish pass and a browser comment. `northstar_context` reports it in the `gate` field, and the Claude Code edit hook blocks UI edits while it is closed. Open it with `design_md_normalize` when the designer supplied a direction, or with `design_system_propose` or `design_tokens_generate` after the questions, then fix every error from `design_md_validate`. Skipping it needs an explicit instruction from the user, logged in `design/decisions.md`.
 
 ## Stages
 
@@ -42,7 +48,8 @@ Verbs are entry points that run a subset of the stages.
 
 | Verb | Runs | Use when |
 |---|---|---|
-| refine | Critique, then Polish | The UI exists and needs to get better |
+| build | Brief, Direction, System, Compose, Polish | New UI from a brief, fast |
+| refine | `ui_audit`, then Critique and Polish, one lever at a time | The UI exists and needs to get better |
 | adapt | System, then Compose | A new target: platform, breakpoint, theme, density, locale, brand |
 | modernise | Brief derived from code, then Direction, then System | A legacy UI needs a new system without losing behaviour |
 
@@ -60,7 +67,7 @@ Templates for all three live in `templates/`.
 
 ## Design read and taste dials
 
-Before code, state a one line design read: page kind, audience, vibe words and design family. Direction then sets three taste dials from 1 to 10: design variance, motion intensity and visual density. They start from the mode, are asked as one question with a recommended default, and are recorded as a sentence in the DESIGN.md prose, with no schema field. Soft, minimalist and brutalist are named archetypes for briefs described as a feel. Details are in `references/direction.md`.
+Before code, state a one line design read: page kind, audience, vibe words and design family. Direction then sets three taste dials from 1 to 10: design variance, motion intensity and visual density. They start from the mode, are asked as one question with a recommended default, and are recorded as a sentence in the DESIGN.md prose, with no schema field. Archetypes are named recipes for briefs described as a feel, and they can be blended. They are listed in `references/archetypes.md`. Details are in `references/direction.md`.
 
 ## Bring your own direction
 
@@ -105,12 +112,12 @@ The comments pack is always available. Tool names by pack:
 
 | Pack | Tools |
 |---|---|
-| core | `northstar_context`, `enable_packs`, `pack_call` |
+| core | `northstar_context`, `enable_packs`, `pack_call`, `canon_find`, `canon_read` |
 | comments | `list_comments`, `get_comment`, `resolve_comment`, `resolve_comments`, `defer_comment`, `list_deferred`, `clear_resolved` |
 | research | `design_search`, `design_get` |
-| system | `design_md_init`, `design_md_validate`, `design_md_normalize`, `design_md_export`, `design_system_propose` |
+| system | `design_md_init`, `design_md_validate`, `design_md_normalize`, `design_md_export`, `design_system_propose`, `design_tokens_generate` |
 | resolve | `resolve_library`, `resolve_font`, `resolve_icon` |
-| detect | `slop_scan`, `explain_rule` |
+| detect | `slop_scan`, `explain_rule`, `ui_audit` |
 | critique | `critique_rubric`, `record_critique` |
 
 ## Browser comments
@@ -119,7 +126,7 @@ The Northstar browser extension lets a designer point at an element and leave a 
 
 ## Token budget discipline
 
-Load one reference at a time, the one for the current stage. Do not read all references up front. Prefer `explain_rule` for a single rule over loading rule files. Read DESIGN.md once per task and keep its token names in mind rather than rereading it. When a reference points to another, read it only when that stage begins.
+Never load the canon. Search it. `canon_find` takes plain words and returns ids with a one line summary and a token cost, inside a small budget. `canon_read` returns one section, a rule, an archetype or a resolved conflict. A topic id returns an outline, not the whole reference. The index at `northstar://canon/index`, or `references/INDEX.md` in the skill, is a map of every section for clients without the tools. Read DESIGN.md once per task and keep its token names in mind rather than rereading it.
 
 ## Reference index
 
@@ -131,6 +138,10 @@ Load one reference at a time, the one for the current stage. Do not read all ref
 | Plan and build | `references/compose.md` |
 | Judge the result | `references/critique.md` |
 | Finish and apply lenses | `references/polish.md` |
+| Depth, radii, type details | `references/finish.md` |
+| States, forms, feedback | `references/interaction.md` |
+| Choose or blend a style | `references/archetypes.md` |
+| Elevate existing UI | `references/refine.md` |
 | New platform, theme, density or locale | `references/adapt.md` |
 | Legacy UI | `references/modernise.md` |
 | Choose and install libraries | `references/libraries.md` |

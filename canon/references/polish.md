@@ -16,6 +16,7 @@ Close the gap between competent and finished. The exit condition is a clean dete
 | Responsive | No horizontal scroll, readable measure, targets usable by touch | `NS-LAYOUT-RESPONSIVE`, `NS-TYPE-MEASURE` |
 | Browser surfaces | Favicon, title, theme colour, selection colour, scrollbars, print, dark theme | `NS-COLOR-THEME-CHOICE`, `NS-COLOR-DARK-PARITY` |
 | Detail | Alignment on the spacing scale, consistent icon stroke and size, no raw values | `NS-LAYOUT-SPACING-RHYTHM`, `NS-COLOR-RAW-VALUES` |
+| Finish | Layered shadows, concentric radii, balanced headings, tabular figures, gated hover, a pressed state | `NS-FINISH-*`, see `references/finish.md` and `references/interaction.md` |
 
 Fix in the order of the ranked critique, accessibility first.
 
@@ -32,6 +33,8 @@ Run through this once before declaring a screen finished. Each line is a yes or 
 - Both themes were opened and checked (`NS-COLOR-DARK-PARITY`).
 - Motion matches the motion dial and has a reduced motion path.
 - The page holds at 360px with real content.
+- Raised surfaces use layered, tinted shadows, nested corners are concentric, and no border is a pale saturated colour.
+- Every button has a pressed state, hover is gated, and figures use tabular numerals.
 
 ## Detector loop
 
@@ -56,6 +59,7 @@ A lens is a focused pass with one question. Apply a lens only when the critique 
 | harden | Real data breaks it | Test long text, missing data, errors, slow loads, RTL and zoom |
 | onboard | First use is unclear | Improve empty states, first run guidance and the first success path |
 | clarify | Labels or flows confuse | Rewrite copy and labels, simplify the steps, name things the way users do |
+| finish | The screen works but feels flat, stiff or unfinished | Run the checklist in `references/finish.md`, then the state matrix in `references/interaction.md` |
 
 Lenses never override the brief or the accessibility floor. Bolder in operate mode means more confident, not louder.
 

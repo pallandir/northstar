@@ -41,6 +41,39 @@
   fix: Use a smooth exponential ease out curve.
   sources: [impeccable]
 
+- id: NS-MOTION-EASE-IN
+  title: Ease in on interface motion
+  stage: [polish]
+  severity: warn
+  allowable: true
+  detect: static
+  rationale: Ease in starts slowly, so the interface feels like it hesitates after a click. Interface motion should start fast and settle.
+  fix: Use an ease out or a custom ease out curve from the motion tokens.
+  sources: [emil-design-eng]
+
+- id: NS-MOTION-SCALE-ZERO
+  title: Entrance from scale zero
+  stage: [polish]
+  severity: warn
+  allowable: true
+  detect: static
+  rationale: Nothing in the real world grows from nothing. Elements that appear from a point look cheap, and they hide the origin of the change.
+  fix: Start from scale 0.95 with opacity 0, and set the transform origin at the trigger.
+  sources: [emil-design-eng]
+
+- id: NS-MOTION-DURATION
+  title: Interface transition longer than 300ms
+  stage: [polish]
+  severity: warn
+  modes: { experience: info }
+  allowable: true
+  detect: static
+  params:
+    max_ms: 300
+  rationale: Feedback longer than 300ms feels slow in an interface people use repeatedly. Drawers and page level transitions are the exceptions.
+  fix: Use 120 to 240ms for controls and menus, and keep longer durations for drawers and choreography.
+  sources: [emil-design-eng, impeccable]
+
 - id: NS-MOTION-EASING
   title: Custom easing instead of the default keywords
   stage: [polish]

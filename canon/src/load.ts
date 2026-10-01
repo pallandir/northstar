@@ -4,16 +4,20 @@ import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 import {
   type Arbitration,
+  type Archetypes,
   type Libraries,
   MODES,
   type Mode,
   type Rubric,
   type Rule,
   type Severity,
+  type Synonyms,
   arbitrationSchema,
+  archetypesSchema,
   librariesSchema,
   rubricSchema,
   ruleListSchema,
+  synonymsSchema,
 } from "./schema.js";
 
 export const REFERENCE_MAX_LINES = 300;
@@ -31,6 +35,8 @@ export interface Canon {
   libraries: Libraries;
   rubric: Rubric;
   arbitration: Arbitration;
+  archetypes: Archetypes;
+  synonyms: Synonyms;
   references: Reference[];
   framework: string;
 }
@@ -75,6 +81,8 @@ export function loadCanon(root: string = defaultCanonRoot()): Canon {
     libraries: librariesSchema.parse(readYaml(join(root, "libraries.yaml"))),
     rubric: rubricSchema.parse(readYaml(join(root, "rubric.yaml"))),
     arbitration: arbitrationSchema.parse(readYaml(join(root, "arbitration.yaml"))),
+    archetypes: archetypesSchema.parse(readYaml(join(root, "archetypes.yaml"))),
+    synonyms: synonymsSchema.parse(readYaml(join(root, "synonyms.yaml"))),
     references: loadReferences(join(root, "references")),
     framework: existsSync(frameworkPath) ? readFileSync(frameworkPath, "utf8") : "",
   };
@@ -101,6 +109,17 @@ export function validateCanon(canon: Canon): string[] {
   for (const conflict of canon.arbitration.conflicts) {
     for (const id of conflict.rules) {
       if (!ids.has(id)) problems.push(`arbitration ${conflict.id} names unknown rule ${id}`);
+    }
+  }
+
+  const archetypeIds = new Set<string>();
+  for (const archetype of canon.archetypes.archetypes) {
+    if (archetypeIds.has(archetype.id)) problems.push(`duplicate archetype ${archetype.id}`);
+    archetypeIds.add(archetype.id);
+  }
+  for (const mode of MODES) {
+    if (!canon.archetypes.archetypes.some((a) => a.modes.includes(mode))) {
+      problems.push(`no archetype suits the ${mode} mode`);
     }
   }
 

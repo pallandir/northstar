@@ -33,15 +33,20 @@ Skip this only when the user says so explicitly, and log that in `design/decisio
 |---|---|---|
 {{STAGE_TABLE}}
 
-Verbs map onto stages. Refine is critique then polish. Adapt is system then compose for a new target. Modernise derives a brief from the existing code, then direction and system, and proposes diffs in safe increments.
+Verbs map onto stages. Refine starts with `ui_audit`, then critique and polish. Adapt is system then compose for a new target. Modernise derives a brief from the existing code, then direction and system, and proposes diffs in safe increments.
 
-## Lenses
+## Find, do not load
 
-Load a lens when the work touches it.
+Do not read whole references. Search for what the step needs and read one section.
 
-| Lens | Load when |
-|---|---|
-{{LENS_TABLE}}
+- With the server: `canon_find` with plain words, then `canon_read` with an id such as `ref:finish#depth`, `rule:NS-A11Y-CONTRAST` or `arch:soft`.
+- Without it: read `references/INDEX.md`, then only the needed section of one file.
+
+Lenses live in the references: `a11y`, `adapt`, `archetypes`, `color`, `comments`, `copy`, `figma`, `finish`, `interaction`, `layout`, `libraries`, `modernise`, `motion`, `refine`, `typography`. The index says when to load each.
+
+## Workflows
+
+Four skills sit beside this one and cover the common jobs: `northstar-build` for new UI, `northstar-refine` to elevate existing UI, `northstar-finish` for the last detail pass and `northstar-review` for a scored critique.
 
 ## Asking
 

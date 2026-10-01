@@ -11,7 +11,7 @@ Produce a valid `DESIGN.md` that holds tokens, prose rationale and the `northsta
 |---|---|
 | Designer supplied freeform markdown | Call `design_md_normalize`, then ask only about missing gates |
 | Designer wants the system from Figma | Check that `get_variable_defs`, `get_design_context` and `search_design_system` are listed. If not, stop and show the install guide in `references/figma.md`. If they are, pass the variables from `get_variable_defs` to `design_md_normalize` |
-| Nothing exists | Call `design_md_init`, or `design_system_propose` from the chosen direction |
+| Nothing exists | Call `design_system_propose` for a brief, or `design_tokens_generate` with a chosen archetype. Both return a validated draft with both themes, shadows and motion tokens |
 | DESIGN.md exists | Call `design_md_validate`, fix findings, extend only what the task needs |
 
 Read `package.json` and `components.json` first so stack and libraries are not asked.
@@ -22,14 +22,25 @@ Follow `templates/DESIGN.template.md`. Reference tokens by name, for example `{c
 
 | Group | Rule |
 |---|---|
-| Colours | 4 to 6 roles: surface, text, primary, accent, plus optional muted and danger. Derive neutrals from the palette hue (`NS-COLOR-PALETTE-SIZE`, `NS-COLOR-PURE-BLACK`) |
+| Colours | Roles, not swatches: background, surface, text, soft text, muted, border, primary, accent and status colours. Neutrals are derived from the palette hue (`NS-COLOR-PALETTE-SIZE`, `NS-COLOR-PURE-BLACK`) |
 | Typography | Roles, not sizes: display, heading, body, label, code. One or two families (`NS-TYPE-FONT-COUNT`) |
 | Spacing | One base unit and a short scale, used for rhythm (`NS-LAYOUT-SPACING-RHYTHM`) |
-| Radii | Two or three values, one shape language |
-| Elevation | Two or three soft layered shadows, no hard offsets (`NS-SLOP-HARD-SHADOW`) |
-| Motion | Duration tokens, one easing curve defined once (`NS-MOTION-EASING`), a budget set by the mode |
+| Radii | One scale where each step adds a padding step, so nested corners stay parallel (`NS-FINISH-CONCENTRIC-RADIUS`) |
+| Elevation | Five levels, each a ring plus soft layers tinted toward the surface hue (`NS-FINISH-FLAT-SHADOW`, `NS-SLOP-HARD-SHADOW`) |
+| Motion | Duration tokens and three easing curves defined once (`NS-MOTION-EASING`), a budget set by the mode |
 
 Display size is capped by mode (`NS-TYPE-DISPLAY-MAX`). An Experience exception needs an allow entry.
+
+## Generate the tokens
+
+Do not pick colours, shadows and radii by hand. `design_tokens_generate` takes an archetype (and an optional blend, see `references/archetypes.md`) plus the mode, and returns a complete DESIGN.md:
+
+- a neutral ramp tinted toward the hue, with text on surface at 7 to 1 and every other pair at 4.5 to 1, in light and dark
+- an accent and status colours that pass contrast on the muted surface
+- layered, tinted elevation levels, and a radius scale where each step adds a padding step
+- spacing from the density, a type scale with tracking per size, and duration and easing tokens
+
+Pass `brand` with a hex to seed the hue from a supplied brand, and `overrides` to change a single seed. It fails with a fix when a contrast pair cannot pass, and it never overwrites an existing DESIGN.md. Use `format` to get the export in the same call.
 
 ## Libraries
 

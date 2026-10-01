@@ -302,6 +302,97 @@ const CASES: Case[] = [
     bad: "<p>Unlock the power of your data</p>",
     good: "<p>Track invoices by customer.</p>",
   },
+  {
+    rule: "NS-FINISH-TEXT-WRAP",
+    file: "a.css",
+    bad: "h1{font-size:2rem}",
+    good: "h1{font-size:2rem;text-wrap:balance}",
+  },
+  { rule: "NS-FINISH-Z-INDEX", file: "a.css", bad: ".a{z-index:9999}", good: ".a{z-index:40}" },
+  {
+    rule: "NS-MOTION-SCALE-ZERO",
+    file: "a.css",
+    bad: ".a{transform:scale(0)}",
+    good: ".a{transform:scale(0.95)}",
+  },
+  {
+    rule: "NS-MOTION-DURATION",
+    file: "a.css",
+    bad: ".a{transition:opacity 600ms}",
+    good: ".a{transition:opacity 200ms}",
+  },
+  {
+    rule: "NS-LAYOUT-VIEWPORT-HEIGHT",
+    file: "a.css",
+    bad: ".a{min-height:100vh}",
+    good: ".a{min-height:100vh;min-height:100dvh}",
+  },
+  {
+    rule: "NS-LAYOUT-VIEWPORT-HEIGHT",
+    file: "a.tsx",
+    bad: '<div className="min-h-screen" />',
+    good: '<div className="min-h-dvh" />',
+  },
+  {
+    rule: "NS-FINISH-FLAT-SHADOW",
+    file: "a.css",
+    bad: ".a{box-shadow:0 4px 12px rgba(0,0,0,.2)}",
+    good: ".a{box-shadow:0 1px 2px rgba(20,24,40,.08),0 4px 12px rgba(20,24,40,.06)}",
+  },
+  {
+    rule: "NS-FINISH-PRESS-STATE",
+    file: "a.css",
+    bad: ".btn:hover{opacity:.9}",
+    good: ".btn:hover{opacity:.9}.btn:active{transform:scale(.97)}",
+  },
+  {
+    rule: "NS-FINISH-HOVER-GATE",
+    file: "a.css",
+    bad: ".card:hover{transform:translateY(-2px)}",
+    good: "@media (hover: hover){.card:hover{transform:translateY(-2px)}}",
+  },
+  {
+    rule: "NS-FINISH-TABULAR-NUMS",
+    file: "a.css",
+    bad: ".price{font-size:2rem}",
+    good: ".price{font-size:2rem;font-variant-numeric:tabular-nums}",
+  },
+  {
+    rule: "NS-FINISH-TEXT-WRAP",
+    file: "a.css",
+    bad: "h1{font-size:2rem}",
+    good: "h1{font-size:2rem;text-wrap:balance}",
+  },
+  {
+    rule: "NS-FINISH-SATURATED-BORDER",
+    file: "a.css",
+    bad: ".a{border:1px solid #dbeafe}",
+    good: ".a{border:1px solid #e5e7eb}",
+  },
+  {
+    rule: "NS-MOTION-EASE-IN",
+    file: "a.css",
+    bad: ".a{transition:opacity 150ms ease-in}",
+    good: ".a{transition:opacity 150ms ease-out}",
+  },
+  {
+    rule: "NS-MOTION-SCALE-ZERO",
+    file: "a.css",
+    bad: ".a{transform:scale(0)}",
+    good: ".a{transform:scale(0.95)}",
+  },
+  {
+    rule: "NS-MOTION-DURATION",
+    file: "a.css",
+    bad: ".a{transition:opacity 600ms}",
+    good: ".a{transition:opacity 200ms}",
+  },
+  {
+    rule: "NS-MOTION-DURATION",
+    file: "a.tsx",
+    bad: '<div className="duration-700" />',
+    good: '<div className="duration-200" />',
+  },
 ];
 
 function run(c: Case, source: string) {

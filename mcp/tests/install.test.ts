@@ -574,3 +574,30 @@ test("doctor compares json configs by value, so formatting alone is not drift", 
   const checks = await doctor(doctorOptions(w));
   assert.equal(checks.find((c) => c.name === "cursor MCP server")?.status, "ok");
 });
+
+test("install writes the core skill and every workflow skill, doctor reads each one and uninstall removes them", async () => {
+  const w = world();
+  install(base(w, ["claude"]));
+  const names = [
+    "northstar",
+    "northstar-build",
+    "northstar-refine",
+    "northstar-finish",
+    "northstar-review",
+  ];
+  for (const name of names) {
+    const file = join(w.home, ".claude/skills", name, "SKILL.md");
+    assert.ok(existsSync(file), name);
+    assert.match(readFileSync(file, "utf8"), new RegExp(`^name: ${name}$`, "m"));
+  }
+  assert.ok(existsSync(join(w.home, ".claude/skills/northstar/references/INDEX.md")));
+
+  const checks = await doctor(doctorOptions(w));
+  const skillChecks = checks.filter((c) => c.name.startsWith("claude skill"));
+  assert.ok(skillChecks.length >= names.length);
+  assert.ok(skillChecks.every((c) => c.status === "ok"));
+
+  uninstall({ ...base(w, ["claude"]) });
+  for (const name of names)
+    assert.equal(existsSync(join(w.home, ".claude/skills", name)), false, name);
+});

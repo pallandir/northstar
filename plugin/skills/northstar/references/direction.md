@@ -28,7 +28,7 @@ A direction comes from the subject's world, not from a style catalogue. Write th
 | Moods | Three adjectives from the audience's point of view |
 | Anti references | Looks the audience would find wrong |
 
-Use `design_search` to find palettes, pairings and styles that match the subject and mode. Treat results as candidates only, since the brief and the mode filter them (see arbitration).
+Use `design_search` to find palettes, pairings and styles that match the subject and mode, and the archetypes for a complete recipe. Treat results as candidates only, since the brief and the mode filter them (see arbitration).
 
 ## 3. Propose 2 or 3 directions
 
@@ -46,15 +46,7 @@ Directions must differ in kind, not only in colour. If all options share the sam
 
 ## 3a. Name an archetype when the brief is a vibe
 
-When the user describes a feel instead of a brand, offer one of these as a direction family and then adapt it to the subject.
-
-| Archetype | Character | Watch for |
-|---|---|---|
-| soft | Rounded surfaces, gentle tinted shadows, warm or pastel neutrals, slow easing, generous space | Low contrast text on pale surfaces, glass used as decoration |
-| minimalist | Few colours, one accent, strict grid, type and space carry the hierarchy, almost no ornament | Emptiness mistaken for calm, text only pages with no real imagery |
-| brutalist | Raw structure, hard borders, system or monospace type, flat colour, visible grid, abrupt contrast | Contrast and focus still have to pass, the hard shadow rule needs an allow entry |
-
-An archetype is a starting point for materials, moods and shape language, never a replacement for the subject grounding in step 2.
+When the user describes a feel instead of a brand, choose an archetype and adapt it to the subject. There are twelve, from minimalist and soft to editorial, precise, dense, bold and luxury, and any two can be blended. Read `references/archetypes.md` or search with `canon_find` using `kind` archetype. An archetype is a starting point for materials, moods and shape language, never a replacement for the subject grounding in step 2.
 
 ## 3b. Set the taste dials
 

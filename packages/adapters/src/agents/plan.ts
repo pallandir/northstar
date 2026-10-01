@@ -12,6 +12,7 @@ import {
   upsertToml,
   writeJson,
 } from "../merge.js";
+import { CORE_SKILL, SKILL_NAMES } from "../skills.js";
 import { opencodePlugin } from "./opencode-plugin.js";
 import { type AgentPlan, type Op, PACKAGE, type PlanContext, SERVER } from "./types.js";
 
@@ -111,11 +112,13 @@ function blockMerge(path: string, ctx: PlanContext): Op {
   };
 }
 
-const skillOp = (path: string): Op => ({
-  kind: "skill",
-  path: join(path, "northstar"),
-  label: "skill",
-});
+const skillOps = (path: string): Op[] =>
+  SKILL_NAMES.map((name) => ({
+    kind: "skill" as const,
+    name,
+    path: join(path, name),
+    label: name === CORE_SKILL ? "skill" : `skill ${name}`,
+  }));
 
 function claude(ctx: PlanContext): AgentPlan {
   const root = ctx.scope === "user" ? join(ctx.home, ".claude") : join(ctx.project, ".claude");
@@ -200,7 +203,7 @@ function claude(ctx: PlanContext): AgentPlan {
       label: "critic agent",
       content: ctx.critic,
     },
-    skillOp(join(root, "skills")),
+    ...skillOps(join(root, "skills")),
   );
   if (ctx.scope === "project") ops.push(blockMerge(join(ctx.project, "CLAUDE.md"), ctx));
   return { agent: "claude", ops, notes: [] };
@@ -246,7 +249,9 @@ function codex(ctx: PlanContext): AgentPlan {
         (hooks) => upsertHook(hooks, "PostToolUse", entry),
         (hooks) => removeHook(hooks, "PostToolUse"),
       ),
-      skillOp(user ? join(ctx.home, ".agents", "skills") : join(ctx.project, ".agents", "skills")),
+      ...skillOps(
+        user ? join(ctx.home, ".agents", "skills") : join(ctx.project, ".agents", "skills"),
+      ),
       blockMerge(
         user ? join(ctx.home, ".codex", "AGENTS.md") : join(ctx.project, "AGENTS.md"),
         ctx,
@@ -263,7 +268,9 @@ function cursor(ctx: PlanContext): AgentPlan {
       user ? join(ctx.home, ".cursor", "mcp.json") : join(ctx.project, ".cursor", "mcp.json"),
       ctx,
     ),
-    skillOp(user ? join(ctx.home, ".agents", "skills") : join(ctx.project, ".agents", "skills")),
+    ...skillOps(
+      user ? join(ctx.home, ".agents", "skills") : join(ctx.project, ".agents", "skills"),
+    ),
   ];
   if (!user) {
     ops.push({
@@ -318,7 +325,9 @@ function gemini(ctx: PlanContext): AgentPlan {
           removeHook(settings, "AfterTool");
         },
       ),
-      skillOp(user ? join(ctx.home, ".agents", "skills") : join(ctx.project, ".agents", "skills")),
+      ...skillOps(
+        user ? join(ctx.home, ".agents", "skills") : join(ctx.project, ".agents", "skills"),
+      ),
       blockMerge(user ? join(root, "GEMINI.md") : join(ctx.project, "GEMINI.md"), ctx),
     ],
     notes: ["Gemini asks for confirmation the first time a skill is activated."],
@@ -359,7 +368,7 @@ function opencode(ctx: PlanContext): AgentPlan {
         label: "post edit scan plugin",
         content: opencodePlugin(hookArgv(ctx, "opencode")),
       },
-      skillOp(join(configRoot, "skills")),
+      ...skillOps(join(configRoot, "skills")),
       blockMerge(user ? join(root, "AGENTS.md") : join(ctx.project, "AGENTS.md"), ctx),
     ],
     notes: [

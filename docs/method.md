@@ -2,7 +2,17 @@
 
 Northstar steers an AI agent through UI work the way a good design lead would: ask before guessing, decide a direction, build a system, compose from real libraries, then critique and polish. It exists to stop the generic look that unguided agents produce, and it does that with a small set of rules, one set of artifacts and tools that load only when needed.
 
-You bring one thing: a design direction or design system as a markdown file. Everything else is the agent's job, guided by Northstar.
+You can bring a design direction or a design system as a markdown file, or only a short brief. Everything else is the agent's job, guided by Northstar.
+
+## One engine, many styles
+
+Northstar is meant to be the only UI skill a project needs. Direction picks an **archetype**, a recipe with a hue, a neutral temperature, a shape, a density, a motion feel, fonts, a depth model and a few layout moves. There are twelve: minimalist, soft, warm, precise, technical, dense data, editorial, swiss, brutalist, bold, playful and luxury. Any two can be blended. The secondary archetype may lend its surfaces, its type or its motion, and never the mode, the density, the accessibility floor or the library choices.
+
+System then turns the choice into tokens with `design_tokens_generate`, and the same tokens feed the detector, the finish checklist and the critique. A supplied brand colour seeds the hue, so the system matches the brand and the generated parts only fill what the brief leaves open. See [the archetype reference](../canon/references/archetypes.md).
+
+## Create and refine
+
+Two people usually share a screen. An engineer builds it, a designer refines it. The `build` prompt covers the first pass: archetype, tokens, library first composition and a scan. The `refine` prompt covers the second: `ui_audit` counts what is in the code, then one lever is pulled per change in a fixed order (type, colour, states, spacing, depth and shape, motion, composition), with before and after screenshots and a rescan each time. The `finish` prompt is the last detail pass, and `critique` scores the result.
 
 ## The six stages
 
@@ -15,7 +25,7 @@ You bring one thing: a design direction or design system as a markdown file. Eve
 | Critique | Screenshots, the rubric, a detector run | a critique entry in the decisions log |
 | Polish | States, copy, one motion moment, accessibility, responsive behaviour | detector clean, or findings allowed with a reason |
 
-Refine means critique then polish. Adapt carries a design to a new target such as a theme or a breakpoint. Modernise derives a brief and a system from existing code, then proposes changes in safe increments. The agent runs these as prompts: `brief`, `direct`, `system`, `compose`, `critique`, `polish`, `adapt` and `modernise`.
+Refine starts with an audit, then critiques and polishes one lever at a time. Adapt carries a design to a new target such as a theme or a breakpoint. Modernise derives a brief and a system from existing code, then proposes changes in safe increments. The agent runs these as prompts: `brief`, `direct`, `system`, `compose`, `critique`, `polish`, `build`, `refine`, `finish`, `adapt` and `modernise`.
 
 ## DESIGN.md comes first
 
@@ -34,7 +44,7 @@ The mode in `DESIGN.md` changes how strict the rules are.
 
 ## Design read and taste dials
 
-Before code the agent states a one line design read: page kind, audience, vibe words and design family. In Direction it then asks one question about three taste dials from 1 to 10: design variance, motion intensity and visual density. The recommended default comes from the mode, for example 3, 2 and 7 for an app and 9, 8 and 3 for a brand showcase. Your answer is recorded as a sentence in the `DESIGN.md` prose, with no schema field, and the build and the critique are judged against it. The dials are guidance, they never lower the accessibility floor. Soft, minimalist and brutalist are offered as named direction archetypes when a brief describes a feel. This part of the canon is distilled from taste-skill, see [NOTICE](../NOTICE).
+Before code the agent states a one line design read: page kind, audience, vibe words and design family. In Direction it then asks one question about three taste dials from 1 to 10: design variance, motion intensity and visual density. The recommended default comes from the mode, for example 3, 2 and 7 for an app and 9, 8 and 3 for a brand showcase. Your answer is recorded as a sentence in the `DESIGN.md` prose, with no schema field, and the build and the critique are judged against it. The dials are guidance, they never lower the accessibility floor. Archetypes are offered when a brief describes a feel. This part of the canon is distilled from taste-skill, see [NOTICE](../NOTICE).
 
 ## Bringing your own direction
 
@@ -42,11 +52,15 @@ Hand the agent any markdown: a brand brief, a Notion export, a few notes with he
 
 When the system lives in Figma, install the official Figma MCP server. The agent then reads the variables with `get_variable_defs` and passes them to `design_md_normalize`. Without that server it stops and shows the install commands instead of guessing.
 
-Starting from nothing, `design_system_propose` drafts a system for a product from the curated data: a palette for the product type, a font pairing for the mood, a style. It validates the draft, including contrast, and never writes a file until you have seen it.
+Starting from nothing, `design_system_propose` picks an archetype that fits the product, mood and mode, then generates the tokens, validates the draft including contrast in both themes, and never writes a file until you have seen it. `design_tokens_generate` does the same when you already know the archetype, and can blend two.
 
 ## Library first
 
 The agent does not hand roll what a library already provides. The `resolve_library`, `resolve_font` and `resolve_icon` tools return the choice for your stack: shadcn/ui or the framework equivalent for dialogs and menus, Sonner for toasts, TanStack for tables, one icon set such as Lucide, Phosphor or Material Symbols for icons, Fontsource for fonts. The agent confirms the package exists before installing it. Hand rolling is allowed only with an explicit `northstar.allow` entry in `DESIGN.md`, or when you ask for it.
+
+## Search, not loading
+
+The canon is large and an agent should read very little of it. `canon_find` searches reference sections, rules, archetypes and resolved conflicts with plain words. It fixes typos, expands related terms, favours the current stage and returns ids with a one line summary and a token cost inside a small budget. `canon_read` returns one section, and a topic id returns an outline. The same map is available as `northstar://canon/index` and as `references/INDEX.md` in the skill. Each workflow skill is short and tells the agent to search first.
 
 ## When guidance conflicts
 
@@ -69,7 +83,9 @@ A comment left with the extension is resolved with the same discipline. The hand
 | Thing | Location |
 |---|---|
 | The canon: rules, references, rubric, library map | `canon/` |
-| The router skill and references an agent reads | `plugin/skills/northstar/` |
+| The core skill and the references an agent reads | `plugin/skills/northstar/` |
+| The workflow skills | `plugin/skills/northstar-build/`, `northstar-refine/`, `northstar-finish/`, `northstar-review/` |
+| The archetypes | `canon/archetypes.yaml` |
 | Curated design data | `packages/data/json/` |
 | The scanner | `packages/detector/` |
-| DESIGN.md tools | `packages/design-md/` |
+| DESIGN.md tools and the token generator | `packages/design-md/` |

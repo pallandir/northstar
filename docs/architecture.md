@@ -184,17 +184,37 @@ refresh their tool list.
 
 | Pack | Tools |
 |---|---|
-| core | `northstar_context`, `enable_packs`, `pack_call` |
+| core | `northstar_context`, `enable_packs`, `pack_call`, `canon_find`, `canon_read` |
 | comments | `list_comments`, `get_comment`, `resolve_comment`, `resolve_comments`, `defer_comment`, `list_deferred`, `clear_resolved` |
 | research | `design_search`, `design_get` |
-| system | `design_md_init`, `design_md_validate`, `design_md_normalize`, `design_md_export`, `design_system_propose` |
+| system | `design_md_init`, `design_md_validate`, `design_md_normalize`, `design_md_export`, `design_system_propose`, `design_tokens_generate` |
 | resolve | `resolve_library`, `resolve_font`, `resolve_icon` |
-| detect | `slop_scan`, `explain_rule` |
+| detect | `slop_scan`, `explain_rule`, `ui_audit` |
 | critique | `critique_rubric`, `record_critique` |
 
-The server also serves the canon as resources under `northstar://canon/` and the
-design stages as prompts, so an agent without the skill installed can still read the
-same references on demand.
+The server also serves the canon as resources under `northstar://canon/`, including
+a small `northstar://canon/index`, and the design stages and workflows as prompts, so
+an agent without the skills installed can still read the same references on demand.
+
+### Canon search
+
+`canon_find` and `canon_read` sit on a catalog built from the canon at start up:
+every reference split into sections of about 300 tokens at most, every rule, every
+archetype and every resolved conflict. Search is BM25 with field weights (title,
+keywords, summary, body), a synonym table in `canon/synonyms.yaml`, a typo correction
+over the vocabulary, a boost for the current stage and a cap on how many hits may come
+from one reference. Results are cut to a token budget. A topic id returns an outline
+so that reading never means loading a whole file.
+
+### Token generation
+
+`generateTokens` in `packages/design-md` is a pure function. It builds the OKLCH
+neutral ramp, the accent and status colours for both themes by searching lightness
+until each pair passes its contrast target, the layered elevation levels, the radius
+scale, spacing, the type scale and the motion tokens. When a pair cannot pass it
+throws an error that names the pair and the fix. `renderDesign` writes the result as
+a `DESIGN.md`, and the exporters emit CSS variables with a dark theme block, a Tailwind
+theme and DTCG tokens including shadows and motion.
 
 ### Boundaries
 

@@ -43,7 +43,7 @@ test("every verb is a prompt that points at its reference and carries the reques
     arguments: { request: "tighten the pricing table" },
   });
   const body = bodyOf(prompt);
-  assert.match(body, /northstar:\/\/canon\/references\/polish/);
+  assert.match(body, /ref:polish/);
   assert.match(body, /Request: tighten the pricing table/);
   assert.match(body, /at most 3 questions/);
 });

@@ -1,6 +1,6 @@
 {
   "name": "@pallandir/northstar",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "UI design advisory framework for AI coding agents: MCP server, design canon, static detector and installer, plus the Northstar browser comment handoff.",
   "license": "MIT",
   "type": "module",

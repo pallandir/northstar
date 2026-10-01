@@ -46,6 +46,24 @@ export const VERBS: Verb[] = [
     task: "Finish states, copy, motion, accessibility and responsive behaviour, then clear detector errors.",
   },
   {
+    name: "build",
+    topic: "archetypes",
+    title: "Build",
+    task: "Create new UI fast: pick an archetype, generate the tokens, compose library first and scan the result.",
+  },
+  {
+    name: "refine",
+    topic: "refine",
+    title: "Refine",
+    task: "Elevate existing UI: run ui_audit, pull one lever at a time and rescan after each change.",
+  },
+  {
+    name: "finish",
+    topic: "finish",
+    title: "Finish",
+    task: "Apply the finish pass: depth, radii, states, type details and motion, then clear the detector.",
+  },
+  {
     name: "adapt",
     topic: "adapt",
     title: "Adapt",
@@ -63,7 +81,7 @@ function verbText(verb: Verb, request?: string): string {
   const lines = [
     `Run the Northstar ${verb.title} stage. ${verb.task}`,
     "DESIGN.md comes first: do not create or edit UI files until it exists and is valid.",
-    `Read northstar://canon/references/${verb.topic} first, or references/${verb.topic}.md from the northstar skill. If the northstar_context tool is available, call it before anything else.`,
+    `Load as little as possible: call canon_find with what you need and canon_read one section at a time, starting from ref:${verb.topic}. Without the tools, read references/INDEX.md and then only the needed section of references/${verb.topic}.md. If the northstar_context tool is available, call it before anything else.`,
     "Ask at most 3 questions per turn, each with a recommended default. Never ask what the repo can answer. Use libraries instead of hand rolling icons, fonts, overlays or primitives.",
   ];
   if (request) lines.push(`Request: ${request}`);

@@ -1,5 +1,11 @@
 import { type McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { type Canon, renderArbitration, renderRule } from "@northstar/canon";
+import {
+  type Canon,
+  buildCatalog,
+  renderArbitration,
+  renderIndex,
+  renderRule,
+} from "@northstar/canon";
 
 const MARKDOWN = "text/markdown";
 
@@ -17,6 +23,18 @@ export function registerResources(server: McpServer, canon: Canon): void {
       mimeType: MARKDOWN,
     },
     (uri) => markdown(uri, canon.framework),
+  );
+
+  server.registerResource(
+    "index",
+    "northstar://canon/index",
+    {
+      title: "Canon index",
+      description:
+        "A small map of every reference section, rule family and archetype. Read it before searching.",
+      mimeType: MARKDOWN,
+    },
+    (uri) => markdown(uri, renderIndex(canon, buildCatalog(canon))),
   );
 
   server.registerResource(

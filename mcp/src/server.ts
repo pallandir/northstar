@@ -79,6 +79,7 @@ export function createMcpServer(
     root,
     options.ingest ??
       (() => ({ state: "off", error: "This server instance has no ingest server." })),
+    canon,
   );
   registerResearch(packs, data);
   registerResolve(packs, canon, data, root);

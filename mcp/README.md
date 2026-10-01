@@ -1,9 +1,10 @@
 # @pallandir/northstar
 
-A UI design advisory framework for AI coding agents. It ships the MCP server, the
-design canon, a static detector and an installer for Claude Code, Codex, Cursor,
-Gemini CLI and OpenCode, plus the handoff for comments left with the Northstar
-browser extension. It speaks standard MCP, so any MCP capable client can use it.
+The UI and UX orchestrator for AI coding agents. It ships the MCP server, a design
+canon of twelve style archetypes, a token generator, a static detector, five skills
+and an installer for Claude Code, Codex, Cursor, Gemini CLI and OpenCode, plus the
+handoff for comments left with the Northstar browser extension. It speaks standard
+MCP, so any MCP capable client can use it.
 
 It does two things in one process:
 
@@ -32,12 +33,12 @@ commands:
 
 | Command | Purpose |
 | --- | --- |
-| `northstar install [--agent a,b] [--all] [--scope user\|project] [--packs all\|dynamic] [--bin path] [--no-gate] [--home dir] [--project dir] [--dry-run] [--yes]` | Register the server, install the skill and the edit hooks. `--packs` defaults to `dynamic`. `--bin` points the server and hooks at a local build, `--no-gate` leaves out the design gate hook. |
+| `northstar install [--agent a,b] [--all] [--scope user\|project] [--packs all\|dynamic] [--bin path] [--no-gate] [--home dir] [--project dir] [--dry-run] [--yes]` | Register the server, install the five skills and the edit hooks. `--packs` defaults to `dynamic`. `--bin` points the server and hooks at a local build, `--no-gate` leaves out the design gate hook. |
 | `northstar uninstall [--agent a,b] [--scope user\|project]` | Remove exactly what install added and restore what it replaced. |
 | `northstar doctor` | Check installs, assets, hooks, the pairing token, ports, DESIGN.md and conflicts. |
 | `northstar init [dir]` | Scaffold `DESIGN.md`, `PRODUCT.md` and `design/decisions.md` without overwriting. |
 | `northstar detect [paths] [--diff] [--format text\|json\|sarif] [--mode m]` | Scan UI files, exit 1 on errors. |
-| `northstar conflicts [--remove] [--restore stamp]` | Find overlapping design skills and quarantine them. |
+| `northstar conflicts [--remove] [--restore stamp]` | Find overlapping UI skills (impeccable, ui-ux-pro-max, taste and similar) and quarantine them. |
 | `northstar hook pre-edit\|post-edit --agent a` | The edit hook entry point. `pre-edit` is the design gate that denies UI edits until DESIGN.md is ready, `post-edit` scans the edited files. Hooks never block an edit on their own errors, they exit non zero with a message. |
 
 To register by hand with Claude Code instead:
@@ -67,9 +68,24 @@ for core and comments, `all`, or a comma separated list. See
 | `clear_resolved()` | Remove every resolved and wontfix comment. |
 
 The `resolve-comments` prompt (`/mcp__northstar__resolve-comments` in Claude Code)
-runs the whole list, get and resolve flow. The design stages are prompts too: `brief`,
-`direct`, `system`, `compose`, `critique`, `polish`, `adapt` and `modernise`. The canon
-is served as resources under `northstar://canon/`.
+runs the whole list, get and resolve flow. The design work is prompts too: `brief`,
+`direct`, `system`, `compose`, `critique`, `polish`, `build`, `refine`, `finish`,
+`adapt` and `modernise`. The canon is served as resources under `northstar://canon/`,
+with a small map at `northstar://canon/index`.
+
+### Design tools
+
+| Tool | Pack | Purpose |
+|---|---|---|
+| `canon_find(query, kind?, stage?, limit?, budget?)` | core | Search reference sections, rules, archetypes and conflicts within a token budget. |
+| `canon_read(id, full?)` | core | Read one section, or an outline for a topic. |
+| `design_tokens_generate(archetype, mode, name, description, ...)` | system | Generate a validated `DESIGN.md` from an archetype, with an optional blend and brand colour. |
+| `design_system_propose(product, mood?, mode?, archetype?, brand?)` | system | Draft a system from a short brief. |
+| `ui_audit(paths?)` | detect | Count the values in existing UI, list drift and order the fixes. |
+
+The other design tools are `design_md_init`, `design_md_normalize`, `design_md_validate`,
+`design_md_export`, `design_search`, `design_get`, `resolve_library`, `resolve_font`,
+`resolve_icon`, `slop_scan`, `explain_rule`, `critique_rubric` and `record_critique`.
 
 There is no tool to start the work and no watch mode. When the developer clicks
 **Send to AI**, the server types the prompt into the terminal this process was

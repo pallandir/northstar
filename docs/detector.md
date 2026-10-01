@@ -16,9 +16,13 @@ It reads `.tsx`, `.jsx`, `.ts`, `.js`, `.vue`, `.svelte`, `.astro`, `.html` and 
 
 ## What it checks
 
-Thirty four checks map one to one onto rules in the canon. See [the rule index](./canon.md) for every rule, its severity and whether it can be allowed. Examples: gradient text, thick coloured side borders, hard offset shadows, eyebrow labels, emoji used as icons, glass as decoration, `transition: all`, bounce easing, removed focus outlines, clickable divs, hand drawn inline SVG icons, hand rolled dialogs and font files.
+Forty five checks map one to one onto rules in the canon. See [the rule index](./canon.md) for every rule, its severity and whether it can be allowed. Examples: gradient text, thick coloured side borders, hard offset shadows, eyebrow labels, emoji used as icons, glass as decoration, `transition: all`, bounce easing, removed focus outlines, clickable divs, hand drawn inline SVG icons, hand rolled dialogs and font files. The finish rules look for what makes a screen feel unfinished: `100vh` for full height, a single pure black shadow, a button with a hover state and no pressed state, hover transforms that are not limited to devices that can hover, prices without tabular numerals, headings without balanced wrapping, huge `z-index` values, pale saturated borders, `ease-in`, entrances from `scale(0)`, interface transitions over 300ms and a palette taken straight from the Tailwind defaults. These ship as warnings or notes, never as accessibility failures.
 
 Some rules cannot be checked from source. Contrast is checked from `DESIGN.md` tokens by `design_md_validate`. Target size, nested cards and grey text on colour need a rendered page and are left to the critique stage.
+
+## Auditing existing code
+
+`ui_audit` goes beyond findings. It counts the distinct colours, radii, shadows, font sizes, font families, spacing values, z indexes and durations in the code, reports how much colour goes through tokens, lists values that are not in `DESIGN.md`, and says which kinds of finding to fix first. Twenty three greys and seven radii mean the system is missing, which is a different fix from changing a colour. It is the first step of a refine pass.
 
 ## Severity follows the mode
 

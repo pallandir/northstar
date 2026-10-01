@@ -1,26 +1,10 @@
 import type { Check } from "../types.js";
-import { classLists } from "./util.js";
+import { classLists, commaParts } from "./util.js";
 
 const ALL = ["css", "markup", "component"] as const;
 const COMPONENT = ["component"] as const;
 const LAYOUT_PROP =
   /^(?:(?:min|max)-)?(?:width|height)$|^(?:top|left|right|bottom|inset)$|^(?:margin|padding)(?:-[a-z]+)?$/;
-
-function commaParts(value: string): string[] {
-  const parts: string[] = [];
-  let depth = 0;
-  let start = 0;
-  for (let i = 0; i < value.length; i++) {
-    if (value[i] === "(") depth++;
-    else if (value[i] === ")") depth = Math.max(0, depth - 1);
-    else if (value[i] === "," && depth === 0) {
-      parts.push(value.slice(start, i));
-      start = i + 1;
-    }
-  }
-  parts.push(value.slice(start));
-  return parts.map((part) => part.trim()).filter(Boolean);
-}
 
 function animatesLayout(prop: string, value: string): boolean {
   return commaParts(value).some((part) => {
@@ -28,6 +12,9 @@ function animatesLayout(prop: string, value: string): boolean {
     return LAYOUT_PROP.test(property ?? "");
   });
 }
+
+const TIMING_PROPS =
+  /^(transition|animation|transition-timing-function|animation-timing-function)$/;
 
 export const motionChecks: Check[] = [
   {
@@ -132,9 +119,69 @@ export const motionChecks: Check[] = [
         )
           continue;
         if (/^animation/.test(d.prop) && /\binfinite\b/.test(d.value)) continue;
-        if (/(^|[\s,])(ease|ease-in|ease-out|ease-in-out|linear)(\s|,|$)/.test(d.value)) {
+        if (/(^|[\s,])(ease|ease-out|ease-in-out|linear)(\s|,|$)/.test(d.value)) {
           ctx.report("NS-MOTION-EASING", d.index);
         }
+      }
+    },
+  },
+  {
+    id: "NS-MOTION-EASE-IN",
+    kinds: [...ALL],
+    run(ctx) {
+      for (const d of ctx.decls) {
+        if (!TIMING_PROPS.test(d.prop)) continue;
+        if (/^animation/.test(d.prop) && /\binfinite\b/.test(d.value)) continue;
+        if (/(^|[\s,])ease-in(\s|,|$)/.test(d.value)) ctx.report("NS-MOTION-EASE-IN", d.index);
+      }
+      for (const { str, tokens } of classLists(ctx)) {
+        if (tokens.includes("ease-in")) ctx.report("NS-MOTION-EASE-IN", str.index);
+      }
+    },
+  },
+  {
+    id: "NS-MOTION-SCALE-ZERO",
+    kinds: [...ALL],
+    run(ctx) {
+      for (const d of ctx.decls) {
+        const zero =
+          (d.prop === "transform" && /\bscale(3d|x|y)?\(\s*0(\.0+)?\s*[,)]/.test(d.value)) ||
+          (d.prop === "scale" && /^0(\.0+)?(\s|$)/.test(d.value.trim()));
+        if (zero) ctx.report("NS-MOTION-SCALE-ZERO", d.index);
+      }
+      for (const { str, tokens } of classLists(ctx)) {
+        if (tokens.includes("scale-0")) ctx.report("NS-MOTION-SCALE-ZERO", str.index);
+      }
+    },
+  },
+  {
+    id: "NS-MOTION-DURATION",
+    kinds: [...ALL],
+    run(ctx) {
+      const max = Number(ctx.param("NS-MOTION-DURATION", "max_ms") ?? 300);
+      for (const d of ctx.decls) {
+        if (!/^(transition|transition-duration|animation|animation-duration)$/.test(d.prop))
+          continue;
+        for (const part of commaParts(d.value)) {
+          if (/\binfinite\b/.test(part)) continue;
+          const time = /(^|\s)(\d*\.?\d+)(ms|s)(?=\s|$)/.exec(part);
+          if (!time) continue;
+          const ms = Number(time[2]) * (time[3] === "s" ? 1000 : 1);
+          if (ms > max) {
+            ctx.report(
+              "NS-MOTION-DURATION",
+              d.index,
+              `Transition of ${ms}ms is longer than ${max}ms`,
+            );
+          }
+        }
+      }
+      for (const { str, tokens } of classLists(ctx)) {
+        const long = tokens.find((t) => {
+          const match = /^duration-(?:\[(\d+)ms\]|(\d+))$/.exec(t);
+          return match ? Number(match[1] ?? match[2]) > max : false;
+        });
+        if (long) ctx.report("NS-MOTION-DURATION", str.index, `${long} is longer than ${max}ms`);
       }
     },
   },

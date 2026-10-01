@@ -176,3 +176,27 @@ export function scanPaths(
   }
   return { findings, scanned, errors, skipped: found.skipped };
 }
+
+export interface CollectedFiles {
+  files: Array<{ file: string; text: string }>;
+  errors: string[];
+  skipped: string[];
+}
+
+export function collectFiles(root: string, paths: string[], config: ScanConfig): CollectedFiles {
+  const found: Walk = { files: [], errors: [], skipped: [] };
+  for (const path of paths.length ? paths : ["."]) walk(root, resolve(root, path), found);
+  const ignored = compileGlobs(config.ignore);
+  const files: Array<{ file: string; text: string }> = [];
+  const errors = [...found.errors];
+  for (const full of found.files) {
+    const rel = relative(root, full).split("\\").join("/");
+    if (!kindOf(rel) || ignored.test(rel)) continue;
+    try {
+      files.push({ file: rel, text: readFileSync(full, "utf8") });
+    } catch (err) {
+      errors.push(`${rel} could not be read: ${(err as Error).message}`);
+    }
+  }
+  return { files, errors, skipped: found.skipped };
+}

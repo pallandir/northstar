@@ -196,7 +196,7 @@ export function install(options: InstallOptions): InstallOutcome {
             continue;
           }
           doneSkills.add(op.path);
-          const source = skillRoot();
+          const source = skillRoot(op.name);
           const existed = existsSync(op.path);
           const was = known(op.path);
           if (treeHash(source) === treeHash(op.path)) {

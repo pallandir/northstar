@@ -4,6 +4,62 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.4.0] - 2026-10-01
+
+Northstar becomes a design engine. The first test of the framework produced a clean
+pricing page that still looked like a default: Tailwind slate and blue, one flat
+radius, no depth, no pressed states. This release changes what gets proposed, not
+only what gets banned.
+
+### Added
+
+- **Archetypes.** Twelve style recipes in `canon/archetypes.yaml`: minimalist, soft,
+  warm, precise, technical, dense data, editorial, swiss, brutalist, bold, playful and
+  luxury. Each sets hue, neutral temperature, shape, density, motion feel, fonts, a
+  depth model and layout moves. Two can be blended, and the secondary may lend its
+  surfaces, type or motion but never the mode, density or accessibility floor.
+- **Token generator.** `design_tokens_generate` builds a complete `DESIGN.md` from an
+  archetype and an optional brand colour: a tinted OKLCH neutral ramp, accent and
+  status colours, light and dark themes, layered shadows, radii that nest, spacing, a
+  type scale with tracking and motion tokens. Contrast is solved for every pair, and
+  a pair that cannot pass stops the run with a fix.
+- **Exports.** CSS, Tailwind and DTCG output now carries shadows, motion tokens and
+  the dark theme.
+- **Finish layer.** New references for finish and interaction, a rewritten motion
+  reference with duration and easing values, `refine` as a full protocol, and
+  `archetypes`. A new `finish` dimension in the critique rubric, with the weights
+  rebalanced for every mode.
+- **Eleven detector checks.** `100vh` for full height, a single black shadow, a
+  button with a hover and no pressed state, ungated hover transforms, prices without
+  tabular numerals, headings without balanced wrapping, huge `z-index` values, pale
+  saturated borders, `ease-in`, `scale(0)` entrances and transitions over 300ms. The
+  default palette rule now spots colours taken straight from the Tailwind defaults.
+  All of them are warnings or notes. The canon has 68 rules and 13 resolved conflicts.
+- **`ui_audit`.** Counts the colours, radii, shadows, sizes, spacing, z indexes and
+  durations in existing code, lists the drift from `DESIGN.md` and orders the fixes.
+- **Smart search.** `canon_find` and `canon_read` search 178 reference sections, the
+  rules, archetypes and conflicts inside a token budget, with synonyms, typo
+  correction and a boost for the current stage. A small index is served as
+  `northstar://canon/index` and shipped as `references/INDEX.md`.
+- **Skill family.** Four short workflow skills join the core skill:
+  `northstar-build`, `northstar-refine`, `northstar-finish` and `northstar-review`.
+  The new prompts are `build`, `refine` and `finish`.
+- Attribution for make-interfaces-feel-better, Emil Kowalski's skills and the Vercel
+  Web Interface Guidelines, all MIT, in `NOTICE`.
+
+### Changed
+
+- `design_system_propose` now picks an archetype from the brief and generates the
+  tokens instead of seeding a draft from the first palette it finds.
+- The core skill no longer lists every reference. It points to the index and to
+  `canon_find`, which keeps the context small.
+- `northstar install` writes five skill folders, and `doctor` and `uninstall` handle
+  each one. `northstar conflicts` also finds taste, make-interfaces-feel-better and
+  emil-design-eng style skills.
+- The `NS-LAYOUT-VIEWPORT-HEIGHT` rule moved from advisory to a static check.
+- The README is rewritten around the engine and the loop between engineers and
+  designers.
+
 ## [2.3.0] - 2026-10-01
 
 A production hardening release. It fixes Save, pins that leaked between pages and pins

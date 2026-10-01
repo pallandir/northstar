@@ -8,10 +8,9 @@
   <h3 align="center">Northstar</h3>
 
   <p align="center">
-    A UI design advisory framework for AI coding agents. Bring a design direction,
-    and Northstar steers your agent to design, refine and polish real interfaces
-    with libraries instead of generic defaults, with a browser extension to leave
-    comments directly on the running UI.
+    One install for designing, refining and polishing real UI with an AI coding
+    agent. Engineers build fast with sensible, professional defaults. Designers
+    refine what was built, in the editor or by commenting on the running page.
     <br />
     <br />
     <a href="https://github.com/pallandir/northstar/issues">Report a bug</a>
@@ -33,7 +32,8 @@
 ## Table of contents
 
 - [What is Northstar](#what-is-northstar)
-- [The design framework](#the-design-framework)
+- [The design engine](#the-design-engine)
+- [How a project goes](#how-a-project-goes)
 - [Prerequisites](#prerequisites)
 - [Getting started](#getting-started)
 - [Try the local demo](#try-the-local-demo)
@@ -50,26 +50,46 @@
 
 ## What is Northstar
 
-**Northstar** has two parts that work together.
+AI agents write working UI quickly, and most of it looks the same. The same grey and
+blue palette, the same three equal cards, one flat shadow, a button with no pressed
+state. Northstar is what stops that. It gives your agent a design method, a set of
+recipes to start from, a generator for the tokens, and a scanner that tells it when
+the result has gone generic.
 
-The **design framework** is a skill and an MCP server that steer any AI coding agent
-through UI work. You come with a design direction or design system as a markdown
-file. The agent asks before guessing, builds a validated `DESIGN.md`, composes from
-real libraries, scans its own output for generic AI patterns, and critiques the
-result against a rubric. It never hand rolls what a library provides unless you say
-so.
+It has two halves that work together.
 
-The **browser extension** is the feedback loop. Click any element on a running
-frontend, local or a remote preview, leave a structured comment anchored to it, then
-click **Send to AI**. Northstar triggers the coding assistant already running in your
-project, and the assistant resolves the comment with the same design discipline. The
-assistant sits idle until then: no watch mode, no polling, no tokens spent while you
-work.
+The **design engine** is an MCP server and a family of skills. You describe what you
+want, or hand over a brand file, and the agent picks a style, generates a contrast
+checked design system, builds with real libraries instead of hand rolled
+primitives, scans its own work and critiques it against a rubric.
 
-Connecting the browser takes one click: **Connect** in the toolbar, then **Allow**
-on a page served by your own local server. There is no code to copy. Nothing is sent
-to a remote backend: every comment travels over loopback between the browser and a
-server running on your own machine.
+The **browser extension** is the feedback loop. Click any element on a running page,
+leave a comment pinned to it, then click **Send to AI**. The agent already running
+in your project picks the comments up and fixes them with the same design
+discipline. It sits idle until then: no polling, no watch mode, no tokens spent
+while you work.
+
+Nothing is sent to a remote backend. The extension and the server talk over
+loopback on your own machine.
+
+### Who it is for
+
+Two people, usually. An engineer who needs a screen to exist by the end of the day
+and wants it to look professional without a design review. A designer who then takes
+that screen, cleans it up and moves it forward without rewriting it from scratch.
+Northstar gives both the same system, so what the engineer builds is already
+something the designer can refine, and what the designer decides is written down in
+`DESIGN.md` where the agent reads it next time.
+
+### One install instead of ten
+
+You do not need a separate skill for taste, another for polish, another for
+motion and another for fonts. Northstar combines what is useful in the best of them,
+rewritten in its own terms, with every disagreement settled in one place. It can
+blend styles, for example a minimalist structure with soft surfaces, and adapt to a
+brand you already have, and it keeps a professional floor underneath all of it.
+`northstar conflicts` finds the overlapping UI skills on your machine and moves them
+aside when you say so.
 
 ### Why "Northstar"?
 
@@ -80,7 +100,7 @@ gets there.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-## The design framework
+## The design engine
 
 ```sh
 npx -y @pallandir/northstar install
@@ -88,21 +108,73 @@ npx -y @pallandir/northstar install
 
 That sets Northstar up for Claude Code, Codex, Cursor, Gemini CLI and OpenCode, after
 showing you exactly what it will change. Then ask your agent for UI work as you
-normally would, or hand it a direction file.
+normally would.
 
-| You get | How |
+| Piece | What it does |
 |---|---|
-| A method the agent follows | brief, direction, system, compose, critique, polish, in four modes |
-| One canon of 57 rules | distilled from impeccable, ui-ux-pro-max, frontend-design, top-design and taste-skill, with every conflict resolved |
-| Library first | `resolve_library`, `resolve_font` and `resolve_icon` pick shadcn, an icon set, Fontsource and friends for your stack |
-| Your direction, validated | `design_md_normalize` turns any markdown into a `DESIGN.md`, with contrast checks and Tailwind, CSS or DTCG export |
-| An anti slop scanner | `northstar detect`, the `slop_scan` tool and an edit hook flag gradient text, emoji icons, hand rolled dialogs and more |
-| Low context cost | one small skill, references loaded one at a time, and tool packs enabled per stage |
+| Archetypes | Twelve style recipes: minimalist, soft, warm, precise, technical, dense data, editorial, swiss, brutalist, bold, playful and luxury. Pick one, or blend a primary with a secondary that lends its surfaces, type or motion |
+| Token generator | `design_tokens_generate` builds a whole system from an archetype and an optional brand colour: a neutral ramp tinted toward the hue, an accent and status colours, light and dark themes, layered shadows, nested radii, a type scale with tracking, and motion tokens. Every colour pair is checked for contrast, and it stops with a fix if one cannot pass |
+| Finish layer | The details that make a screen feel done: depth from a ring plus soft layers, concentric corners, balanced headings, tabular figures, hit areas, and a full set of states for every control |
+| Detector | `northstar detect`, the `slop_scan` tool and an edit hook flag generic patterns and missing finish, such as `100vh`, a single black shadow, a button with no pressed state, `ease-in`, or a palette taken straight from the Tailwind defaults |
+| Audit | `ui_audit` counts the colours, radii, shadows, sizes and spacing in existing code, shows the drift from `DESIGN.md` and says which thing to fix first |
+| Library first | `resolve_library`, `resolve_font` and `resolve_icon` pick shadcn, an icon set, Fontsource and friends for your stack, so nothing gets hand rolled |
+| Your direction | `design_md_normalize` turns any markdown into a valid `DESIGN.md`. It also reads a Figma design system when the official Figma MCP server is installed |
+| Rubric | `critique_rubric` scores a built screen on nine dimensions, with weights per mode and caps for accessibility and detector failures |
 
-It also reads a Figma design system when the official Figma MCP server is installed,
-and shows the install guide when it is not. Read [the method](./docs/method.md),
-[the detector](./docs/detector.md) and [setting up your agent](./docs/agents.md).
-The [rule index](./docs/canon.md) lists every rule.
+### Five skills, loaded only when needed
+
+| Skill | Use it for |
+|---|---|
+| `northstar` | The core: the DESIGN.md gate, the method, the rules and every reference |
+| `northstar-build` | New UI from a brief |
+| `northstar-refine` | Improving UI that already exists |
+| `northstar-finish` | The last detail pass before shipping |
+| `northstar-review` | A scored, read only design review |
+
+### Search instead of loading
+
+The whole canon is 21 references split into 178 sections, 68 rules, 12 archetypes
+and 13 resolved conflicts. An agent never needs all of it, so it does not read it.
+`canon_find` takes plain words, fixes typos, understands related terms and returns
+ids with a one line summary and a token cost, inside a small budget. `canon_read`
+returns one section. A topic id returns an outline rather than the whole file. For
+agents without the tools, `references/INDEX.md` is a map of the same sections, and
+the skills are short on purpose.
+
+It follows a method, not a mood: brief, direction, system, compose, critique, polish,
+in four modes (operate, read, persuade, experience). Read [the method](./docs/method.md),
+[the detector](./docs/detector.md) and [setting up your agent](./docs/agents.md). The
+[rule index](./docs/canon.md) lists every rule.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## How a project goes
+
+**New screen.** Ask for it in your own words, or run the `build` prompt. The agent
+checks the project, asks at most three questions with a default for each, picks an
+archetype, writes `DESIGN.md` from the generated tokens, resolves the libraries,
+builds, and scans the result.
+
+```text
+Build the plans page for our analytics app. Calm, for workspace owners, operate mode.
+Our brand blue is #1E40AF.
+```
+
+**Existing screen.** The `refine` prompt starts with an audit, not with opinions. The
+agent saves before screenshots, counts what is in the code, then changes one thing at
+a time in a fixed order: type, colour, states, spacing, depth, motion, and only then
+composition. After each change it rescans and compares screenshots. Routes, labels,
+form fields, the logo and legal copy are never touched without asking.
+
+**Feedback from the browser.** A designer clicks, comments and presses **Send to AI**.
+The agent resolves each comment at the token or component level when the same fault
+repeats, scans what it edited, and records what changed.
+
+**Before shipping.** `northstar-review` scores the screen from screenshots and the
+detector, and returns ranked findings without editing anything.
+
+In every case `DESIGN.md` comes first. No UI file is created or edited until it
+exists, parses and names a mode, and in Claude Code an edit hook enforces that.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -125,7 +197,7 @@ The [rule index](./docs/canon.md) lists every rule.
 The package is published on npm as
 [`@pallandir/northstar`](https://www.npmjs.com/package/@pallandir/northstar) and
 runs on demand via `npx`, no global install needed. One command registers the MCP
-server, installs the skill and adds the edit hook for every agent it finds:
+server, installs the five skills and adds the edit hook for every agent it finds:
 
 ```sh
 npx -y @pallandir/northstar install
@@ -377,9 +449,11 @@ Set `NORTHSTAR_TERMINAL` to force a driver (`tmux`, `iterm`, `terminal-app`, or
 
 ### MCP tools
 
-The server exposes 24 tools in seven packs and 9 prompts. The comment tools are
-always on and are the ones the extension flow uses. The prompts are
-`resolve-comments` and the eight design stages. The comment tools:
+The server exposes 28 tools in seven packs and 12 prompts. Core and comment tools
+are always on, the rest are enabled per stage with `enable_packs`. The prompts are
+`resolve-comments`, the stage prompts (`brief`, `direct`, `system`, `compose`,
+`critique`, `polish`) and the workflow prompts (`build`, `refine`, `finish`,
+`adapt`, `modernise`). The comment tools:
 
 | Tool | Purpose |
 |---|---|
@@ -390,6 +464,19 @@ always on and are the ones the extension flow uses. The prompts are
 | `defer_comment` | Park a comment for planning and notify the browser toolbar |
 | `list_deferred` | List comments that were deferred with their reasons |
 | `clear_resolved` | Remove all resolved and wontfix comments from the store |
+
+The design tools, by pack:
+
+| Pack | Tools | Purpose |
+|---|---|---|
+| core | `northstar_context`, `enable_packs`, `pack_call` | Project state, the gate, and tool pack control |
+| core | `canon_find`, `canon_read` | Search the canon within a token budget, read one section |
+| research | `design_search`, `design_get` | Curated styles, palettes, pairings and UX guidance, as candidates |
+| system | `design_tokens_generate`, `design_system_propose` | A generated, validated `DESIGN.md` from an archetype or a short brief |
+| system | `design_md_init`, `design_md_normalize`, `design_md_validate`, `design_md_export` | Create, import, check and export `DESIGN.md` as CSS, Tailwind or DTCG |
+| resolve | `resolve_library`, `resolve_font`, `resolve_icon` | Pick libraries, fonts and icons for the stack |
+| detect | `slop_scan`, `explain_rule`, `ui_audit` | Scan, explain a rule, audit existing UI |
+| critique | `critique_rubric`, `record_critique` | Score a screen and keep the decisions log |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -498,8 +585,10 @@ Removing Northstar is three independent steps; do the ones that apply to you.
    Northstar card, and click **Remove**. In Firefox, use `about:addons`. This also
    clears the extension's local comment queue.
 
-2. **Remove the MCP server registration.** Delete the `northstar` entry from your
-   assistant's MCP configuration.
+2. **Remove the MCP server and the skills.** `npx -y @pallandir/northstar uninstall`
+   removes the server registration, the five skills and the edit hook, and restores
+   the files it backed up. Or delete the `northstar` entry from your assistant's MCP
+   configuration and the `northstar*` skill folders yourself.
 
 3. **Delete the local comment store.** The server writes everything into a
    gitignored `.northstar/` folder at your project root. Delete it to remove all

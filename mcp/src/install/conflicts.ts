@@ -31,6 +31,12 @@ export const CONFLICT_SKILLS = [
   "wondelai-top-design",
   "frontend-design",
   "ui-ux-pro-max",
+  "design-taste-frontend",
+  "high-end-visual-design",
+  "minimalist-ui",
+  "redesign-existing-projects",
+  "make-interfaces-feel-better",
+  "emil-design-eng",
 ];
 export const CONFLICT_AGENT_PREFIX = "impeccable-";
 export const CONFLICT_PLUGINS = [

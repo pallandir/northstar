@@ -1,6 +1,6 @@
 {
   "name": "northstar",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "private": true,
   "type": "module",
   "description": "A UI design advisory framework for AI coding agents, with a browser extension to leave comments on the running UI.",

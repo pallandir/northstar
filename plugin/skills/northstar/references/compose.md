@@ -27,7 +27,7 @@ One bold choice only. Several competing bold choices read as noise. In operate m
 
 ## Pass 2: the library first build
 
-1. For each need in the plan, call `resolve_library`, `resolve_icon` or `resolve_font`.
+1. For each need in the plan, call `resolve_library`, `resolve_icon` or `resolve_font`. Pull only the reference sections you need with `canon_find` and `canon_read`, such as `ref:finish` for depth and radii or `ref:interaction` for states.
 2. Install what is missing, following `references/libraries.md`.
 3. Build with the libraries and with tokens only. No raw colours, no magic spacing (`NS-COLOR-RAW-VALUES`).
 4. Run `slop_scan` on the files you wrote and fix errors before moving on.

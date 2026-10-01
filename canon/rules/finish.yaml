@@ -1,0 +1,83 @@
+- id: NS-FINISH-FLAT-SHADOW
+  title: Single layer pure black shadow
+  stage: [compose, polish]
+  severity: warn
+  allowable: true
+  detect: static
+  rationale: One black layer reads as a sticker on the page. Real depth mixes a tight contact shadow with a wider soft one, tinted toward the surface hue.
+  fix: Use two or three layers from the elevation tokens, with a tinted colour and a low alpha.
+  sources: [make-interfaces-feel-better, web-interface-guidelines]
+
+- id: NS-FINISH-PRESS-STATE
+  title: Button with a hover state and no pressed state
+  stage: [polish]
+  severity: warn
+  modes: { read: info }
+  allowable: true
+  detect: static
+  rationale: Without a pressed state a click gives no physical feedback. A small scale or shift on press is what makes a control feel responsive.
+  fix: Add an active state, usually transform scale 0.97 with a short ease out transition.
+  sources: [emil-design-eng, make-interfaces-feel-better, taste-skill]
+
+- id: NS-FINISH-HOVER-GATE
+  title: Hover transform not limited to hover capable devices
+  stage: [polish]
+  severity: info
+  allowable: true
+  detect: static
+  rationale: Touch screens fire hover on tap and leave the element stuck in its raised state.
+  fix: Wrap hover transforms in a media query for hover and a fine pointer.
+  sources: [emil-design-eng, web-interface-guidelines]
+
+- id: NS-FINISH-TABULAR-NUMS
+  title: Figures without tabular numerals
+  stage: [polish]
+  severity: info
+  allowable: true
+  detect: static
+  rationale: Proportional digits make prices, totals and counters shift width as values change, and columns of numbers stop lining up.
+  fix: Set font variant numeric to tabular nums on prices, totals, counters and table cells with numbers.
+  sources: [make-interfaces-feel-better, web-interface-guidelines]
+
+- id: NS-FINISH-TEXT-WRAP
+  title: Headings without balanced wrapping
+  stage: [polish]
+  severity: info
+  allowable: true
+  detect: static
+  rationale: A heading that wraps leaves one word alone on the last line. Balanced wrapping evens the lines, and pretty wrapping does the same job for paragraphs.
+  fix: Set text wrap to balance on headings and to pretty on body paragraphs.
+  sources: [make-interfaces-feel-better, taste-skill]
+
+- id: NS-FINISH-Z-INDEX
+  title: Arbitrary huge z-index
+  stage: [polish]
+  severity: warn
+  allowable: true
+  detect: static
+  params:
+    max: 100
+  rationale: Values like 999 and 9999 are an arms race. Layers need a small named scale so a dialog always beats a dropdown.
+  fix: Define a z-index scale in tokens, for example base, sticky, overlay, modal and toast.
+  sources: [taste-skill]
+
+- id: NS-FINISH-CONCENTRIC-RADIUS
+  title: Nested radii that do not nest
+  stage: [critique, polish]
+  severity: info
+  allowable: true
+  detect: advisory
+  rationale: When a rounded child sits inside a rounded parent, the child radius should equal the parent radius minus the padding between them. Equal radii make the corners look pinched.
+  fix: Derive the inner radius from the outer one, or take both from the radius scale in DESIGN.md.
+  sources: [make-interfaces-feel-better, taste-skill]
+
+- id: NS-FINISH-SATURATED-BORDER
+  title: Saturated pastel border on a neutral surface
+  stage: [system, polish]
+  severity: warn
+  allowable: true
+  detect: static
+  rationale: A light, highly saturated border such as a pale blue reads as candy next to neutral text and surfaces. Borders belong to the neutral ramp, tinted gently toward the brand hue.
+  fix: Take the border colour from the neutral ramp, or use a low alpha black or white.
+  sources: [make-interfaces-feel-better, taste-skill]
+

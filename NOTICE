@@ -55,6 +55,30 @@ taste-skill
   conflicts are resolved in canon/arbitration.yaml. Rule ids and detector code
   are original.
 
+make-interfaces-feel-better
+  Copyright (c) Jakub Krehel. Licensed under the MIT License.
+  https://github.com/jakubkrehel/make-interfaces-feel-better
+  Used as a source of ideas for the finish layer: concentric radii, layered
+  shadows over borders, image outlines, tabular figures, text wrapping and icon
+  stroke matching. Changes: reworded in the Northstar voice, turned into token
+  generation, detector rules and a checklist, and no upstream text is
+  redistributed.
+
+emil-design-eng (Emil Kowalski skills)
+  Copyright (c) Emil Kowalski. Licensed under the MIT License.
+  https://github.com/emilkowalski/skills
+  Used as a source of ideas for the motion frequency rule, the duration and
+  easing values, press and hover feedback, and the entrance rules. Changes:
+  reworded, merged with the existing motion budget per mode, and the numbers
+  were re-derived into the generated motion tokens.
+
+Web Interface Guidelines
+  Copyright (c) Vercel. Licensed under the MIT License.
+  https://github.com/vercel-labs/web-interface-guidelines
+  Used as a source of ideas for the interaction, form, loading and content
+  guidance and the detail checks. Changes: condensed, reworded and mapped onto
+  Northstar stages, modes and rule ids.
+
 DESIGN.md format
   Copyright (c) Google. Licensed under the Apache License 2.0.
   https://github.com/google-labs-code/design.md

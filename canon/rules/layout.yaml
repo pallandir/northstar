@@ -66,7 +66,7 @@
   stage: [compose, polish]
   severity: warn
   allowable: true
-  detect: advisory
+  detect: static
   rationale: A 100vh section is taller than the visible area on mobile browsers whose address bar collapses, so content jumps or hides under the browser chrome.
   fix: Use min-height with 100dvh, or svh when the height must stay fixed, and keep a vh fallback only for old browsers.
   sources: [taste-skill, ui-ux-pro-max]

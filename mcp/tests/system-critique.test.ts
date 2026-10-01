@@ -139,17 +139,66 @@ test("design_system_propose drafts a valid system from the data without writing 
   const out = text(
     await call("design_system_propose", { product: "fintech banking dashboard", mode: "operate" }),
   );
-  assert.match(out, /^palette: palettes:/);
-  assert.match(out, /validation: ready/);
+  assert.match(out, /^archetype: [a-z]+ \(chosen from the brief/);
+  assert.match(out, /validation: ready true, errors 0/);
   const draft = out.slice(out.indexOf("---\n"));
   assert.equal(typeof (parseDesign(draft).frontmatter as { name: unknown }).name, "string");
   assert.equal(existsSync(join(root, "DESIGN.md")), false);
 });
 
+test("design_tokens_generate returns a validated draft, exports on request and never overwrites", async () => {
+  const args = {
+    archetype: "minimalist",
+    mode: "operate",
+    name: "Ledger",
+    description: "Invoices for small teams.",
+    format: "css",
+  };
+  const out = text(await call("design_tokens_generate", args));
+  assert.match(out, /^archetype: minimalist/);
+  assert.match(out, /validation: ready true, errors 0/);
+  assert.match(out, /--shadow-md:/);
+  assert.equal(existsSync(join(root, "DESIGN.md")), false);
+
+  const written = text(await call("design_tokens_generate", { ...args, write: true }));
+  assert.match(written, /Wrote DESIGN\.md/);
+  const again = await call("design_tokens_generate", { ...args, write: true });
+  assert.equal(again.isError, true);
+  assert.match(text(again), /never overwritten/);
+});
+
+test("design_tokens_generate blends two archetypes and fails loudly on a bad request", async () => {
+  const blended = text(
+    await call("design_tokens_generate", {
+      archetype: "minimalist",
+      secondary: "soft",
+      takes: ["surface"],
+      mode: "operate",
+      name: "Ledger",
+      description: "Invoices for small teams.",
+    }),
+  );
+  assert.match(blended, /blend: soft contributes surface/);
+  const radius = /sm: (\d+)px/.exec(blended.slice(blended.indexOf("rounded:")));
+  assert.equal(radius?.[1], "16");
+
+  const base = { mode: "operate", name: "Ledger", description: "Invoices for small teams." };
+  const missing = await call("design_tokens_generate", { ...base, archetype: "nope" });
+  assert.equal(missing.isError, true);
+  assert.match(text(missing), /unknown archetype "nope"/);
+  const noTakes = await call("design_tokens_generate", {
+    ...base,
+    archetype: "minimalist",
+    secondary: "soft",
+  });
+  assert.equal(noTakes.isError, true);
+  assert.match(text(noTakes), /must say what the secondary contributes/);
+});
+
 test("critique_rubric lists dimensions, weights and gates for a mode", async () => {
   const out = text(await call("critique_rubric", { mode: "operate" }));
   assert.match(out, /hierarchy/);
-  assert.match(out, /operate weights: hierarchy 20/);
+  assert.match(out, /operate weights: hierarchy 18/);
   assert.match(out, /Gate accessibility_floor/);
 });
 
@@ -160,6 +209,7 @@ const FULL = {
   composition: 8,
   motion: 6,
   craft: 7,
+  finish: 7,
   copy: 8,
   accessibility: 9,
 };

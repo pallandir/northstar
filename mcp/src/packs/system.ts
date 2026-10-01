@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import type { Canon } from "@northstar/canon";
+import { BLEND_PARTS, type Canon, DENSITIES, FEELS, SHAPES, TEMPERATURES } from "@northstar/canon";
 import { type DesignData, type Row, search } from "@northstar/data";
 import {
   type ExportFormat,
@@ -10,9 +10,10 @@ import {
   validateDesign,
 } from "@northstar/design-md";
 import { z } from "zod";
+import { buildSystem } from "../lib/engine.js";
 import { resolveInside } from "../lib/paths.js";
 import { SCAFFOLDS, scaffold } from "../lib/scaffold.js";
-import { inspectProject } from "../project.js";
+import { type StackName, inspectProject } from "../project.js";
 import type { PackRegistry } from "./registry.js";
 import { findNeed, stackChoice } from "./resolve.js";
 import { error, modeSchema, text } from "./util.js";
@@ -49,6 +50,7 @@ export function registerSystem(
     rules: canon.rules.map((r) => ({ id: r.id, allowable: r.allowable })),
     defaultFamilies: (canon.rules.find((r) => r.id === "NS-TYPE-DEFAULT-DISPLAY")?.params
       ?.families ?? []) as string[],
+    archetypes: canon.archetypes.archetypes.map((a) => a.id),
   };
   const known = () => new Set(data().rows.fonts.map((row) => row.name.toLowerCase()));
   const designPath = join(root, "DESIGN.md");
@@ -167,98 +169,139 @@ export function registerSystem(
     },
   );
 
+  const libraryChoices = (stack: StackName) => {
+    const choice = (need: string) => {
+      const key = findNeed(canon, need);
+      const picked = key ? stackChoice(canon, key, stack)?.choice : undefined;
+      if (!picked) {
+        throw new Error(
+          `no ${stack} library mapping for ${need}, run resolve_library and pass the choice`,
+        );
+      }
+      return picked;
+    };
+    return { components: choice("dialog"), icons: choice("icon"), fonts: choice("font") };
+  };
+
+  const archetypeIds = canon.archetypes.archetypes.map((a) => a.id).join(", ");
+  const seedSchema = z
+    .object({
+      hue: z.number().min(0).max(360).optional(),
+      chroma: z.number().min(0.02).max(0.3).optional(),
+      temperature: z.enum(TEMPERATURES).optional(),
+      shape: z.enum(SHAPES).optional(),
+      density: z.enum(DENSITIES).optional(),
+      feel: z.enum(FEELS).optional(),
+    })
+    .optional();
+
+  registry.register(
+    "system",
+    "design_tokens_generate",
+    {
+      description: `Generate a complete, contrast checked DESIGN.md from an archetype instead of picking colours by hand: tinted neutral ramp, accent and status colours, light and dark themes, layered shadows, concentric radii, spacing, type scale with tracking and motion tokens. Archetypes: ${archetypeIds}. Blend with secondary and takes (surface, type, motion). brand seeds the hue from a hex. Returns the draft, never overwrites; write true creates DESIGN.md only when none exists. format also returns css, tailwind or dtcg.`,
+      inputSchema: {
+        archetype: z.string().min(2).max(40),
+        mode: modeSchema,
+        name: z.string().min(2).max(80),
+        description: z.string().min(2).max(300),
+        secondary: z.string().min(2).max(40).optional(),
+        takes: z.array(z.enum(BLEND_PARTS)).max(3).optional(),
+        brand: z
+          .string()
+          .regex(/^#[0-9a-fA-F]{6}$/)
+          .optional(),
+        overrides: seedSchema,
+        format: z.enum(["css", "tailwind", "dtcg"]).optional(),
+        write: z.boolean().optional(),
+      },
+    },
+    async (input) => {
+      try {
+        const stack = inspectProject(root).stack;
+        const built = buildSystem(canon, known(), {
+          name: input.name,
+          description: input.description,
+          mode: input.mode,
+          archetype: input.archetype,
+          secondary: input.secondary,
+          takes: input.takes,
+          brand: input.brand,
+          overrides: input.overrides,
+          query: input.archetype,
+          stack,
+          libraries: libraryChoices(stack),
+        });
+        if (input.write) {
+          await mkdir(dirname(designPath), { recursive: true });
+          try {
+            await writeFile(designPath, built.markdown, { flag: "wx" });
+          } catch (err) {
+            if ((err as NodeJS.ErrnoException).code !== "EEXIST") throw err;
+            return error(
+              "DESIGN.md already exists, it is never overwritten. Call without write to review the draft.",
+            );
+          }
+        }
+        const errors = built.issues.filter((i) => i.severity === "error");
+        const lines = [
+          ...built.notes,
+          `validation: ready ${built.ready}, errors ${errors.length}`,
+          ...errors.map((i) => `  ${i.path}: ${i.message}`),
+          input.write ? "Wrote DESIGN.md." : "Not written. Show it to the designer, then save it.",
+        ];
+        const exported = input.format ? `\n\n${exportDesign(built.markdown, input.format)}` : "";
+        return text(`${lines.join("\n")}\n\n${built.markdown}${exported}`);
+      } catch (err) {
+        return error((err as Error).message);
+      }
+    },
+  );
+
   registry.register(
     "system",
     "design_system_propose",
     {
       description:
-        "Draft a DESIGN.md for a product from the curated data: a palette for the product type, a font pairing for the mood, and a style. Candidates with a canon caution are skipped when an alternative exists. Returns a draft plus validation, never writes. Show it to the designer, ask what to change, then save it.",
+        "Draft a DESIGN.md for a product from a short brief. Picks an archetype that fits the product, mood and mode (or take one with archetype), then generates the tokens through design_tokens_generate. Returns a draft plus validation and the anti patterns for the category, never writes. Show it to the designer, ask what to change, then save it.",
       inputSchema: {
         product: z.string().min(2).max(120),
         mood: z.string().max(200).optional(),
         mode: modeSchema.optional(),
+        archetype: z.string().min(2).max(40).optional(),
+        brand: z
+          .string()
+          .regex(/^#[0-9a-fA-F]{6}$/)
+          .optional(),
       },
     },
-    async ({ product, mood, mode }) => {
-      const palette = pick(search(data(), { domain: "palettes", query: product, mode, limit: 5 }));
-      const pairing = pick(
-        search(data(), { domain: "typography", query: mood ?? product, mode, limit: 5 }),
-      );
-      const style = pick(
-        search(data(), {
-          domain: "styles",
-          query: `${mood ?? ""} ${product}`.trim(),
+    async ({ product, mood, mode, archetype, brand }) => {
+      try {
+        const stack = inspectProject(root).stack;
+        const built = buildSystem(canon, known(), {
+          name: product,
+          description: `A design system for ${product}.`,
           mode,
-          limit: 5,
-        }),
-      );
-      const reasoning = pick(search(data(), { domain: "reasoning", query: product, limit: 3 }));
-      if (!palette)
-        return error(`No palette found for "${product}". Ask the designer for brand colours.`);
-
-      const f = palette.fields;
-      const direction = [
-        `# ${product}`,
-        "",
-        `A design system for ${product}.`,
-        "",
-        ...(
-          [
-            ["Primary", f.primary],
-            ["On primary", f.onPrimary],
-            ["Accent", f.accent],
-            ["Background", f.background],
-            ["Text", f.foreground],
-            ["Muted", f.muted],
-            ["Border", f.border],
-            ["Danger", f.destructive],
-          ] as Array<[string, string | undefined]>
-        )
-          .filter(([, value]) => value)
-          .map(([label, value]) => `- ${label}: ${value}`),
-        "",
-        pairing
-          ? `Headings use ${pairing.fields.heading}. Body copy is set in ${pairing.fields.body}.`
-          : "",
-        mode ? `This is a ${mode} design.` : "",
-      ].join("\n");
-
-      const stack = inspectProject(root).stack;
-      const choice = (need: string) => {
-        const key = findNeed(canon, need);
-        return key ? stackChoice(canon, key, stack)?.choice : undefined;
-      };
-      const { markdown, report } = normalizeDirection(direction, {
-        knownFamilies: known(),
-        stack,
-        defaults: {
-          rounded: "8px",
-          spacing: "4px",
-          headingSize: "2rem",
-          libraries: { components: choice("dialog"), icons: choice("icon"), fonts: choice("font") },
-        },
-      });
-      const validation = validateDesign(markdown, options);
-      const notes = [
-        `palette: ${palette.id}${palette.caution ? ` (caution: ${palette.caution})` : ""}`,
-        pairing
-          ? `pairing: ${pairing.id}${pairing.caution ? ` (caution: ${pairing.caution})` : ""}`
-          : "pairing: none found",
-        style
-          ? `style: ${style.id}${style.caution ? ` (caution: ${style.caution})` : ""}`
-          : "style: none found",
-        reasoning
-          ? `anti patterns to avoid: ${reasoning.fields.antiPatterns ?? "none listed"}`
-          : "",
-        `mode (inferred, confirm with the designer): ${report.extracted.mode ?? "not inferred"}`,
-        `assumed defaults, change if the brief says otherwise: ${report.assumed.join("; ") || "none"}`,
-        `still missing: ${report.missing.join("; ") || "nothing"}`,
-        `validation: ready ${validation.ready}, errors ${validation.issues.filter((i) => i.severity === "error").length}`,
-        ...validation.issues
-          .filter((i) => i.severity === "error")
-          .map((i) => `  ${i.path}: ${i.message}`),
-      ].filter(Boolean);
-      return text(`${notes.join("\n")}\n\n${markdown}`);
+          archetype,
+          brand,
+          query: `${mood ?? ""} ${product}`.trim(),
+          stack,
+          libraries: libraryChoices(stack),
+        });
+        const reasoning = pick(search(data(), { domain: "reasoning", query: product, limit: 3 }));
+        const errors = built.issues.filter((i) => i.severity === "error");
+        const notes = [
+          ...built.notes,
+          reasoning
+            ? `anti patterns to avoid: ${reasoning.fields.antiPatterns ?? "none listed"}`
+            : "",
+          `validation: ready ${built.ready}, errors ${errors.length}`,
+          ...errors.map((i) => `  ${i.path}: ${i.message}`),
+        ].filter(Boolean);
+        return text(`${notes.join("\n")}\n\n${built.markdown}`);
+      } catch (err) {
+        return error((err as Error).message);
+      }
     },
   );
 }

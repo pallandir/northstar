@@ -1,14 +1,16 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
-import { loadCanon } from "@northstar/canon";
+import { buildCatalog, loadCanon, renderIndex } from "@northstar/canon";
 import { AGENT_NAMES, type Op, type PlanContext, planAgent } from "./agents/index.js";
 import { hooksManifest, marketplaceManifest, mcpManifest, pluginManifest } from "./claude.js";
 import { renderRuleIndex, renderSkill } from "./render.js";
 
-export const SKILL_DIR = "plugin/skills/northstar";
+import { CORE_SKILL, SKILLS_DIR, WORKFLOW_SKILLS } from "./skills.js";
+
+export const SKILL_DIR = `${SKILLS_DIR}/${CORE_SKILL}`;
 export const INTEGRATIONS_DIR = "integrations";
 export const GENERATED_DIRS = [
-  SKILL_DIR,
+  SKILLS_DIR,
   INTEGRATIONS_DIR,
   "plugin/agents",
   "plugin/hooks",
@@ -42,6 +44,14 @@ export function generate(repoRoot: string): Outputs {
   outputs.set(`${SKILL_DIR}/SKILL.md`, renderSkill(canon, template, version));
   for (const reference of canon.references) {
     outputs.set(`${SKILL_DIR}/references/${reference.topic}.md`, reference.body);
+  }
+  outputs.set(`${SKILL_DIR}/references/INDEX.md`, renderIndex(canon, buildCatalog(canon)));
+  for (const name of WORKFLOW_SKILLS) {
+    const workflow = readFileSync(
+      join(canonRoot, "skill", "workflows", `${name.slice(CORE_SKILL.length + 1)}.md.tmpl`),
+      "utf8",
+    );
+    outputs.set(`${SKILLS_DIR}/${name}/SKILL.md`, renderSkill(canon, workflow, version));
   }
   for (const file of listFiles(join(canonRoot, "templates"))) {
     outputs.set(
@@ -121,7 +131,7 @@ function renderIntegrations(canonRoot: string, version: string): Outputs {
       "",
       "Claude Code registers the server with its own cli at user scope: `claude mcp add --env NORTHSTAR_PACKS=all --transport stdio --scope user northstar -- npx -y @pallandir/northstar`.",
       "",
-      "The skill folder is `plugin/skills/northstar` in this repository, copy it to the destination shown.",
+      "The skill folders are `plugin/skills/northstar` and the `plugin/skills/northstar-*` folders in this repository, copy each one next to the destination shown.",
       "",
     ].join("\n"),
   );

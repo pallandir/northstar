@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { after, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { SKILL_DIR, drift, generate, write } from "../src/gen.js";
+import { WORKFLOW_SKILLS } from "../src/skills.js";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const scratch = mkdtempSync(join(tmpdir(), "northstar-gen-"));
@@ -31,12 +32,26 @@ test("the router skill stays inside its token budget", () => {
   assert.doesNotMatch(skill, /\{\{[A-Z_]+\}\}/);
 });
 
-test("the skill routes to every reference that exists", () => {
+test("the skill points at the index and the index routes to every reference that exists", () => {
   const outputs = generate(repoRoot);
   const skill = outputs.get(`${SKILL_DIR}/SKILL.md`) ?? "";
+  const index = outputs.get(`${SKILL_DIR}/references/INDEX.md`) ?? "";
+  assert.match(skill, /references\/INDEX\.md/);
   for (const path of outputs.keys()) {
-    const match = /references\/(.+)$/.exec(path);
-    if (match) assert.ok(skill.includes(`references/${match[1]}`), `${match[1]} is not routed`);
+    const match = /references\/(.+)\.md$/.exec(path);
+    if (match && match[1] !== "INDEX")
+      assert.ok(index.includes(`- ${match[1]}:`), `${match[1]} is not indexed`);
+  }
+});
+
+test("every workflow skill is generated, short and names the core skill", () => {
+  const outputs = generate(repoRoot);
+  for (const name of WORKFLOW_SKILLS) {
+    const text = outputs.get(`plugin/skills/${name}/SKILL.md`) ?? "";
+    assert.match(text, new RegExp(`^name: ${name}$`, "m"));
+    assert.ok(text.split("\n").length < 60, `${name} is too long`);
+    assert.match(text, /`northstar`/);
+    assert.doesNotMatch(text, /\{\{[A-Z_]+\}\}/);
   }
 });
 

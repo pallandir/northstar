@@ -28,7 +28,7 @@ export type Op =
       remove(existing: string): string;
     }
   | { kind: "file"; path: string; label: string; content: string }
-  | { kind: "skill"; path: string; label: string }
+  | { kind: "skill"; name: string; path: string; label: string }
   | { kind: "command"; label: string; reset?: Cmd; run: Cmd; undo: Cmd };
 
 export interface AgentPlan {

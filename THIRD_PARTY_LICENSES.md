@@ -33,6 +33,9 @@ attribution and the statement of changes.
 | ui-ux-pro-max 2.5.0 | MIT | https://github.com/nextlevelbuilder/ui-ux-pro-max-skill |
 | top-design (wondelai skills) | MIT | https://github.com/wondelai/skills |
 | taste-skill (Leon Lin and blueemi) | MIT | https://github.com/Leonxlnx/taste-skill |
+| make-interfaces-feel-better (Jakub Krehel) | MIT | https://github.com/jakubkrehel/make-interfaces-feel-better |
+| emil-design-eng (Emil Kowalski skills) | MIT | https://github.com/emilkowalski/skills |
+| Web Interface Guidelines (Vercel) | MIT | https://github.com/vercel-labs/web-interface-guidelines |
 | DESIGN.md format | Apache-2.0 | https://github.com/google-labs-code/design.md |
 
 The curated data in `packages/data/json` is derived from the ui-ux-pro-max CSV

@@ -3,7 +3,7 @@ name: northstar
 description: Use when designing, redesigning, refining, polishing, adapting or modernising any user interface, page, component or design system, when a DESIGN.md or PRODUCT.md exists, when UI looks generic or AI generated, or when resolving Northstar browser comments. Steers the work through brief, direction, system, compose, critique and polish, library first, and never hand rolls what a library provides.
 license: MIT
 metadata:
-  version: "2.3.0"
+  version: "2.4.0"
 ---
 
 # Northstar
@@ -38,25 +38,20 @@ Skip this only when the user says so explicitly, and log that in `design/decisio
 | Critique | critique entry in the decisions log | `references/critique.md` |
 | Polish | detector clean or allow listed | `references/polish.md` |
 
-Verbs map onto stages. Refine is critique then polish. Adapt is system then compose for a new target. Modernise derives a brief from the existing code, then direction and system, and proposes diffs in safe increments.
+Verbs map onto stages. Refine starts with `ui_audit`, then critique and polish. Adapt is system then compose for a new target. Modernise derives a brief from the existing code, then direction and system, and proposes diffs in safe increments.
 
-## Lenses
+## Find, do not load
 
-Load a lens when the work touches it.
+Do not read whole references. Search for what the step needs and read one section.
 
-| Lens | Load when |
-|---|---|
-| `references/a11y.md` | building any interactive UI, or before shipping, since the WCAG 2.2 AA floor applies to every mode |
-| `references/adapt.md` | an existing design must serve a new target such as a platform, breakpoint, theme, density, locale or brand |
-| `references/color.md` | building a palette, defining theme tokens, choosing status colours, or designing dark mode |
-| `references/comments.md` | resolving UI comments left through the Northstar browser extension, including the resolve-comments command |
-| `references/copy.md` | writing or reviewing labels, buttons, errors, empty states, headlines or any interface text |
-| `references/figma.md` | the designer wants the design system or tokens taken from Figma, or shares a Figma link, file or frame |
-| `references/layout.md` | structuring a page or component, setting spacing, grid, responsive behaviour or UI states |
-| `references/libraries.md` | choosing, installing or replacing a component library, icon set or font, or when a hand rolled component is about to be written |
-| `references/modernise.md` | an existing UI built without a design system needs a coherent system, or a legacy stack needs current libraries |
-| `references/motion.md` | adding transitions, animation, hover or scroll effects, or loading and entrance behaviour |
-| `references/typography.md` | choosing fonts, a type scale, or sizing and spacing text in any screen or page |
+- With the server: `canon_find` with plain words, then `canon_read` with an id such as `ref:finish#depth`, `rule:NS-A11Y-CONTRAST` or `arch:soft`.
+- Without it: read `references/INDEX.md`, then only the needed section of one file.
+
+Lenses live in the references: `a11y`, `adapt`, `archetypes`, `color`, `comments`, `copy`, `figma`, `finish`, `interaction`, `layout`, `libraries`, `modernise`, `motion`, `refine`, `typography`. The index says when to load each.
+
+## Workflows
+
+Four skills sit beside this one and cover the common jobs: `northstar-build` for new UI, `northstar-refine` to elevate existing UI, `northstar-finish` for the last detail pass and `northstar-review` for a scored critique.
 
 ## Asking
 

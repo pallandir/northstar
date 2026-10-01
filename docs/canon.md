@@ -2,7 +2,7 @@
 
 Generated from `canon/rules`. Do not edit by hand.
 
-57 rules. Severity is the default, modes can raise or lower it.
+68 rules. Severity is the default, modes can raise or lower it.
 
 ## Accessibility floor
 
@@ -35,6 +35,19 @@ Generated from `canon/rules`. Do not edit by hand.
 | `NS-COPY-EMPTY-STATE` | Empty screens without direction | warn | yes | advisory |
 | `NS-COPY-PLACEHOLDER-DATA` | Placeholder names and fake round statistics | warn | yes | advisory |
 
+## FINISH
+
+| Rule | Title | Severity | Allowable | Detection |
+|---|---|---|---|---|
+| `NS-FINISH-FLAT-SHADOW` | Single layer pure black shadow | warn | yes | static |
+| `NS-FINISH-PRESS-STATE` | Button with a hover state and no pressed state | warn | yes | static |
+| `NS-FINISH-HOVER-GATE` | Hover transform not limited to hover capable devices | info | yes | static |
+| `NS-FINISH-TABULAR-NUMS` | Figures without tabular numerals | info | yes | static |
+| `NS-FINISH-TEXT-WRAP` | Headings without balanced wrapping | info | yes | static |
+| `NS-FINISH-Z-INDEX` | Arbitrary huge z-index | warn | yes | static |
+| `NS-FINISH-CONCENTRIC-RADIUS` | Nested radii that do not nest | info | yes | advisory |
+| `NS-FINISH-SATURATED-BORDER` | Saturated pastel border on a neutral surface | warn | yes | static |
+
 ## Layout
 
 | Rule | Title | Severity | Allowable | Detection |
@@ -45,7 +58,7 @@ Generated from `canon/rules`. Do not edit by hand.
 | `NS-LAYOUT-MODAL-OVERUSE` | Modal for a task that needs no interruption | info | yes | advisory |
 | `NS-LAYOUT-CENTER-EVERYTHING` | Everything centred | info | yes | advisory |
 | `NS-LAYOUT-FIRST-VIEW` | The first view shows the subject | info | yes | advisory |
-| `NS-LAYOUT-VIEWPORT-HEIGHT` | Dynamic viewport height for full height sections | warn | yes | advisory |
+| `NS-LAYOUT-VIEWPORT-HEIGHT` | Dynamic viewport height for full height sections | warn | yes | static |
 | `NS-LAYOUT-TASTE-DIALS` | Design variance, motion intensity and visual density are chosen | info | yes | advisory |
 
 ## Library first
@@ -66,6 +79,9 @@ Generated from `canon/rules`. Do not edit by hand.
 | `NS-MOTION-SECTION-ENTRANCE` | The same entrance on every section | warn | yes | static |
 | `NS-MOTION-TRANSITION-ALL` | Transition all | error | yes | static |
 | `NS-MOTION-BOUNCE` | Bounce and elastic easing | warn | yes | static |
+| `NS-MOTION-EASE-IN` | Ease in on interface motion | warn | yes | static |
+| `NS-MOTION-SCALE-ZERO` | Entrance from scale zero | warn | yes | static |
+| `NS-MOTION-DURATION` | Interface transition longer than 300ms | warn | yes | static |
 | `NS-MOTION-EASING` | Custom easing instead of the default keywords | info | yes | static |
 | `NS-MOTION-PROPERTIES` | Animate cheap properties | warn | yes | static |
 | `NS-MOTION-SCROLLJACK` | Scroll hijacking | error | yes | static |
@@ -177,3 +193,21 @@ Rules: `NS-LIB-ICON`, `NS-SLOP-EMOJI-ICON`
 The dials are guidance and start from the mode, never from a fixed default. Operate starts at a low variance and a high density, Read and Persuade sit in the middle, and only Experience starts high. The designer's answer, recorded in DESIGN.md prose, overrides the mode default, and the accessibility floor still applies at every setting.
 
 Rules: `NS-LAYOUT-TASTE-DIALS`, `NS-LAYOUT-CENTER-EVERYTHING`, `NS-LAYOUT-SPACING-RHYTHM`
+
+### Shadows, borders or a flat surface
+
+The archetype decides the depth model and DESIGN.md records it. Soft looks use two or three tinted layers, minimalist and editorial looks use a ring and background steps, brutalist looks need an allow entry for hard shadows. A single black layer is never right, and a flat system is valid when the brief says flat.
+
+Rules: `NS-FINISH-FLAT-SHADOW`, `NS-SLOP-HARD-SHADOW`, `NS-SLOP-DECOR-GLASS`
+
+### Atmosphere versus restraint in motion
+
+The mode sets the budget and frequency sets the amount. Operate animates feedback only, Persuade gets one signature moment, Experience may choreograph with a reduced motion path. Actions repeated all day and anything triggered by keyboard stay instant, and interface transitions stay under 300ms outside Experience.
+
+Rules: `NS-MOTION-ONE-MOMENT`, `NS-MOTION-DURATION`, `NS-MOTION-EASE-IN`, `NS-A11Y-REDUCED-MOTION`
+
+### Generated tokens versus a supplied brand
+
+A supplied brand always wins. Seed the generator with the brand colour, keep the supplied fonts and radii, and use the generated neutrals, shadows and motion tokens only for what the brief leaves open. Contrast must still pass for every pair.
+
+Rules: `NS-LOOK-DEFAULT-PALETTE`, `NS-COLOR-RAW-VALUES`, `NS-A11Y-CONTRAST`

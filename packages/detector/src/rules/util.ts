@@ -65,3 +65,19 @@ export function parseRem(value: string): number {
   const amount = Number(match[1]);
   return match[2] === "px" ? amount / 16 : amount;
 }
+
+export function commaParts(value: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < value.length; i++) {
+    if (value[i] === "(") depth++;
+    else if (value[i] === ")") depth = Math.max(0, depth - 1);
+    else if (value[i] === "," && depth === 0) {
+      parts.push(value.slice(start, i));
+      start = i + 1;
+    }
+  }
+  parts.push(value.slice(start));
+  return parts.map((part) => part.trim()).filter(Boolean);
+}

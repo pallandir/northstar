@@ -7,6 +7,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ToolListChangedNotificationSchema } from "@modelcontextprotocol/sdk/types.js";
+import { loadCanon } from "@northstar/canon";
 import { z } from "zod";
 import { registerCore } from "../src/packs/core.js";
 import { PackRegistry, parsePacks } from "../src/packs/registry.js";
@@ -35,7 +36,7 @@ async function connect(server: McpServer): Promise<void> {
 function dummyServer(packs: string): McpServer {
   const server = new McpServer({ name: "dummy", version: "0.0.0" });
   const registry = new PackRegistry(server, parsePacks(packs));
-  registerCore(registry, root, () => ({ state: "off", error: "test server" }));
+  registerCore(registry, root, () => ({ state: "off", error: "test server" }), loadCanon());
   registry.register(
     "research",
     "echo_design",
@@ -63,6 +64,8 @@ test("only core and comments tools are visible by default", async () => {
   assert.deepEqual(
     names,
     [
+      "canon_find",
+      "canon_read",
       "clear_resolved",
       "defer_comment",
       "enable_packs",

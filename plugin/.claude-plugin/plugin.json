@@ -1,7 +1,7 @@
 {
   "name": "northstar",
   "description": "A UI design advisory framework for AI agents: brief, direction, system, compose, critique and polish, library first and free of generic AI defaults.",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "author": {
     "name": "pallandir",
     "url": "https://github.com/pallandir"

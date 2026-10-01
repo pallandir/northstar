@@ -85,7 +85,7 @@ export async function conflicts(args: string[]): Promise<number> {
   for (const conflict of found) process.stdout.write(`${describe(conflict)}\n`);
   if (!options.remove) {
     process.stdout.write(
-      "\nRun northstar conflicts --remove to move them to a quarantine you can restore.\n",
+      "\nNorthstar covers the same ground as these, so keeping several UI skills only spends tokens and gives mixed advice. Run northstar conflicts --remove to move them to a quarantine you can restore.\n",
     );
     return 0;
   }

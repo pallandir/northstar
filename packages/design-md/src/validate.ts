@@ -13,6 +13,7 @@ export interface Issue {
 export interface ValidateOptions {
   rules: Array<{ id: string; allowable: boolean }>;
   defaultFamilies?: string[];
+  archetypes?: string[];
 }
 
 export interface ValidationResult {
@@ -225,6 +226,49 @@ export function validateDesign(source: string, options: ValidateOptions): Valida
   for (const [fg, bg] of pairKeys(colors)) {
     checkPair(`colors.${fg} on colors.${bg}`, colors[fg], colors[bg]);
   }
+  const themes = (fm.themes ?? {}) as Record<string, unknown>;
+  const darkTheme = themes.dark as Record<string, unknown> | undefined;
+  if (darkTheme !== undefined) {
+    const darkColors = (darkTheme.colors ?? {}) as Record<string, unknown>;
+    if (!darkColors || typeof darkColors !== "object" || !Object.keys(darkColors).length) {
+      error("themes.dark.colors", "the dark theme needs a colors mapping");
+    } else {
+      for (const key of Object.keys(colors)) {
+        if (!(key in darkColors)) {
+          warn(
+            `themes.dark.colors.${key}`,
+            `the dark theme has no ${key}, add it for parity`,
+            "NS-COLOR-DARK-PARITY",
+          );
+        }
+      }
+      for (const [key, raw] of Object.entries(darkColors)) {
+        const value = typeof raw === "string" ? resolveRefs(fm, raw) : "";
+        if (!parseColorAlpha(value)) {
+          error(`themes.dark.colors.${key}`, `${value || String(raw)} is not a valid colour`);
+        }
+      }
+      for (const [fg, bg] of pairKeys(darkColors)) {
+        checkPair(
+          `themes.dark.colors.${fg} on themes.dark.colors.${bg}`,
+          darkColors[fg],
+          darkColors[bg],
+        );
+      }
+    }
+  }
+  for (const group of ["elevation", "motion"] as const) {
+    const value = fm[group];
+    if (value === undefined) continue;
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      error(group, `${group} must be a mapping of names to strings`);
+      continue;
+    }
+    for (const [key, item] of Object.entries(value)) {
+      if (typeof item !== "string" || !item.trim())
+        error(`${group}.${key}`, "must be a non empty string");
+    }
+  }
   const components = (fm.components ?? {}) as Record<string, Record<string, unknown>>;
   for (const [name, def] of Object.entries(components)) {
     if (def && typeof def === "object")
@@ -237,6 +281,25 @@ export function validateDesign(source: string, options: ValidateOptions): Valida
     error("northstar.mode", `mode must be one of ${MODES.join(", ")}`);
   } else if (!(MODES as readonly string[]).includes(mode)) {
     error("northstar.mode", `mode ${mode} is not one of ${MODES.join(", ")}`);
+  }
+  const archetype = northstar.archetype;
+  if (archetype !== undefined) {
+    const primary =
+      typeof archetype === "string"
+        ? archetype
+        : (archetype as { primary?: unknown } | null)?.primary;
+    if (typeof primary !== "string" || !primary.trim()) {
+      error("northstar.archetype", "archetype must be an id or a mapping with a primary id");
+    } else if (
+      options.archetypes &&
+      !PLACEHOLDER.test(primary) &&
+      !options.archetypes.includes(primary)
+    ) {
+      error(
+        "northstar.archetype",
+        `archetype ${primary} is not one of ${options.archetypes.join(", ")}`,
+      );
+    }
   }
   if (
     typeof northstar.stack === "string" &&

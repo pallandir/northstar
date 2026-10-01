@@ -46,7 +46,7 @@ function changedFiles(root: string): string[] {
   return [...new Set([...tracked, ...untracked])].filter((file) => kindOf(file));
 }
 
-function loadConfig(root: string, mode?: Mode): ScanConfig {
+export function loadScanConfig(root: string, mode?: Mode): ScanConfig {
   const path = join(root, "DESIGN.md");
   const config = configFromDesign(existsSync(path) ? readFileSync(path, "utf8") : undefined);
   return mode ? { ...config, mode } : config;
@@ -67,7 +67,7 @@ export interface ScanOutcome {
 
 export function runScan(request: ScanRequest): ScanOutcome {
   const { root } = request;
-  const config = loadConfig(root, request.mode);
+  const config = loadScanConfig(root, request.mode);
   const requested = request.diff ? changedFiles(root) : (request.paths ?? []);
   const paths = requested.map((path) => resolveInside(root, path));
   if (request.diff && paths.length === 0) return { findings: [], scanned: 0, config };

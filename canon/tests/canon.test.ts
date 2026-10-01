@@ -44,6 +44,9 @@ test("shipped text never uses dashes as separators", () => {
 const canonText = [
   canon.framework,
   readFileSync(join(canon.root, "skill", "SKILL.md.tmpl"), "utf8"),
+  ...readdirSync(join(canon.root, "skill", "workflows")).map((name) =>
+    readFileSync(join(canon.root, "skill", "workflows", name), "utf8"),
+  ),
   ...canon.references.map((r) => r.body),
 ];
 
@@ -100,4 +103,39 @@ test("the Figma guide names the official install commands", () => {
   ]) {
     assert.ok(figma.body.includes(needle), needle);
   }
+});
+
+test("archetype fonts exist in the font data and avoid the training data defaults", () => {
+  const fonts = JSON.parse(
+    readFileSync(join(canon.root, "..", "packages", "data", "json", "fonts.json"), "utf8"),
+  ) as Array<{ name: string }>;
+  const known = new Set(fonts.map((f) => f.name.toLowerCase()));
+  const defaults = new Set(
+    (
+      (canon.rules.find((r) => r.id === "NS-TYPE-DEFAULT-DISPLAY")?.params?.families ??
+        []) as string[]
+    ).map((f) => f.toLowerCase()),
+  );
+  for (const a of canon.archetypes.archetypes) {
+    for (const [role, family] of Object.entries(a.fonts)) {
+      assert.ok(
+        known.has(family.toLowerCase()),
+        `${a.id} ${role} ${family} is not in the font data`,
+      );
+    }
+    assert.ok(!defaults.has(a.fonts.heading.toLowerCase()), `${a.id} heading is a default face`);
+  }
+});
+
+test("archetype and synonym text never uses dashes as separators", () => {
+  const texts = [
+    ...canon.archetypes.archetypes.flatMap((a) => [a.summary, a.depth, ...a.layout, ...a.avoid]),
+    ...Object.entries(canon.synonyms).flat(2),
+  ];
+  for (const text of texts) assert.doesNotMatch(text, /[–—]| - /);
+});
+
+test("there are at least ten archetypes and every blend part is declared", () => {
+  assert.ok(canon.archetypes.archetypes.length >= 10);
+  assert.deepEqual([...canon.archetypes.blend.takes].sort(), ["motion", "surface", "type"]);
 });

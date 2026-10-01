@@ -11,12 +11,12 @@ Judge the work against its own purpose, rank what to fix and record the result. 
 2. Look before reading code. Write down the first impression in one sentence, and what the eye reads first.
 3. Call `critique_rubric` to get the dimensions and the weights for the current mode.
 4. Score each dimension from 0 to 10, with one line of evidence each.
-5. Run `slop_scan` on the changed files. Use `explain_rule` for any id you do not recognise.
+5. Run `slop_scan` on the changed files, and `ui_audit` when the screen was refined from existing code. Use `explain_rule` for any id you do not recognise.
 6. Apply the gates, rank the findings, and record.
 
 ## Rubric
 
-The rubric lives in `rubric.yaml`. Dimensions: hierarchy, typography, color, composition, motion, craft, copy, accessibility. Weights change per mode, so an operate screen is judged mostly on hierarchy and craft, an experience screen on typography, composition and motion.
+The rubric lives in `rubric.yaml`. Dimensions: hierarchy, typography, color, composition, motion, craft, finish, copy, accessibility. Finish asks whether depth, radii, borders, type details and interaction feel resolved, using `references/finish.md` as the yardstick. Weights change per mode, so an operate screen is judged mostly on hierarchy and craft, an experience screen on typography, composition and motion.
 
 Score against the page's own purpose, not an abstract ideal. A calm tool is not marked down for lacking spectacle.
 

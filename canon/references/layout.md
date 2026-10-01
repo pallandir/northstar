@@ -43,6 +43,15 @@ Load when: structuring a page or component, setting spacing, grid, responsive be
 - Everything centred (NS-LAYOUT-CENTER-EVERYTHING).
 - Missing empty, loading and error states (NS-LAYOUT-STATES).
 
+## Pricing and comparison
+
+- Keep the same rows aligned across side by side plans: name, price, features and button sit at the same height, and the buttons pin to the bottom of each column.
+- Mark the recommended plan with more than extra height: a contrasting surface or border, a label with text, and the primary button.
+- Mark the current plan with text, not colour alone, and disable its button.
+- Prices use tabular numerals and say what they are per (`NS-FINISH-TABULAR-NUMS`).
+- A comparison table is a real table with row headers, grouped rows and a sticky first column when it scrolls.
+- Do not make three equal cards if one plan matters more. Let hierarchy follow the decision.
+
 ## By mode
 | Mode | Density and structure |
 | --- | --- |

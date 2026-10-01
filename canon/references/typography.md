@@ -6,7 +6,8 @@ Load when: choosing fonts, a type scale, or sizing and spacing text in any scree
 - One family with a real range of weights, or two clearly distinct families (for example a serif display with a neutral sans body). Never two similar sans faces (NS-TYPE-FONT-COUNT).
 - A training data default as the display face is a warning unless the brief chose it (NS-TYPE-DEFAULT-DISPLAY). Quiet Inter body text in Operate is fine.
 - Hierarchy comes from size, weight and contrast between steps, not from adding families or colours.
-- Define the scale once as tokens and use only those sizes (NS-TYPE-SCALE).
+- Define the scale once as tokens and use only those sizes (NS-TYPE-SCALE). `design_tokens_generate` writes a scale with tracking per size.
+- Balance headings, make paragraphs wrap pretty and use tabular numerals for figures (NS-FINISH-TEXT-WRAP, NS-FINISH-TABULAR-NUMS).
 - Fonts come from a package or service, never hand managed files (NS-LIB-FONT).
 - Readability limits are fixed: measure, line height and contrast hold in every mode.
 

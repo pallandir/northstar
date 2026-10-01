@@ -49,9 +49,10 @@ export function getData(): DesignData {
   return cachedData;
 }
 
-export function skillRoot(): string {
-  return locate("skill", "NORTHSTAR_SKILL_ROOT", "SKILL.md", [
-    join(here, "assets", "skill"),
-    join(here, "..", "..", "plugin", "skills", "northstar"),
+export function skillRoot(name: string): string {
+  const base = locate("skills", "NORTHSTAR_SKILLS_ROOT", join(name, "SKILL.md"), [
+    join(here, "assets", "skills"),
+    join(here, "..", "..", "plugin", "skills"),
   ]);
+  return join(base, name);
 }
