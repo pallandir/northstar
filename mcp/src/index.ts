@@ -1,4 +1,5 @@
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { getCanon } from "./assets.js";
 import { Broker } from "./broker.js";
 import { ChannelHandoff } from "./channel.js";
 import { startIngestServer } from "./http.js";
@@ -22,7 +23,7 @@ async function main(): Promise<void> {
 
   const log = (msg: string) => process.stderr.write(`[northstar] ${msg}\n`);
   const terminal = new TerminalHandoff(log);
-  const server = createMcpServer(store, broker);
+  const server = createMcpServer(store, broker, getCanon(), { root });
   const handoff = new ChannelHandoff({ server: server.server, store, broker, terminal, log });
 
   const ingest = await startIngestServer(store, parsePorts(), log, broker, handoff).catch(

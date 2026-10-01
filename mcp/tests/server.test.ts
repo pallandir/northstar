@@ -236,9 +236,9 @@ test("clear_resolved removes non-open comments and reports the count", async () 
   assert.equal((await store.list())[0].comment, "still open");
 });
 
-test("the server exposes exactly the seven comment tools", async () => {
-  const { tools } = await client.listTools();
-  assert.deepEqual(tools.map((t) => t.name).sort(), [
+test("the server exposes all seven comment tools", async () => {
+  const names = (await client.listTools()).tools.map((t) => t.name);
+  for (const name of [
     "clear_resolved",
     "defer_comment",
     "get_comment",
@@ -246,7 +246,9 @@ test("the server exposes exactly the seven comment tools", async () => {
     "list_deferred",
     "resolve_comment",
     "resolve_comments",
-  ]);
+  ]) {
+    assert.ok(names.includes(name), name);
+  }
 });
 
 test("the resolve-comments prompt is listed and carries the directive", async () => {
