@@ -18,3 +18,4 @@ cpSync(join(repoRoot, "canon"), join(assets, "canon"), {
 cpSync(join(repoRoot, "plugin", "skills", "northstar"), join(assets, "skill"), {
   recursive: true,
 });
+cpSync(join(repoRoot, "packages", "data", "json"), join(assets, "data"), { recursive: true });

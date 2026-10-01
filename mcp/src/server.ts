@@ -1,13 +1,16 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { Canon } from "@northstar/canon";
+import type { DesignData } from "@northstar/data";
 import { z } from "zod";
-import { getCanon } from "./assets.js";
+import { getCanon, getData } from "./assets.js";
 import { Broker } from "./broker.js";
 import { CHANNEL_CAPABILITY } from "./channel.js";
 import { VERSION } from "./config.js";
 import { RESOLVE_DIRECTIVE } from "./directive.js";
 import { registerCore } from "./packs/core.js";
 import { PackRegistry, parsePacks } from "./packs/registry.js";
+import { registerResearch } from "./packs/research.js";
+import { registerResolve } from "./packs/resolve.js";
 import { registerPrompts } from "./prompts.js";
 import { render, summarize } from "./render.js";
 import { registerResources } from "./resources.js";
@@ -28,7 +31,7 @@ export function createMcpServer(
   store: CommentStore,
   broker: Broker = new Broker(),
   canon: Canon = getCanon(),
-  options: { root?: string; packs?: string } = {},
+  options: { root?: string; packs?: string; data?: DesignData } = {},
 ): McpServer {
   const server = new McpServer(
     { name: "northstar", version: VERSION },
@@ -55,7 +58,11 @@ export function createMcpServer(
   registerResources(server, canon);
 
   const packs = new PackRegistry(server, parsePacks(options.packs ?? process.env.NORTHSTAR_PACKS));
-  registerCore(packs, options.root ?? process.env.NORTHSTAR_ROOT ?? process.cwd());
+  const root = options.root ?? process.env.NORTHSTAR_ROOT ?? process.cwd();
+  const data = options.data ?? getData();
+  registerCore(packs, root);
+  registerResearch(packs, data);
+  registerResolve(packs, canon, data, root);
 
   packs.register(
     "comments",

@@ -9,7 +9,7 @@ stacks:
 
 needs:
   primitives:
-    covers: [dialog, popover, dropdown menu, tooltip, select, tabs, accordion, checkbox, switch, slider]
+    covers: [dialog, modal, drawer, popover, dropdown menu, tooltip, select, tabs, accordion, checkbox, switch, slider]
     react: { choice: shadcn/ui on Radix, package: shadcn, install: "npx shadcn@latest init", mcp: shadcn }
     vue: { choice: shadcn-vue on Reka UI, package: shadcn-vue, install: "npx shadcn-vue@latest init" }
     svelte: { choice: shadcn-svelte on Bits UI, package: shadcn-svelte, install: "npx shadcn-svelte@latest init" }
