@@ -3,7 +3,7 @@ name: northstar-refine
 description: Use when UI already exists and must look cleaner, sleeker and more professional, such as an engineer's first pass, a legacy screen, a pricing page that feels generic, or designer feedback on a built screen. Audits first, then improves one thing at a time. For brand new UI use northstar-build.
 license: MIT
 metadata:
-  version: "2.4.0"
+  version: "2.4.1"
 ---
 
 # Northstar refine
