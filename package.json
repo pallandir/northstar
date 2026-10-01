@@ -1,6 +1,6 @@
 {
   "name": "northstar",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": true,
   "type": "module",
   "description": "A UI design advisory framework for AI coding agents, with a browser extension to leave comments on the running UI.",
@@ -27,7 +27,7 @@
     "package:chromium": "npm run package --workspace @northstar/chromium",
     "package:firefox": "npm run package --workspace @northstar/firefox",
     "lint:amo": "npm run lint:amo --workspace @northstar/firefox",
-    "dev": "npm run dev --workspaces --if-present",
+    "dev": "node scripts/dev.mjs",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "biome check .",
@@ -35,7 +35,8 @@
     "prepare": "husky",
     "gen": "npm run gen --workspace @northstar/adapters",
     "gen:check": "npm run gen:check --workspace @northstar/adapters",
-    "check:pack": "node scripts/check-pack-size.mjs"
+    "check:pack": "node scripts/check-pack-size.mjs",
+    "check:versions": "node scripts/check-versions.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

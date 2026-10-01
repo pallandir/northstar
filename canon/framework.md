@@ -6,6 +6,10 @@ Northstar steers an AI coding agent through professional UI work: designing, ref
 
 Agents produce competent but generic interfaces. They converge on the same palettes, the same card grids, the same gradient headline, and they hand roll components that mature libraries already provide. Northstar fixes this with a short method, one set of rules with one arbitration order, and a library first policy. It is advice with teeth: some rules are checked by a detector, the rest are checked by critique.
 
+## The DESIGN.md gate
+
+No UI file is created or edited until `DESIGN.md` exists, parses, has no unfilled placeholders and names a mode. This holds for every task, including a small tweak, a polish pass and a browser comment. `northstar_context` reports it in the `gate` field, and the Claude Code edit hook blocks UI edits while it is closed. Open it with `design_md_normalize` when the designer supplied a direction, or with `design_system_propose` after the questions, then fix every error from `design_md_validate`. Skipping it needs an explicit instruction from the user, logged in `design/decisions.md`.
+
 ## Stages
 
 Work moves through six stages. Each stage ends with an artifact, so the next stage never starts from guesses.
@@ -54,16 +58,20 @@ Lenses are focused passes used inside Polish and Compose: bolder, quieter, disti
 
 Templates for all three live in `templates/`.
 
+## Design read and taste dials
+
+Before code, state a one line design read: page kind, audience, vibe words and design family. Direction then sets three taste dials from 1 to 10: design variance, motion intensity and visual density. They start from the mode, are asked as one question with a recommended default, and are recorded as a sentence in the DESIGN.md prose, with no schema field. Soft, minimalist and brutalist are named archetypes for briefs described as a feel. Details are in `references/direction.md`.
+
 ## Bring your own direction
 
-The designer may supply any freeform markdown: a mood description, a brand note, a pasted style guide, a partial token list. Do not ask them to reformat it. Call `design_md_normalize` from the system pack to draft DESIGN.md from it, then ask only about the gates that remain missing (mode, stack, libraries, contrast pairs).
+The designer may supply any freeform markdown: a mood description, a brand note, a pasted style guide, a partial token list. Do not ask them to reformat it. Call `design_md_normalize` from the system pack to draft DESIGN.md from it, then ask only about the gates that remain missing (mode, stack, libraries, contrast pairs). When the system lives in Figma, `references/figma.md` explains how to read the variables through the official Figma MCP server, and what to show when it is not installed.
 
 ## Question protocol
 
 1. Ask at most 3 questions per turn.
 2. Give each question a recommended default, so "go" is a valid answer.
 3. Never ask what the repo can answer. Read `package.json`, `components.json` and DESIGN.md first.
-4. Small edits, such as one extension comment, skip the protocol.
+4. Small edits, such as one extension comment, skip the questions but never the DESIGN.md gate.
 5. Append every direction changing answer to `design/decisions.md`.
 
 ## Library first
@@ -126,4 +134,5 @@ Load one reference at a time, the one for the current stage. Do not read all ref
 | New platform, theme, density or locale | `references/adapt.md` |
 | Legacy UI | `references/modernise.md` |
 | Choose and install libraries | `references/libraries.md` |
+| Design system from Figma | `references/figma.md` |
 | Extension comments | `references/comments.md` |

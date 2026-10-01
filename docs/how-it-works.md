@@ -16,8 +16,9 @@ are ready, you click **Send to AI**. Northstar writes the batch to disk and type
 line into the terminal your assistant is already running in, then presses Enter for
 you.
 
-There is nothing to pair and nothing to paste. Nothing leaves your machine either:
-the browser and the server meet on `127.0.0.1`.
+There is no code to copy: the first time, you click **Connect** in the toolbar and
+**Allow** on a page your own server shows. Nothing leaves your machine either: the browser and the server meet on
+`127.0.0.1`.
 
 ## The comment lifecycle
 

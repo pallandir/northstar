@@ -1,6 +1,6 @@
 [mcp_servers.northstar]
 command = "npx"
-args = ["-y","@pallandir/northstar"]
+args = ["-y","@pallandir/northstar@2.3.0"]
 startup_timeout_sec = 30
 
 [mcp_servers.northstar.env]

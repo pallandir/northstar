@@ -21,14 +21,14 @@ Load when: structuring a page or component, setting spacing, grid, responsive be
 - Use media queries only for page level shell changes.
 - Test at 360, 768, 1024 and 1440px.
 - Content wraps, nothing scrolls sideways, long strings and translated labels do not break the row.
-- Use `min-height: 100dvh`, not `100vh`.
+- Use `min-height: 100dvh`, not `100vh`, because mobile browser chrome makes 100vh taller than the visible area (NS-LAYOUT-VIEWPORT-HEIGHT).
 - Respect safe areas with `env(safe-area-inset-*)` on fixed bars.
 - Align to a shared baseline or edge.
 - Optical fixes: icons beside text are centred on the cap height, numeric columns are right aligned.
 - States: skeleton or inline spinner for loading over 300ms, empty state with direction (see copy), error with recovery, disabled that explains why when it is not obvious.
 - Overlays, menus and popovers use library primitives (shadcn, Radix, Reka, Bits, native `dialog` and `popover`) and not hand rolled code (NS-LIB-OVERLAY).
 - Call `resolve_library` for the need.
-- Tap and pointer targets keep 44px by padding or pseudo element (NS-A11Y-TARGET-SIZE).
+- Pointer targets are at least 24px and touch targets 44px, grown by padding or a pseudo element and not by enlarging the visual (NS-A11Y-TARGET-SIZE).
 - Z index from a short token list: base, sticky, overlay, modal, toast.
 - Icons come from Lucide, Material Symbols or Iconify through `resolve_icon`, never hand drawn paths (NS-LIB-ICON).
 - Keep one primary action per view, placed where the reading path ends.
@@ -55,6 +55,8 @@ Load when: structuring a page or component, setting spacing, grid, responsive be
 - Computed gaps come from the scale and groups differ visibly (NS-LAYOUT-SPACING-RHYTHM).
 - No horizontal scroll at 360px (NS-LAYOUT-RESPONSIVE).
 - Each interactive component shows hover, focus, disabled, loading and error (NS-LAYOUT-STATES).
-- Targets measure 24px at minimum and 44px for touch (NS-A11Y-TARGET-SIZE).
+- Targets measure at least 24px, and 44px on touch (NS-A11Y-TARGET-SIZE).
+- Full height sections use dvh or svh (NS-LAYOUT-VIEWPORT-HEIGHT).
+- The layout matches the variance and density dials recorded in DESIGN.md (NS-LAYOUT-TASTE-DIALS).
 - No nested cards, card grid structure, or hero metric (NS-SLOP-NESTED-CARD, NS-SLOP-CARD-GRID, NS-SLOP-HERO-METRIC).
 - First view in a screenshot names what the product is (NS-LAYOUT-FIRST-VIEW).

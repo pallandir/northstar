@@ -9,6 +9,7 @@ export const SOURCES = [
   "frontend-design",
   "ui-ux-pro-max",
   "top-design",
+  "taste-skill",
   "shadcn-lint",
   "northstar",
 ] as const;

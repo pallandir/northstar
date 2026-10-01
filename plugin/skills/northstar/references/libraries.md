@@ -44,7 +44,7 @@ Smooth scroll with Lenis is for experience mode only, and scroll hijacking is an
 
 ## Icons
 
-Use one library at one stroke and size across the product. Import icons by name. Never paste inline path data or use emoji and glyphs as icons (`NS-LIB-ICON`, `NS-SLOP-EMOJI-ICON`). Decorative icons are hidden from assistive technology, meaningful ones have a label.
+Use one library at one stroke and size across the product. The set already in the project or named in DESIGN.md wins. Otherwise `resolve_icon` picks one, and Lucide, Phosphor and Tabler are equal choices. Import icons by name. Never paste inline path data or use emoji and glyphs as icons (`NS-LIB-ICON`, `NS-SLOP-EMOJI-ICON`). Decorative icons are hidden from assistive technology, meaningful ones have a label.
 
 ## Fonts
 
@@ -67,7 +67,7 @@ Record the allow in `northstar.allow` with rule, reason and scope, or inline as 
 | Server | Use |
 |---|---|
 | shadcn MCP | Browse and add components from any registry, set up with `npx shadcn@latest mcp init` |
-| Figma remote MCP | Read frames, variables and screenshots from Figma |
+| Figma remote MCP | Read variables, frames and design context from Figma. Install steps are in `references/figma.md` |
 | Iconify and Lucide MCPs | Search icons with licence information |
 
 These complement the Northstar resolver. They do not replace the policy.

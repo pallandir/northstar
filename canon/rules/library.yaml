@@ -6,7 +6,7 @@
   detect: static
   rationale: Icons come from the icon library chosen in DESIGN.md. Inline path data written by hand varies in stroke, grid and quality.
   fix: Install the library package and import the icon by name, for example lucide-react or material symbols.
-  sources: [northstar, impeccable, ui-ux-pro-max]
+  sources: [northstar, impeccable, ui-ux-pro-max, taste-skill]
 
 - id: NS-LIB-OVERLAY
   title: Hand rolled dialog, menu, popover, tooltip or select

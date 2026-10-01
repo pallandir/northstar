@@ -10,6 +10,7 @@ Produce a valid `DESIGN.md` that holds tokens, prose rationale and the `northsta
 | Situation | Action |
 |---|---|
 | Designer supplied freeform markdown | Call `design_md_normalize`, then ask only about missing gates |
+| Designer wants the system from Figma | Check that `get_variable_defs`, `get_design_context` and `search_design_system` are listed. If not, stop and show the install guide in `references/figma.md`. If they are, pass the variables from `get_variable_defs` to `design_md_normalize` |
 | Nothing exists | Call `design_md_init`, or `design_system_propose` from the chosen direction |
 | DESIGN.md exists | Call `design_md_validate`, fix findings, extend only what the task needs |
 

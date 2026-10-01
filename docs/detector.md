@@ -22,11 +22,11 @@ Some rules cannot be checked from source. Contrast is checked from `DESIGN.md` t
 
 ## Severity follows the mode
 
-The same rule can be an error in one mode and quiet in another. Scroll hijacking is an error in a persuasive page and allowed in an experience page. Eyebrow labels are an error on a marketing page and a warning in an app.
+The same rule can be an error in one mode and quiet in another. Scroll hijacking is an error in a persuasive page and only informational in an experience page, where the opt in is an allow entry. Eyebrow labels are an error on a marketing page and a warning in an app.
 
 ## Allowing something on purpose
 
-Rules that are not accessibility rules can be allowed, with a reason, in `DESIGN.md`:
+Rules can be allowed, with a reason, in `DESIGN.md`, unless the canon marks them not allowable. Those are the accessibility rules and the 360px responsive floor:
 
 ```yaml
 northstar:
@@ -42,7 +42,7 @@ Or inline, on the same line or the line above:
 {/* northstar-allow NS-SLOP-GRADIENT-TEXT: brand wordmark */}
 ```
 
-Accessibility rules cannot be allowed. An allow entry for one is reported as an error by `design_md_validate` and ignored by the scanner.
+A rule marked not allowable cannot be allowed. An allow entry for one is reported as an error by `design_md_validate` and ignored by the scanner.
 
 ## In the agent loop
 

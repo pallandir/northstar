@@ -37,7 +37,9 @@ Load when: writing or reviewing labels, buttons, errors, empty states, headlines
 - Submit, Click here, OK, Go, Learn more as labels (NS-COPY-CTA-VERB).
 - Error messages such as Something went wrong or Invalid input (NS-COPY-ERROR).
 - A blank list or table with no explanation (NS-COPY-EMPTY-STATE).
-- Lorem ipsum, Unlock the power, Seamless, Supercharge, Elevate your, Revolutionize, Next generation, All in one platform (NS-COPY-FILLER).
+- Lorem ipsum, Unlock the power, Seamless, Supercharge, Elevate your, Revolutionize, Next generation, All in one platform, Unleash, Cutting edge, Game changing (NS-COPY-FILLER).
+- Placeholder names such as John Doe or Acme, a person icon as an avatar, and perfect figures such as 99.99% or 50% (NS-COPY-PLACEHOLDER-DATA).
+- Two calls to action with the same intent, such as Contact us and Get in touch on one page.
 - Eyebrow labels above headings and a single accented word in a headline (NS-SLOP-EYEBROW, NS-SLOP-SINGLE-WORD-ACCENT).
 - Emoji or glyphs in place of icons (NS-SLOP-EMOJI-ICON).
 - Use icons from a library and call `resolve_icon`.
@@ -57,5 +59,6 @@ Load when: writing or reviewing labels, buttons, errors, empty states, headlines
 - Trigger every error path and read the message (NS-COPY-ERROR).
 - Visit every list with no data (NS-COPY-EMPTY-STATE).
 - Search the source for filler phrases and placeholder text (NS-COPY-FILLER).
+- Names, figures and logos are real or labelled as sample data (NS-COPY-PLACEHOLDER-DATA).
 - The same concept has the same word across navigation, headings, buttons and messages.
 - All headings, buttons and labels are in sentence case.

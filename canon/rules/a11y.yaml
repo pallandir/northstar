@@ -37,7 +37,7 @@
   detect: static
   rationale: Any motion that is not a direct response to a user action needs a prefers-reduced-motion fallback.
   fix: Wrap authored animation in a media query for no-preference, or neutralise it under reduce.
-  sources: [impeccable, frontend-design, top-design, ui-ux-pro-max]
+  sources: [impeccable, frontend-design, top-design, ui-ux-pro-max, taste-skill]
 
 - id: NS-A11Y-SEMANTICS
   title: Real semantics for interactive elements

@@ -32,10 +32,10 @@ The app is served at `http://localhost:3001` and has two routes:
 
 In Chrome or another Chromium browser, open `chrome://extensions`, enable
 Developer mode, choose **Load unpacked**, and select
-`extension/chromium/dist`.
+`extensions/chromium/dist`.
 
 In Firefox, open `about:debugging` > **This Firefox** > **Load Temporary Add-on**
-and select `extension/firefox/dist/manifest.json`. Grant the extension access to
+and select `extensions/firefox/dist/manifest.json`. Grant the extension access to
 `localhost` when Firefox asks.
 
 ## Connect Codex to the local MCP server
@@ -50,7 +50,8 @@ This registers the local server command with Codex. Start Codex from
 `examples/react-app` so its working directory is the demo, the server writes
 `.northstar/` there, and source paths match the demo files.
 
-Activate Northstar in the browser, click an element, leave a comment, and use
+Activate Northstar in the browser. The first time the toolbar shows **Connect**:
+click it, then click **Allow** on the page that opens. Then click an element, leave a comment, and use
 **Send to AI**. Exercise both routes and confirm that Codex can read the local
 comment through the `list_comments` MCP tool. Comments and screenshots remain
 in the gitignored `.northstar/` directory.

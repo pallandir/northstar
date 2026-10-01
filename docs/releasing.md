@@ -6,18 +6,25 @@ the checklist for cutting a release of all three.
 
 ## Versions
 
-The version lives in seven hand-edited places and they must all match before a
-release:
+One version covers everything, and the root `package.json` is the source of truth.
+These must all equal it before a release:
 
-- root `package.json`
-- `mcp/package.json` for the npm package
-- `mcp/src/config.ts` (`VERSION`, reported by the MCP server and `/health`)
-- `extensions/core/package.json`
-- `extensions/chromium/package.json`
-- `extensions/firefox/package.json`
-- `extensions/core/manifest.base.ts` (both browser targets read it)
+- every workspace `package.json`: `mcp`, `canon`, `packages/*` and `extensions/*`
+- `plugin/.claude-plugin/plugin.json`
+- `.claude-plugin/marketplace.json`, in both the metadata and the plugin entry
+- `mcp/src/config.ts` (`VERSION`, reported by the MCP server and `/health`) and
+  `extensions/core/manifest.base.ts` (both browser targets read it), which either
+  hold the same number or read it from `package.json`
 
-There is no automatic sync, so bump all seven when you cut a release.
+Check them in one step:
+
+```sh
+node scripts/check-versions.mjs
+```
+
+It lists every place that differs and exits 1. CI runs it on every push and the npm
+publish workflow runs it before publishing. After changing versions, run
+`npm run gen` so the generated plugin and skill files pick up the new number.
 
 ## Publishing the MCP server to npm
 
@@ -35,20 +42,21 @@ this repository's `release` environment. Nothing further to set up per release.
 
 ### Cutting a release
 
-1. Bump the version in all seven places listed above.
+1. Set the version in every place listed above and run `npm run gen`.
 2. Update `CHANGELOG.md`.
-3. Commit the bump.
-4. Tag the release and push the tag. Pushing any `v*` tag automatically submits
+3. Run `node scripts/check-versions.mjs` and commit the bump.
+4. Tag the release, with the tag equal to the version and push the tag. Pushing any `v*` tag automatically submits
    the Firefox build to AMO and publishes the npm package, with no further step:
 
    ```sh
-   git tag v2.1.0
-   git push origin v2.1.0
+   git tag v2.3.0
+   git push origin v2.3.0
    ```
 
-`publish-npm.yml` checks out the repo, builds the server, copies the root
-`LICENSE.md` into the package, and runs `npm publish --workspace @pallandir/northstar`
-with provenance. You can also run it manually from the Actions tab
+`publish-npm.yml` checks out the repo, verifies that the tag equals every version in
+the repo, runs the typecheck, build, tests, `npm run gen:check` and
+`npm run check:pack`, and only then runs `npm publish --workspace @pallandir/northstar`
+with provenance. Any failing check stops the release before anything is published. You can also run it manually from the Actions tab
 (`workflow_dispatch`).
 
 ### Verify before tagging
@@ -59,8 +67,9 @@ Inspect the exact tarball contents without publishing:
 npm pack --dry-run --workspace @pallandir/northstar
 ```
 
-The file list should be `dist/`, `README.md`, `LICENSE.md`, and `package.json`,
-and nothing from `src/` or `tests/`. The `prepack` step copies `LICENSE.md` into
+`npm run check:pack` asserts the required files and the size limit. The file list
+should be `dist/`, `README.md`, `LICENSE.md`, `NOTICE`, `THIRD_PARTY_LICENSES.md`
+and `package.json`, and nothing from `src/` or `tests/`. The `prepack` step copies `LICENSE.md` into
 the package from the repo root, so it is present in both CI and a local pack even
 though the file is gitignored.
 
@@ -141,10 +150,10 @@ Listing copy lives in [extensions/firefox/STORE.md](../extensions/firefox/STORE.
 
 ## Release checklist
 
-- [ ] Versions bumped and matching across the seven sites listed under Versions.
+- [ ] Versions bumped, `npm run gen` run, and `node scripts/check-versions.mjs` passes.
 - [ ] `CHANGELOG.md` updated for the release.
-- [ ] `npm run lint`, `npm run typecheck`, and `npm test` pass.
-- [ ] `npm pack --dry-run` tarball looks right.
+- [ ] `npm run lint`, `npm run typecheck`, `npm test` and `npm run gen:check` pass.
+- [ ] `npm run check:pack` passes.
 - [ ] `npm run package:chromium` rebuilt and verified with `unzip -l`.
 - [ ] `npm run lint:amo` clean on the Firefox build.
 - [ ] `WEB_EXT_API_KEY` / `WEB_EXT_API_SECRET` present on `release` if this is a

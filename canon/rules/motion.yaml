@@ -7,7 +7,7 @@
   detect: advisory
   rationale: In persuasive pages a single orchestrated page load or reveal lands better than scattered effects. Working interfaces use motion only to explain a change.
   fix: Pick the one place motion matters and keep everything else still.
-  sources: [impeccable, frontend-design]
+  sources: [impeccable, frontend-design, taste-skill]
 
 - id: NS-MOTION-SECTION-ENTRANCE
   title: The same entrance on every section
@@ -59,15 +59,15 @@
   detect: static
   rationale: Transform and opacity stay on the compositor. Width, height, top and left trigger layout. Blur, clip path and mask are acceptable when they stay smooth.
   fix: Animate transform and opacity, or measure the smoothness of the alternative.
-  sources: [impeccable, ui-ux-pro-max, top-design]
+  sources: [impeccable, ui-ux-pro-max, top-design, taste-skill]
 
 - id: NS-MOTION-SCROLLJACK
   title: Scroll hijacking
   stage: [compose]
   severity: error
-  modes: { experience: off }
+  modes: { experience: info }
   allowable: true
   detect: static
   rationale: Smooth scroll libraries change a basic browser behaviour. They are justified only on expressive brand pages and need a reduced motion fallback.
-  fix: Use native scrolling, or opt in through DESIGN.md for an Experience page.
-  sources: [top-design, ui-ux-pro-max]
+  fix: Use native scrolling, or opt in with an allow entry in DESIGN.md for an Experience page. In Experience mode the finding is informational until the opt in is recorded.
+  sources: [top-design, ui-ux-pro-max, taste-skill]

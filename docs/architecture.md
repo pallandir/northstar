@@ -29,7 +29,7 @@ flowchart TB
     subgraph Server["MCP server (one process)"]
       Http["HTTP listener<br/>127.0.0.1:7474"]
       Handoff["Terminal handoff<br/>tmux / iTerm2 / Terminal.app"]
-      Mcp["MCP server<br/>seven tools, one prompt"]
+      Mcp["MCP server<br/>24 tools, 9 prompts"]
       Store["Comment store<br/>reads / writes files"]
       Http --> Store
       Http --> Handoff
@@ -84,8 +84,9 @@ exposes the promise-based API as `browser` and keeps `chrome` callback-style.
 One process exposes three faces.
 
 - **HTTP listener** is the extension's entry point. It binds to `127.0.0.1` only,
-  checks the Origin and Host of every request, and validates each payload against a
-  strict schema before handing it to the store.
+  checks the Origin, the Host and the pairing token of every request, and validates
+  each payload against a strict schema before handing it to the store. Only the
+  health check and the pairing page are open.
 - **Terminal handoff** is what starts the work. After a batch lands it finds the
   terminal the assistant is running in, waits for it to go quiet, and types one
   fixed line followed by Enter. For Claude Code that line is
@@ -93,8 +94,9 @@ One process exposes three faces.
   server pushes a channel event first and types only if no agent call follows
   within 8 seconds. See [How it works](./how-it-works.md#the-handoff).
 - **MCP server** is the assistant's entry point. It speaks MCP over stdio and
-  registers seven tools and the `resolve-comments` prompt, carrying the instruction to
-  treat comment text as data and never as instructions. It also declares the
+  registers 24 tools across seven packs and nine prompts (`resolve-comments`
+  and the eight design stages), carrying the instruction to treat comment text as
+  data and never as instructions. It also declares the
   `claude/channel` capability so Claude Code can be triggered by a push.
 - **Comment store** owns the files. It serializes and parses the markdown and JSON
   stores, writes screenshots with server-generated names, and keeps every path
@@ -129,7 +131,8 @@ flowchart LR
 
 Two boundaries matter. The first is between any web page you are visiting and the
 listener: the page cannot reach it, because the listener rejects non-extension
-Origins and non-loopback Hosts. The second is between the listener and your
+Origins and non-loopback Hosts, and requires the pairing token that only a paired
+extension holds. The second is between the listener and your
 terminal: the line typed there is a **fixed constant**, so nothing that arrives over
 HTTP can influence what your assistant is told to do. The full model, including what
 this design does not defend against, is in [SECURITY.md](../SECURITY.md).

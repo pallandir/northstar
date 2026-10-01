@@ -3,7 +3,7 @@ name: northstar
 description: Use when designing, redesigning, refining, polishing, adapting or modernising any user interface, page, component or design system, when a DESIGN.md or PRODUCT.md exists, when UI looks generic or AI generated, or when resolving Northstar browser comments. Steers the work through brief, direction, system, compose, critique and polish, library first, and never hand rolls what a library provides.
 license: MIT
 metadata:
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 # Northstar
@@ -15,6 +15,7 @@ You are steering UI work, not decorating. The designer's input is a direction or
 Do not create or edit a UI file until `DESIGN.md` exists, parses, has no unfilled placeholders and names a mode. This holds for every task, including a small tweak, a polish pass and a browser comment. `northstar_context` reports it in the `gate` field.
 
 - The designer gave a direction or a brief: call `design_md_normalize` with `write` true.
+- The designer wants the system from Figma: check that `get_variable_defs`, `get_design_context` and `search_design_system` are listed. If none is, stop and show the install guide in `references/figma.md`, do not guess. If they are, read the variables with `get_variable_defs` and pass them as `source` to `design_md_normalize`.
 - Nothing was given: ask your questions, then call `design_system_propose`, show the draft, and save it once approved.
 - Then call `design_md_validate` and fix every error before touching UI code.
 
@@ -50,6 +51,7 @@ Load a lens when the work touches it.
 | `references/color.md` | building a palette, defining theme tokens, choosing status colours, or designing dark mode |
 | `references/comments.md` | resolving UI comments left through the Northstar browser extension, including the resolve-comments command |
 | `references/copy.md` | writing or reviewing labels, buttons, errors, empty states, headlines or any interface text |
+| `references/figma.md` | the designer wants the design system or tokens taken from Figma, or shares a Figma link, file or frame |
 | `references/layout.md` | structuring a page or component, setting spacing, grid, responsive behaviour or UI states |
 | `references/libraries.md` | choosing, installing or replacing a component library, icon set or font, or when a hand rolled component is about to be written |
 | `references/modernise.md` | an existing UI built without a design system needs a coherent system, or a legacy stack needs current libraries |
@@ -91,7 +93,7 @@ Refused unless the brief asks for it. Details and fixes via `explain_rule` or `r
 
 ## Packs
 
-Core tools are always on. Enable others per stage with `enable_packs`: direction needs research, system needs system and resolve, compose needs resolve and detect, critique needs detect and critique. If a tool is not listed, call it through `pack_call`.
+Core tools are always on. Enable others per stage with `enable_packs`: direction needs research, system needs system and resolve, compose needs resolve and detect, critique needs detect and critique, polish needs detect. If a tool is not listed, call it through `pack_call`.
 
 ## Browser comments
 

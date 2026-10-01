@@ -41,6 +41,20 @@ top-design (wondelai skills)
   expressive pages, and the motion and typography guidance. Changes: weights
   re-balanced per mode, guidance reworded.
 
+taste-skill
+  Copyright (c) Leon Lin and blueemi. Licensed under the MIT License.
+  https://github.com/Leonxlnx/taste-skill
+  Used as a source of ideas for the design read before code, the three taste
+  dials (design variance, motion intensity, visual density), the soft,
+  minimalist and brutalist direction archetypes, the redesign audit order and
+  fix priority, the pre flight checklist, dark mode parity, and the copy and
+  placeholder data tells. Changes: distilled and reworded, no upstream text is
+  redistributed. Its defaults were turned into guidance with per mode values,
+  its absolute bans (Inter, Lucide, a fixed variance default) were relaxed
+  where they conflict with the library first policy and the mode canon, and the
+  conflicts are resolved in canon/arbitration.yaml. Rule ids and detector code
+  are original.
+
 DESIGN.md format
   Copyright (c) Google. Licensed under the Apache License 2.0.
   https://github.com/google-labs-code/design.md

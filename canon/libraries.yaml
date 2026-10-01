@@ -101,5 +101,5 @@ needs:
 
 external:
   - { name: shadcn MCP, use: browse and add components from any registry, setup: "npx shadcn@latest mcp init" }
-  - { name: Figma remote MCP, use: "read frames, variables and screenshots from Figma", setup: "https://mcp.figma.com/mcp" }
+  - { name: Figma remote MCP, use: "read variables, frames and design context from Figma, then pass variables to design_md_normalize", setup: "claude mcp add --transport http figma https://mcp.figma.com/mcp (see references/figma.md for Codex, Cursor and VS Code)" }
   - { name: Iconify and Lucide MCPs, use: search icons with licence information, setup: community servers }

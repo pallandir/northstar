@@ -32,15 +32,21 @@ The mode in `DESIGN.md` changes how strict the rules are.
 | persuade | marketing, landing pages | one signature moment | 6rem |
 | experience | portfolios, brand sites | choreography, with a reduced motion path | 12rem |
 
+## Design read and taste dials
+
+Before code the agent states a one line design read: page kind, audience, vibe words and design family. In Direction it then asks one question about three taste dials from 1 to 10: design variance, motion intensity and visual density. The recommended default comes from the mode, for example 3, 2 and 7 for an app and 9, 8 and 3 for a brand showcase. Your answer is recorded as a sentence in the `DESIGN.md` prose, with no schema field, and the build and the critique are judged against it. The dials are guidance, they never lower the accessibility floor. Soft, minimalist and brutalist are offered as named direction archetypes when a brief describes a feel. This part of the canon is distilled from taste-skill, see [NOTICE](../NOTICE).
+
 ## Bringing your own direction
 
 Hand the agent any markdown: a brand brief, a Notion export, a few notes with hex values. The `design_md_normalize` tool drafts a `DESIGN.md` from it. It pulls out colours by role, fonts, radius, spacing, mode and libraries, keeps your original text verbatim in an `Imported direction` section, and reports what is missing. The agent then asks only about the gaps, at most three questions at a time, each with a default so that "go" is a valid answer.
+
+When the system lives in Figma, install the official Figma MCP server. The agent then reads the variables with `get_variable_defs` and passes them to `design_md_normalize`. Without that server it stops and shows the install commands instead of guessing.
 
 Starting from nothing, `design_system_propose` drafts a system for a product from the curated data: a palette for the product type, a font pairing for the mood, a style. It validates the draft, including contrast, and never writes a file until you have seen it.
 
 ## Library first
 
-The agent does not hand roll what a library already provides. The `resolve_library`, `resolve_font` and `resolve_icon` tools return the choice for your stack: shadcn/ui or the framework equivalent for dialogs and menus, Sonner for toasts, TanStack for tables, Lucide or Material Symbols for icons, Fontsource for fonts. The agent confirms the package exists before installing it. Hand rolling is allowed only with an explicit `northstar.allow` entry in `DESIGN.md`, or when you ask for it.
+The agent does not hand roll what a library already provides. The `resolve_library`, `resolve_font` and `resolve_icon` tools return the choice for your stack: shadcn/ui or the framework equivalent for dialogs and menus, Sonner for toasts, TanStack for tables, one icon set such as Lucide, Phosphor or Material Symbols for icons, Fontsource for fonts. The agent confirms the package exists before installing it. Hand rolling is allowed only with an explicit `northstar.allow` entry in `DESIGN.md`, or when you ask for it.
 
 ## When guidance conflicts
 

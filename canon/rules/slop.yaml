@@ -7,7 +7,7 @@
   detect: static
   rationale: Gradient filled headings are the most recognisable generated look. Emphasis should come from weight, size or position.
   fix: Use a solid colour from the palette and let scale or weight carry the emphasis.
-  sources: [impeccable, top-design, frontend-design]
+  sources: [impeccable, top-design, frontend-design, taste-skill]
 
 - id: NS-SLOP-SIDE-BORDER
   title: Thick coloured side border
@@ -38,7 +38,7 @@
   detect: static
   rationale: A small tracked label above every heading adds noise. The heading should carry its own weight, and a label earns its place only when it encodes real information such as a category.
   fix: Delete the label, or fold the information into the heading or a metadata line.
-  sources: [impeccable, frontend-design]
+  sources: [impeccable, frontend-design, taste-skill]
 
 - id: NS-SLOP-CAPS-LABELS
   title: Tracked all caps labels as a default
@@ -59,7 +59,7 @@
   detect: static
   rationale: Icons come from one icon library at one stroke and size. Emoji and Unicode glyphs vary by platform and read as unfinished.
   fix: Import the matching icon from the library chosen in DESIGN.md.
-  sources: [impeccable, ui-ux-pro-max, top-design]
+  sources: [impeccable, ui-ux-pro-max, top-design, taste-skill]
 
 - id: NS-SLOP-NESTED-CARD
   title: Card inside a card
@@ -79,7 +79,7 @@
   detect: dom
   rationale: Chopping content into equal rounded cards with the same shadow is the default page scaffold. Structure should follow the content, with varied scale and emphasis.
   fix: Vary the layout by importance, use a list, table or editorial split where the content is a list.
-  sources: [impeccable, frontend-design]
+  sources: [impeccable, frontend-design, taste-skill]
 
 - id: NS-SLOP-HERO-METRIC
   title: Big number with a small label as the hero
@@ -89,7 +89,7 @@
   detect: advisory
   rationale: A large figure, a tiny caption, supporting stats and an accent is the default hero treatment, not a decision.
   fix: Open with the most characteristic thing in the subject's world, such as the product itself, an image or a live demo.
-  sources: [impeccable, frontend-design]
+  sources: [impeccable, frontend-design, taste-skill]
 
 - id: NS-SLOP-NUMBERED-SECTIONS
   title: Decorative section numbers
@@ -99,7 +99,7 @@
   detect: static
   rationale: Markers like 01, 02, 03 are only information when the content is truly a sequence such as steps or a timeline.
   fix: Remove the numbers, or restructure the content as a real ordered list.
-  sources: [impeccable, frontend-design]
+  sources: [impeccable, frontend-design, taste-skill]
 
 - id: NS-SLOP-MONO-COSTUME
   title: Monospace as a costume
@@ -121,7 +121,7 @@
   detect: static
   rationale: Backdrop blur is justified over imagery or a map, or to separate a dismissed layer. Applied to ordinary cards it is decoration.
   fix: Use a solid or lightly tinted surface from the tokens.
-  sources: [impeccable, ui-ux-pro-max]
+  sources: [impeccable, ui-ux-pro-max, taste-skill]
 
 - id: NS-SLOP-TEMPLATE-CHROME
   title: Template chrome
@@ -131,7 +131,7 @@
   detect: static
   rationale: Middle dot metadata strings, spaced dash labels, arrows appended to every link and tracked monospace data labels appear regardless of subject.
   fix: Write plain labels and let the link or button style signal the action.
-  sources: [frontend-design]
+  sources: [frontend-design, taste-skill]
 
 - id: NS-SLOP-SINGLE-WORD-ACCENT
   title: One word accented in a headline
@@ -149,6 +149,6 @@
   severity: warn
   allowable: true
   detect: static
-  rationale: Cream with a serif and a terracotta accent, near black with one acid accent, and purple or indigo to cyan gradients cluster across generated work whatever the subject. They are fine when the brief asks for them.
+  rationale: Cream with a serif and a terracotta accent, near black with one acid accent, and purple or indigo to blue or cyan gradients, with glowing purple buttons, cluster across generated work whatever the subject. They are fine when the brief asks for them.
   fix: Derive the palette from the subject and record the choice in DESIGN.md. Name each colour by role.
-  sources: [frontend-design, impeccable, top-design]
+  sources: [frontend-design, impeccable, top-design, taste-skill]

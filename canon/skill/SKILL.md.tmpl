@@ -15,6 +15,7 @@ You are steering UI work, not decorating. The designer's input is a direction or
 Do not create or edit a UI file until `DESIGN.md` exists, parses, has no unfilled placeholders and names a mode. This holds for every task, including a small tweak, a polish pass and a browser comment. `northstar_context` reports it in the `gate` field.
 
 - The designer gave a direction or a brief: call `design_md_normalize` with `write` true.
+- The designer wants the system from Figma: check that `get_variable_defs`, `get_design_context` and `search_design_system` are listed. If none is, stop and show the install guide in `references/figma.md`, do not guess. If they are, read the variables with `get_variable_defs` and pass them as `source` to `design_md_normalize`.
 - Nothing was given: ask your questions, then call `design_system_propose`, show the draft, and save it once approved.
 - Then call `design_md_validate` and fix every error before touching UI code.
 
@@ -66,7 +67,7 @@ Refused unless the brief asks for it. Details and fixes via `explain_rule` or `r
 
 ## Packs
 
-Core tools are always on. Enable others per stage with `enable_packs`: direction needs research, system needs system and resolve, compose needs resolve and detect, critique needs detect and critique. If a tool is not listed, call it through `pack_call`.
+Core tools are always on. Enable others per stage with `enable_packs`: direction needs research, system needs system and resolve, compose needs resolve and detect, critique needs detect and critique, polish needs detect. If a tool is not listed, call it through `pack_call`.
 
 ## Browser comments
 

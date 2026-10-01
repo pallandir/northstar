@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "northstar": {
+      "command": "npx",
+      "args": ["-y", "@pallandir/northstar@2.3.0"]
+    }
+  }
+}

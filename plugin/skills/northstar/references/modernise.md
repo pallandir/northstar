@@ -5,6 +5,22 @@ Load when: an existing UI built without a design system needs a coherent system,
 
 Derive a brief and a design system from the code that exists, then upgrade in safe increments while behaviour stays the same. Modernise is a Brief derived from code, then Direction, then System, followed by incremental Compose. Enable the research, system, resolve and detect packs as the stages require.
 
+## Redesign audit
+
+When the goal is to lift a generic looking UI, work in three passes: scan the stack and styling method, diagnose against the tells below, then fix inside the existing stack without swapping frameworks.
+
+| Area | Tells to look for |
+|---|---|
+| Type | Training data default faces, weak hierarchy, lines too long |
+| Colour | Pure black, oversaturated accents, a purple to blue gradient, greys that drift between warm and cool |
+| Layout | Everything centred, equal card rows, no breathing room |
+| Components | Same bordered card everywhere, pill badges, a modal for every task, one icon set used by default |
+| Content | Cliche copy, placeholder names, round fake statistics |
+| States | No hover or focus, instant changes, no loading, empty or error screens |
+| Code | Div soup, hard coded pixel values, inline styles, dead code |
+
+Fix in this priority and one concern per change: fonts, colour palette, interactive states, layout and spacing, component patterns, loading and empty and error states, then typography detail. The order of safe increments below still decides how risky changes are shipped.
+
 ## Order of work
 
 | Step | Action | Output |

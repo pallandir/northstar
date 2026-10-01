@@ -8,6 +8,7 @@ Every rule in `canon/rules` lists the works it draws on in its `sources` field, 
 | `frontend-design` | frontend-design in Anthropic skills | Apache-2.0 |
 | `ui-ux-pro-max` | ui-ux-pro-max by Next Level Builder | MIT |
 | `top-design` | top-design in wondelai skills | MIT |
+| `taste-skill` | taste-skill by Leon Lin and blueemi | MIT |
 | `shadcn-lint` | the shadcn lint rules for agent first Tailwind projects | MIT |
 | `northstar` | original to this project | MIT |
 

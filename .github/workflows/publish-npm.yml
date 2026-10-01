@@ -21,10 +21,15 @@ jobs:
           cache: npm
       - run: npm install -g npm@latest # trusted publishing needs npm >= 11.5.1
       - run: npm ci
-      - name: Set version from tag
+      - name: Check versions match the tag
         if: startsWith(github.ref, 'refs/tags/v')
-        env:
-          TAG: ${{ github.ref_name }}
-        run: npm version "${TAG#v}" --no-git-tag-version --allow-same-version --workspace @pallandir/northstar
-      - run: npm run build --workspace @pallandir/northstar
+        run: node scripts/check-versions.mjs --tag "${{ github.ref_name }}"
+      - name: Check versions agree
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: node scripts/check-versions.mjs
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test
+      - run: npm run gen:check
+      - run: npm run check:pack
       - run: npm publish --workspace @pallandir/northstar

@@ -66,8 +66,9 @@ project, and the assistant resolves the comment with the same design discipline.
 assistant sits idle until then: no watch mode, no polling, no tokens spent while you
 work.
 
-There is nothing to pair and no command to paste. Nothing is sent to a remote
-backend either: every comment travels over loopback between the browser and a
+Connecting the browser takes one click: **Connect** in the toolbar, then **Allow**
+on a page served by your own local server. There is no code to copy. Nothing is sent
+to a remote backend: every comment travels over loopback between the browser and a
 server running on your own machine.
 
 ### Why "Northstar"?
@@ -92,15 +93,16 @@ normally would, or hand it a direction file.
 | You get | How |
 |---|---|
 | A method the agent follows | brief, direction, system, compose, critique, polish, in four modes |
-| One canon of 53 rules | distilled from impeccable, ui-ux-pro-max, frontend-design and top-design, with every conflict resolved |
-| Library first | `resolve_library`, `resolve_font` and `resolve_icon` pick shadcn, Lucide, Fontsource and friends for your stack |
+| One canon of 57 rules | distilled from impeccable, ui-ux-pro-max, frontend-design, top-design and taste-skill, with every conflict resolved |
+| Library first | `resolve_library`, `resolve_font` and `resolve_icon` pick shadcn, an icon set, Fontsource and friends for your stack |
 | Your direction, validated | `design_md_normalize` turns any markdown into a `DESIGN.md`, with contrast checks and Tailwind, CSS or DTCG export |
 | An anti slop scanner | `northstar detect`, the `slop_scan` tool and an edit hook flag gradient text, emoji icons, hand rolled dialogs and more |
 | Low context cost | one small skill, references loaded one at a time, and tool packs enabled per stage |
 
-Read [the method](./docs/method.md), [the detector](./docs/detector.md) and
-[setting up your agent](./docs/agents.md). The [rule index](./docs/canon.md) lists
-every rule.
+It also reads a Figma design system when the official Figma MCP server is installed,
+and shows the install guide when it is not. Read [the method](./docs/method.md),
+[the detector](./docs/detector.md) and [setting up your agent](./docs/agents.md).
+The [rule index](./docs/canon.md) lists every rule.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -118,7 +120,7 @@ every rule.
 
 ## Getting started
 
-### Step 1 · Set up your agent
+### Step 1. Set up your agent
 
 The package is published on npm as
 [`@pallandir/northstar`](https://www.npmjs.com/package/@pallandir/northstar) and
@@ -158,7 +160,7 @@ on it.
 
 ---
 
-### Step 2 · Install the browser extension
+### Step 2. Install the browser extension
 
 Install Northstar and pin it to your toolbar. Clicking the toolbar icon toggles
 the overlay on and off for the current tab.
@@ -178,12 +180,16 @@ access to `localhost`. Grant it, or the extension cannot reach the server.
 
 ---
 
-### Step 3 · Start commenting
+### Step 3. Connect and start commenting
 
 Open your frontend on a `localhost` dev server, with your assistant running in
 the same repo **from a terminal**, and click the Northstar toolbar icon to turn the
-overlay on. Click the icon again to turn it off. Mark up the page, then click
-**Send to AI**.
+overlay on. The first time, the toolbar shows **Connect**. Click it, then click
+**Allow** on the page that opens, and the tab closes by itself. Click the icon again
+to turn the overlay off. Mark up the page, then click **Send to AI**.
+
+Upgrading from an older version needs the same one time Connect, because the server
+now checks a token that it creates at `~/.northstar/token`.
 
 That is the whole setup. You do not start a watch loop or a polling command. By
 default Northstar finds the terminal your assistant runs in, waits for it to be
@@ -287,7 +293,7 @@ For a deeper look at the architecture and the message flows, see the
 Day to day, Northstar runs in one of two modes depending on where your frontend
 lives.
 
-### Online · localhost dev server
+### Online: localhost dev server
 
 Your assistant runs in the repo and comments flow to it live over loopback.
 
@@ -307,7 +313,7 @@ Your assistant runs in the repo and comments flow to it live over loopback.
 Keep your assistant in auto (accept-edits) mode so each batch is applied without a
 prompt on every edit.
 
-### Offline · remote preview or no local project
+### Offline: remote preview or no local project
 
 There is no local server to reach, so you export the batch and hand it to any
 assistant.
@@ -371,8 +377,9 @@ Set `NORTHSTAR_TERMINAL` to force a driver (`tmux`, `iterm`, `terminal-app`, or
 
 ### MCP tools
 
-The server exposes 7 tools that any MCP client can call directly, plus the
-`resolve-comments` prompt:
+The server exposes 24 tools in seven packs and 9 prompts. The comment tools are
+always on and are the ones the extension flow uses. The prompts are
+`resolve-comments` and the eight design stages. The comment tools:
 
 | Tool | Purpose |
 |---|---|
@@ -415,7 +422,8 @@ Enter yourself and open an issue with your terminal and assistant versions.
 
 The server listens on loopback only, so the page you are commenting on must be a
 `localhost` or `127.0.0.1` dev server, and your MCP client must be running in the
-project (starting the client launches the server). On a remote preview there is
+project (starting the client launches the server). If the toolbar shows
+**Connect**, click it once to pair the browser with the server. On a remote preview there is
 no local project to edit, so Northstar keeps comments in the browser and you export
 them with **Handoff** instead.
 </details>
@@ -432,9 +440,9 @@ the same range, so a busy port usually just works. To pin a specific port, set
 <summary><strong>Can two projects run Northstar at once?</strong></summary>
 
 Each project's assistant starts its own server, and they take 7474, 7475 and 7476 in
-turn. The extension talks to the most recently started one, so switching projects
-works but commenting on two at the same time does not. Set a different
-`NORTHSTAR_PORT` per project if you need them pinned.
+turn. When more than one answers, the toolbar shows each project folder and lets you
+choose, and it remembers the choice per site. Set a different `NORTHSTAR_PORT` per
+project if you need them pinned.
 </details>
 
 <details>
@@ -471,6 +479,8 @@ Full details are in [SECURITY.md](./SECURITY.md).
 Everything stays on your machine. The MCP server binds to `127.0.0.1` only and
 rejects any request whose `Host` header is not loopback (anti-DNS rebinding) or
 whose `Origin` is not a browser extension origin (blocking CSRF from web pages).
+Every route except the health check and the pairing page also needs the pairing
+token that you grant with one click on **Connect**.
 The extension's only network access is that loopback listener; it has no standing
 access to any page. `activeTab` grants access to one tab for as long as it stays
 on the current URL, and that access is revoked on navigation.

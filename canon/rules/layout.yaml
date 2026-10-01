@@ -16,7 +16,7 @@
   detect: dom
   rationale: The layout must hold from a narrow phone to a wide desktop without horizontal scrolling or clipped content, using real copy.
   fix: Use fluid widths, wrap rules and container queries, and test the real content at each breakpoint.
-  sources: [impeccable, frontend-design, ui-ux-pro-max]
+  sources: [impeccable, frontend-design, ui-ux-pro-max, taste-skill]
 
 - id: NS-LAYOUT-STATES
   title: Every state is designed
@@ -27,7 +27,7 @@
   detect: advisory
   rationale: Hover, focus, active, disabled, loading, empty and error states are part of the design, not afterthoughts.
   fix: Specify each state in the component entry of DESIGN.md and implement all of them.
-  sources: [impeccable, ui-ux-pro-max, frontend-design]
+  sources: [impeccable, ui-ux-pro-max, frontend-design, taste-skill]
 
 - id: NS-LAYOUT-MODAL-OVERUSE
   title: Modal for a task that needs no interruption
@@ -48,7 +48,7 @@
   detect: advisory
   rationale: Centring every block removes a reading edge. Choose an alignment per region on purpose.
   fix: Left align body content and reserve centring for short, single focus areas.
-  sources: [top-design, frontend-design]
+  sources: [top-design, frontend-design, taste-skill]
 
 - id: NS-LAYOUT-FIRST-VIEW
   title: The first view shows the subject
@@ -60,3 +60,28 @@
   rationale: The first view of a persuasive page should show the most characteristic thing in the subject's world in the form that suits it.
   fix: Lead with the product, a real image, a live demo or a statement only this brand could make.
   sources: [frontend-design, top-design]
+
+- id: NS-LAYOUT-VIEWPORT-HEIGHT
+  title: Dynamic viewport height for full height sections
+  stage: [compose, polish]
+  severity: warn
+  allowable: true
+  detect: advisory
+  rationale: A 100vh section is taller than the visible area on mobile browsers whose address bar collapses, so content jumps or hides under the browser chrome.
+  fix: Use min-height with 100dvh, or svh when the height must stay fixed, and keep a vh fallback only for old browsers.
+  sources: [taste-skill, ui-ux-pro-max]
+
+- id: NS-LAYOUT-TASTE-DIALS
+  title: Design variance, motion intensity and visual density are chosen
+  stage: [direction, critique]
+  severity: info
+  allowable: true
+  detect: advisory
+  params:
+    operate: 3/2/7
+    read: 4/2/4
+    persuade: 7/5/4
+    experience: 9/8/3
+  rationale: Layout symmetry, motion amount and spacing density drive most of how a page feels. Choosing the three on a 1 to 10 scale, as variance, motion, density, keeps the build and the critique consistent instead of drifting per section.
+  fix: Ask one question with the mode default recommended, record the answer as prose in DESIGN.md, and judge the build against it.
+  sources: [taste-skill, northstar]

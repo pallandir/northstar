@@ -6,7 +6,7 @@
       "command": [
         "npx",
         "-y",
-        "@pallandir/northstar"
+        "@pallandir/northstar@2.3.0"
       ],
       "enabled": true,
       "environment": {

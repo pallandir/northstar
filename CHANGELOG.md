@@ -4,6 +4,74 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.3.0] - 2026-10-01
+
+A production hardening release. It fixes Save, pins that leaked between pages and pins
+that vanished on reload, makes every failure visible, and pairs the browser with the
+server through a token.
+
+### Breaking
+
+- **The browser pairs with the server through a token.** The server creates a random
+  secret at `~/.northstar/token` on first start. The toolbar shows **Connect** when it
+  has no token or the server answers 401. One click opens a page served by your own
+  server, **Allow** hands the token to the extension, and the tab closes. Every route
+  except the health check and the pairing page now needs it. Every existing user
+  connects once after upgrading.
+- **Removed extension id pinning.** The `NORTHSTAR_EXTRA_ORIGINS` environment variable
+  and the `--extension-id` option of `northstar install` are gone. Any
+  `chrome-extension://` or `moz-extension://` origin is accepted once it has the
+  token, so locally built extensions need no configuration.
+- **Protocol 3.** `/health` reports `protocol: 3`, and the extension and the server
+  refuse each other on a mismatch with a message naming the older side. Every comment
+  must carry a `cid`, and `GET /comments` requires a `page` key. The legacy
+  acceptance paths are removed.
+
+### Fixed
+
+- **Save now stores the comment.** The page probe could throw while answering
+  synchronously, which left the save waiting forever. The probe is fixed and the save
+  result is checked, so the toolbar says Saved or shows the error.
+- **Pins stay on the page they belong to.** They are cleared when the URL changes and
+  matched by a page key, so pins from one route no longer snap onto another in a
+  single page app.
+- **Pins survive a reload.** A tab that was on stays on after a reload. Loopback pages
+  are restored without a click, and remote pages show that a click restores them.
+- Send, the queued count and Delete all are scoped to the tab's own site.
+
+### Changed
+
+- **Failures are loud.** Fallbacks and swallowed errors were removed across the server,
+  the detector, the installer and the extension. A rejected comment stays queued with
+  its reason, a corrupt store stops with an error that names the file, a failing hook
+  exits non zero with a message, and when every port is busy the server says so.
+  Every HTTP error is JSON with an `error` sentence and a `fix` sentence.
+- **Strict validation.** A bad field rejects the comment with a reason naming the
+  field, with no stripping and no nulling.
+- **The design canon gained taste-skill.** A one line design read before code, three
+  taste dials for design variance, motion intensity and visual density, asked as one
+  question and recorded in the `DESIGN.md` prose, soft, minimalist and brutalist
+  direction archetypes, a redesign audit order, a pre flight checklist and dark mode
+  parity. New rules cover dynamic viewport height, placeholder names and fake round
+  statistics, and dark mode parity, and the cliche copy list grew. Scroll hijacking is
+  informational in Experience mode so the opt in can be enforced. The canon has 57
+  rules and 10 resolved conflicts, with attribution in `NOTICE`.
+- **A Figma guide.** When the designer wants the system from Figma and the official
+  Figma MCP tools are not installed, the agent stops and shows the install commands for
+  Claude Code, Codex, Cursor and VS Code. With them, it reads the variables and passes
+  them to `design_md_normalize`.
+- The tool count in the docs is now 24 tools and 9 prompts, `docs/agents.md` exists,
+  and the security, releasing, contributing and store texts describe the current model.
+
+### Tooling
+
+- `scripts/check-versions.mjs` fails when versions differ across the repo. CI and the
+  npm publish workflow run it, and publishing also runs the typecheck, tests,
+  `gen:check` and `check:pack` first.
+- CI tests on Node 20 and 22 and builds the Chromium extension.
+- Root `npm run dev` runs every watcher in parallel.
+- Commit scopes now include `packages`, `protocol`, `integrations` and `scripts`.
+
 ## [2.2.0] - 2026-10-01
 
 Northstar is now a UI design advisory framework for AI agents, with the browser

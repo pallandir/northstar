@@ -22,6 +22,7 @@ conflicts:
       top-design: Never Inter, Roboto or Arial as the primary face, and recommends Space Grotesk, Instrument Serif and Fraunces.
       impeccable: Lists Space Grotesk, Instrument Serif, Fraunces and Inter display as training data defaults to avoid.
       ui-ux-pro-max: Recommends Inter in many pairings.
+      taste-skill: Discourages Inter as the default sans and bans Fraunces and Instrument Serif as default serifs, with an override when the brief asks for neutral or Linear style.
     resolution: No absolute ban list. A training data default as the display face is a warning unless the brief chose it. Inter is fine as quiet body text in Operate. The font resolver picks from the subject and mood.
     rules: [NS-TYPE-DEFAULT-DISPLAY, NS-LIB-FONT]
 
@@ -82,5 +83,22 @@ conflicts:
     positions:
       impeccable: Allows authored SVG icons.
       ui-ux-pro-max: Suggests icon sets and component stacks.
+      taste-skill: Bans hand drawn icons and wants official design system packages installed rather than imitated.
     resolution: Library first. Hand rolled icons, overlays, fonts and primitives are flagged unless the brief or an allow entry says otherwise.
     rules: [NS-LIB-ICON, NS-LIB-OVERLAY, NS-LIB-FONT, NS-LIB-PRIMITIVE]
+
+  - id: icon-set
+    topic: Which icon library
+    positions:
+      taste-skill: Prefers Phosphor, Hugeicons, Radix or Tabler icons and discourages Lucide unless asked for or already installed.
+      ui-ux-pro-max: Suggests Lucide among several icon sets.
+    resolution: The library first policy decides. The icon set already in the project or named in DESIGN.md wins, otherwise resolve_icon picks one by subject and mood, and Lucide stays the stack default for shadcn projects. Phosphor and Tabler are equal alternatives. What is enforced is one library at one stroke and size.
+    rules: [NS-LIB-ICON, NS-SLOP-EMOJI-ICON]
+
+  - id: taste-dials
+    topic: Default design variance and the mode
+    positions:
+      taste-skill: Defaults to a design variance of 8 for landing pages and avoids centred layouts above 4.
+      impeccable: Asks for restraint and a clear structure that follows the content.
+    resolution: The dials are guidance and start from the mode, never from a fixed default. Operate starts at a low variance and a high density, Read and Persuade sit in the middle, and only Experience starts high. The designer's answer, recorded in DESIGN.md prose, overrides the mode default, and the accessibility floor still applies at every setting.
+    rules: [NS-LAYOUT-TASTE-DIALS, NS-LAYOUT-CENTER-EVERYTHING, NS-LAYOUT-SPACING-RHYTHM]

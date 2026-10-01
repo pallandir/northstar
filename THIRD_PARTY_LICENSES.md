@@ -32,6 +32,7 @@ attribution and the statement of changes.
 | frontend-design (Anthropic skills) | Apache-2.0 | https://github.com/anthropics/skills |
 | ui-ux-pro-max 2.5.0 | MIT | https://github.com/nextlevelbuilder/ui-ux-pro-max-skill |
 | top-design (wondelai skills) | MIT | https://github.com/wondelai/skills |
+| taste-skill (Leon Lin and blueemi) | MIT | https://github.com/Leonxlnx/taste-skill |
 | DESIGN.md format | Apache-2.0 | https://github.com/google-labs-code/design.md |
 
 The curated data in `packages/data/json` is derived from the ui-ux-pro-max CSV

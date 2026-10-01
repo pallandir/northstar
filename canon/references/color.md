@@ -7,7 +7,7 @@ Load when: building a palette, defining theme tokens, choosing status colours, o
 - Neutrals are tinted toward the brand hue, not pure grey, black or white (NS-COLOR-PURE-BLACK).
 - Colour is referenced by token, never by literal value in components (NS-COLOR-RAW-VALUES).
 - Contrast is a floor, not taste: pairs are verified once as tokens, then reused (NS-A11Y-CONTRAST).
-- Dark mode is its own design with its own tokens, not an inversion of light.
+- Dark mode is its own design with its own tokens, not an inversion of light, and it keeps the hierarchy of light (NS-COLOR-DARK-PARITY).
 - Meaning is never carried by colour alone. Pair status colour with an icon or text.
 - Choose the default theme from the use scene (NS-COLOR-THEME-CHOICE). Support both when the audience varies.
 
@@ -24,6 +24,8 @@ Load when: building a palette, defining theme tokens, choosing status colours, o
 - Status colours: success, warning, danger, info as tokens with a foreground pair each.
 - Keep chroma consistent so no status shouts.
 - Add an icon and a label.
+- Dark mode parity: define semantic tokens with one value per theme, pick one strategy (class or attribute variants, or CSS variables under `prefers-color-scheme`), set the theme once at the root, and never let a section flip theme on its own.
+- If the call to action stands out in light it must stand out in dark, and the brand colour stays recognisable instead of being washed out.
 - Dark mode: surfaces lighter as they elevate (for example L 0.16, 0.2, 0.24), desaturate the accent a little, raise text from pure white to about L 0.93, test contrast again, and re-tune shadows to borders.
 - Library first: use shadcn theme tokens (CSS variables) for components, and Tailwind or CSS custom properties for semantic utilities.
 - Do not recreate component colours by hand.
@@ -59,4 +61,5 @@ Load when: building a palette, defining theme tokens, choosing status colours, o
 - No grey text on coloured fills (NS-COLOR-GRAY-ON-COLOR).
 - No gradient text or side borders.
 - Status is understandable in greyscale and with a colour blindness filter.
-- Palette is not a listed default look (NS-LOOK-DEFAULT-PALETTE).
+- Palette is not a listed default look, including the purple to blue gradient and glowing purple buttons (NS-LOOK-DEFAULT-PALETTE).
+- Both themes were opened and keep the same hierarchy (NS-COLOR-DARK-PARITY).

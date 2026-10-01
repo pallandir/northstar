@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { test } from "node:test";
 import { loadCanon, severityFor, validateCanon } from "../src/index.js";
 
@@ -8,7 +10,7 @@ test("the canon validates without problems", () => {
   assert.deepEqual(validateCanon(canon), []);
 });
 
-test("every accessibility rule is non allowable and an error", () => {
+test("every accessibility rule is not allowable", () => {
   const a11y = canon.rules.filter((rule) => rule.id.startsWith("NS-A11Y-"));
   assert.ok(a11y.length >= 5);
   for (const rule of a11y) assert.equal(rule.allowable, false, rule.id);
@@ -37,4 +39,65 @@ test("shipped text never uses dashes as separators", () => {
     ...canon.arbitration.conflicts.flatMap((c) => [c.topic, c.resolution]),
   ];
   for (const text of sources) assert.doesNotMatch(text, /[–—]| - /);
+});
+
+const canonText = [
+  canon.framework,
+  readFileSync(join(canon.root, "skill", "SKILL.md.tmpl"), "utf8"),
+  ...canon.references.map((r) => r.body),
+];
+
+test("every rule id named in the framework, skill and references exists", () => {
+  const ids = new Set(canon.rules.map((rule) => rule.id));
+  for (const text of canonText) {
+    const named = text.replace(/NS-[A-Z0-9]+-\*/g, "").match(/NS-[A-Z0-9]+(?:-[A-Z0-9]+)+/g) ?? [];
+    for (const id of named) assert.ok(ids.has(id), `unknown rule ${id}`);
+  }
+});
+
+const externalTools = new Set(["get_variable_defs", "get_design_context", "search_design_system"]);
+
+function registeredTools(): Set<string> {
+  const src = join(canon.root, "..", "mcp", "src");
+  const packs = join(src, "packs");
+  const files = [
+    join(src, "server.ts"),
+    ...readdirSync(packs)
+      .filter((name) => name.endsWith(".ts"))
+      .map((name) => join(packs, name)),
+  ];
+  const names = new Set<string>();
+  for (const file of files) {
+    for (const match of readFileSync(file, "utf8").matchAll(
+      /\.register\(\s*"[a-z]+",\s*"([a-z_]+)"/g,
+    )) {
+      if (match[1]) names.add(match[1]);
+    }
+  }
+  return names;
+}
+
+test("every tool named in the canon text is registered by the server", () => {
+  const registered = registeredTools();
+  assert.ok(registered.size >= 20);
+  for (const text of canonText) {
+    for (const match of text.matchAll(/`([a-z]+(?:_[a-z]+)+)`/g)) {
+      const name = match[1] ?? "";
+      if (externalTools.has(name)) continue;
+      assert.ok(registered.has(name), `unknown tool ${name}`);
+    }
+  }
+});
+
+test("the Figma guide names the official install commands", () => {
+  const figma = canon.references.find((r) => r.topic === "figma");
+  assert.ok(figma);
+  for (const needle of [
+    "claude plugin install figma@claude-plugins-official",
+    "codex mcp add figma",
+    "/add-plugin figma",
+    "https://mcp.figma.com/mcp",
+  ]) {
+    assert.ok(figma.body.includes(needle), needle);
+  }
 });

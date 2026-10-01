@@ -2,7 +2,7 @@
 
 Generated from `canon/rules`. Do not edit by hand.
 
-53 rules. Severity is the default, modes can raise or lower it.
+57 rules. Severity is the default, modes can raise or lower it.
 
 ## Accessibility floor
 
@@ -23,6 +23,7 @@ Generated from `canon/rules`. Do not edit by hand.
 | `NS-COLOR-PALETTE-SIZE` | A small named palette with one accent | warn | yes | advisory |
 | `NS-COLOR-RAW-VALUES` | Raw colour values instead of tokens | warn | yes | static |
 | `NS-COLOR-THEME-CHOICE` | Light or dark chosen from the use scene | info | yes | advisory |
+| `NS-COLOR-DARK-PARITY` | Light and dark themes keep the same hierarchy | warn | yes | advisory |
 
 ## Copy
 
@@ -32,6 +33,7 @@ Generated from `canon/rules`. Do not edit by hand.
 | `NS-COPY-ERROR` | Errors that do not name the problem and the recovery | warn | yes | advisory |
 | `NS-COPY-FILLER` | Generic marketing filler and placeholder text | warn | yes | static |
 | `NS-COPY-EMPTY-STATE` | Empty screens without direction | warn | yes | advisory |
+| `NS-COPY-PLACEHOLDER-DATA` | Placeholder names and fake round statistics | warn | yes | advisory |
 
 ## Layout
 
@@ -43,6 +45,8 @@ Generated from `canon/rules`. Do not edit by hand.
 | `NS-LAYOUT-MODAL-OVERUSE` | Modal for a task that needs no interruption | info | yes | advisory |
 | `NS-LAYOUT-CENTER-EVERYTHING` | Everything centred | info | yes | advisory |
 | `NS-LAYOUT-FIRST-VIEW` | The first view shows the subject | info | yes | advisory |
+| `NS-LAYOUT-VIEWPORT-HEIGHT` | Dynamic viewport height for full height sections | warn | yes | advisory |
+| `NS-LAYOUT-TASTE-DIALS` | Design variance, motion intensity and visual density are chosen | info | yes | advisory |
 
 ## Library first
 
@@ -161,3 +165,15 @@ Rules: `NS-TYPE-DISPLAY-MAX`, `NS-TYPE-SCALE`
 Library first. Hand rolled icons, overlays, fonts and primitives are flagged unless the brief or an allow entry says otherwise.
 
 Rules: `NS-LIB-ICON`, `NS-LIB-OVERLAY`, `NS-LIB-FONT`, `NS-LIB-PRIMITIVE`
+
+### Which icon library
+
+The library first policy decides. The icon set already in the project or named in DESIGN.md wins, otherwise resolve_icon picks one by subject and mood, and Lucide stays the stack default for shadcn projects. Phosphor and Tabler are equal alternatives. What is enforced is one library at one stroke and size.
+
+Rules: `NS-LIB-ICON`, `NS-SLOP-EMOJI-ICON`
+
+### Default design variance and the mode
+
+The dials are guidance and start from the mode, never from a fixed default. Operate starts at a low variance and a high density, Read and Persuade sit in the middle, and only Experience starts high. The designer's answer, recorded in DESIGN.md prose, overrides the mode default, and the accessibility floor still applies at every setting.
+
+Rules: `NS-LAYOUT-TASTE-DIALS`, `NS-LAYOUT-CENTER-EVERYTHING`, `NS-LAYOUT-SPACING-RHYTHM`

@@ -27,10 +27,10 @@
   allowable: true
   detect: static
   params:
-    phrases: [Lorem ipsum, Unlock the power, Seamless, Supercharge, Elevate your, Revolutionize, Next generation, All in one platform]
+    phrases: [Lorem ipsum, Unlock the power, Seamless, Supercharge, Elevate your, Revolutionize, Next generation, All in one platform, Unleash, Cutting edge, Game changing]
   rationale: Copy makes a design feel templated as much as the visuals do. Write what the product is and does in plain, specific words.
   fix: Replace with real content from PRODUCT.md, or ask for it.
-  sources: [frontend-design, impeccable]
+  sources: [frontend-design, impeccable, taste-skill]
 
 - id: NS-COPY-EMPTY-STATE
   title: Empty screens without direction
@@ -40,4 +40,14 @@
   detect: advisory
   rationale: An empty state is an invitation to act and should say what belongs here and how to add it.
   fix: Add a short explanation and a primary action.
-  sources: [frontend-design, impeccable]
+  sources: [frontend-design, impeccable, taste-skill]
+
+- id: NS-COPY-PLACEHOLDER-DATA
+  title: Placeholder names and fake round statistics
+  stage: [compose, polish]
+  severity: warn
+  allowable: true
+  detect: advisory
+  rationale: John Doe, Acme, a person icon as an avatar and perfect figures such as 99.99% or 50% mark a page as generated. Real or realistically messy data makes a design believable and exposes layout problems that tidy samples hide.
+  fix: Use real data from PRODUCT.md or realistic, locale appropriate names and uneven figures, and label anything invented as sample data.
+  sources: [taste-skill]

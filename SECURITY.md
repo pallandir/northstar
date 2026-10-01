@@ -14,9 +14,11 @@ by your own AI coding assistant.
   leaves your machine, and there is no remote backend.
 - **No standing access to any page.** The extension declares no content scripts
   and no web-page host permissions, so it runs on no site by default. The overlay
-  is injected only into the single tab you activate, only after you click the
-  toolbar button, under the `activeTab` grant, and that access is dropped as soon
-  as the tab navigates. Visiting a page never gives the extension a foothold.
+  is injected only into a tab you activate by clicking the toolbar button, under
+  the `activeTab` grant. After a reload of a tab you activated, loopback pages are
+  restored automatically because they hold the opt in localhost permission, while a
+  remote page waits for you to click again. Visiting a page never gives the
+  extension a foothold.
 - **The main-world probe reads only.** Resolving a component and a route requires
   reading state a page's own framework attaches to its DOM nodes, which an
   isolated-world content script cannot see. Northstar injects a second script
@@ -29,9 +31,10 @@ by your own AI coding assistant.
   are `localhost`, `127.0.0.1`, and `*.localhost`, used solely by the background
   context to reach the ingest listener. It cannot make a network request to any
   other origin. On Firefox these are opt-in and are requested from the popup.
-- **The ingest listener only accepts the extension.** The localhost HTTP server
-  rejects any request whose `Origin` is a web page (`http(s)://…`) and any
-  request whose `Host` header is not loopback. This closes two attack paths a
+- **The ingest listener only accepts the paired extension.** The localhost HTTP
+  server rejects any request whose `Origin` is a web page (`http(s)://…`), any
+  request whose `Host` header is not loopback, and any request without the pairing
+  token. This closes two attack paths a
   malicious web page you happen to be visiting could otherwise use:
   - **CSRF / store poisoning:** injecting comments into your store (which your AI
     assistant later reads and may act on) or deleting your comments.
@@ -63,23 +66,27 @@ by your own AI coding assistant.
 
 ## What this does not defend against
 
-Northstar v2 removed the session token, so the ingest listener now accepts any
-request that reaches it from a browser-extension origin on loopback. **Any process
-already running as you on this machine can therefore post comments into your
-store.** That is a deliberate trade, made to remove the pairing step, and it is
-bounded rather than unbounded:
+Northstar pairs the browser with the server through a token, and that token
+protects the store from other software on the machine only to a limited degree:
 
-- Such a process could already read and write `.northstar/` directly, so the store
-  itself is not a new target.
-- The escalation that would matter, making your assistant follow attacker-written
-  instructions, is closed by the fixed typed line above and by the rule that
-  comment text is data. The worst outcome is a spurious "read your comments"
-  nudge, plus whatever the assistant decides to do with comments you can see and
-  delete in the toolbar.
+- The server creates a random 32 byte secret at `~/.northstar/token` with mode
+  0600 the first time it starts. Every route except the health check and the pairing
+  page rejects a request without it, using a constant time comparison.
+- The extension gets the token with one click. **Connect** opens a page served by the
+  local server that names the project, you press **Allow**, and the page hands the
+  token to the extension. A single use nonce, valid for five minutes, guards that
+  handoff, so a web page cannot ask for the token on its own.
+- The server accepts only extension origins. It does not pin one extension id,
+  so a locally built or Firefox extension works after the same pairing click.
+- **Any process running as you can still read `~/.northstar/token`.** Such a process
+  could already read and write `.northstar/` directly, so the store is not a new
+  target. The escalation that would matter, making your assistant follow
+  attacker written instructions, is closed by the fixed typed line above and by the
+  rule that comment text is data.
 
-If you do not want that trade on a shared or untrusted machine, set
-`NORTHSTAR_INJECT=0` to disable the typing entirely, or do not run the extension
-there.
+If you do not want the terminal typing on a shared or untrusted machine, set
+`NORTHSTAR_INJECT=0`, or do not run the extension there. Deleting
+`~/.northstar/token` and restarting the server revokes every paired browser.
 
 ## Supply chain
 

@@ -44,6 +44,31 @@ Give each direction a name, a one line rationale and one risk.
 
 Directions must differ in kind, not only in colour. If all options share the same layout and type approach, they are one option.
 
+## 3a. Name an archetype when the brief is a vibe
+
+When the user describes a feel instead of a brand, offer one of these as a direction family and then adapt it to the subject.
+
+| Archetype | Character | Watch for |
+|---|---|---|
+| soft | Rounded surfaces, gentle tinted shadows, warm or pastel neutrals, slow easing, generous space | Low contrast text on pale surfaces, glass used as decoration |
+| minimalist | Few colours, one accent, strict grid, type and space carry the hierarchy, almost no ornament | Emptiness mistaken for calm, text only pages with no real imagery |
+| brutalist | Raw structure, hard borders, system or monospace type, flat colour, visible grid, abrupt contrast | Contrast and focus still have to pass, the hard shadow rule needs an allow entry |
+
+An archetype is a starting point for materials, moods and shape language, never a replacement for the subject grounding in step 2.
+
+## 3b. Set the taste dials
+
+Three dials describe how the design behaves, each from 1 to 10: design variance (symmetric and predictable to asymmetric and surprising), motion intensity (static to cinematic) and visual density (airy gallery to packed cockpit). They are guidance, not settings that a tool reads.
+
+| Mode | Variance | Motion | Density |
+|---|---|---|---|
+| operate | 3 | 2 | 7 |
+| read | 4 | 2 | 4 |
+| persuade | 7 | 5 | 4 |
+| experience | 9 | 8 | 3 |
+
+Nudge the defaults from the brief: trust first or regulated work lowers variance and motion, a playful or experimental brief raises them, a redesign that preserves the existing look matches the current values, and an overhaul raises variance and motion by about two. Ask the three as one question with the recommended triple as the default, for example "Variance 7, motion 5, density 4 for a marketing page, go or adjust?". Record the answer as a sentence in the prose of DESIGN.md, which needs no schema field, and judge Compose and Critique against it. Motion above 3 always needs a reduced motion path. At variance above 4 asymmetric layouts collapse to one column on narrow screens.
+
 ## 4. Avoid the default looks
 
 Check every direction against `NS-LOOK-DEFAULT-PALETTE`: cream with a serif and a terracotta accent, near black with one acid accent, and purple to cyan gradients. These are warnings unless the brief asks for them. Also avoid choosing a display face because it is the usual pick (`NS-TYPE-DEFAULT-DISPLAY`). Use `explain_rule` when you need the full reasoning.

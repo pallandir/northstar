@@ -14,10 +14,24 @@ Close the gap between competent and finished. The exit condition is a clean dete
 | Motion | One considered moment per the mode, nothing animates layout properties | `NS-MOTION-ONE-MOMENT`, `NS-MOTION-PROPERTIES`, `NS-MOTION-TRANSITION-ALL` |
 | Accessibility | Contrast, visible focus, semantics, target size, reduced motion | `NS-A11Y-*` |
 | Responsive | No horizontal scroll, readable measure, targets usable by touch | `NS-LAYOUT-RESPONSIVE`, `NS-TYPE-MEASURE` |
-| Browser surfaces | Favicon, title, theme colour, selection colour, scrollbars, print, dark theme | `NS-COLOR-THEME-CHOICE` |
+| Browser surfaces | Favicon, title, theme colour, selection colour, scrollbars, print, dark theme | `NS-COLOR-THEME-CHOICE`, `NS-COLOR-DARK-PARITY` |
 | Detail | Alignment on the spacing scale, consistent icon stroke and size, no raw values | `NS-LAYOUT-SPACING-RHYTHM`, `NS-COLOR-RAW-VALUES` |
 
 Fix in the order of the ranked critique, accessibility first.
+
+## Pre flight checklist
+
+Run through this once before declaring a screen finished. Each line is a yes or no.
+
+- The design read and the dials in DESIGN.md still describe what was built.
+- One accent, one icon library at one stroke, one corner radius scheme, one theme strategy.
+- No pure black or white surfaces, no gradient text, no purple to blue gradient unless the brief asked for it.
+- Full height sections use dynamic viewport units (`NS-LAYOUT-VIEWPORT-HEIGHT`).
+- Every button label fits on one line, and no two calls to action on a page share the same intent.
+- Names, figures and logos are real or clearly sample data (`NS-COPY-PLACEHOLDER-DATA`), and no cliche filler remains (`NS-COPY-FILLER`).
+- Both themes were opened and checked (`NS-COLOR-DARK-PARITY`).
+- Motion matches the motion dial and has a reduced motion path.
+- The page holds at 360px with real content.
 
 ## Detector loop
 

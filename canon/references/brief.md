@@ -30,6 +30,10 @@ Never ask what the repo can answer. Check in this order:
 
 State what you inferred in one line each, so the user can correct it.
 
+## Design read
+
+Before any code, state one line that names the page kind, the audience, the vibe words the user used and the design family you will lean on. Example: "Reading this as a B2B landing page for technical buyers, minimalist, restrained motion, shadcn on Tailwind." The user can correct it in one reply. Ask a clarifying question only when two readings would lead to clearly different designs, and then ask exactly one.
+
 ## Question protocol
 
 At most 3 questions per turn, each with a recommended default. Pick the three open gates that most change the design. A reply of "go" accepts every default.
@@ -43,7 +47,7 @@ At most 3 questions per turn, each with a recommended default. Pick the three op
 | Brand | Is there a brand to follow? Default: none, derive from the subject in Direction. |
 | Content | Is real content available? Default: draft realistic copy and mark it for review. |
 
-Small edits skip this protocol. If the request is a single comment or a one line change, proceed directly.
+Small edits skip these questions, not the DESIGN.md gate. If the request is a single comment or a one line change, proceed without asking, once DESIGN.md is valid.
 
 ## Output: PRODUCT.md
 

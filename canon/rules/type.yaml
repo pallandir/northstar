@@ -9,7 +9,7 @@
     families: [Fraunces, Playfair Display, Cormorant, Lora, Crimson Text, Newsreader, Syne, Space Grotesk, IBM Plex Sans, DM Sans, DM Serif Display, Outfit, Plus Jakarta Sans, Instrument Sans, Instrument Serif, Inter]
   rationale: These families dominate generated pages because they dominate the training data. Using one as the display voice without a stated reason means no decision was made. Inter as quiet interface body text in an operating tool is fine.
   fix: Pick the display face from the font resolver using the subject and mood in DESIGN.md, and record why.
-  sources: [impeccable, top-design, frontend-design]
+  sources: [impeccable, top-design, frontend-design, taste-skill]
 
 - id: NS-TYPE-DISPLAY-MAX
   title: Display size cap
