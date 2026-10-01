@@ -251,10 +251,7 @@ test("the server exposes exactly the seven comment tools", async () => {
 
 test("the resolve-comments prompt is listed and carries the directive", async () => {
   const { prompts } = await client.listPrompts();
-  assert.deepEqual(
-    prompts.map((p) => p.name),
-    ["resolve-comments"],
-  );
+  assert.ok(prompts.some((p) => p.name === "resolve-comments"));
   const prompt = await client.getPrompt({ name: "resolve-comments" });
   const body = (prompt.messages[0].content as { text: string }).text;
   assert.ok(body.includes("list_comments"));

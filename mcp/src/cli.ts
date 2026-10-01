@@ -2,7 +2,9 @@ import { VERSION } from "./config.js";
 
 type Command = (args: string[]) => Promise<number | undefined>;
 
-const commands: Record<string, () => Promise<Command>> = {};
+const commands: Record<string, () => Promise<Command>> = {
+  init: async () => (await import("./cli/init.js")).init,
+};
 
 const USAGE = `northstar ${VERSION}
 
@@ -10,6 +12,7 @@ Usage: northstar [command]
 
 Commands:
   serve       start the MCP server over stdio (default)
+  init [dir]  write DESIGN.md, PRODUCT.md and design/decisions.md, never overwriting
   --version   print the version`;
 
 async function run(argv: string[]): Promise<number> {

@@ -102,7 +102,9 @@ Generated from `canon/rules`. Do not edit by hand.
 | `NS-TYPE-SCALE` | Defined type scale | warn | yes | advisory |
 | `NS-TYPE-TRACKING-FLOOR` | Tracking floor | warn | yes | static |
 
-## Precedence
+## Arbitration
+
+When guidance conflicts, the higher rank wins.
 
 1. **Accessibility floor**: Rules marked allowable false cannot be lowered by any brief or allow entry.
 2. **Explicit brief**: DESIGN.md, PRODUCT.md or a direct user instruction overrides taste rules through an allow entry with a reason, logged in decisions.

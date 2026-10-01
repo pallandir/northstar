@@ -1,4 +1,4 @@
-import type { Canon, Rule } from "@northstar/canon";
+import { type Canon, type Rule, renderArbitration } from "@northstar/canon";
 
 export const STAGE_ARTIFACTS = [
   { topic: "brief", label: "Brief", artifact: "`PRODUCT.md`" },
@@ -86,19 +86,11 @@ export function renderRuleIndex(canon: Canon): string {
     lines.push(...rules.map(ruleRow));
   }
 
-  lines.push("", "## Precedence", "");
-  for (const p of canon.arbitration.precedence) lines.push(`${p.rank}. **${p.name}**: ${p.rule}`);
-
-  lines.push("", "## Resolved conflicts", "");
-  for (const c of canon.arbitration.conflicts) {
-    lines.push(
-      `### ${c.topic}`,
-      "",
-      c.resolution,
-      "",
-      `Rules: ${c.rules.map((r) => `\`${r}\``).join(", ")}`,
-      "",
-    );
-  }
+  lines.push(
+    "",
+    renderArbitration(canon)
+      .replace(/^# Arbitration\n\n/, "## Arbitration\n\n")
+      .trimEnd(),
+  );
   return `${lines.join("\n").trimEnd()}\n`;
 }
