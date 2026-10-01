@@ -45,7 +45,6 @@ export type Message =
   | { type: "set-active"; on: boolean }
   | { type: "sync-active"; tabId?: number }
   | { type: "set-overlay"; tabId: number; on: boolean }
-  | { type: "tab-status"; tabId: number; url: string }
   | { type: "capture-region"; rect: Rect; dpr: number }
   | { type: "save-request"; draft: DraftRequest }
   | { type: "page-comments"; url: string }

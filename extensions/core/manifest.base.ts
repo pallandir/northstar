@@ -29,7 +29,6 @@ export const base = {
   background: { service_worker: "src/background.ts", type: "module" },
   action: {
     default_title: "Northstar",
-    default_popup: "src/popup/popup.html",
     default_icon: icons,
   },
 };

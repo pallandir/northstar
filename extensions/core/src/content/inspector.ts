@@ -1,17 +1,7 @@
 import { rgbToHex, samplePageColors, toHex } from "../lib/color.js";
-import type { Operation, SourceLocation } from "../types.js";
+import type { Operation } from "../types.js";
 
 export type InspectorTabId = "comment" | "text" | "color";
-
-// Deliberately narrower than the full Target/ComponentInfo wire shape: this is only what the
-// header needs to display, so an edit reopened from an existing pin (which never re-probes) can
-// build one from its saved label without fabricating the rest of a Target object.
-export interface InspectorTarget {
-  componentName: string | null;
-  source: SourceLocation | null;
-  tag: string | null;
-  selector: string;
-}
 
 export interface InspectorSubmission {
   comment: string;
@@ -34,8 +24,6 @@ export interface InspectorHandle {
   focus: () => void;
   /** Reverts any live preview (a colour or text change applied to the element) and tears down. */
   cancel: () => void;
-  /** Refreshes the header once the (asynchronous) probe answers after the panel already opened. */
-  updateTarget: (info: InspectorTarget) => void;
 }
 
 interface TabController {
@@ -50,6 +38,8 @@ interface TabController {
   collect: () => { comment: string; operation: Operation } | null;
 }
 
+const COMMENT_MAX_LENGTH = 4000;
+
 const COLOR_PROPERTIES = [
   { key: "color", label: "Text" },
   { key: "background-color", label: "Background" },
@@ -58,7 +48,6 @@ const COLOR_PROPERTIES = [
 
 export function buildInspector(
   el: HTMLElement,
-  info: InspectorTarget,
   onSubmit: (result: InspectorSubmission) => void,
   onCancel: () => void,
   opts: InspectorOptions = {},
@@ -68,9 +57,6 @@ export function buildInspector(
 
   const panel = document.createElement("div");
   panel.className = "ns-panel ns-inspector";
-
-  const header = buildTargetHeader(info);
-  panel.append(header.el);
 
   const bodyHost = document.createElement("div");
   bodyHost.className = "ns-inspector-body";
@@ -83,7 +69,7 @@ export function buildInspector(
   let active: TabController = tabs[0];
 
   const tabStrip = document.createElement("div");
-  tabStrip.className = "ns-inspector-tabs";
+  tabStrip.className = "ns-tabs ns-inspector-tabs";
   tabStrip.setAttribute("role", "tablist");
   const tabButtons = new Map<InspectorTabId, HTMLButtonElement>();
 
@@ -92,6 +78,7 @@ export function buildInspector(
     active = next;
     for (const [id, btn] of tabButtons) {
       const isActive = id === next.id;
+      btn.classList.toggle("ns-tab--active", isActive);
       btn.classList.toggle("ns-inspector-tab--active", isActive);
       btn.setAttribute("aria-selected", String(isActive));
     }
@@ -103,7 +90,7 @@ export function buildInspector(
     for (const tab of tabs) {
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "ns-inspector-tab";
+      btn.className = "ns-tab ns-inspector-tab";
       btn.setAttribute("role", "tab");
       btn.textContent = tab.label;
       btn.addEventListener("click", () => selectTab(tab));
@@ -167,7 +154,7 @@ export function buildInspector(
 
   const cancelBtn = document.createElement("button");
   cancelBtn.type = "button";
-  cancelBtn.className = "ns-btn ns-btn--secondary-danger";
+  cancelBtn.className = "ns-btn";
   cancelBtn.textContent = "Cancel";
   cancelBtn.addEventListener("click", cancel);
 
@@ -201,45 +188,15 @@ export function buildInspector(
     panel,
     focus: () => active.activate(),
     cancel,
-    updateTarget: header.update,
   };
-}
-
-function buildTargetHeader(initial: InspectorTarget): {
-  el: HTMLElement;
-  update: (info: InspectorTarget) => void;
-} {
-  const el = document.createElement("div");
-  el.className = "ns-inspector-target";
-
-  const name = document.createElement("div");
-  name.className = "ns-inspector-target-name";
-  const source = document.createElement("div");
-  source.className = "ns-inspector-target-source";
-  const selector = document.createElement("div");
-  selector.className = "ns-inspector-target-selector";
-  el.append(name, source, selector);
-
-  const update = (info: InspectorTarget) => {
-    name.textContent = info.componentName ?? info.tag ?? "Not resolved";
-    if (info.source) {
-      source.textContent = `${info.source.path}:${info.source.line}:${info.source.column}`;
-      source.hidden = false;
-    } else {
-      source.hidden = true;
-    }
-    selector.textContent = info.selector;
-    selector.hidden = !info.selector;
-  };
-  update(initial);
-
-  return { el, update };
 }
 
 function buildCommentTab(initialText?: string): TabController {
   const body = document.createElement("div");
   body.className = "ns-inspector-tab-body";
   const textarea = document.createElement("textarea");
+  textarea.className = "ns-field";
+  textarea.maxLength = COMMENT_MAX_LENGTH;
   textarea.placeholder = "What should your AI assistant change here?";
   textarea.value = initialText ?? "";
   body.append(textarea);
@@ -275,6 +232,7 @@ function buildTextTab(el: HTMLElement): TabController {
 
   const input = document.createElement("input");
   input.type = "text";
+  input.className = "ns-field";
   input.value = from;
   input.placeholder = "New text";
   if (!isLeaf) {
@@ -371,7 +329,7 @@ function buildColorTab(el: HTMLElement): TabController {
   colorInput.type = "color";
   const hexInput = document.createElement("input");
   hexInput.type = "text";
-  hexInput.className = "ns-inspector-hex";
+  hexInput.className = "ns-field ns-inspector-hex";
   controlsRow.append(colorInput, hexInput);
 
   function syncControls(): void {
@@ -452,7 +410,7 @@ function buildToggle(
   let value = initial;
   const btn = document.createElement("button");
   btn.type = "button";
-  btn.className = "ns-toggle";
+  btn.className = "ns-switch-row ns-toggle";
   btn.setAttribute("role", "switch");
   btn.setAttribute("aria-pressed", String(value));
   const labelEl = document.createElement("span");

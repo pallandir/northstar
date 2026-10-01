@@ -5,14 +5,13 @@ import {
   type InspectorHandle,
   type InspectorOptions,
   type InspectorSubmission,
-  type InspectorTarget,
   buildInspector,
 } from "./inspector.js";
 import overlayCss from "./overlay.css?inline";
 import { TopLayer } from "./top-layer.js";
 
 const OVERLAY_MARGIN = 8;
-const INSPECTOR_WIDTH = 300;
+const INSPECTOR_WIDTH = 380;
 
 interface ActivePin {
   model: PinModel;
@@ -33,7 +32,7 @@ export interface ModalOptions {
   onDismiss: () => void;
 }
 
-export type { InspectorOptions, InspectorSubmission, InspectorTarget };
+export type { InspectorOptions, InspectorSubmission };
 
 export class Surface {
   private readonly host: HTMLElement;
@@ -46,15 +45,20 @@ export class Surface {
   private inspectorHighlight: HTMLElement | null = null;
   private inspectorAnchor: Element | null = null;
   private readonly topLayer = new TopLayer();
+  private readonly modals = new Set<() => void>();
   private rafId = 0;
 
   constructor() {
     this.host = document.createElement("div");
     this.host.id = "northstar-root";
     this.shadow = this.host.attachShadow({ mode: "closed" });
-    const style = document.createElement("style");
-    style.textContent = overlayCss;
-    this.shadow.append(style);
+    adoptStyles(this.shadow, overlayCss);
+    for (const type of ["keydown", "keyup", "keypress"]) {
+      this.host.addEventListener(type, (event) => {
+        event.stopPropagation();
+        if ((event as KeyboardEvent).key === "Escape") event.preventDefault();
+      });
+    }
   }
 
   mount(): void {
@@ -65,6 +69,7 @@ export class Surface {
 
   unmount(): void {
     this.closeInspector();
+    for (const dispose of [...this.modals]) dispose();
     if (this.rafId) cancelAnimationFrame(this.rafId);
     this.rafId = 0;
     this.topLayer.detach();
@@ -78,6 +83,10 @@ export class Surface {
 
   ownsEvent(event: Event): boolean {
     return event.composedPath().includes(this.host);
+  }
+
+  hasInspector(): boolean {
+    return this.inspector !== null;
   }
 
   owns(el: EventTarget | null): boolean {
@@ -145,19 +154,26 @@ export class Surface {
     const actions = document.createElement("div");
     actions.className = "ns-modal-actions";
 
-    const close = () => {
+    const dispose = () => {
       document.removeEventListener("keydown", onKey, true);
       backdrop.remove();
+      this.modals.delete(dispose);
+    };
+    const close = () => {
+      dispose();
       options.onDismiss();
     };
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") close();
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      close();
     };
 
     for (const def of options.actions) {
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = `ns-btn${def.variant ? ` ns-btn--${def.variant}` : " ns-btn--secondary"}`;
+      btn.className = `ns-btn${def.variant ? ` ns-btn--${def.variant}` : ""}`;
       btn.textContent = def.label;
       btn.addEventListener("click", () => {
         close();
@@ -170,6 +186,7 @@ export class Surface {
       if (event.target === backdrop) close();
     });
     document.addEventListener("keydown", onKey, true);
+    this.modals.add(dispose);
 
     card.append(warnEl, title, body, actions);
     backdrop.append(card);
@@ -181,7 +198,6 @@ export class Surface {
   // save, or Cancel, and any live preview (colour, text) is reverted before it fires.
   showInspector(
     target: Element,
-    info: InspectorTarget,
     onSubmit: (result: InspectorSubmission) => void,
     onCancel: () => void,
     opts?: InspectorOptions,
@@ -195,7 +211,6 @@ export class Surface {
 
     const handle = buildInspector(
       target as HTMLElement,
-      info,
       (result) => {
         this.closeInspectorDom();
         onSubmit(result);
@@ -204,7 +219,15 @@ export class Surface {
         this.closeInspectorDom();
         onCancel();
       },
-      opts,
+      opts?.onDelete
+        ? {
+            ...opts,
+            onDelete: () => {
+              this.closeInspectorDom();
+              opts.onDelete?.();
+            },
+          }
+        : opts,
     );
 
     this.inspectorHighlight = highlight;
@@ -258,7 +281,6 @@ export class Surface {
           if (!anchor) return;
           this.showInspector(
             anchor,
-            { componentName: null, source: null, tag: model.target, selector: model.operator },
             (result) => onEdit(model.key, result.comment, result),
             () => {},
             {
@@ -339,19 +361,17 @@ export class Surface {
     if (this.inspectorAnchor && this.inspectorHighlight && this.inspector) {
       const rect = this.inspectorAnchor.getBoundingClientRect();
       place(this.inspectorHighlight, this.inspectorAnchor);
-      const panelH = this.inspector.panel.offsetHeight || 320;
-      const clampedLeft = Math.min(
-        Math.max(OVERLAY_MARGIN, rect.left),
-        window.innerWidth - INSPECTOR_WIDTH - OVERLAY_MARGIN,
+      const panelH = Math.min(
+        this.inspector.panel.offsetHeight || 320,
+        window.innerHeight - OVERLAY_MARGIN * 2,
       );
+      const maxLeft = window.innerWidth - INSPECTOR_WIDTH - OVERLAY_MARGIN;
+      const left = Math.max(OVERLAY_MARGIN, Math.min(rect.left, maxLeft));
       const fitsBelow = rect.bottom + panelH + OVERLAY_MARGIN <= window.innerHeight;
-      const topRaw = fitsBelow
-        ? rect.bottom + OVERLAY_MARGIN
-        : Math.max(OVERLAY_MARGIN, rect.top - panelH - OVERLAY_MARGIN);
-      this.inspector.panel.style.left = `${clampedLeft}px`;
-      this.inspector.panel.style.top = `${topRaw}px`;
-      this.inspector.panel.classList.toggle("ns-inspector--below", fitsBelow);
-      this.inspector.panel.classList.toggle("ns-inspector--above", !fitsBelow);
+      const maxTop = window.innerHeight - panelH - OVERLAY_MARGIN;
+      const top = fitsBelow ? rect.bottom + OVERLAY_MARGIN : rect.top - panelH - OVERLAY_MARGIN;
+      this.inspector.panel.style.left = `${left}px`;
+      this.inspector.panel.style.top = `${Math.max(OVERLAY_MARGIN, Math.min(top, maxTop))}px`;
     }
   }
 }
@@ -368,4 +388,17 @@ function glyph(kind: PinModel["kind"]): SVGSVGElement | null {
   if (kind === "style") return icon(ICON_COLOR, "ns-pin-glyph");
   if (kind === "text") return icon(ICON_TEXT, "ns-pin-glyph");
   return null;
+}
+
+function adoptStyles(shadow: ShadowRoot, css: string): void {
+  try {
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(css);
+    shadow.adoptedStyleSheets = [sheet];
+    if (shadow.adoptedStyleSheets.length !== 1) throw new Error("stylesheet not adopted");
+  } catch {
+    const style = document.createElement("style");
+    style.textContent = css;
+    shadow.append(style);
+  }
 }

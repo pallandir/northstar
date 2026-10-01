@@ -30,3 +30,15 @@ describe("z-scale", () => {
     }
   });
 });
+
+describe("unit discipline", () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const files = ["tokens.css", "controls.css", "../content/overlay.css"];
+
+  it("sizes everything in px: rem and em shrink under a page's html font-size", () => {
+    for (const file of files) {
+      const css = readFileSync(join(here, file), "utf8");
+      expect(css.match(/\d(rem|em)\b/g), `${file} uses rem or em`).toBeNull();
+    }
+  });
+});

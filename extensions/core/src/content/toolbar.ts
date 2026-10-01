@@ -46,6 +46,10 @@ export class Toolbar {
   private panelKey = "";
   private dismissedKey = "";
   private sentTimer = 0;
+  private sending = false;
+  private reachable = false;
+  private hasQueued = false;
+  private readonly onResize = () => this.clampIntoViewport();
 
   constructor(surface: Surface, handlers: ToolbarHandlers) {
     this.root = document.createElement("div");
@@ -91,7 +95,7 @@ export class Toolbar {
     const resetBtn = document.createElement("button");
     resetBtn.type = "button";
     resetBtn.className = "ns-action ns-action--icon ns-action--danger ns-has-tip";
-    resetBtn.dataset.tip = "Delete all comments on this page";
+    resetBtn.dataset.tip = "Delete all comments";
     resetBtn.append(icon(ICON_TRASH, "ns-action-glyph"));
     resetBtn.addEventListener("click", () => handlers.onReset());
 
@@ -107,12 +111,23 @@ export class Toolbar {
       resetBtn,
     );
     surface.append(this.root);
+    window.addEventListener("resize", this.onResize);
     void this.restorePosition();
   }
 
   destroy(): void {
     window.clearTimeout(this.sentTimer);
+    window.removeEventListener("resize", this.onResize);
     this.root.remove();
+  }
+
+  setSending(sending: boolean): void {
+    this.sending = sending;
+    this.syncSendButton();
+  }
+
+  private syncSendButton(): void {
+    this.sendBtn.disabled = this.sending || !this.reachable || !this.hasQueued;
   }
 
   render(state: ToolbarState): void {
@@ -127,7 +142,7 @@ export class Toolbar {
     if (state.mode === "remote") {
       // A remote page never reaches the loopback server by design, so there is nothing to
       // explain in a permanent card here: Handoff becomes the one thing to do, and its own
-      // tooltip and the popup say why.
+      // tooltip says why.
       this.sendBtn.hidden = true;
       this.handoffBtn.classList.add("ns-action--primary");
       this.handoffBtn.dataset.tip =
@@ -141,7 +156,9 @@ export class Toolbar {
 
     const status = state.status;
     const reachable = Boolean(status?.serverReachable);
-    this.sendBtn.disabled = !reachable || !status || status.queued === 0;
+    this.reachable = reachable;
+    this.hasQueued = Boolean(status && status.queued > 0);
+    this.syncSendButton();
     this.handoffBtn.classList.toggle("ns-action--primary", !reachable);
 
     const send = state.lastSend;
@@ -204,45 +221,62 @@ export class Toolbar {
 
   private makeDraggable(handle: HTMLElement): void {
     handle.classList.add("ns-drag");
+    let dragging = false;
     let startX = 0;
     let startY = 0;
     let originLeft = 0;
     let originTop = 0;
 
-    const onMove = (event: PointerEvent) => {
-      this.root.style.left = `${Math.max(0, originLeft + (event.clientX - startX))}px`;
-      this.root.style.top = `${Math.max(0, originTop + (event.clientY - startY))}px`;
-      this.root.style.transform = "none";
-      this.root.style.bottom = "auto";
-    };
-    const onUp = () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      void browser.storage.local.set({
-        [POS_KEY]: { left: this.root.style.left, top: this.root.style.top },
-      });
-    };
     handle.addEventListener("pointerdown", (event) => {
       event.preventDefault();
       const rect = this.root.getBoundingClientRect();
+      dragging = true;
       startX = event.clientX;
       startY = event.clientY;
       originLeft = rect.left;
       originTop = rect.top;
-      window.addEventListener("pointermove", onMove);
-      window.addEventListener("pointerup", onUp);
+      try {
+        handle.setPointerCapture(event.pointerId);
+      } catch {}
     });
+    handle.addEventListener("pointermove", (event) => {
+      if (!dragging) return;
+      this.place(originLeft + (event.clientX - startX), originTop + (event.clientY - startY));
+    });
+    const end = () => {
+      if (!dragging) return;
+      dragging = false;
+      void browser.storage.local.set({
+        [POS_KEY]: { left: this.root.style.left, top: this.root.style.top },
+      });
+    };
+    handle.addEventListener("pointerup", end);
+    handle.addEventListener("pointercancel", end);
+  }
+
+  private place(left: number, top: number): void {
+    const width = this.root.offsetWidth;
+    const height = this.root.offsetHeight;
+    const maxLeft = Math.max(0, window.innerWidth - width);
+    const maxTop = Math.max(0, window.innerHeight - height);
+    this.root.style.left = `${Math.min(Math.max(0, left), maxLeft)}px`;
+    this.root.style.top = `${Math.min(Math.max(0, top), maxTop)}px`;
+    this.root.style.transform = "none";
+    this.root.style.bottom = "auto";
+  }
+
+  private clampIntoViewport(): void {
+    if (this.root.style.transform !== "none") return;
+    const rect = this.root.getBoundingClientRect();
+    this.place(rect.left, rect.top);
   }
 
   private async restorePosition(): Promise<void> {
     const stored = await browser.storage.local.get(POS_KEY);
     const pos = stored[POS_KEY] as { left: string; top: string } | undefined;
-    if (pos?.left && pos.top) {
-      this.root.style.left = pos.left;
-      this.root.style.top = pos.top;
-      this.root.style.transform = "none";
-      this.root.style.bottom = "auto";
-    }
+    const left = Number.parseFloat(pos?.left ?? "");
+    const top = Number.parseFloat(pos?.top ?? "");
+    if (Number.isFinite(left) && Number.isFinite(top)) this.place(left, top);
   }
 }
 
@@ -280,7 +314,7 @@ function hintStrip(title: string, body: string, onDismiss: () => void): HTMLElem
   heading.textContent = title;
   const dismiss = document.createElement("button");
   dismiss.type = "button";
-  dismiss.className = "ns-drawer-close";
+  dismiss.className = "ns-icon-btn ns-drawer-close";
   dismiss.append(icon(ICON_CLOSE, "ns-drawer-close-icon"));
   dismiss.addEventListener("click", onDismiss);
   row.append(heading, dismiss);

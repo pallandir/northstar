@@ -37,7 +37,7 @@ export function probeElement(el: Element): Promise<ProbeResult | null> {
       finish(detail.result ?? null);
     };
     window.addEventListener(PROBE_RESPONSE_EVENT, onResponse);
-    window.dispatchEvent(new CustomEvent(PROBE_REQUEST_EVENT, { detail: { nonce } }));
+    window.dispatchEvent(new CustomEvent(PROBE_REQUEST_EVENT, { detail: nonce }));
     const timer = setTimeout(() => finish(null), PROBE_TIMEOUT_MS);
   });
 }

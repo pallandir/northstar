@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { type InspectorSubmission, type InspectorTarget, buildInspector } from "./inspector.js";
+import { type InspectorSubmission, buildInspector } from "./inspector.js";
 
 const teardowns: Array<() => void> = [];
 afterEach(() => {
@@ -17,13 +17,6 @@ function must<T>(value: T | null | undefined): T {
   return value;
 }
 
-const NO_TARGET: InspectorTarget = {
-  componentName: null,
-  source: null,
-  tag: "div",
-  selector: "div",
-};
-
 function tabButton(panel: HTMLElement, label: string): HTMLButtonElement {
   const btn = Array.from(panel.querySelectorAll<HTMLButtonElement>(".ns-inspector-tab")).find(
     (b) => b.textContent === label,
@@ -39,7 +32,7 @@ function saveButton(panel: HTMLElement): HTMLButtonElement {
 describe("buildInspector", () => {
   it("shows three tabs by default: Comment, Text, Colour", () => {
     const el = mount(document.createElement("div"));
-    const { panel } = buildInspector(el, NO_TARGET, vi.fn(), vi.fn());
+    const { panel } = buildInspector(el, vi.fn(), vi.fn());
     const labels = Array.from(panel.querySelectorAll(".ns-inspector-tab")).map(
       (b) => b.textContent,
     );
@@ -48,52 +41,29 @@ describe("buildInspector", () => {
 
   it("hides the tab strip in editOnly mode", () => {
     const el = mount(document.createElement("div"));
-    const { panel } = buildInspector(el, NO_TARGET, vi.fn(), vi.fn(), { editOnly: true });
+    const { panel } = buildInspector(el, vi.fn(), vi.fn(), { editOnly: true });
     expect(panel.querySelector(".ns-inspector-tabs")).toBeNull();
   });
 
-  describe("target header", () => {
-    it("shows the component name when present, else the tag, else 'Not resolved'", () => {
-      const el = mount(document.createElement("div"));
-      const { panel } = buildInspector(
-        el,
-        { componentName: "TrafficSources", source: null, tag: "article", selector: "article.card" },
-        vi.fn(),
-        vi.fn(),
-      );
-      expect(panel.querySelector(".ns-inspector-target-name")?.textContent).toBe("TrafficSources");
-      expect(panel.querySelector(".ns-inspector-target-selector")?.textContent).toBe(
-        "article.card",
-      );
-    });
+  it("renders no target header and keeps component and source details out of the panel", () => {
+    const el = mount(document.createElement("div"));
+    const { panel } = buildInspector(el, vi.fn(), vi.fn());
+    expect(panel.querySelector(".ns-inspector-target")).toBeNull();
+    expect(panel.querySelector(".ns-inspector-target-name")).toBeNull();
+  });
 
-    it("falls back to the tag and marks the source hidden when nothing resolved", () => {
-      const el = mount(document.createElement("div"));
-      const { panel } = buildInspector(
-        el,
-        { componentName: null, source: null, tag: null, selector: "" },
-        vi.fn(),
-        vi.fn(),
-      );
-      expect(panel.querySelector(".ns-inspector-target-name")?.textContent).toBe("Not resolved");
-    });
+  it("caps the comment at 4000 characters", () => {
+    const el = mount(document.createElement("div"));
+    const { panel } = buildInspector(el, vi.fn(), vi.fn());
+    expect(must(panel.querySelector("textarea")).maxLength).toBe(4000);
+  });
 
-    it("updateTarget refreshes the header after the async probe answers", () => {
-      const el = mount(document.createElement("div"));
-      const handle = buildInspector(el, NO_TARGET, vi.fn(), vi.fn());
-      handle.updateTarget({
-        componentName: "TrafficSources",
-        source: { path: "src/A.tsx", line: 4, column: 1, via: "react-fiber" },
-        tag: "div",
-        selector: "div",
-      });
-      expect(handle.panel.querySelector(".ns-inspector-target-name")?.textContent).toBe(
-        "TrafficSources",
-      );
-      expect(handle.panel.querySelector(".ns-inspector-target-source")?.textContent).toBe(
-        "src/A.tsx:4:1",
-      );
-    });
+  it("closes from Escape without needing focus on a control", () => {
+    const el = mount(document.createElement("div"));
+    const onCancel = vi.fn();
+    const { panel } = buildInspector(el, vi.fn(), onCancel);
+    panel.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(onCancel).toHaveBeenCalledOnce();
   });
 
   describe("comment tab", () => {
@@ -101,7 +71,7 @@ describe("buildInspector", () => {
       const el = mount(document.createElement("div"));
       const onSubmit = vi.fn();
       const onCancel = vi.fn();
-      const { panel } = buildInspector(el, NO_TARGET, onSubmit, onCancel);
+      const { panel } = buildInspector(el, onSubmit, onCancel);
       saveButton(panel).click();
       expect(onSubmit).not.toHaveBeenCalled();
       expect(onCancel).toHaveBeenCalledOnce();
@@ -110,7 +80,7 @@ describe("buildInspector", () => {
     it("submits the trimmed comment as a comment operation", () => {
       const el = mount(document.createElement("div"));
       const onSubmit = vi.fn<(r: InspectorSubmission) => void>();
-      const { panel } = buildInspector(el, NO_TARGET, onSubmit, vi.fn());
+      const { panel } = buildInspector(el, onSubmit, vi.fn());
       const textarea = must(panel.querySelector("textarea"));
       textarea.value = "  Make this a table  ";
       saveButton(panel).click();
@@ -125,7 +95,7 @@ describe("buildInspector", () => {
     it("carries the initial planFirst/attachScreenshot toggles through to the payload", () => {
       const el = mount(document.createElement("div"));
       const onSubmit = vi.fn<(r: InspectorSubmission) => void>();
-      const { panel } = buildInspector(el, NO_TARGET, onSubmit, vi.fn(), {
+      const { panel } = buildInspector(el, onSubmit, vi.fn(), {
         initialPlanFirst: true,
         initialAttachScreenshot: true,
       });
@@ -141,7 +111,7 @@ describe("buildInspector", () => {
     it("live-applies to a leaf element as you type", () => {
       const el = mount(document.createElement("span"));
       el.textContent = "Submit";
-      const { panel } = buildInspector(el, NO_TARGET, vi.fn(), vi.fn());
+      const { panel } = buildInspector(el, vi.fn(), vi.fn());
       tabButton(panel, "Text").click();
       const input = must(
         panel.querySelector<HTMLInputElement>('.ns-inspector-tab-body input[type="text"]'),
@@ -155,7 +125,7 @@ describe("buildInspector", () => {
       const el = mount(document.createElement("span"));
       el.textContent = "Submit";
       const onCancel = vi.fn();
-      const { panel } = buildInspector(el, NO_TARGET, vi.fn(), onCancel);
+      const { panel } = buildInspector(el, vi.fn(), onCancel);
       tabButton(panel, "Text").click();
       const input = must(
         panel.querySelector<HTMLInputElement>('.ns-inspector-tab-body input[type="text"]'),
@@ -173,7 +143,7 @@ describe("buildInspector", () => {
       child.textContent = "child";
       el.append(child);
       const onSubmit = vi.fn<(r: InspectorSubmission) => void>();
-      const { panel } = buildInspector(el, NO_TARGET, onSubmit, vi.fn());
+      const { panel } = buildInspector(el, onSubmit, vi.fn());
       tabButton(panel, "Text").click();
       const input = must(
         panel.querySelector<HTMLInputElement>('.ns-inspector-tab-body input[type="text"]'),
@@ -186,7 +156,7 @@ describe("buildInspector", () => {
       el.textContent = "Submit";
       const onSubmit = vi.fn();
       const onCancel = vi.fn();
-      const { panel } = buildInspector(el, NO_TARGET, onSubmit, onCancel);
+      const { panel } = buildInspector(el, onSubmit, onCancel);
       tabButton(panel, "Text").click();
       saveButton(panel).click();
       expect(onSubmit).not.toHaveBeenCalled();
@@ -197,7 +167,7 @@ describe("buildInspector", () => {
       const el = mount(document.createElement("span"));
       el.textContent = "Submit";
       const onSubmit = vi.fn<(r: InspectorSubmission) => void>();
-      const { panel } = buildInspector(el, NO_TARGET, onSubmit, vi.fn());
+      const { panel } = buildInspector(el, onSubmit, vi.fn());
       tabButton(panel, "Text").click();
       const input = must(
         panel.querySelector<HTMLInputElement>('.ns-inspector-tab-body input[type="text"]'),
@@ -216,7 +186,7 @@ describe("buildInspector", () => {
   describe("color tab", () => {
     it("live-applies the selected property as a swatch or hex value is chosen", () => {
       const el = mount(document.createElement("div"));
-      const { panel } = buildInspector(el, NO_TARGET, vi.fn(), vi.fn());
+      const { panel } = buildInspector(el, vi.fn(), vi.fn());
       tabButton(panel, "Colour").click();
       const hexInput = must(panel.querySelector<HTMLInputElement>(".ns-inspector-hex"));
       hexInput.value = "#ff0000";
@@ -230,7 +200,7 @@ describe("buildInspector", () => {
     it("reverts the live preview on cancel", () => {
       const el = mount(document.createElement("div"));
       el.style.color = "blue";
-      const { panel } = buildInspector(el, NO_TARGET, vi.fn(), vi.fn());
+      const { panel } = buildInspector(el, vi.fn(), vi.fn());
       tabButton(panel, "Colour").click();
       const hexInput = must(panel.querySelector<HTMLInputElement>(".ns-inspector-hex"));
       hexInput.value = "#ff0000";
@@ -243,7 +213,7 @@ describe("buildInspector", () => {
       const el = mount(document.createElement("div"));
       const onSubmit = vi.fn();
       const onCancel = vi.fn();
-      const { panel } = buildInspector(el, NO_TARGET, onSubmit, onCancel);
+      const { panel } = buildInspector(el, onSubmit, onCancel);
       tabButton(panel, "Colour").click();
       saveButton(panel).click();
       expect(onSubmit).not.toHaveBeenCalled();
@@ -253,7 +223,7 @@ describe("buildInspector", () => {
     it("switching to the background property and changing it submits a background-color operation", () => {
       const el = mount(document.createElement("div"));
       const onSubmit = vi.fn<(r: InspectorSubmission) => void>();
-      const { panel } = buildInspector(el, NO_TARGET, onSubmit, vi.fn());
+      const { panel } = buildInspector(el, onSubmit, vi.fn());
       tabButton(panel, "Colour").click();
       const propButtons = Array.from(
         panel.querySelectorAll<HTMLButtonElement>(".ns-inspector-property"),
@@ -275,7 +245,7 @@ describe("buildInspector", () => {
     it("reverts a tab's live preview when switching away from it", () => {
       const el = mount(document.createElement("span"));
       el.textContent = "Submit";
-      const { panel } = buildInspector(el, NO_TARGET, vi.fn(), vi.fn());
+      const { panel } = buildInspector(el, vi.fn(), vi.fn());
       tabButton(panel, "Text").click();
       const input = must(
         panel.querySelector<HTMLInputElement>('.ns-inspector-tab-body input[type="text"]'),
@@ -293,7 +263,7 @@ describe("buildInspector", () => {
       const el = mount(document.createElement("div"));
       const onSubmit = vi.fn();
       const onCancel = vi.fn();
-      const { panel } = buildInspector(el, NO_TARGET, onSubmit, onCancel);
+      const { panel } = buildInspector(el, onSubmit, onCancel);
       must(panel.querySelector("textarea")).value = "hi";
       panel.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
       expect(onSubmit).not.toHaveBeenCalled();
@@ -304,8 +274,12 @@ describe("buildInspector", () => {
       const el = mount(document.createElement("div"));
       const onSubmit = vi.fn();
       const onCancel = vi.fn();
-      const { panel } = buildInspector(el, NO_TARGET, onSubmit, onCancel);
-      must(panel.querySelector<HTMLButtonElement>(".ns-btn--secondary-danger")).click();
+      const { panel } = buildInspector(el, onSubmit, onCancel);
+      must(
+        Array.from(panel.querySelectorAll<HTMLButtonElement>(".ns-btn")).find(
+          (b) => b.textContent === "Cancel",
+        ),
+      ).click();
       expect(onSubmit).not.toHaveBeenCalled();
       expect(onCancel).toHaveBeenCalledOnce();
     });
@@ -313,7 +287,7 @@ describe("buildInspector", () => {
     it("cancel is idempotent: calling handle.cancel() twice only fires onCancel once", () => {
       const el = mount(document.createElement("div"));
       const onCancel = vi.fn();
-      const handle = buildInspector(el, NO_TARGET, vi.fn(), onCancel);
+      const handle = buildInspector(el, vi.fn(), onCancel);
       handle.cancel();
       handle.cancel();
       expect(onCancel).toHaveBeenCalledOnce();
@@ -326,7 +300,7 @@ describe("buildInspector", () => {
       const onSubmit = vi.fn();
       const onCancel = vi.fn();
       const onDelete = vi.fn();
-      const { panel } = buildInspector(el, NO_TARGET, onSubmit, onCancel, { onDelete });
+      const { panel } = buildInspector(el, onSubmit, onCancel, { onDelete });
       const del = must(
         Array.from(panel.querySelectorAll("button")).find((b) => b.textContent === "Delete"),
       );

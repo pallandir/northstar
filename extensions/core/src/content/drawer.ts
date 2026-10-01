@@ -22,6 +22,8 @@ export interface DrawerContext {
   connected: boolean;
 }
 
+const COMMENT_MAX_LENGTH = 4000;
+
 const DEFAULT_CTX: DrawerContext = { mode: "remote", connected: false };
 
 export class Drawer {
@@ -35,6 +37,9 @@ export class Drawer {
   private notices: DeferralNotice[] = [];
   private ctx: DrawerContext = DEFAULT_CTX;
   private editing: string | null = null;
+  private editField: HTMLTextAreaElement | null = null;
+  private editShot: HTMLInputElement | null = null;
+  private draft: { text: string; screenshot: boolean } | null = null;
   private activeTab: "comments" | "history" = "comments";
 
   constructor(surface: Surface, handlers: DrawerHandlers) {
@@ -51,7 +56,7 @@ export class Drawer {
     this.tabsEl.className = "ns-drawer-tabs";
     const close = document.createElement("button");
     close.type = "button";
-    close.className = "ns-drawer-close";
+    close.className = "ns-icon-btn ns-drawer-close";
     close.append(icon(ICON_CLOSE, "ns-drawer-close-icon"));
     close.addEventListener("click", () => handlers.onClose());
     head.append(this.tabsEl, close);
@@ -78,7 +83,7 @@ export class Drawer {
   ): void {
     this.open = open;
     this.root.classList.toggle("ns-drawer--open", open);
-    this.editing = null;
+    this.stopEditing();
     this.ctx = ctx;
     this.render(pins, ctx, notices);
   }
@@ -91,6 +96,9 @@ export class Drawer {
     this.pins = pins;
     this.ctx = ctx;
     this.notices = notices;
+    if (this.editing && !pins.some((p) => p.key === this.editing && p.status !== "resolved")) {
+      this.stopEditing();
+    }
     if (!this.open) return;
     this.renderTabs(pins);
     this.renderNotices(notices);
@@ -174,15 +182,42 @@ export class Drawer {
     this.tabsEl.append(commentsTab, historyTab);
   }
 
+  private stopEditing(): void {
+    this.editing = null;
+    this.editField = null;
+    this.editShot = null;
+    this.draft = null;
+  }
+
   private renderList(pins: PinModel[]): void {
     const active = pins.filter((p) => p.status !== "resolved");
     const history = pins.filter((p) => p.status === "resolved");
 
-    this.listEl.replaceChildren();
+    const field = this.editField;
+    if (field?.isConnected) {
+      this.draft = { text: field.value, screenshot: this.editShot?.checked ?? false };
+    }
+    const root = field?.getRootNode() as Document | ShadowRoot | undefined;
+    const refocus = Boolean(field && root?.activeElement === field);
+    const selStart = field?.selectionStart ?? null;
+    const selEnd = field?.selectionEnd ?? null;
 
+    this.listEl.replaceChildren();
+    this.renderRows(active, history);
+
+    const next = this.editField;
+    if (refocus && next?.isConnected) {
+      next.focus({ preventScroll: true });
+      if (selStart !== null && selEnd !== null) next.setSelectionRange(selStart, selEnd);
+    }
+  }
+
+  private renderRows(active: PinModel[], history: PinModel[]): void {
     const list = this.activeTab === "comments" ? active : history;
 
     if (list.length === 0) {
+      this.editField = null;
+      this.editShot = null;
       const empty = document.createElement("div");
       empty.className = "ns-drawer-empty";
       empty.textContent =
@@ -239,14 +274,17 @@ export class Drawer {
 
     if (this.editing === pin.key && pin.removable) {
       const textarea = document.createElement("textarea");
-      textarea.className = "ns-drawer-edit";
-      textarea.value = pin.text;
+      textarea.className = "ns-field ns-drawer-edit";
+      textarea.maxLength = COMMENT_MAX_LENGTH;
+      textarea.value = this.draft?.text ?? pin.text;
+      this.editField = textarea;
 
       const screenshotRow = document.createElement("label");
       screenshotRow.className = "ns-drawer-edit-screenshot";
       const screenshotCheckbox = document.createElement("input");
       screenshotCheckbox.type = "checkbox";
-      screenshotCheckbox.checked = pin.hasScreenshot;
+      screenshotCheckbox.checked = this.draft?.screenshot ?? pin.hasScreenshot;
+      this.editShot = screenshotCheckbox;
       screenshotRow.append(screenshotCheckbox, document.createTextNode(" Attach screenshot"));
 
       const actions = document.createElement("div");
@@ -257,7 +295,7 @@ export class Drawer {
       save.textContent = "Save";
       save.addEventListener("click", () => {
         const value = textarea.value.trim();
-        this.editing = null;
+        this.stopEditing();
         if (value) {
           // Only tell the caller to change the screenshot when the checkbox state actually
           // differs from what is already stored: turning it off clears the shot, turning it on
@@ -274,10 +312,10 @@ export class Drawer {
       });
       const cancel = document.createElement("button");
       cancel.type = "button";
-      cancel.className = "ns-btn ns-btn--secondary-danger";
+      cancel.className = "ns-btn";
       cancel.textContent = "Cancel";
       cancel.addEventListener("click", () => {
-        this.editing = null;
+        this.stopEditing();
         this.render(this.pins);
       });
       actions.append(cancel, save);
@@ -299,11 +337,12 @@ export class Drawer {
       edit.textContent = "Edit";
       edit.addEventListener("click", () => {
         this.editing = pin.key;
+        this.draft = null;
         this.render(this.pins);
       });
       const del = document.createElement("button");
       del.type = "button";
-      del.className = "ns-btn ns-drawer-del";
+      del.className = "ns-btn ns-btn--ghost ns-drawer-del";
       del.textContent = "Delete";
       del.addEventListener("click", () => this.handlers.onRemove(pin.key));
       actions.append(edit, del);

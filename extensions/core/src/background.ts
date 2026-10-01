@@ -20,11 +20,64 @@ import type { ComponentInfo, RouteInfo, SourceLocation } from "./types.js";
 
 const ACTIVE_KEY = "cc-active";
 
-const BADGE_COLOR = "#009efa"; // Chrome badge API requires a hex string, cannot use a CSS var
+const BADGE_COLOR = "#1e66f5"; // Chrome badge API requires a hex string, cannot use a CSS var
+
+const LOOPBACK_ORIGINS = ["http://localhost/*", "http://127.0.0.1/*", "http://*.localhost/*"];
+
+void browser.action.setBadgeBackgroundColor({ color: BADGE_COLOR });
 
 browser.runtime.onInstalled.addListener(() => {
   void browser.action.setBadgeBackgroundColor({ color: BADGE_COLOR });
 });
+
+async function requestLoopbackAccess(): Promise<boolean> {
+  try {
+    return await browser.permissions.request({ origins: LOOPBACK_ORIGINS });
+  } catch {
+    return true;
+  }
+}
+
+browser.action.onClicked.addListener((tab) => {
+  const tabId = tab.id;
+  if (tabId === undefined) return;
+  const granted = requestLoopbackAccess();
+  void (async () => {
+    const active = await isActive(tabId);
+    if (!active && !(await granted)) return;
+    await setOverlay(tabId, !active);
+  })();
+});
+
+browser.tabs.onActivated.addListener(({ tabId }) => {
+  void refreshTitle(tabId);
+});
+
+void browser.tabs.query({ active: true }).then((tabs) => {
+  for (const tab of tabs) if (tab.id !== undefined) void refreshTitle(tab.id);
+});
+
+async function refreshTitle(tabId: number): Promise<void> {
+  try {
+    const tab = await browser.tabs.get(tabId);
+    const active = await isActive(tabId);
+    const st = isLocalUrl(tab.url ?? "") ? await status() : offlineStatus();
+    let line: string;
+    if (!isLocalUrl(tab.url ?? "")) {
+      line = "Comments on this page are exported as a handoff file.";
+    } else if (!st.serverReachable) {
+      line = "No project connected. Start your AI agent in the project you are commenting on.";
+    } else if (st.terminal?.available) {
+      line = `Ready. Send to AI types into your ${st.terminal.driver} session.`;
+    } else {
+      line = `Connected, but no terminal. ${st.terminal?.reason ?? "Northstar cannot reach the terminal your agent runs in."}`;
+    }
+    const head = active
+      ? "Northstar is on, click to toggle comments"
+      : "Northstar, click to toggle comments";
+    await browser.action.setTitle({ tabId, title: `${head}\n${line}` });
+  } catch {}
+}
 
 // The overlay is injected only here, into the one tab the user just activated, under
 // the activeTab grant. The content script guards against re-injection, so toggling
@@ -54,6 +107,7 @@ async function setOverlay(tabId: number, on: boolean): Promise<void> {
   await setActive(tabId, on);
   await browser.action.setBadgeText({ tabId, text: on ? "ON" : "" });
   browser.tabs.sendMessage(tabId, { type: "set-active", on } satisfies Message).catch(() => {});
+  void refreshTitle(tabId);
 }
 
 browser.tabs.onRemoved.addListener((tabId) => {
@@ -61,6 +115,7 @@ browser.tabs.onRemoved.addListener((tabId) => {
 });
 
 browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (changeInfo.status === "complete") void refreshTitle(tabId);
   if (changeInfo.status !== "loading") return;
   void setActive(tabId, false);
   void browser.action.setBadgeText({ tabId, text: "" });
@@ -83,10 +138,6 @@ async function handle(message: Message, sender: chrome.runtime.MessageSender): P
     case "set-overlay": {
       await setOverlay(message.tabId, message.on);
       return { ok: true };
-    }
-    case "tab-status": {
-      if (!isLocalUrl(message.url)) return { ok: true, status: offlineStatus() };
-      return { ok: true, status: await status() };
     }
     case "capture-region": {
       try {
@@ -129,6 +180,7 @@ async function handle(message: Message, sender: chrome.runtime.MessageSender): P
       return { ok: true, status: st, send };
     }
     case "queue-status": {
+      if (sender.tab?.id !== undefined) void refreshTitle(sender.tab.id);
       if (!isLocalUrl(sender.tab?.url ?? "")) return { ok: true, status: offlineStatus() };
       return { ok: true, status: await status() };
     }

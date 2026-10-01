@@ -130,3 +130,20 @@ describe("Toolbar notice count", () => {
     expect(comments?.textContent).toBe("Comments (2) · 1 needs a plan");
   });
 });
+
+describe("Toolbar send guard", () => {
+  it("disables Send while a send is in flight and re-enables it after", () => {
+    const toolbar = new Toolbar(fakeSurface(), handlers());
+    toolbar.render(state({ status: reachableStatus() }));
+    const send = Array.from(document.querySelectorAll("button")).find((b) =>
+      b.textContent?.startsWith("Send"),
+    );
+    expect(send?.disabled).toBe(false);
+    toolbar.setSending(true);
+    expect(send?.disabled).toBe(true);
+    toolbar.render(state({ status: reachableStatus() }));
+    expect(send?.disabled).toBe(true);
+    toolbar.setSending(false);
+    expect(send?.disabled).toBe(false);
+  });
+});

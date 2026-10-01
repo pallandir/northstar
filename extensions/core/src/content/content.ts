@@ -9,19 +9,20 @@ import type { ProbeResult } from "../probe/protocol.js";
 import type { DraftRequest, Rect } from "../types.js";
 import { Drawer, type DrawerContext } from "./drawer.js";
 import { downloadHandoff } from "./handoff.js";
-import type { InspectorSubmission, InspectorTarget } from "./inspector.js";
+import type { InspectorSubmission } from "./inspector.js";
+import { installPicker } from "./picker.js";
 import { Surface } from "./surface.js";
 import { type Mode, Toolbar } from "./toolbar.js";
 
 declare global {
   interface Window {
-    __northstarLoaded?: boolean;
+    __northstar?: Instance;
   }
 }
 
-if (!window.__northstarLoaded) {
-  window.__northstarLoaded = true;
-  init();
+interface Instance {
+  alive: () => boolean;
+  teardown: () => void;
 }
 
 const STATUS_POLL_MS = 5000;
@@ -32,29 +33,31 @@ function pageMode(): Mode {
 }
 
 interface ContentState {
+  gen: number;
   active: boolean;
   picking: boolean;
-  interacting: boolean;
+  modalOpen: boolean;
+  sending: boolean;
   drawerOpen: boolean;
   lastPins: PinModel[];
   lastStatus: QueueStatus | null;
   lastSend: SendOutcome | null;
   pollTimer: number | null;
-  pendingProbe: Promise<ProbeResult | null> | null;
   stopNavigateListener: (() => void) | null;
 }
 
-function init(): void {
+function init(): Instance {
   const st: ContentState = {
+    gen: 0,
     active: false,
     picking: true,
-    interacting: false,
+    modalOpen: false,
+    sending: false,
     drawerOpen: false,
     lastPins: [],
     lastStatus: null,
     lastSend: null,
     pollTimer: null,
-    pendingProbe: null,
     stopNavigateListener: null,
   };
   const mode = pageMode();
@@ -62,18 +65,40 @@ function init(): void {
   const surface = new Surface();
   let toolbar: Toolbar | null = null;
   let drawer: Drawer | null = null;
+  let disposed = false;
+
+  const alive = () => !disposed && Boolean(browser.runtime?.id);
+
+  function teardown(): void {
+    if (disposed) return;
+    setActive(false);
+    disposed = true;
+    removePicker();
+    try {
+      browser.runtime.onMessage.removeListener(onMessage);
+    } catch {}
+  }
+
+  function usable(): boolean {
+    if (alive()) return true;
+    teardown();
+    return false;
+  }
 
   async function send(message: Message): Promise<Response> {
+    if (!usable()) return { ok: false, error: "extension context invalidated" };
     try {
       return await browser.runtime.sendMessage(message);
     } catch (err) {
+      usable();
       return { ok: false, error: (err as Error).message };
     }
   }
 
-  browser.runtime.onMessage.addListener((message: Message) => {
+  const onMessage = (message: Message) => {
     if (message.type === "set-active") setActive(message.on);
-  });
+  };
+  browser.runtime.onMessage.addListener(onMessage);
 
   void send({ type: "sync-active" }).then((res) => {
     if (res.ok && res.active) setActive(true);
@@ -81,6 +106,7 @@ function init(): void {
 
   function setActive(on: boolean): void {
     if (on === st.active) return;
+    st.gen++;
     st.active = on;
     if (on) {
       st.picking = true;
@@ -101,8 +127,6 @@ function init(): void {
       });
       void refresh();
       startPolling();
-      // An SPA navigation (pushState/replaceState/popstate/hashchange) leaves the pin set and
-      // the route stale otherwise, since nothing else observes it.
       st.stopNavigateListener = onNavigate(() => void refresh());
     } else {
       stopPolling();
@@ -121,8 +145,11 @@ function init(): void {
       toolbar = null;
       drawer = null;
       st.picking = true;
-      st.interacting = false;
+      st.modalOpen = false;
+      st.sending = false;
       st.drawerOpen = false;
+      st.lastPins = [];
+      st.lastStatus = null;
       surface.unmount();
     }
     updateCursor();
@@ -135,95 +162,42 @@ function init(): void {
       surface.highlightHover(null);
       surface.setSelection(null);
       surface.closeInspector();
-      st.interacting = false;
     }
     updateCursor();
     render();
   }
 
-  document.addEventListener(
-    "mousemove",
-    (event) => {
-      if (!st.active || !st.picking || st.interacting) return;
-      if (surface.ownsEvent(event)) {
-        surface.highlightHover(null);
-        return;
-      }
-      surface.highlightHover(event.target as Element);
-    },
-    true,
-  );
+  const removePicker = installPicker({
+    isActive: () => usable() && st.active,
+    isPicking: () => usable() && st.active && st.picking && !st.modalOpen,
+    isModalOpen: () => st.modalOpen,
+    ownsEvent: (event) => surface.ownsEvent(event),
+    hasInspector: () => surface.hasInspector(),
+    closeInspector: () => surface.closeInspector(),
+    hasSelection: () => surface.selected() !== null,
+    clearSelection: () => surface.setSelection(null),
+    onHover: (target) => surface.highlightHover(target),
+    onPick: pick,
+  });
 
-  document.addEventListener(
-    "click",
-    (event) => {
-      if (!st.active || !st.picking || st.interacting || surface.ownsEvent(event)) return;
-      event.preventDefault();
-      event.stopPropagation();
-      surface.highlightHover(null);
-      pick(event.target as Element);
-    },
-    true,
-  );
-
-  document.addEventListener(
-    "keydown",
-    (event) => {
-      if (st.active && st.picking && !st.interacting && event.key === "Escape")
-        surface.setSelection(null);
-    },
-    true,
-  );
-
-  // A click opens the one popover: Comment / Text / Colour tabs, a target header, and a shared
-  // footer. The probe round trip starts immediately so its answer is usually already in by the
-  // time the popover opens; the header upgrades from a bare tag to the resolved component once
-  // it lands, rather than blocking the popover on it.
   function pick(el: Element): void {
+    if (!st.active) return;
     surface.setSelection(el);
     render();
 
     const probe = probeElement(el);
-    st.pendingProbe = probe;
-
-    st.interacting = true;
-    updateCursor();
-
-    const r = el.getBoundingClientRect();
-    const rect: Rect = { x: r.x, y: r.y, w: r.width, h: r.height };
-    const target = captureTarget(el, rect);
-    const attributeSource = resolveSource(el);
-    const initialInfo: InspectorTarget = {
-      componentName: null,
-      source: attributeSource,
-      tag: target.tag,
-      selector: target.selector,
+    const release = () => {
+      if (surface.selected() === el) surface.setSelection(null);
     };
 
-    const done = () => {
-      st.interacting = false;
-      updateCursor();
-    };
-
-    const handle = surface.showInspector(
+    surface.showInspector(
       el,
-      initialInfo,
       (result) => {
-        done();
-        void record(el, result);
+        release();
+        void record(el, result, probe);
       },
-      done,
+      release,
     );
-
-    void probe.then((probeResult) => {
-      if (!probeResult) return;
-      handle.updateTarget({
-        componentName: probeResult.component?.stack[0]?.name ?? null,
-        source: attributeSource ?? probeResult.source,
-        tag: target.tag,
-        selector: target.selector,
-      });
-    });
   }
 
   function toggleDrawer(): void {
@@ -236,22 +210,23 @@ function init(): void {
     return { mode, connected: Boolean(st.lastStatus?.serverReachable) };
   }
 
-  async function record(el: Element, payload: InspectorSubmission): Promise<void> {
+  async function record(
+    el: Element,
+    payload: InspectorSubmission,
+    probe: Promise<ProbeResult | null>,
+  ): Promise<void> {
     const { operator, elementText } = captureElement(el);
 
     const r = el.getBoundingClientRect();
     const rect: Rect = { x: r.x, y: r.y, w: r.width, h: r.height };
 
-    // Explicit consent only: undefined must not capture, and nothing forces a screenshot on the
-    // user's behalf any more.
     const attachScreenshot = payload.attachScreenshot === true;
     let screenshot: string | null = null;
     if (attachScreenshot) {
       screenshot = await captureHidden(rect);
     }
 
-    const probeResult = st.pendingProbe ? await st.pendingProbe : null;
-    st.pendingProbe = null;
+    const probeResult = await probe;
 
     const draft: DraftRequest = {
       comment: payload.comment,
@@ -305,19 +280,28 @@ function init(): void {
   }
 
   async function pollStatus(): Promise<void> {
-    if (!st.active) return;
+    if (!usable() || !st.active) return;
+    const gen = st.gen;
     const res = await send({ type: "queue-status" });
+    if (!st.active || gen !== st.gen) return;
     const next = res.ok ? (res.status ?? null) : null;
     if (!statusChanged(st.lastStatus, next)) return;
     await refresh();
   }
 
   async function handleSend(): Promise<void> {
-    if (!st.lastStatus?.serverReachable) return;
-    const res = await send({ type: "flush" });
-    st.lastSend = res.ok ? (res.send ?? null) : null;
-    if (st.lastSend) toolbar?.flashSent(st.lastSend);
-    await refresh();
+    if (st.sending || !st.lastStatus?.serverReachable) return;
+    st.sending = true;
+    toolbar?.setSending(true);
+    try {
+      const res = await send({ type: "flush" });
+      st.lastSend = res.ok ? (res.send ?? null) : null;
+      if (st.lastSend) toolbar?.flashSent(st.lastSend);
+      await refresh();
+    } finally {
+      st.sending = false;
+      toolbar?.setSending(false);
+    }
   }
 
   async function handleHandoff(): Promise<void> {
@@ -355,7 +339,7 @@ function init(): void {
     const total = st.lastPins.length;
     if (total === 0) return;
 
-    st.interacting = true;
+    st.modalOpen = true;
     updateCursor();
     surface.showModal({
       title: "Delete all comments?",
@@ -369,7 +353,7 @@ function init(): void {
         },
       ],
       onDismiss: () => {
-        st.interacting = false;
+        st.modalOpen = false;
         updateCursor();
       },
     });
@@ -381,10 +365,12 @@ function init(): void {
   }
 
   async function refresh(): Promise<void> {
+    const gen = st.gen;
     const [pinsRes, statusRes] = await Promise.all([
       send({ type: "page-comments", url: location.href }),
       send({ type: "queue-status" }),
     ]);
+    if (!st.active || gen !== st.gen) return;
     st.lastPins = pinsRes.ok && pinsRes.pins ? pinsRes.pins : [];
     st.lastStatus = statusRes.ok ? (statusRes.status ?? null) : null;
     surface.setPins(
@@ -438,7 +424,7 @@ function init(): void {
 
   function updateCursor(): void {
     document.documentElement.style.cursor =
-      st.active && st.picking && !st.interacting ? "crosshair" : "";
+      st.active && st.picking && !st.modalOpen ? "crosshair" : "";
   }
 
   function nextPaint(): Promise<void> {
@@ -446,6 +432,8 @@ function init(): void {
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
     });
   }
+
+  return { alive, teardown };
 }
 
 function statusChanged(a: QueueStatus | null, b: QueueStatus | null): boolean {
@@ -464,4 +452,16 @@ function statusChanged(a: QueueStatus | null, b: QueueStatus | null): boolean {
 
 function noticesKey(notices: QueueStatus["notices"]): string {
   return notices?.map((n) => n.commentId).join(",") ?? "";
+}
+
+const existing = window.__northstar;
+let running = false;
+try {
+  running = Boolean(existing?.alive());
+} catch {}
+if (!running) {
+  try {
+    existing?.teardown();
+  } catch {}
+  window.__northstar = init();
 }

@@ -1,9 +1,6 @@
 @import "../styles/tokens.css";
 @import "../styles/controls.css";
 
-/* `all: initial` resets z-index to auto, which left the host painting at the page's own level:
-   any positioned page element with a positive z-index covered the whole overlay. The host is
-   promoted into the top layer at runtime, and this value is the fallback where that is missing. */
 :host {
   all: initial;
   display: block;
@@ -13,7 +10,14 @@
   height: 100vh;
   overflow: hidden;
   pointer-events: none;
+  color-scheme: light;
+  font-family: var(--ns-font);
   font-size: var(--ns-fs-base);
+  line-height: 1.5;
+  color: var(--ns-text);
+  text-align: left;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
   z-index: 2147483647;
 }
 
@@ -31,69 +35,43 @@
 
 .ns-toolbar *,
 .ns-drawer *,
-.ns-panel * {
+.ns-panel *,
+.ns-modal * {
   box-sizing: border-box;
 }
 
-/* Author display rules outrank the UA [hidden] rule, so hidden toolbar
-   controls (the reconnect button on remote pages) would otherwise stay
-   visible. Re-assert it. */
 [hidden] {
   display: none !important;
 }
 
-/* An empty data-tip would render as a small floating dot on hover. */
 .ns-has-tip:not([data-tip])::after,
 .ns-has-tip[data-tip=""]::after {
   content: none;
 }
 
-/* ============================================================
-   Reticle: the one bold move. A page element gets four amber corner
-   ticks, not a full box, so it reads as a bearing taken on the page
-   rather than another rounded-rectangle overlay. A 1px dark stroke
-   rides along with it so the ticks hold up on a light or dark page
-   underneath them.
-   ============================================================ */
 .ns-hover,
 .ns-selection,
 .ns-highlight {
   box-sizing: border-box;
   position: absolute;
   pointer-events: none;
-  --tick: 10px;
-  --tick-w: 2px;
-  background-repeat: no-repeat;
-  background-image: linear-gradient(var(--ns-bearing), var(--ns-bearing)),
-    linear-gradient(var(--ns-bearing), var(--ns-bearing)),
-    linear-gradient(var(--ns-bearing), var(--ns-bearing)),
-    linear-gradient(var(--ns-bearing), var(--ns-bearing)),
-    linear-gradient(var(--ns-bearing), var(--ns-bearing)),
-    linear-gradient(var(--ns-bearing), var(--ns-bearing)),
-    linear-gradient(var(--ns-bearing), var(--ns-bearing)),
-    linear-gradient(var(--ns-bearing), var(--ns-bearing));
-  background-size:
-    var(--tick) var(--tick-w), var(--tick-w) var(--tick), var(--tick) var(--tick-w),
-    var(--tick-w) var(--tick), var(--tick) var(--tick-w), var(--tick-w) var(--tick),
-    var(--tick) var(--tick-w), var(--tick-w) var(--tick);
-  background-position: top left, top left, top right, top right, bottom left, bottom left, bottom
-    right, bottom right;
-  filter: drop-shadow(1px 0 0 var(--ns-ink)) drop-shadow(-1px 0 0 var(--ns-ink))
-    drop-shadow(0 1px 0 var(--ns-ink)) drop-shadow(0 -1px 0 var(--ns-ink));
-  transition: all 0.08s linear;
+  border-radius: 4px;
 }
 
 .ns-hover {
   z-index: var(--ns-z-hover);
-  opacity: 0.7;
+  border: 1.5px dashed var(--ns-accent);
+  background: var(--ns-accent-fill);
+  transition: left 60ms linear, top 60ms linear, width 60ms linear, height 60ms linear;
 }
 
 .ns-selection,
 .ns-highlight {
   z-index: var(--ns-z-leader);
+  border: 2px solid var(--ns-accent);
+  box-shadow: 0 0 0 4px var(--ns-accent-ring);
 }
 
-/* Pins */
 .ns-pin-wrap {
   position: absolute;
   width: 0;
@@ -110,17 +88,18 @@
   height: 26px;
   margin: -13px 0 0 -13px;
   border-radius: 50% 50% 50% 2px;
-  background: var(--ns-bearing);
-  border: 2px solid var(--ns-ink);
+  background: var(--ns-accent);
+  border: 2px solid #ffffff;
   box-shadow: var(--ns-shadow-pin);
   transform: rotate(-45deg);
-  color: var(--ns-on-bearing);
-  font: 500 var(--ns-fs-sm) / 1 var(--ns-font);
-  animation: ns-pop 0.32s var(--ns-ease);
+  color: var(--ns-on-accent);
+  font: 600 var(--ns-fs-sm) / 1 var(--ns-font);
+  animation: ns-pop 0.28s var(--ns-ease);
   transition: transform 0.14s var(--ns-ease);
 }
 
 .ns-pin > span {
+  display: flex;
   transform: rotate(45deg);
 }
 
@@ -130,9 +109,16 @@
   height: 12px;
 }
 
+.ns-pin-wrap--pending .ns-pin {
+  background: var(--ns-warn);
+}
+
 .ns-pin-wrap--resolved .ns-pin {
-  background: var(--ns-sent);
-  box-shadow: 0 2px 8px rgba(98, 208, 164, 0.4);
+  background: var(--ns-success);
+}
+
+.ns-pin-wrap--wontfix .ns-pin {
+  background: var(--ns-text-faint);
 }
 
 .ns-pin-wrap--hidden {
@@ -144,26 +130,17 @@
 }
 
 .ns-pin-wrap--focus .ns-pin {
-  box-shadow: 0 0 0 2px var(--ns-bearing), var(--ns-shadow-pin);
-  transform: rotate(-45deg) scale(1.22);
-}
-
-.ns-pin-wrap--wontfix .ns-pin {
-  background: var(--ns-haze);
-  box-shadow: none;
-}
-
-.ns-pin-wrap--processing .ns-pin {
-  background: var(--ns-bearing);
+  box-shadow: 0 0 0 3px var(--ns-accent-ring), var(--ns-shadow-pin);
+  transform: rotate(-45deg) scale(1.2);
 }
 
 .ns-pin-wrap--processing .ns-pin::after {
   content: "";
   position: absolute;
-  inset: -5px;
+  inset: -6px;
   border-radius: 50%;
   border: 2px solid transparent;
-  border-top-color: var(--ns-on-bearing);
+  border-top-color: var(--ns-accent);
   animation: ns-spin 0.8s linear infinite;
 }
 
@@ -173,15 +150,15 @@
 
 .ns-pin-card {
   position: absolute;
-  left: 16px;
-  top: -10px;
-  width: 220px;
-  padding: var(--ns-s3) var(--ns-s3);
+  left: 18px;
+  top: -12px;
+  width: 240px;
+  padding: 10px 12px;
   border-radius: var(--ns-radius-surface);
-  background: var(--ns-ink-2);
-  color: var(--ns-chalk);
-  font: var(--ns-fs-sm) / 1.4 var(--ns-font);
-  border: 1px solid var(--ns-ink-3);
+  background: var(--ns-bg);
+  color: var(--ns-text);
+  font: var(--ns-fs-md) / 1.45 var(--ns-font);
+  border: 1px solid var(--ns-line);
   box-shadow: var(--ns-shadow);
   opacity: 0;
   visibility: hidden;
@@ -199,179 +176,54 @@
 }
 
 .ns-pin-card-preview {
-  line-height: 1.45;
   word-break: break-word;
-  color: var(--ns-chalk);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ns-pin-card {
-    transition: opacity 0.01s, visibility 0s;
-  }
-}
-
-/* ============================================================
-   Panel surface: the common chrome for the inspector popover and
-   (via .ns-modal, separately) the confirm dialog.
-   ============================================================ */
 .ns-panel {
   position: absolute;
   z-index: var(--ns-z-panel);
-  background: var(--ns-ink);
-  color: var(--ns-chalk);
+  max-height: calc(100vh - 16px);
+  max-width: calc(100vw - 16px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--ns-bg);
+  color: var(--ns-text);
   font-family: var(--ns-font);
-  font-size: var(--ns-fs-sm);
-  border: 1px solid var(--ns-ink-3);
+  font-size: var(--ns-fs-base);
+  line-height: 1.5;
+  border: 1px solid var(--ns-line);
   border-radius: var(--ns-radius-surface);
   box-shadow: var(--ns-shadow);
   animation: ns-fade-scale var(--ns-dur-enter) var(--ns-ease);
 }
 
-.ns-hint {
-  margin-top: var(--ns-s2);
-  font-size: var(--ns-fs-sm);
-  color: var(--ns-haze);
-}
-
-.ns-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--ns-s2);
-  margin-top: var(--ns-s3);
-}
-
-.ns-actions .ns-hint {
-  margin-right: auto;
-}
-
-/* ============================================================
-   Inspector: one popover, three tabs. A hairline connector on the
-   edge facing the target stands in for a literal leader line, the
-   same job a tooltip's caret does.
-   ============================================================ */
 .ns-inspector {
-  width: 300px;
+  width: 380px;
   padding: var(--ns-s4);
 }
 
-.ns-inspector::before {
-  content: "";
-  position: absolute;
-  left: 20px;
-  width: 10px;
-  height: 10px;
-  background: var(--ns-ink);
-  border: 1px solid var(--ns-ink-3);
-  border-right: none;
-  border-bottom: none;
-  transform: rotate(45deg);
-}
-
-.ns-inspector--below::before {
-  top: -6px;
-}
-
-.ns-inspector--above::before {
-  bottom: -6px;
-  border: none;
-  border-top: 1px solid var(--ns-ink-3);
-  border-left: 1px solid var(--ns-ink-3);
-}
-
-.ns-inspector-target {
-  padding-bottom: var(--ns-s3);
-  margin-bottom: var(--ns-s3);
-  border-bottom: 1px solid var(--ns-ink-3);
-}
-
-.ns-inspector-target-name {
-  font-size: var(--ns-fs-base);
-  font-weight: 600;
-  color: var(--ns-chalk);
-}
-
-.ns-inspector-target-source,
-.ns-inspector-target-selector {
-  margin-top: 2px;
-  font-family: var(--ns-font-mono);
-  font-size: var(--ns-fs-2xs);
-  color: var(--ns-haze);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .ns-inspector-tabs {
-  display: flex;
-  gap: var(--ns-s4);
   margin-bottom: var(--ns-s3);
-  border-bottom: 1px solid var(--ns-ink-3);
-}
-
-.ns-inspector-tab {
-  padding: var(--ns-s2) 0 var(--ns-s2);
-  margin-bottom: -1px;
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  color: var(--ns-haze);
-  font: inherit;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color var(--ns-dur-state) var(--ns-ease), border-color var(--ns-dur-state)
-    var(--ns-ease);
-}
-
-.ns-inspector-tab:hover {
-  color: var(--ns-chalk);
-}
-
-.ns-inspector-tab--active {
-  color: var(--ns-chalk);
-  border-bottom-color: var(--ns-bearing);
 }
 
 .ns-inspector-body {
-  min-height: 96px;
-}
-
-.ns-inspector-tab-body textarea,
-.ns-inspector-tab-body input[type="text"] {
-  width: 100%;
-  padding: var(--ns-s2) var(--ns-s3);
-  border: 1px solid var(--ns-ink-3);
-  border-radius: var(--ns-radius-control);
-  background: var(--ns-ink-2);
-  color: var(--ns-chalk);
-  font: inherit;
-  outline: none;
+  min-height: 120px;
 }
 
 .ns-inspector-tab-body textarea {
-  min-height: 72px;
+  min-height: 120px;
   resize: vertical;
-}
-
-.ns-inspector-tab-body textarea:focus,
-.ns-inspector-tab-body input[type="text"]:focus {
-  border-color: var(--ns-bearing);
-  box-shadow: 0 0 0 3px var(--ns-bearing-soft);
-}
-
-.ns-inspector-tab-body input:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .ns-inspector-current-text {
   margin-bottom: var(--ns-s2);
-  padding: var(--ns-s2) var(--ns-s3);
+  padding: 10px 12px;
   border-radius: var(--ns-radius-control);
-  background: var(--ns-ink-2);
-  color: var(--ns-haze);
-  font-size: var(--ns-fs-sm);
-  line-height: 1.4;
+  background: var(--ns-bg-sunken);
+  color: var(--ns-text-muted);
+  font-size: var(--ns-fs-md);
+  line-height: 1.45;
+  word-break: break-word;
 }
 
 .ns-inspector-property-row {
@@ -382,22 +234,26 @@
 
 .ns-inspector-property {
   flex: 1;
-  padding: var(--ns-s1) var(--ns-s2);
-  border: 1px solid var(--ns-ink-3);
+  padding: 7px 8px;
+  border: 1px solid var(--ns-line);
   border-radius: var(--ns-radius-control);
-  background: var(--ns-ink-2);
-  color: var(--ns-haze);
+  background: var(--ns-bg);
+  color: var(--ns-text-muted);
   font: inherit;
-  font-size: var(--ns-fs-xs);
+  font-size: var(--ns-fs-md);
   cursor: pointer;
   transition: background var(--ns-dur-state) var(--ns-ease), color var(--ns-dur-state)
     var(--ns-ease), border-color var(--ns-dur-state) var(--ns-ease);
 }
 
+.ns-inspector-property:hover {
+  background: var(--ns-bg-hover);
+}
+
 .ns-inspector-property--active {
-  background: var(--ns-bearing-soft);
-  border-color: var(--ns-bearing);
-  color: var(--ns-bearing);
+  background: var(--ns-accent-soft);
+  border-color: var(--ns-accent);
+  color: var(--ns-accent);
 }
 
 .ns-inspector-swatches {
@@ -408,10 +264,10 @@
 }
 
 .ns-inspector-swatch {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   padding: 0;
-  border: 1px solid var(--ns-ink-3);
+  border: 1px solid var(--ns-line-strong);
   border-radius: 50%;
   cursor: pointer;
   transition: transform 100ms var(--ns-ease);
@@ -428,12 +284,13 @@
 }
 
 .ns-inspector-color-controls input[type="color"] {
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border: 1px solid var(--ns-ink-3);
+  flex: none;
+  width: 40px;
+  height: 40px;
+  padding: 2px;
+  border: 1px solid var(--ns-line);
   border-radius: var(--ns-radius-control);
-  background: none;
+  background: var(--ns-bg);
   cursor: pointer;
 }
 
@@ -444,74 +301,35 @@
 }
 
 .ns-inspector-footer {
-  margin-top: var(--ns-s4);
+  margin-top: var(--ns-s3);
   padding-top: var(--ns-s3);
-  border-top: 1px solid var(--ns-ink-3);
+  border-top: 1px solid var(--ns-line);
 }
 
-/* ============================================================
-   Shared control rows: toggles, used only by the inspector footer.
-   ============================================================ */
 .ns-toggle-row {
   display: flex;
   flex-direction: column;
-  gap: var(--ns-s1);
   margin-bottom: var(--ns-s2);
 }
 
-.ns-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ns-s3);
-  padding: var(--ns-s2) var(--ns-s3);
-  border: 1px solid var(--ns-ink-3);
-  border-radius: var(--ns-radius-control);
-  background: var(--ns-ink-2);
-  color: var(--ns-chalk);
-  font: inherit;
-  font-size: var(--ns-fs-sm);
-  cursor: pointer;
-  text-align: left;
-  transition: border-color var(--ns-dur-state) var(--ns-ease);
-}
-.ns-toggle:hover {
-  border-color: var(--ns-ink-4);
-}
 .ns-toggle-label {
   flex: 1;
 }
-.ns-switch {
-  flex: none;
-  position: relative;
-  width: 32px;
-  height: 18px;
-  border-radius: var(--ns-radius-pill);
-  background: var(--ns-ink-3);
-  transition: background 0.2s var(--ns-ease);
-}
-.ns-switch::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--ns-chalk);
-  transition: transform 0.2s var(--ns-ease);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-.ns-toggle[aria-pressed="true"] .ns-switch {
-  background: var(--ns-bearing);
-}
-.ns-toggle[aria-pressed="true"] .ns-switch::after {
-  transform: translateX(14px);
+
+.ns-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ns-s2);
+  margin-top: var(--ns-s2);
 }
 
-/* ============================================================
-   Toolbar: fully open, centered on the bottom.
-   ============================================================ */
+.ns-hint {
+  margin-right: auto;
+  font-size: var(--ns-fs-sm);
+  color: var(--ns-text-muted);
+}
+
 .ns-toolbar {
   position: fixed;
   bottom: 20px;
@@ -520,16 +338,16 @@
   z-index: var(--ns-z-toolbar);
   display: flex;
   align-items: center;
-  gap: var(--ns-s2);
-  padding: 7px 9px;
-  border-radius: 16px;
-  background: var(--ns-ink);
-  color: var(--ns-chalk);
+  gap: var(--ns-s1);
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--ns-bg);
+  color: var(--ns-text);
   font-family: var(--ns-font);
-  font-size: var(--ns-fs-sm);
-  border: 1px solid var(--ns-ink-3);
+  font-size: var(--ns-fs-md);
+  border: 1px solid var(--ns-line);
   box-shadow: var(--ns-shadow);
-  animation: ns-rise 0.26s var(--ns-ease);
+  animation: ns-rise 0.24s var(--ns-ease);
 }
 
 .ns-grip {
@@ -537,10 +355,9 @@
   align-items: center;
   justify-content: center;
   height: var(--ns-control-h);
+  padding: 0 2px;
   cursor: grab;
-  color: var(--ns-ink-4);
-  padding: 0 var(--ns-s1);
-  font-size: var(--ns-fs-base);
+  color: var(--ns-text-faint);
   user-select: none;
 }
 
@@ -548,7 +365,6 @@
   cursor: grabbing;
 }
 
-/* Stops a touch drag from also scrolling the page underneath it. */
 .ns-drag {
   touch-action: none;
 }
@@ -556,90 +372,87 @@
 .ns-sep {
   width: 1px;
   align-self: stretch;
-  background: var(--ns-ink-3);
-  margin: var(--ns-s1) 3px;
+  background: var(--ns-line);
+  margin: 4px 4px;
 }
 
 .ns-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--ns-s2);
+  gap: 6px;
   box-sizing: border-box;
   height: var(--ns-control-h);
-  padding: 0 var(--ns-s4);
-  border: 1px solid var(--ns-ink-3);
-  border-radius: var(--ns-radius-control);
-  background: var(--ns-ink);
-  color: var(--ns-chalk);
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ns-text);
   font: inherit;
+  font-size: var(--ns-fs-md);
+  font-weight: 500;
+  line-height: 1;
   cursor: pointer;
   white-space: nowrap;
-  transition: background var(--ns-dur-state) var(--ns-ease), border-color var(--ns-dur-state)
+  transition: background var(--ns-dur-state) var(--ns-ease), color var(--ns-dur-state)
     var(--ns-ease), transform 100ms var(--ns-ease);
 }
 
 .ns-action:hover {
-  background: var(--ns-ink-2);
+  background: var(--ns-bg-hover);
 }
 
 .ns-action:active {
+  background: var(--ns-bg-press);
   transform: scale(0.97);
 }
 
-.ns-action--primary {
-  background: var(--ns-bearing);
-  border-color: var(--ns-bearing);
-  color: var(--ns-on-bearing);
-  font-weight: 500;
+.ns-action:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ns-accent-ring);
+}
+
+.ns-toolbar .ns-action--primary {
+  background: var(--ns-accent);
+  color: var(--ns-on-accent);
 }
 
 .ns-toolbar .ns-action--primary:hover {
-  background: var(--ns-bearing-strong);
-  border-color: var(--ns-bearing-strong);
-  color: var(--ns-on-bearing);
+  background: var(--ns-accent-strong);
 }
 
 .ns-action--active {
-  background: var(--ns-bearing-soft);
-  border-color: var(--ns-bearing);
-  color: var(--ns-bearing);
-  font-weight: 500;
+  background: var(--ns-accent-soft);
+  color: var(--ns-accent);
+}
+
+.ns-action--active:hover {
+  background: var(--ns-accent-ring);
+}
+
+.ns-action--danger {
+  color: var(--ns-text-muted);
 }
 
 .ns-action--danger:hover {
   background: var(--ns-danger-soft);
-  border-color: rgba(255, 122, 102, 0.4);
   color: var(--ns-danger);
-}
-
-.ns-action--ghost {
-  background: transparent;
-  border-color: transparent;
-  color: var(--ns-haze);
-}
-
-.ns-action--ghost:hover {
-  background: var(--ns-ink-2);
-  color: var(--ns-chalk);
 }
 
 .ns-action:disabled {
   cursor: not-allowed;
-  opacity: 0.4;
+  opacity: 0.45;
+  transform: none;
 }
 
 .ns-action:disabled:hover {
-  background: var(--ns-ink);
-  transform: none;
+  background: transparent;
 }
 
 .ns-action--primary:disabled,
 .ns-toolbar .ns-action--primary:disabled:hover {
-  background: var(--ns-bearing);
-  border-color: var(--ns-bearing);
-  color: var(--ns-on-bearing);
-  transform: none;
+  background: var(--ns-accent);
+  color: var(--ns-on-accent);
 }
 
 .ns-action--icon {
@@ -649,8 +462,8 @@
 
 .ns-action-glyph {
   display: block;
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
 }
 
 @keyframes ns-spin {
@@ -659,43 +472,44 @@
   }
 }
 
-/* ============================================================
-   Toolbar panel: notices and status hints, floating above the bar.
-   A one-line strip, not a permanent card — see toolbar.ts.
-   ============================================================ */
 .ns-tb-panel {
   position: absolute;
-  bottom: calc(100% + var(--ns-s2));
+  bottom: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%);
-  width: 320px;
-  max-width: 86vw;
+  width: 340px;
+  max-width: calc(100vw - 32px);
   padding: var(--ns-s3) var(--ns-s4);
   border-radius: var(--ns-radius-surface);
-  background: var(--ns-ink);
-  border: 1px solid var(--ns-ink-3);
+  background: var(--ns-bg);
+  border: 1px solid var(--ns-line);
   box-shadow: var(--ns-shadow);
-  animation: ns-rise 0.22s var(--ns-ease);
+  animation: ns-rise 0.2s var(--ns-ease);
 }
 
 .ns-notices {
   display: flex;
   flex-direction: column;
-  gap: var(--ns-s3);
+  gap: var(--ns-s2);
+  margin: var(--ns-s2) var(--ns-s3) 0;
+  padding: var(--ns-s3);
+  border-radius: var(--ns-radius-control);
+  background: rgba(254, 100, 11, 0.08);
+  border: 1px solid rgba(254, 100, 11, 0.28);
 }
 
 .ns-notices-title {
-  font-size: var(--ns-fs-sm);
-  font-weight: 500;
-  color: var(--ns-chalk);
+  font-size: var(--ns-fs-md);
+  font-weight: 600;
+  color: var(--ns-text);
 }
 
 .ns-notice-row {
   display: flex;
   align-items: flex-start;
   gap: var(--ns-s3);
-  padding: var(--ns-s2) 0;
-  border-top: 1px solid var(--ns-ink-3);
+  padding-top: var(--ns-s2);
+  border-top: 1px solid rgba(254, 100, 11, 0.28);
 }
 
 .ns-notice-body {
@@ -704,16 +518,16 @@
 }
 
 .ns-notice-route {
-  font-family: var(--ns-font-mono);
-  font-size: var(--ns-fs-sm);
-  color: var(--ns-bearing);
   display: block;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
+  font-family: var(--ns-font-mono);
+  font-size: var(--ns-fs-xs);
+  color: var(--ns-warn);
 }
 
 .ns-notice-summary {
-  font-size: var(--ns-fs-sm);
-  color: var(--ns-chalk);
+  font-size: var(--ns-fs-md);
+  color: var(--ns-text);
   line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
@@ -721,15 +535,16 @@
 }
 
 .ns-notice-hint {
+  margin-top: 2px;
   font-size: var(--ns-fs-sm);
-  color: var(--ns-haze);
-  margin-top: 3px;
+  color: var(--ns-text-muted);
 }
 
 .ns-notice-dismiss {
   flex: none;
+  height: 28px;
+  padding: 0 10px;
   font-size: var(--ns-fs-sm);
-  padding: var(--ns-s1) var(--ns-s3);
 }
 
 .ns-setup {
@@ -742,36 +557,33 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--ns-s3);
-  margin-bottom: var(--ns-s2);
 }
 
 .ns-setup-row .ns-drawer-close {
   flex: none;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
+  margin: -2px -6px 0 0;
 }
 
 .ns-setup-row .ns-drawer-close-icon {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
 }
 
 .ns-setup-title {
-  font-size: var(--ns-fs-sm);
-  font-weight: 500;
-  color: var(--ns-chalk);
+  font-size: var(--ns-fs-md);
+  font-weight: 600;
+  color: var(--ns-text);
 }
 
 .ns-setup-hint {
-  font-size: var(--ns-fs-sm);
-  color: var(--ns-haze);
   margin-top: 2px;
-  line-height: 1.4;
+  font-size: var(--ns-fs-sm);
+  color: var(--ns-text-muted);
+  line-height: 1.45;
 }
 
-/* ============================================================
-   Confirm modal.
-   ============================================================ */
 .ns-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -779,22 +591,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.55);
-  animation: ns-fade-in 0.16s var(--ns-ease);
+  background: var(--ns-scrim);
+  animation: ns-fade-in 0.14s var(--ns-ease);
 }
 
 .ns-modal {
-  width: 360px;
+  width: 380px;
   max-width: calc(100vw - 32px);
   padding: var(--ns-s6);
-  border-radius: var(--ns-radius-surface);
-  background: var(--ns-ink);
-  color: var(--ns-chalk);
+  border-radius: 14px;
+  background: var(--ns-bg);
+  color: var(--ns-text);
   font-family: var(--ns-font);
-  border: 1px solid var(--ns-ink-3);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--ns-line);
+  box-shadow: var(--ns-shadow);
   text-align: center;
-  animation: ns-fade-scale 0.2s var(--ns-ease);
+  animation: ns-fade-scale 0.18s var(--ns-ease);
 }
 
 .ns-modal-icon {
@@ -815,28 +627,24 @@
 }
 
 .ns-modal-title {
-  font-size: var(--ns-fs-base);
-  font-weight: 600;
   margin-bottom: var(--ns-s2);
+  font-size: var(--ns-fs-lg);
+  font-weight: 600;
 }
 
 .ns-modal-body {
   margin: 0 0 var(--ns-s5);
-  font-size: var(--ns-fs-sm);
+  font-size: var(--ns-fs-md);
   line-height: 1.5;
-  color: var(--ns-haze);
+  color: var(--ns-text-muted);
 }
 
 .ns-modal-actions {
   display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
+  justify-content: center;
   gap: var(--ns-s2);
 }
 
-/* ============================================================
-   Hover tooltips.
-   ============================================================ */
 .ns-has-tip {
   position: relative;
 }
@@ -845,17 +653,17 @@
   content: attr(data-tip);
   position: absolute;
   left: 50%;
-  bottom: calc(100% + var(--ns-s2));
+  bottom: calc(100% + 10px);
   transform: translateX(-50%) translateY(4px);
-  padding: var(--ns-s1) var(--ns-s2);
-  border-radius: var(--ns-radius-control);
-  background: var(--ns-ink-2);
-  color: var(--ns-chalk);
-  font: var(--ns-fs-sm) var(--ns-font);
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--ns-text);
+  color: #ffffff;
+  font: 500 var(--ns-fs-xs) / 1.2 var(--ns-font);
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  box-shadow: var(--ns-shadow);
+  box-shadow: var(--ns-shadow-sm);
   transition: opacity 0.14s var(--ns-ease), transform 0.14s var(--ns-ease);
 }
 
@@ -864,26 +672,22 @@
   transform: translateX(-50%) translateY(0);
 }
 
-/* ============================================================
-   Comments drawer: floating, scrollable, animated.
-   ============================================================ */
 .ns-drawer {
   position: fixed;
   top: 64px;
   right: var(--ns-s4);
-  width: 312px;
-  max-height: 90vh;
-  overflow: visible;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 96px);
   z-index: var(--ns-z-drawer);
   display: flex;
   flex-direction: column;
-  gap: var(--ns-s3);
   font-family: var(--ns-font);
-  font-size: var(--ns-fs-sm);
+  font-size: var(--ns-fs-md);
   opacity: 0;
   transform: translateX(calc(100% + 32px));
   pointer-events: none;
-  transition: opacity 0.26s var(--ns-ease), transform 0.3s var(--ns-ease);
+  transition: opacity 0.22s var(--ns-ease), transform 0.28s var(--ns-ease);
 }
 
 .ns-drawer--open {
@@ -895,16 +699,14 @@
 .ns-drawer-card {
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
   min-height: 0;
-  background: var(--ns-ink);
-  color: var(--ns-chalk);
-  border: 1px solid var(--ns-ink-3);
+  max-height: inherit;
+  overflow: hidden;
+  background: var(--ns-bg);
+  color: var(--ns-text);
+  border: 1px solid var(--ns-line);
   border-radius: var(--ns-radius-surface);
-}
-
-.ns-comments-card {
-  flex: 0 0 auto;
+  box-shadow: var(--ns-shadow);
 }
 
 .ns-drawer-head {
@@ -912,7 +714,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--ns-s2);
-  padding: var(--ns-s3) var(--ns-s3) 0;
+  padding: 0 var(--ns-s3) 0 var(--ns-s4);
+  border-bottom: 1px solid var(--ns-line);
 }
 
 .ns-drawer-tabs {
@@ -921,41 +724,26 @@
 }
 
 .ns-drawer-tab {
-  padding: var(--ns-s1) 0 var(--ns-s2);
+  padding: 12px 0 10px;
+  margin-bottom: -1px;
   border: none;
   border-bottom: 2px solid transparent;
   background: transparent;
-  color: var(--ns-haze);
+  color: var(--ns-text-muted);
   font: inherit;
-  font-size: var(--ns-fs-sm);
+  font-size: var(--ns-fs-md);
   font-weight: 500;
   cursor: pointer;
+  transition: color var(--ns-dur-state) var(--ns-ease);
+}
+
+.ns-drawer-tab:hover {
+  color: var(--ns-text);
 }
 
 .ns-drawer-tab--active {
-  color: var(--ns-chalk);
-  border-bottom-color: var(--ns-bearing);
-}
-
-.ns-drawer-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: none;
-  border-radius: var(--ns-radius-control);
-  background: transparent;
-  color: var(--ns-haze);
-  cursor: pointer;
-  transition: background var(--ns-dur-state) var(--ns-ease), color var(--ns-dur-state)
-    var(--ns-ease);
-}
-
-.ns-drawer-close:hover {
-  background: var(--ns-ink-2);
-  color: var(--ns-chalk);
+  color: var(--ns-text);
+  border-bottom-color: var(--ns-accent);
 }
 
 .ns-drawer-close-icon {
@@ -964,66 +752,69 @@
 }
 
 .ns-drawer-list {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  max-height: 60vh;
-  padding: var(--ns-s2) var(--ns-s3) var(--ns-s3);
+  overscroll-behavior: contain;
+  padding: var(--ns-s2);
   display: flex;
   flex-direction: column;
-  gap: var(--ns-s2);
+  gap: 2px;
 }
 
 .ns-drawer-empty {
-  padding: var(--ns-s4) 0;
+  padding: var(--ns-s6) 0;
   text-align: center;
-  color: var(--ns-haze);
-  font-size: var(--ns-fs-sm);
+  color: var(--ns-text-muted);
+  font-size: var(--ns-fs-md);
 }
 
 .ns-drawer-item {
-  padding: var(--ns-s2) var(--ns-s2);
+  padding: 10px var(--ns-s3);
   border-radius: var(--ns-radius-control);
   transition: background var(--ns-dur-state) var(--ns-ease);
 }
 
 .ns-drawer-item:hover {
-  background: var(--ns-ink-2);
+  background: var(--ns-bg-sunken);
 }
 
 .ns-drawer-meta {
   display: flex;
   align-items: center;
   gap: var(--ns-s2);
-  margin-bottom: var(--ns-s1);
+  margin-bottom: 4px;
 }
 
 .ns-dot {
   flex: none;
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: var(--ns-haze);
+  background: var(--ns-text-faint);
 }
 
 .ns-dot--resolved {
-  background: var(--ns-sent);
+  background: var(--ns-success);
 }
 
 .ns-dot--wontfix {
-  background: var(--ns-haze);
+  background: var(--ns-text-faint);
 }
 
-.ns-dot--processing {
-  background: var(--ns-bearing);
-}
-
-.ns-dot--pending,
+.ns-dot--processing,
 .ns-dot--open {
-  background: var(--ns-bearing);
+  background: var(--ns-accent);
+}
+
+.ns-dot--pending {
+  background: var(--ns-warn);
 }
 
 .ns-drawer-tag {
   font-size: var(--ns-fs-xs);
-  color: var(--ns-haze);
+  font-weight: 600;
+  color: var(--ns-text-muted);
 }
 
 .ns-drawer-target {
@@ -1031,15 +822,15 @@
   min-width: 0;
   font-family: var(--ns-font-mono);
   font-size: var(--ns-fs-xs);
-  color: var(--ns-haze);
+  color: var(--ns-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .ns-drawer-text {
-  font-size: var(--ns-fs-sm);
-  color: var(--ns-chalk);
+  font-size: var(--ns-fs-md);
+  color: var(--ns-text);
   line-height: 1.45;
   word-break: break-word;
 }
@@ -1051,23 +842,17 @@
   margin-top: var(--ns-s2);
 }
 
-.ns-drawer-edit {
-  width: 100%;
-  min-height: 64px;
-  margin-top: var(--ns-s1);
-  padding: var(--ns-s2) var(--ns-s3);
-  border: 1px solid var(--ns-ink-3);
-  border-radius: var(--ns-radius-control);
-  background: var(--ns-ink-2);
-  color: var(--ns-chalk);
-  font: inherit;
-  resize: vertical;
-  outline: none;
+.ns-drawer-actions .ns-btn {
+  height: 30px;
+  padding: 0 12px;
+  font-size: var(--ns-fs-sm);
 }
 
-.ns-drawer-edit:focus {
-  border-color: var(--ns-bearing);
-  box-shadow: 0 0 0 3px var(--ns-bearing-soft);
+.ns-drawer-edit {
+  min-height: 80px;
+  margin-top: var(--ns-s1);
+  font-size: var(--ns-fs-md);
+  resize: vertical;
 }
 
 .ns-drawer-edit-screenshot {
@@ -1075,32 +860,28 @@
   align-items: center;
   gap: var(--ns-s2);
   margin-top: var(--ns-s2);
-  color: var(--ns-haze);
-  font-size: var(--ns-fs-sm);
+  color: var(--ns-text-muted);
+  font-size: var(--ns-fs-md);
   cursor: pointer;
 }
 
-.ns-drawer-edit-actions {
-  margin-top: var(--ns-s2);
+.ns-drawer-edit-screenshot input {
+  accent-color: var(--ns-accent);
 }
 
 .ns-drawer-del {
   color: var(--ns-danger);
-  background: transparent;
-  border-color: transparent;
 }
 
 .ns-drawer-del:hover {
   background: var(--ns-danger-soft);
+  color: var(--ns-danger);
 }
 
-/* ============================================================
-   Motion.
-   ============================================================ */
 @keyframes ns-rise {
   from {
     opacity: 0;
-    transform: translate(-50%, 14px);
+    transform: translate(-50%, 12px);
   }
   to {
     opacity: 1;
@@ -1122,8 +903,8 @@
 
 @keyframes ns-fade-scale {
   from {
-    opacity: 0;
-    transform: scale(0.96) translateY(4px);
+    opacity: 0.4;
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -1134,11 +915,9 @@
 @keyframes ns-fade-in {
   from {
     opacity: 0;
-    transform: translateY(4px);
   }
   to {
     opacity: 1;
-    transform: none;
   }
 }
 
@@ -1152,8 +931,8 @@
     animation: none;
   }
   .ns-hover,
-  .ns-selection,
-  .ns-highlight {
+  .ns-drawer,
+  .ns-pin-card {
     transition: none;
   }
 }

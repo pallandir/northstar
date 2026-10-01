@@ -93,3 +93,46 @@ describe("Drawer notices", () => {
     expect(document.querySelector(".ns-drawer-item")).not.toBeNull();
   });
 });
+
+describe("Drawer editing", () => {
+  const pin: PinModel = {
+    key: "q-1",
+    operator: "/html/body/div[1]",
+    text: "Original",
+    status: "pending",
+    kind: "comment",
+    removable: true,
+    route: "/",
+    target: "Card",
+    planFirst: false,
+    hasScreenshot: false,
+  };
+
+  it("keeps the row being edited, with its draft, across a re-render", () => {
+    const drawer = new Drawer(fakeSurface(), handlers());
+    const ctx = { mode: "local", connected: true } as const;
+    drawer.setOpen(true, [pin], ctx, []);
+    Array.from(document.querySelectorAll<HTMLButtonElement>(".ns-drawer-item button"))
+      .find((b) => b.textContent === "Edit")
+      ?.click();
+    const field = document.querySelector<HTMLTextAreaElement>(".ns-drawer-edit");
+    if (!field) throw new Error("expected an edit field");
+    field.value = "Half typed";
+
+    drawer.render([pin], ctx, []);
+
+    const after = document.querySelector<HTMLTextAreaElement>(".ns-drawer-edit");
+    expect(after?.value).toBe("Half typed");
+  });
+
+  it("drops the edit when the pin disappears", () => {
+    const drawer = new Drawer(fakeSurface(), handlers());
+    const ctx = { mode: "local", connected: true } as const;
+    drawer.setOpen(true, [pin], ctx, []);
+    Array.from(document.querySelectorAll<HTMLButtonElement>(".ns-drawer-item button"))
+      .find((b) => b.textContent === "Edit")
+      ?.click();
+    drawer.render([], ctx, []);
+    expect(document.querySelector(".ns-drawer-edit")).toBeNull();
+  });
+});

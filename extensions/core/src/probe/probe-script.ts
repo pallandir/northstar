@@ -420,9 +420,8 @@ export function installProbe(): void {
   }
 
   window.addEventListener(REQUEST_EVENT, (event) => {
-    const detail = (event as CustomEvent).detail as { nonce?: string } | undefined;
-    const nonce = detail?.nonce;
-    if (!nonce) return;
+    const nonce = (event as CustomEvent).detail;
+    if (typeof nonce !== "string" || !nonce) return;
     let result: Result = { component: null, source: null, route: null };
     try {
       const el = document.querySelector(`[${PROBE_ATTR}="${cssEscape(nonce)}"]`);

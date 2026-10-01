@@ -28,7 +28,7 @@ function ask(el: Element): Promise<ProbeResult | null> {
       },
       { once: true },
     );
-    window.dispatchEvent(new CustomEvent(PROBE_REQUEST_EVENT, { detail: { nonce } }));
+    window.dispatchEvent(new CustomEvent(PROBE_REQUEST_EVENT, { detail: nonce }));
   });
 }
 
@@ -41,6 +41,19 @@ describe("installProbe", () => {
 
   afterEach(() => {
     document.body.innerHTML = "";
+  });
+
+  it("ignores a request whose detail is not a primitive nonce", () => {
+    let answered = false;
+    window.addEventListener(
+      PROBE_RESPONSE_EVENT,
+      () => {
+        answered = true;
+      },
+      { once: true },
+    );
+    window.dispatchEvent(new CustomEvent(PROBE_REQUEST_EVENT, { detail: { nonce: "x" } }));
+    expect(answered).toBe(false);
   });
 
   it("is idempotent: a second install does not double-register listeners", () => {
