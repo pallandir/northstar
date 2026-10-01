@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { createServer, type Server } from "node:net";
+import { type Server, createServer } from "node:net";
 import { test } from "node:test";
 
 const PORTS = [7474, 7475, 7476];
