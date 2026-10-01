@@ -1,7 +1,7 @@
 {
   "name": "@pallandir/northstar",
   "version": "2.1.0",
-  "description": "MCP server that ingests real-time UI comments from the Northstar extension and exposes them to an AI coding assistant.",
+  "description": "UI design advisory framework for AI coding agents: MCP server, design canon, static detector and installer, plus the Northstar browser comment handoff.",
   "license": "MIT",
   "type": "module",
   "homepage": "https://github.com/pallandir/northstar#readme",
@@ -17,8 +17,12 @@
     "mcp",
     "model-context-protocol",
     "ai-coding-assistant",
+    "ui-design",
+    "design-system",
+    "design-review",
+    "anti-slop",
     "ui-feedback",
-    "design-review"
+    "agent-skills"
   ],
   "engines": {
     "node": ">=20"

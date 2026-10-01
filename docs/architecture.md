@@ -1,7 +1,10 @@
 # Architecture
 
-Northstar is two shipped artifacts, a browser extension and an MCP server, plus the
-AI assistant that reads the comments and the on-disk store they share. The extension
+Northstar is a UI design advisory framework for AI agents with a browser comment
+channel. It ships two artifacts, a browser extension and an npm package that holds
+the MCP server, the design canon and the command line, plus the AI assistant that
+reads the comments and the on-disk store they share. The design framework is
+described in [the method](./method.md) and in the last section of this page. The extension
 and the assistant never talk directly. The MCP server sits in the middle and bridges
 three channels: HTTP on the browser side, MCP over stdio on the assistant side, and
 keystrokes into the terminal the assistant runs in.
@@ -130,3 +133,73 @@ Origins and non-loopback Hosts. The second is between the listener and your
 terminal: the line typed there is a **fixed constant**, so nothing that arrives over
 HTTP can influence what your assistant is told to do. The full model, including what
 this design does not defend against, is in [SECURITY.md](../SECURITY.md).
+
+## The design framework
+
+The framework is built from one source, the canon, and everything an agent sees is
+generated or served from it.
+
+```mermaid
+flowchart LR
+    Canon["canon/<br/>rules, references,<br/>rubric, library map"]
+    Data["packages/data<br/>curated design data"]
+    Detector["packages/detector<br/>static scanner"]
+    DesignMd["packages/design-md<br/>parse, validate,<br/>normalise, export"]
+    Adapters["packages/adapters<br/>per agent plans,<br/>generator"]
+    Plugin["plugin/<br/>skill, hook, critic agent"]
+    Integrations["integrations/<br/>reference configs"]
+    Pkg["@pallandir/northstar<br/>MCP server + CLI"]
+    Agent["Claude Code, Codex, Cursor,<br/>Gemini CLI, OpenCode"]
+
+    Canon --> Adapters
+    Adapters -- "npm run gen" --> Plugin
+    Adapters -- "npm run gen" --> Integrations
+    Canon --> Pkg
+    Data --> Pkg
+    Detector --> Pkg
+    DesignMd --> Pkg
+    Adapters --> Pkg
+    Pkg -- "install: configs, skill, hooks" --> Agent
+    Pkg -- "MCP: tools, prompts, resources" --> Agent
+```
+
+### One source, many outputs
+
+`npm run gen` renders the canon into the Claude plugin, the marketplace manifest, the
+rule index and the reference integrations. CI runs `npm run gen:check`, which fails
+when a generated file has drifted from the canon. The installer imports the same
+per agent plans, so the files the repository ships and the files `install` writes
+cannot disagree.
+
+### Tool packs
+
+The server registers every tool at start up and keeps the packs it was not asked
+for disabled. Enabling a pack calls the SDK's `enable()`, which sends
+`tools/list_changed` to the client. Packs are core, comments, research, system,
+resolve, detect and critique. `pack_call` is the escape hatch for clients that never
+refresh their tool list.
+
+| Pack | Tools |
+|---|---|
+| core | `northstar_context`, `enable_packs`, `pack_call` |
+| comments | `list_comments`, `get_comment`, `resolve_comment`, `resolve_comments`, `defer_comment`, `list_deferred`, `clear_resolved` |
+| research | `design_search`, `design_get` |
+| system | `design_md_init`, `design_md_validate`, `design_md_normalize`, `design_md_export`, `design_system_propose` |
+| resolve | `resolve_library`, `resolve_font`, `resolve_icon` |
+| detect | `slop_scan`, `explain_rule` |
+| critique | `critique_rubric`, `record_critique` |
+
+The server also serves the canon as resources under `northstar://canon/` and the
+design stages as prompts, so an agent without the skill installed can still read the
+same references on demand.
+
+### Boundaries
+
+- Free text from a browser comment never chooses which rules, tools or packs apply.
+  The design context block is built from enum fields and a property whitelist only.
+- Paths an agent passes to a tool must stay inside the project root.
+- The install and uninstall commands change only the files in their plans, back up
+  anything they overwrite, refuse to edit a config they cannot parse, and record what
+  they did in `~/.northstar/install.json`.
+- The scan hook never fails an edit.
+

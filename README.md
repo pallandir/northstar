@@ -8,8 +8,10 @@
   <h3 align="center">Northstar</h3>
 
   <p align="center">
-    Click any element on a running frontend, leave a comment, and let your
-    AI coding assistant implement the change directly in source.
+    A UI design advisory framework for AI coding agents. Bring a design direction,
+    and Northstar steers your agent to design, refine and polish real interfaces
+    with libraries instead of generic defaults, with a browser extension to leave
+    comments directly on the running UI.
     <br />
     <br />
     <a href="https://github.com/pallandir/northstar/issues">Report a bug</a>
@@ -31,6 +33,7 @@
 ## Table of contents
 
 - [What is Northstar](#what-is-northstar)
+- [The design framework](#the-design-framework)
 - [Prerequisites](#prerequisites)
 - [Getting started](#getting-started)
 - [Try the local demo](#try-the-local-demo)
@@ -47,12 +50,21 @@
 
 ## What is Northstar
 
-**Northstar** is a browser extension paired with an MCP server. Click any element
-on a running frontend, local or a remote preview, leave a structured comment
-anchored to it, then click **Send to AI**. Northstar triggers the coding assistant
-already running in your project, and the assistant implements the changes against
-your real source files. The assistant sits idle until then: no watch mode, no
-polling, no tokens spent while you work.
+**Northstar** has two parts that work together.
+
+The **design framework** is a skill and an MCP server that steer any AI coding agent
+through UI work. You come with a design direction or design system as a markdown
+file. The agent asks before guessing, builds a validated `DESIGN.md`, composes from
+real libraries, scans its own output for generic AI patterns, and critiques the
+result against a rubric. It never hand rolls what a library provides unless you say
+so.
+
+The **browser extension** is the feedback loop. Click any element on a running
+frontend, local or a remote preview, leave a structured comment anchored to it, then
+click **Send to AI**. Northstar triggers the coding assistant already running in your
+project, and the assistant resolves the comment with the same design discipline. The
+assistant sits idle until then: no watch mode, no polling, no tokens spent while you
+work.
 
 There is nothing to pair and no command to paste. Nothing is sent to a remote
 backend either: every comment travels over loopback between the browser and a
@@ -64,6 +76,31 @@ A north star is the one point in the sky that never moves, the thing you steer b
 when everything else is drifting. Northstar makes your design intent that fixed
 point: you mark where the UI should go, and your assistant moves the code until it
 gets there.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## The design framework
+
+```sh
+npx -y @pallandir/northstar install
+```
+
+That sets Northstar up for Claude Code, Codex, Cursor, Gemini CLI and OpenCode, after
+showing you exactly what it will change. Then ask your agent for UI work as you
+normally would, or hand it a direction file.
+
+| You get | How |
+|---|---|
+| A method the agent follows | brief, direction, system, compose, critique, polish, in four modes |
+| One canon of 53 rules | distilled from impeccable, ui-ux-pro-max, frontend-design and top-design, with every conflict resolved |
+| Library first | `resolve_library`, `resolve_font` and `resolve_icon` pick shadcn, Lucide, Fontsource and friends for your stack |
+| Your direction, validated | `design_md_normalize` turns any markdown into a `DESIGN.md`, with contrast checks and Tailwind, CSS or DTCG export |
+| An anti slop scanner | `northstar detect`, the `slop_scan` tool and an edit hook flag gradient text, emoji icons, hand rolled dialogs and more |
+| Low context cost | one small skill, references loaded one at a time, and tool packs enabled per stage |
+
+Read [the method](./docs/method.md), [the detector](./docs/detector.md) and
+[setting up your agent](./docs/agents.md). The [rule index](./docs/canon.md) lists
+every rule.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -81,23 +118,28 @@ gets there.
 
 ## Getting started
 
-### Step 1 · Register the MCP server
+### Step 1 · Set up your agent
 
-The server is published on npm as
+The package is published on npm as
 [`@pallandir/northstar`](https://www.npmjs.com/package/@pallandir/northstar) and
-runs on demand via `npx`, no global install needed.
+runs on demand via `npx`, no global install needed. One command registers the MCP
+server, installs the skill and adds the edit hook for every agent it finds:
 
-**Codex**, register it with a single command:
+```sh
+npx -y @pallandir/northstar install
+```
+
+It prints a plan and asks before changing anything. Use `--agent codex` to choose one
+agent, `--dry-run` to only look, and `npx -y @pallandir/northstar doctor` to check
+the result. See [setting up your agent](./docs/agents.md) for what each agent gets.
+
+To register the server by hand instead, for example for Codex:
 
 ```sh
 codex mcp add northstar -- npx -y @pallandir/northstar
 ```
 
-The MCP server must be registered under the name `northstar`. The extension's
-trigger line, `/mcp__northstar__resolve-comments`, and the tool names all depend
-on it.
-
-**Any other MCP client**, add the same command to your MCP configuration:
+or add the same command to any MCP client configuration:
 
 ```json
 {
@@ -109,6 +151,10 @@ on it.
   }
 }
 ```
+
+The MCP server must be registered under the name `northstar`. The extension's
+trigger line, `/mcp__northstar__resolve-comments`, and the tool names all depend
+on it.
 
 ---
 

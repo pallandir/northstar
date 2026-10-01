@@ -3,7 +3,7 @@
   "version": "2.1.0",
   "private": true,
   "type": "module",
-  "description": "Leave real-time comments on any interface and let your local AI coding assistant act on them.",
+  "description": "A UI design advisory framework for AI coding agents, with a browser extension to leave comments on the running UI.",
   "license": "MIT",
   "workspaces": [
     "canon",

@@ -4,6 +4,54 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.2.0] - 2026-10-01
+
+Northstar is now a UI design advisory framework for AI agents, with the browser
+comment channel as its feedback loop. The extension and the comment tools are
+unchanged.
+
+### Added
+
+- **The Northstar method and canon.** Six stages (brief, direction, system, compose,
+  critique, polish), four modes, 53 rules and an arbitration order that settles the
+  conflicts between impeccable, ui-ux-pro-max, frontend-design and top-design. The
+  canon is distilled, not copied, with attribution in `NOTICE`.
+- **A router skill and references that load on demand**, a read only critic agent,
+  and prompts for each stage. The canon is also served as MCP resources.
+- **Tool packs.** The core and comments packs are always on. Research, system,
+  resolve, detect and critique are enabled per stage, with `tools/list_changed` and a
+  `pack_call` fallback. New tools include `northstar_context`, `design_search`,
+  `design_md_normalize`, `design_md_validate`, `design_md_export`,
+  `design_system_propose`, `resolve_library`, `resolve_font`, `resolve_icon`,
+  `slop_scan`, `explain_rule`, `critique_rubric` and `record_critique`.
+- **DESIGN.md tooling.** Turn any freeform direction into a validated `DESIGN.md`,
+  check WCAG contrast, and export to CSS variables, a Tailwind v4 theme or DTCG.
+- **Curated design data** ported from ui-ux-pro-max with BM25 search, with rows that
+  contradict the canon removed or annotated.
+- **A static detector** with 34 checks, available as `northstar detect`, as the
+  `slop_scan` tool and as an edit hook. It outputs text, JSON or SARIF.
+- **`northstar install`, `uninstall` and `doctor`** for Claude Code, Codex, Cursor,
+  Gemini CLI and OpenCode, with dry runs, backups and exact reversal.
+- **`northstar conflicts`** finds overlapping design skills and moves them to a
+  quarantine you can restore.
+- **`northstar init`** scaffolds `DESIGN.md`, `PRODUCT.md` and `design/decisions.md`.
+- **Design aware comment handoffs.** A comment now carries the relevant tokens,
+  libraries, mode and rules, and the files an agent edits are scanned when it
+  resolves the comment.
+
+### Changed
+
+- **The project is now MIT licensed**, previously PolyForm Noncommercial. Versions
+  published before this release keep the license they were published under.
+- The server's always on instructions are about 90 words. The comment handling steps
+  moved into the `resolve-comments` prompt.
+- The MCP SDK requirement is `^1.29.0` and tools use `registerTool`.
+
+### Fixed
+
+- The server no longer exits when all of ports 7474 to 7476 are busy. It keeps
+  serving MCP and logs that ingest is disabled.
+
 ## [2.1.0] - 2026-10-01
 
 A new overlay and a tighter agent loop. **Send to AI** still starts all work, and

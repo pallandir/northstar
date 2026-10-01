@@ -13,6 +13,16 @@ only, no source listings. Read the pages in this order:
 4. [Releasing](./releasing.md) covers publishing the MCP server to npm and
    packaging the extension for the store.
 
+The design framework has its own pages:
+
+5. [The method](./method.md) explains the stages, the modes and how to bring a
+   design direction.
+6. [The detector](./detector.md) covers the scanner, its rules and how to allow
+   something on purpose.
+7. [Setting up your agent](./agents.md) covers install, the tool packs and the
+   limits of each supported agent.
+8. [Rule index](./canon.md) lists every rule, generated from the canon.
+
 If you only read one page, read [How it works](./how-it-works.md).
 
 For the security model, including what the v2 trust model deliberately does not
