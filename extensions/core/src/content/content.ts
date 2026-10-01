@@ -2,6 +2,7 @@ import { pageKey } from "@northstar/protocol";
 import { browser } from "../lib/browser.js";
 import { UserError } from "../lib/errors.js";
 import { isLocalUrl } from "../lib/origins.js";
+import { collectSourcePaths } from "../lib/source-map.js";
 import { resolveXPath } from "../lib/xpath.js";
 import type {
   Message,
@@ -385,7 +386,7 @@ function init(): Instance {
     try {
       const res = await call({ type: "flush" });
       st.lastSend = field(res.send);
-      if (st.lastSend.sent > 0) toolbar?.flashSent(st.lastSend);
+      if (st.lastSend.woke?.delivered) toolbar?.flashSent(st.lastSend);
       await refresh();
     } finally {
       st.sending = false;
@@ -465,6 +466,7 @@ function init(): Instance {
     const gen = st.gen;
     const href = location.href;
     const key = pageKey(href);
+    await call({ type: "report-sources", paths: collectSourcePaths() });
     const [pinsRes, statusRes] = await Promise.all([
       call({ type: "page-comments", page: href }),
       call({ type: "queue-status" }),

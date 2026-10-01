@@ -88,9 +88,12 @@ The other design tools are `design_md_init`, `design_md_normalize`, `design_md_v
 `resolve_icon`, `slop_scan`, `explain_rule`, `critique_rubric` and `record_critique`.
 
 There is no tool to start the work and no watch mode. When the developer clicks
-**Send to AI**, the server types the prompt into the terminal this process was
-launched from. With `claude --channels` it pushes a channel event first and types
-only if no agent call follows within 8 seconds.
+**Send to AI**, the extension calls `POST /handoff` and the server wakes the agent
+by one path. Claude Code gets a channel event, and needs to be started with
+`claude --dangerously-load-development-channels server:northstar`. Codex and Gemini
+get one fixed line typed into the terminal this process was launched from. The
+server then waits up to 20 seconds for a `list_comments` call and reports whether it
+came. There is no fallback.
 
 ## HTTP endpoints (for the extension)
 
@@ -105,10 +108,12 @@ loopback host.
 | `GET` | `/health` | Open. Returns `{ ok, service: "northstar", protocol, version, root, startedAt, paired }`. |
 | `GET` | `/pair` | Open. A page naming the project with one Allow button. |
 | `POST` | `/pair/confirm` | Open, same origin only. Trades the page's single use nonce for the token. |
-| `GET` | `/status` | Notices, terminal availability and the last poll time. |
-| `GET` | `/state` | Version, stored comments, deferral notices, and terminal availability. |
+| `GET` | `/status` | Notices, agent readiness with its reason and fix, the open comment count, the last poll time and the last handoff outcome. |
+| `GET` | `/state` | Version, stored comments, deferral notices, and agent readiness. |
 | `GET` | `/comments?page=<pageKey>` | Stored comments for one page, so the extension shows synced pins. `page` is required. |
-| `POST` | `/comments` | Ingest an array of drafts, each with a `cid`. Returns `{ ids, accepted, rejected, typed, channel, reason? }` before the terminal handoff runs. |
+| `POST` | `/comments` | Ingest an array of drafts, each with a `cid`. Returns `{ ids, accepted, rejected }`. It never wakes the agent. |
+| `POST` | `/handoff` | Wake the agent about the open comments. Waits for its first `list_comments` call and returns `{ delivered, agent, via, reason?, fix? }`. 400 when nothing is open, 409 while another send runs. |
+| `POST` | `/owns` | Body `{ paths }` of up to 20 relative source paths. Returns `{ matches, depth }` so the extension can bind a page to the project that contains its files. Paths that are absolute, contain `..` or escape the root through a symlink are refused. |
 | `POST` | `/comments/reopen` | Reopen a resolved comment with an optional note. |
 | `POST` | `/notices/dismiss` | Clear a deferral notice from the toolbar. |
 | `DELETE` | `/comments?page=<pageKey>` | Delete stored comments for a page, or every comment with `?all=true`. |
@@ -122,7 +127,7 @@ See [SECURITY.md](../SECURITY.md) for the pairing flow.
 | `NORTHSTAR_PORT` | 7474 | Preferred ingest port (then 7474 to 7476). |
 | `NORTHSTAR_ROOT` | `process.cwd()` | Where the store is written and DESIGN.md is read. |
 | `NORTHSTAR_PACKS` | `dynamic` | Starting tool packs: `dynamic`, `all`, or a comma list. |
-| `NORTHSTAR_TERMINAL` | detected | Force a driver: `tmux`, `iterm`, `terminal-app`, or `none`. |
+| `NORTHSTAR_TERMINAL` | detected | Force a driver: `tmux`, `iterm`, `terminal-app`, `wezterm`, `kitty`, or `none`. |
 | `NORTHSTAR_INJECT` | `1` | Set to `0` to never type into the terminal. |
 | `NORTHSTAR_GATE` | on | Set to `off` to disable the design gate hook. |
 | `NORTHSTAR_HOME` | the home directory | Parent of the `.northstar` folder that holds the pairing token. |

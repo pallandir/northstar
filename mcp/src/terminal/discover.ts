@@ -1,5 +1,5 @@
+import type { AgentKind } from "@northstar/protocol";
 import { exec } from "./exec.js";
-import type { AgentKind } from "./payload.js";
 
 const MAX_DEPTH = 8;
 
@@ -26,16 +26,34 @@ export async function findControllingTty(startPid: number = process.pid): Promis
   return null;
 }
 
-const CLAUDE_PROCESS = /(^|[\\/\s])claude(\s|$)|@anthropic-ai[\\/]claude-code/;
+export interface AgentProcess {
+  kind: AgentKind;
+  command: string;
+}
 
-export async function findAgentKind(startPid: number = process.pid): Promise<AgentKind> {
+const AGENT_PATTERNS: ReadonlyArray<readonly [Exclude<AgentKind, "other">, RegExp]> = [
+  ["claude-code", /(^|[\\/\s])claude(\s|$)|@anthropic-ai[\\/]claude-code/],
+  ["codex", /(^|[\\/\s])codex(\s|$)|@openai[\\/]codex/],
+  ["gemini", /(^|[\\/\s])gemini(\s|$)|@google[\\/]gemini-cli/],
+];
+
+export function classifyCommand(command: string): AgentKind {
+  for (const [kind, pattern] of AGENT_PATTERNS) if (pattern.test(command)) return kind;
+  return "other";
+}
+
+export async function findAgent(startPid: number = process.pid): Promise<AgentProcess> {
   let pid = startPid;
   for (let depth = 0; depth < MAX_DEPTH && pid > 1; depth += 1) {
     const out = await exec("ps", ["-o", "ppid=,command=", "-p", String(pid)]);
     const match = out.trim().match(/^(\d+)\s+(.*)$/s);
     if (!match) throw new Error(`ps returned nothing for process ${pid}`);
-    if (depth > 0 && CLAUDE_PROCESS.test(match[2] as string)) return "claude-code";
+    const command = match[2] as string;
+    if (depth > 0) {
+      const kind = classifyCommand(command);
+      if (kind !== "other") return { kind, command };
+    }
     pid = Number(match[1]);
   }
-  return "other";
+  return { kind: "other", command: "" };
 }

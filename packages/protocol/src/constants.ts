@@ -1,4 +1,4 @@
-export const PROTOCOL_VERSION = 3;
+export const PROTOCOL_VERSION = 4;
 export const TOKEN_HEADER = "x-northstar-token";
 export const PROTOCOL_HEADER = "x-northstar-protocol";
 export const SERVER_PORTS = [7474, 7475, 7476] as const;

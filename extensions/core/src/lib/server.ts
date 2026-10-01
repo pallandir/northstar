@@ -12,6 +12,7 @@ import { UserError } from "./errors.js";
 
 const TOKEN_KEY = "northstar-token";
 const CHOICE_KEY = "northstar-server-choice";
+const SOURCES_KEY = "northstar-page-sources";
 const HEALTH_TIMEOUT_MS = 400;
 const CACHE_TTL_MS = 30_000;
 
@@ -45,6 +46,7 @@ let cache: { servers: ServerInfo[]; at: number } | null = null;
 
 export function forgetServers(): void {
   cache = null;
+  bindings.clear();
 }
 
 export function projectName(root: string): string {
@@ -154,22 +156,104 @@ export function mismatchProblem(server: ServerInfo): ProblemNote {
   };
 }
 
+interface Binding {
+  port: number;
+  key: string;
+  at: number;
+}
+
+const bindings = new Map<string, Binding>();
+
+export async function reportSources(pageOrigin: string, paths: string[]): Promise<void> {
+  const stored = await browser.storage.local.get(SOURCES_KEY);
+  const all: unknown = stored[SOURCES_KEY];
+  const known = typeof all === "object" && all !== null ? (all as Record<string, string[]>) : {};
+  if (known[pageOrigin]?.join("\n") === paths.join("\n")) return;
+  await browser.storage.local.set({ [SOURCES_KEY]: { ...known, [pageOrigin]: paths } });
+}
+
+async function readSources(pageOrigin: string): Promise<string[]> {
+  const stored = await browser.storage.local.get(SOURCES_KEY);
+  const all: unknown = stored[SOURCES_KEY];
+  const paths =
+    typeof all === "object" && all !== null ? (all as Record<string, unknown>)[pageOrigin] : null;
+  return Array.isArray(paths) ? paths.filter((p): p is string => typeof p === "string") : [];
+}
+
+interface Ownership {
+  matches: number;
+  depth: number;
+}
+
+async function ownership(server: ServerInfo, token: string, paths: string[]): Promise<Ownership> {
+  const body = await callServer({ kind: "connected", server, token }, "POST", "/owns", { paths });
+  if (
+    typeof body !== "object" ||
+    body === null ||
+    typeof (body as Ownership).matches !== "number" ||
+    typeof (body as Ownership).depth !== "number"
+  ) {
+    throw new UserError(
+      "The Northstar server sent an unreadable answer.",
+      "Update the Northstar server, then restart your AI agent.",
+    );
+  }
+  return body as Ownership;
+}
+
+async function bindBySource(
+  pageOrigin: string,
+  servers: ServerInfo[],
+  token: string,
+): Promise<ServerInfo | null> {
+  const paths = await readSources(pageOrigin);
+  if (paths.length > 0) {
+    const key = paths.join("\n");
+    const bound = bindings.get(pageOrigin);
+    const stillRunning = bound && servers.find((s) => s.port === bound.port);
+    if (bound && stillRunning && bound.key === key && Date.now() - bound.at < CACHE_TTL_MS) {
+      return stillRunning;
+    }
+    const owned = await Promise.all(
+      servers.map(async (server) => ({ server, ...(await ownership(server, token, paths)) })),
+    );
+    const hits = owned
+      .filter((o) => o.matches > 0)
+      .sort((a, b) => b.matches - a.matches || b.depth - a.depth);
+    const [best, runnerUp] = hits;
+    if (best && !(runnerUp && runnerUp.matches === best.matches && runnerUp.depth === best.depth)) {
+      bindings.set(pageOrigin, { port: best.server.port, key, at: Date.now() });
+      return best.server;
+    }
+  }
+  bindings.delete(pageOrigin);
+  const choice = (await readChoices())[pageOrigin];
+  return servers.find((s) => s.port === choice) ?? null;
+}
+
 export async function resolveLink(pageOrigin: string): Promise<Link> {
   const servers = await listServers();
   if (servers.length === 0) return { kind: "offline" };
 
-  let server = servers[0];
-  if (servers.length > 1) {
-    const choice = (await readChoices())[pageOrigin];
-    const chosen = servers.find((s) => s.port === choice);
-    if (!chosen) return { kind: "choose", servers };
-    server = chosen;
+  const compatible = servers.filter((s) => s.protocol === PROTOCOL_VERSION);
+  if (compatible.length === 0) {
+    const stale = servers[0] as ServerInfo;
+    return { kind: "mismatch", server: stale, problem: mismatchProblem(stale) };
   }
 
-  if (server.protocol !== PROTOCOL_VERSION) {
-    return { kind: "mismatch", server, problem: mismatchProblem(server) };
-  }
   const token = await getToken();
+  let server = compatible[0] as ServerInfo;
+  if (compatible.length > 1) {
+    if (!token) return { kind: "unpaired", server };
+    try {
+      const bound = await bindBySource(pageOrigin, compatible, token);
+      if (!bound) return { kind: "choose", servers: compatible };
+      server = bound;
+    } catch (err) {
+      if (err instanceof UserError && err.kind === "unpaired") return { kind: "unpaired", server };
+      throw err;
+    }
+  }
   if (!token) return { kind: "unpaired", server };
   return { kind: "connected", server, token };
 }

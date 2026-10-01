@@ -28,13 +28,14 @@ sequenceDiagram
     U->>T: click Send to AI
     X->>H: POST /comments (the whole batch, one request)
     H->>S: validate, save screenshots, upsert
-    H->>K: announce
-    K->>K: wait for the pane to go quiet
-    K->>A: type /mcp__northstar__resolve-comments (or push a channel event)
-    K->>A: Enter, as a separate write
-    H-->>X: { ids, typed }
-    X-->>T: flash "Sent 3"
+    H-->>X: { ids, accepted, rejected }
+    X->>H: POST /handoff
+    H->>K: deliver
+    K->>A: channel event for Claude Code, or one typed line plus Enter for Codex and Gemini
     A->>S: list_comments("open")
+    K-->>H: delivered, the agent called back
+    H-->>X: { delivered, agent, via }
+    X-->>T: flash "Sent to Claude"
     A->>S: get_comment(id), claims it as in_progress
     A->>A: implement at the located place
     A->>S: resolve_comment(id, note, files)
@@ -75,7 +76,7 @@ toolbar so you know they were parked, not dropped.
 ## 3. The handoff declines to type
 
 The handoff never types blind. If the terminal is showing a choice, your comments
-are still saved and the toolbar tells you they were not announced.
+are still saved and the toolbar tells you the agent was not woken, with the reason and the fix.
 
 ```mermaid
 sequenceDiagram
@@ -84,8 +85,8 @@ sequenceDiagram
     participant K as Handoff
     participant P as Terminal
 
-    X->>H: POST /comments
-    H->>K: announce
+    X->>H: POST /handoff
+    H->>K: deliver
     loop up to 10s
         K->>P: capture the visible pane
         alt a numbered choice or a yes/no prompt is showing
@@ -94,8 +95,8 @@ sequenceDiagram
             Note over K: settled, safe to type
         end
     end
-    K-->>H: { typed: false, reason }
-    H-->>X: 201 with the reason
+    K-->>H: { delivered: false, reason, fix }
+    H-->>X: 200 with the reason and the fix
     Note over X: comments are stored either way
 ```
 

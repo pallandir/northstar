@@ -1,33 +1,38 @@
 import { randomBytes } from "node:crypto";
+import { realpath, stat } from "node:fs/promises";
 import { type IncomingMessage, type ServerResponse, createServer } from "node:http";
-import { basename } from "node:path";
+import { basename, join, sep } from "node:path";
 import {
   type ApiError,
   type ApiErrorStatus,
   DRAFT_FIX,
   type DraftCheck,
   LIMITS,
+  type OwnsResponse,
   PAIR_PATH,
   PROTOCOL_HEADER,
   PROTOCOL_VERSION,
   type PostCommentsResponse,
   type Rejection,
   SERVICE_NAME,
+  SourcePathError,
   TOKEN_HEADER,
   apiError,
   checkDrafts,
   pageKey,
+  sanitizeSourcePath,
 } from "@northstar/protocol";
 import type { Broker } from "./broker.js";
 import { VERSION } from "./config.js";
+import type { Delivery } from "./delivery.js";
 import { pairCsp, pairPage } from "./lib/pair-page.js";
 import { loadOrCreateToken, northstarHome, tokenMatches } from "./lib/token.js";
 import type { CommentStore } from "./store.js";
-import type { Handoff } from "./terminal/index.js";
 
 const MAX_BODY_BYTES = 12 * 1024 * 1024;
 const NONCE_TTL_MS = 5 * 60 * 1000;
 const MAX_NONCES = 20;
+const MAX_OWNS_PATHS = 20;
 const EXTENSION_ORIGIN = /^(chrome|moz)-extension:\/\/[^/]+$/;
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
 
@@ -53,7 +58,8 @@ class HttpError extends Error {
 interface Context {
   store: CommentStore;
   broker: Broker;
-  handoff: Handoff;
+  delivery: Delivery;
+  sending: boolean;
   log: (msg: string) => void;
   port: number;
   token: string;
@@ -65,11 +71,20 @@ export async function startIngestServer(
   preferredPorts: number[],
   log: (msg: string) => void,
   broker: Broker,
-  handoff: Handoff,
+  delivery: Delivery,
   options: IngestOptions = {},
 ): Promise<IngestServer> {
   const token = loadOrCreateToken(options.home ?? northstarHome());
-  const context: Context = { store, broker, handoff, log, port: 0, token, nonces: new Map() };
+  const context: Context = {
+    store,
+    broker,
+    delivery,
+    sending: false,
+    log,
+    port: 0,
+    token,
+    nonces: new Map(),
+  };
   const server = createServer((req, res) => {
     handle(req, res, context).catch((error: unknown) => {
       if (error instanceof HttpError) {
@@ -237,7 +252,8 @@ async function handle(req: IncomingMessage, res: ServerResponse, ctx: Context): 
   if (method === "GET" && pathname === "/status") {
     json(res, 200, {
       notices: ctx.broker.pendingNotices,
-      terminal: await ctx.handoff.describe(),
+      agent: await ctx.delivery.readiness(),
+      open: (await ctx.store.list("open")).length,
       lastPolledAt: ctx.broker.lastPolledAt,
       handoff: ctx.broker.lastHandoff,
     });
@@ -251,7 +267,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, ctx: Context): 
       lastPolledAt: ctx.broker.lastPolledAt,
       comments: await ctx.store.list(undefined, page === null ? undefined : pageParam(page)),
       notices: ctx.broker.pendingNotices,
-      terminal: await ctx.handoff.describe(),
+      agent: await ctx.delivery.readiness(),
     });
     return;
   }
@@ -286,6 +302,16 @@ async function handle(req: IncomingMessage, res: ServerResponse, ctx: Context): 
 
   if (method === "POST" && pathname === "/comments") {
     await postComments(req, res, ctx);
+    return;
+  }
+
+  if (method === "POST" && pathname === "/handoff") {
+    await handoff(res, ctx);
+    return;
+  }
+
+  if (method === "POST" && pathname === "/owns") {
+    await owns(req, res, ctx);
     return;
   }
 
@@ -391,7 +417,6 @@ async function postComments(
       rejected,
       accepted: [],
       ids: [],
-      typed: false,
     });
     return;
   }
@@ -416,7 +441,6 @@ async function postComments(
       rejected,
       accepted,
       ids: [],
-      typed: false,
     });
     return;
   }
@@ -428,26 +452,78 @@ async function postComments(
     ids,
     accepted,
     rejected,
-    typed: false,
-    channel: false,
-    reason: fresh > 0 ? "The agent is being notified." : "Already received.",
   };
   json(res, 201, response);
-
-  if (fresh > 0) startHandoff(ctx);
 }
 
-function startHandoff(ctx: Context): void {
-  ctx.handoff
-    .send()
-    .then((result) => {
-      ctx.broker.recordHandoff({ ...result, at: new Date().toISOString() });
-    })
-    .catch((error: unknown) => {
-      const reason = (error as Error).message;
-      ctx.log(`handoff failed: ${reason}`);
-      ctx.broker.recordHandoff({ typed: false, reason, at: new Date().toISOString() });
-    });
+async function handoff(res: ServerResponse, ctx: Context): Promise<void> {
+  if (ctx.sending) {
+    throw new HttpError(
+      409,
+      apiError("A send to the agent is already in progress.", "Wait for it to finish."),
+    );
+  }
+  if ((await ctx.store.list("open")).length === 0) {
+    throw badRequest(
+      "There are no open comments to send.",
+      "Add a comment, then click Send to AI.",
+    );
+  }
+  ctx.sending = true;
+  try {
+    const outcome = await ctx.delivery.deliver();
+    ctx.broker.recordHandoff(outcome);
+    if (!outcome.delivered) ctx.log(`handoff failed: ${outcome.reason ?? "unknown"}`);
+    json(res, 200, outcome);
+  } finally {
+    ctx.sending = false;
+  }
+}
+
+async function owns(req: IncomingMessage, res: ServerResponse, ctx: Context): Promise<void> {
+  const body = await readJson(req);
+  const paths = field(body, "paths");
+  if (
+    !Array.isArray(paths) ||
+    paths.length === 0 ||
+    paths.length > MAX_OWNS_PATHS ||
+    !paths.every((p): p is string => typeof p === "string")
+  ) {
+    throw badRequest(
+      `The paths field must be a list of 1 to ${MAX_OWNS_PATHS} source paths.`,
+      "Update the Northstar extension.",
+    );
+  }
+  const root = await realpath(ctx.store.root);
+  let matches = 0;
+  for (const raw of paths) {
+    let relative: string;
+    try {
+      relative = sanitizeSourcePath(raw, root);
+    } catch (error) {
+      if (error instanceof SourcePathError) {
+        throw badRequest(
+          `A source path was refused, ${error.message}.`,
+          "Update the Northstar extension.",
+        );
+      }
+      throw error;
+    }
+    if (await isFileUnder(root, relative)) matches += 1;
+  }
+  const response: OwnsResponse = { matches, depth: root.split(sep).length };
+  json(res, 200, response);
+}
+
+async function isFileUnder(root: string, relative: string): Promise<boolean> {
+  let resolved: string;
+  try {
+    resolved = await realpath(join(root, relative));
+  } catch {
+    return false;
+  }
+  if (!resolved.startsWith(`${root}${sep}`)) return false;
+  return (await stat(resolved)).isFile();
 }
 
 function sendPairPage(res: ServerResponse, ctx: Context): void {

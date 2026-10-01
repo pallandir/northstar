@@ -3,15 +3,15 @@ import { captureRegion } from "./lib/capture.js";
 import { UserError, toFailure } from "./lib/errors.js";
 import { isLocalUrl, originOf } from "./lib/origins.js";
 import { pagePins } from "./lib/pins.js";
-import { chooseServer } from "./lib/server.js";
+import { chooseServer, reportSources } from "./lib/server.js";
 import {
   clearAll,
   commentsForPage,
   dismissNotice,
-  flush,
   removeComment,
   reopenComment,
   saveDraft,
+  sendToAgent,
   status,
   updateComment,
 } from "./lib/transport.js";
@@ -145,8 +145,13 @@ async function dispatch(message: Message, sender: chrome.runtime.MessageSender):
     case "flush": {
       const tab = senderTab(sender);
       requireLocal(tab, "Send to AI");
-      const { status: st, send } = await flush(tab.origin);
+      const { status: st, send } = await sendToAgent(tab.origin);
       return { ok: true, status: st, send };
+    }
+    case "report-sources": {
+      const tab = senderTab(sender);
+      await reportSources(tab.origin, message.paths);
+      return { ok: true };
     }
     case "dismiss-notice": {
       const tab = senderTab(sender);

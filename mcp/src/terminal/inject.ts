@@ -1,8 +1,7 @@
-import { COALESCE_MS, READY_POLL_MS, READY_TIMEOUT_MS, SUBMIT_DELAY_MS } from "../config.js";
+import { READY_POLL_MS, READY_TIMEOUT_MS, SUBMIT_DELAY_MS } from "../config.js";
 import { type Detection, detectTerminal } from "./detect.js";
-import { findAgentKind } from "./discover.js";
-import { type AgentKind, handoffLine } from "./payload.js";
-import type { Handoff, HandoffResult, TerminalDriver, TerminalStatus } from "./types.js";
+import { HANDOFF_COMMAND } from "./payload.js";
+import type { TerminalDriver } from "./types.js";
 
 const TAIL_LINES = 20;
 const CHOICE_OPTION = /^\s*([❯>›])?\s*\d+[.)]\s/;
@@ -46,7 +45,7 @@ export function typedInput(lines: string[]): string | null {
   return null;
 }
 
-type Readiness = { ready: true } | { ready: false; reason: string };
+type Readiness = { ready: true } | { ready: false; reason: string; fix: string };
 
 async function waitForIdle(driver: TerminalDriver, timeoutMs: number): Promise<Readiness> {
   const deadline = Date.now() + timeoutMs;
@@ -64,6 +63,7 @@ async function waitForIdle(driver: TerminalDriver, timeoutMs: number): Promise<R
         return {
           ready: false,
           reason: "there is text in the agent input, Northstar will not type over it",
+          fix: "Send or clear the text in the agent input, then click Send to AI again.",
         };
       }
       return { ready: true };
@@ -76,18 +76,27 @@ async function waitForIdle(driver: TerminalDriver, timeoutMs: number): Promise<R
   return {
     ready: false,
     reason: blocked ?? "the agent did not settle, its output never went quiet",
+    fix: blocked
+      ? "Answer the prompt in the agent, then click Send to AI again."
+      : "Wait for the agent to finish, then click Send to AI again.",
   };
 }
 
-export class TerminalHandoff implements Handoff {
+export type TypeResult = { typed: true } | { typed: false; reason: string; fix: string };
+
+export type TerminalCheck =
+  | { ok: true; driver: string }
+  | { ok: false; reason: string; fix: string };
+
+const PROBE_TTL_MS = 5_000;
+
+export class TerminalTyper {
   private detection: Detection | null = null;
-  private chain: Promise<unknown> = Promise.resolve();
-  private lastTyped = 0;
+  private probed: { at: number; check: TerminalCheck } | null = null;
 
   constructor(
     private readonly log: (msg: string) => void,
     private readonly readyTimeoutMs: number = READY_TIMEOUT_MS,
-    private readonly agentKind: () => Promise<AgentKind> = findAgentKind,
   ) {}
 
   private async detect(): Promise<Detection> {
@@ -97,52 +106,67 @@ export class TerminalHandoff implements Handoff {
     return result;
   }
 
-  async describe(): Promise<TerminalStatus> {
-    const { driver, reason } = await this.detect();
-    return driver ? { available: true, driver: driver.name } : { available: false, reason };
-  }
-
-  send(): Promise<HandoffResult> {
-    const next = this.chain.then(() => this.run());
-    this.chain = next.then(
-      () => undefined,
-      () => undefined,
-    );
-    return next;
-  }
-
-  private async run(): Promise<HandoffResult> {
-    const { driver, reason } = await this.detect();
+  async check(): Promise<TerminalCheck> {
+    const { driver, reason, fix } = await this.detect();
     if (!driver) {
-      this.log(`handoff skipped: ${reason}`);
-      return { typed: false, reason };
-    }
-
-    if (Date.now() - this.lastTyped < COALESCE_MS) {
       return {
-        typed: false,
-        driver: driver.name,
-        reason: "folded into the batch just announced",
+        ok: false,
+        reason: reason ?? "No terminal is attached.",
+        fix: fix ?? "Run the agent inside tmux.",
       };
     }
+    if (this.probed && Date.now() - this.probed.at < PROBE_TTL_MS) return this.probed.check;
+    let check: TerminalCheck;
+    try {
+      await driver.capture();
+      check = { ok: true, driver: driver.name };
+    } catch (err) {
+      check = {
+        ok: false,
+        reason: `Northstar can not read the ${driver.name} session, ${(err as Error).message}.`,
+        fix: PERMISSION_FIX[driver.name],
+      };
+    }
+    this.probed = { at: Date.now(), check };
+    return check;
+  }
 
+  async type(): Promise<TypeResult> {
+    const { driver, reason, fix } = await this.detect();
+    if (!driver) {
+      return {
+        typed: false,
+        reason: reason ?? "No terminal is attached.",
+        fix: fix ?? "Run the agent inside tmux.",
+      };
+    }
     try {
       const readiness = await waitForIdle(driver, this.readyTimeoutMs);
       if (!readiness.ready) {
-        this.log(`handoff skipped: ${readiness.reason}`);
-        return { typed: false, driver: driver.name, reason: readiness.reason };
+        return { typed: false, reason: `${readiness.reason}.`, fix: readiness.fix };
       }
-      const agent = await this.agentKind();
-      await driver.sendText(handoffLine(agent));
+      await driver.sendText(HANDOFF_COMMAND);
       await sleep(SUBMIT_DELAY_MS);
       await driver.sendEnter();
-      this.lastTyped = Date.now();
       this.log(`handoff typed into ${driver.name}`);
-      return { typed: true, driver: driver.name };
+      return { typed: true };
     } catch (err) {
       const message = (err as Error).message;
       this.log(`handoff failed: ${message}`);
-      return { typed: false, driver: driver.name, reason: message };
+      return {
+        typed: false,
+        reason: `Typing into ${driver.name} failed, ${message}.`,
+        fix: PERMISSION_FIX[driver.name],
+      };
     }
   }
 }
+
+const PERMISSION_FIX: Record<TerminalDriver["name"], string> = {
+  tmux: "Check that the tmux pane still exists.",
+  wezterm: "Check that the WezTerm pane still exists.",
+  kitty: "Check that kitty has remote control enabled and the window still exists.",
+  iterm: "Allow your agent to control iTerm2 in System Settings, Privacy & Security, Automation.",
+  "terminal-app":
+    "Allow your agent to control Terminal in System Settings, Privacy & Security, Accessibility.",
+};

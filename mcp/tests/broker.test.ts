@@ -56,6 +56,16 @@ test("pendingNotices hands out a copy, not the live array", () => {
 test("the last handoff outcome is remembered", () => {
   const broker = new Broker();
   assert.equal(broker.lastHandoff === null, true);
-  broker.recordHandoff({ typed: true, driver: "tmux", at: "now" });
-  assert.equal(broker.lastHandoff?.driver, "tmux");
+  broker.recordHandoff({ delivered: true, agent: "codex", via: "terminal", at: "now" });
+  assert.equal(broker.lastHandoff?.agent, "codex");
+});
+
+test("waitForPoll resolves true on a poll after the mark and false on timeout", async () => {
+  const broker = new Broker();
+  const since = Date.now();
+  const waiting = broker.waitForPoll(since, 1000);
+  broker.markPolled();
+  assert.equal(await waiting, true);
+  assert.equal(await broker.waitForPoll(since, 1000), true);
+  assert.equal(await broker.waitForPoll(Date.now() + 60_000, 30), false);
 });

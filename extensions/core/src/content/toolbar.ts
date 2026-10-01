@@ -31,6 +31,13 @@ export function setTip(el: HTMLElement, tip: string): void {
   }
 }
 
+const AGENT_LABELS = {
+  "claude-code": "Claude",
+  codex: "Codex",
+  gemini: "Gemini",
+  other: "the agent",
+} as const;
+
 export interface ToolbarHandlers {
   onComments: () => void;
   onSend: () => void;
@@ -76,8 +83,8 @@ export class Toolbar {
   private lastState: ToolbarState | null = null;
   private sending = false;
   private reachable = false;
-  private hasQueued = false;
-  private queued = 0;
+  private blocked: string | null = null;
+  private pending = 0;
   private readonly handlers: ToolbarHandlers;
   private readonly onResize = () => this.clampIntoViewport();
 
@@ -166,17 +173,19 @@ export class Toolbar {
   }
 
   private syncSendButton(): void {
-    this.sendBtn.disabled = this.sending || !this.reachable || !this.hasQueued;
+    this.sendBtn.disabled =
+      this.sending || !this.reachable || this.blocked !== null || this.pending === 0;
     setTip(this.sendBtn, this.sendTip());
   }
 
   private sendTip(): string {
-    if (this.sending) return "Sending your comments";
+    if (this.sending) return "Waking your AI assistant";
     if (!this.reachable) return "Not connected, start your AI agent in this project first";
-    if (!this.hasQueued) return "Nothing to send yet, add a comment first";
-    return this.queued === 1
+    if (this.blocked !== null) return this.blocked;
+    if (this.pending === 0) return "Nothing to send yet, add a comment first";
+    return this.pending === 1
       ? "Send 1 comment to your AI assistant"
-      : `Send ${this.queued} comments to your AI assistant`;
+      : `Send ${this.pending} comments to your AI assistant`;
   }
 
   flashSaved(): void {
@@ -215,13 +224,16 @@ export class Toolbar {
     const status = state.status;
     const reachable = Boolean(status?.serverReachable);
     this.reachable = reachable;
-    this.hasQueued = Boolean(status && status.queued > 0);
-    this.queued = status?.queued ?? 0;
+    this.pending = (status?.queued ?? 0) + (status?.open ?? 0);
+    this.blocked =
+      status?.agent && !status.agent.ready
+        ? `Send to AI is off, ${status.agent.reason ?? ""} ${status.agent.fix ?? ""}`.trim()
+        : null;
     this.syncSendButton();
     this.handoffBtn.classList.toggle("ns-action--primary", !reachable);
 
     const send = state.lastSend;
-    const terminal = status?.terminal;
+    const agent = status?.agent;
     const connection = status?.connection ?? "offline";
 
     if (state.problem) {
@@ -258,8 +270,8 @@ export class Toolbar {
     } else if (status?.handoff && !status.handoff.delivered && status.handoff.reason) {
       this.showFailure(
         `handoff:${status.handoff.at}`,
-        "Comments saved, not announced",
-        status.handoff.reason,
+        "Comments saved, the agent did not start",
+        `${status.handoff.reason} ${status.handoff.fix ?? ""}`.trim(),
       );
     } else if (!reachable) {
       this.showFailure(
@@ -267,11 +279,11 @@ export class Toolbar {
         "No Northstar server on this machine",
         "Start your AI agent in the project you are commenting on.",
       );
-    } else if (terminal && !terminal.available) {
+    } else if (agent && !agent.ready) {
       this.showFailure(
-        `terminal:${terminal.reason ?? ""}`,
-        "Comments will not reach your agent",
-        terminal.reason ?? "",
+        `agent:${agent.reason ?? ""}`,
+        "Send to AI is off",
+        `${agent.reason ?? ""} ${agent.fix ?? ""}`.trim(),
       );
     } else {
       this.clearPanel();
@@ -289,9 +301,9 @@ export class Toolbar {
   }
 
   flashSent(send: SendOutcome): void {
-    if (send.sent === 0) return;
+    if (!send.woke?.delivered) return;
     window.clearTimeout(this.sentTimer);
-    this.sendLabel.textContent = send.sent === 1 ? "Sent 1" : `Sent ${send.sent}`;
+    this.sendLabel.textContent = `Sent to ${AGENT_LABELS[send.woke.agent]}`;
     this.sentTimer = window.setTimeout(() => {
       this.sendLabel.textContent = "Send to AI";
     }, 1600);

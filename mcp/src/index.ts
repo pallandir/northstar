@@ -2,12 +2,12 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { SERVER_PORTS } from "@northstar/protocol";
 import { getCanon } from "./assets.js";
 import { Broker } from "./broker.js";
-import { ChannelHandoff } from "./channel.js";
+import { AgentDelivery } from "./delivery.js";
 import { startIngestServer } from "./http.js";
 import type { IngestStatus } from "./ingest-status.js";
 import { createMcpServer } from "./server.js";
 import { CommentStore } from "./store.js";
-import { TerminalHandoff } from "./terminal/index.js";
+import { TerminalTyper } from "./terminal/index.js";
 
 function parsePorts(): number[] {
   const fromEnv = process.env.NORTHSTAR_PORT;
@@ -34,10 +34,16 @@ async function main(): Promise<void> {
     );
   });
 
-  const terminal = new TerminalHandoff(log);
+  const terminal = new TerminalTyper(log);
   let ingestStatus: IngestStatus = { state: "off", error: "the ingest server has not started yet" };
   const server = createMcpServer(store, broker, getCanon(), { root, ingest: () => ingestStatus });
-  const handoff = new ChannelHandoff({ server: server.server, store, broker, terminal, log });
+  const delivery = new AgentDelivery({
+    server: server.server,
+    broker,
+    terminal,
+    log,
+    openCount: async () => (await store.list("open")).length,
+  });
 
   let ingest: Awaited<ReturnType<typeof startIngestServer>> | null = null;
   let closing = false;
@@ -59,7 +65,7 @@ async function main(): Promise<void> {
   await server.connect(transport);
 
   try {
-    ingest = await startIngestServer(store, ports, log, broker, handoff);
+    ingest = await startIngestServer(store, ports, log, broker, delivery);
     ingestStatus = { state: "on", port: ingest.port };
     log(`ingest listening on http://127.0.0.1:${ingest.port}, store root ${root}`);
   } catch (err) {
@@ -68,8 +74,12 @@ async function main(): Promise<void> {
     log(`ingest disabled: ${message}`);
   }
 
-  const status = await handoff.describe();
-  log(status.available ? `terminal handoff via ${status.driver}` : `no handoff: ${status.reason}`);
+  const readiness = await delivery.readiness();
+  log(
+    readiness.ready
+      ? `Send to AI wakes ${readiness.agent} via ${readiness.via}`
+      : `Send to AI is disabled: ${readiness.reason} ${readiness.fix ?? ""}`,
+  );
 }
 
 main().catch((err) => {

@@ -56,3 +56,17 @@ export function resolveSource(el: Element): SourceLocation | null {
   }
   return null;
 }
+
+const SOURCE_SELECTOR =
+  "[data-inspector-relative-path],[data-v-inspector],[data-svelte-source],[data-svelte]";
+const MAX_SOURCE_PATHS = 20;
+
+export function collectSourcePaths(root: ParentNode = document): string[] {
+  const paths = new Set<string>();
+  for (const el of root.querySelectorAll(SOURCE_SELECTOR)) {
+    const found = READERS.map((read) => read(el)).find((location) => location !== null);
+    if (found) paths.add(found.path);
+    if (paths.size >= MAX_SOURCE_PATHS) break;
+  }
+  return [...paths];
+}

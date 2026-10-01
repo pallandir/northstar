@@ -263,29 +263,21 @@ to turn the overlay off. Mark up the page, then click **Send to AI**.
 Upgrading from an older version needs the same one time Connect, because the server
 now checks a token that it creates at `~/.northstar/token`.
 
-That is the whole setup. You do not start a watch loop or a polling command. By
-default Northstar finds the terminal your assistant runs in, waits for it to be
-idle, and types `/mcp__northstar__resolve-comments` for Claude Code, or a short
-sentence for other assistants, followed by Enter.
+That is the whole setup. You do not start a watch loop or a polling command.
+**Send to AI** wakes your assistant by one path, and is disabled with the reason and
+the fix whenever that path is not available.
 
-### Optional: push with Claude Code channels
+| Assistant | How it is woken | What it needs |
+|---|---|---|
+| Claude Code | A channel event pushed into the session | Started with `claude --dangerously-load-development-channels server:northstar` |
+| Codex, Gemini CLI | One fixed line typed into its terminal | Running inside a [supported terminal](#terminals) |
 
-Claude Code can also receive the trigger as a channel event, with nothing typed
-into the terminal. Channels are a Claude Code research preview, enabled per session
-with `--channels`. Northstar is not on the approved channel allowlist yet, so while
-the preview lasts start Claude Code with the development flag for the `northstar`
-server:
-
-```sh
-claude --dangerously-load-development-channels server:northstar
-```
-
-Northstar declares the `claude/channel` capability and pushes the same resolve
-request when you press **Send to AI**. If the agent has not called `list_comments` or `get_comment`
-within 8 seconds, for example because channels are not enabled, Northstar falls
-back to typing into the terminal. Both paths are safe to fire together: a comment
-is claimed as `in_progress` the first time the agent fetches it, so a second
-trigger finds nothing open and says so.
+Channels are a Claude Code research preview. Northstar is not on the approved channel
+allowlist yet, so while the preview lasts the development flag above is required.
+There is no fallback: when the channel is not enabled, **Send to AI** stays disabled
+and tells you to restart Claude Code with that command. After every send the server
+waits up to 20 seconds for the assistant to call `list_comments` and tells the
+toolbar whether it did.
 
 ### The resolve-comments prompt
 
@@ -434,18 +426,24 @@ for Firefox 128+. Plain `npm run build` builds both, plus the MCP server. Firefo
 
 ### Terminals
 
-**Send to AI** types into the terminal your assistant runs in, so that terminal has
-to be one Northstar can drive.
+Claude Code is woken by a channel and needs no terminal support. **Send to AI**
+types into the terminal for Codex and Gemini CLI, so that terminal has to be one
+Northstar can drive.
 
-| Terminal | Support | Notes |
+| Terminal | Platform | Notes |
 |---|---|---|
-| tmux | Yes | Preferred whenever `TMUX_PANE` is set, and needs no OS permission |
-| iTerm2 | Yes | Prompts once for Automation access |
-| Terminal.app | Yes | Needs Accessibility permission in System Settings |
-| Anything else, including editor terminals | No | Comments are still saved, the toolbar says they were not announced |
+| tmux | macOS, Linux | Preferred whenever `TMUX_PANE` is set, and needs no OS permission |
+| WezTerm | macOS, Linux | Uses `wezterm cli`, detected through `WEZTERM_PANE` |
+| kitty | macOS, Linux | Needs `allow_remote_control socket-only` and `listen_on` in `kitty.conf` |
+| iTerm2 | macOS | Prompts once for Automation access |
+| Terminal.app | macOS | Needs Accessibility permission in System Settings |
+| Anything else, including editor terminals | None | **Send to AI** is disabled and the toolbar says to run the agent in tmux, WezTerm or kitty |
 
-Set `NORTHSTAR_TERMINAL` to force a driver (`tmux`, `iterm`, `terminal-app`, or
-`none`), or `NORTHSTAR_INJECT=0` to turn the typing off entirely.
+Only one fixed line is ever typed. No comment text, page content or request body
+reaches a terminal, and pane and window ids are validated before use.
+
+Set `NORTHSTAR_TERMINAL` to force a driver (`tmux`, `iterm`, `terminal-app`,
+`wezterm`, `kitty`, or `none`), or `NORTHSTAR_INJECT=0` to turn the typing off entirely.
 
 ### MCP tools
 
@@ -488,11 +486,12 @@ The design tools, by pack:
 Comments only leave the browser when you click **Send to AI**. **Save** enqueues a
 comment locally, **Send** flushes the batch.
 
-If you did click Send, the toolbar tells you why nothing was typed. The usual
-reasons are that your assistant was showing a permission prompt (Northstar will not
-answer one for you, send again once it clears), or that it is running somewhere
-Northstar cannot type, such as an editor's built-in terminal. Start it from tmux,
-iTerm2 or Terminal.app instead.
+If you did click Send, the toolbar tells you why and how to fix it. The usual reasons
+are that Claude Code was started without the northstar channel, that your assistant
+was showing a permission prompt (Northstar will not answer one for you, send again
+once it clears), or that Codex or Gemini runs somewhere Northstar cannot type, such
+as an editor's built-in terminal. Start it from tmux, WezTerm, kitty, iTerm2 or
+Terminal.app instead.
 </details>
 
 <details>
