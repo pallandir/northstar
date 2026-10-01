@@ -12,9 +12,9 @@ toolbar appears. You point at an element and one popover opens: a Comment tab, a
 Text tab, and a Colour tab, so there is one surface for everything you might do to
 that element, not three separate menus. Text and colour edits preview live against
 the page as you type, and the note is pinned to the element once you save. When you
-are ready, you click **Send to AI**. Northstar writes the batch to disk and types one
-line into the terminal your assistant is already running in, then presses Enter for
-you.
+are ready, you click **Send to AI**. Northstar writes the batch to disk and wakes the
+assistant already running in your project, through a channel for Claude Code or one
+typed line for Codex and Gemini.
 
 There is no code to copy: the first time, you click **Connect** in the toolbar and
 **Allow** on a page your own server shows. Nothing leaves your machine either: the browser and the server meet on
@@ -70,25 +70,31 @@ own shape, numeric and UUID-looking segments become `:id`, and marks it
 ## The handoff
 
 The assistant never polls and never runs a watch mode. It sits idle until you press
-**Send to AI**, and then Northstar triggers it in one of two ways.
+**Send to AI**, and then Northstar wakes it by exactly one path, chosen by which
+assistant runs the MCP server. There is no second path behind the first.
 
-The default is the one every assistant supports, which has no API for pushing a
-prompt into a running session, so Northstar does what a person would do: it types.
-For Claude Code the typed line is `/mcp__northstar__resolve-comments`, which runs the
-server's `resolve-comments` prompt. This only works while the MCP server is
-registered under the name `northstar`. Other assistants get a short sentence that
-describes the same list, get and resolve flow.
+- **Claude Code** is woken by a channel. The server pushes a
+  `notifications/claude/channel` event carrying the resolve directive. Claude Code
+  only accepts it when it was started with the channel for the `northstar` server,
+  so the toolbar disables **Send to AI** until it sees
+  `claude --dangerously-load-development-channels server:northstar` in the Claude
+  Code command line.
+- **Codex and Gemini CLI** have no push API, so Northstar types one fixed line into
+  the terminal they run in, then presses Enter. This works in tmux, WezTerm, kitty,
+  iTerm2 and Terminal.app, on macOS and Linux.
 
-The optional path is a Claude Code channel. When you start Claude Code with channels
-enabled (`claude --channels`, or the development flag for the `northstar` server
-during the research preview), the server pushes a `notifications/claude/channel` event with
-the same directive instead of typing. If no `list_comments` or `get_comment` call
-follows within 8 seconds, the typed path runs as a fallback. A comment becomes
-`in_progress` the moment `get_comment` returns it, so when both paths fire the
-second one finds nothing open and says so.
+Every send is confirmed. After the push or the typing, the server waits up to 20
+seconds for the assistant to call `list_comments`. If it does, the toolbar flashes
+**Sent to Claude** (or Codex, or Gemini). If it does not, the toolbar says so with
+the reason and a fix, and nothing is retried or sent a second way.
+
+The extension picks the server for a page by asking each running server whether its
+project root contains the source files the page was built from. A project that owns
+them wins, the deepest root wins a tie, and the toolbar only asks you to choose when
+none does.
 
 The MCP server is launched by your assistant, which means it inherits the assistant's
-environment and can find the terminal underneath it. Three details make this reliable.
+environment and can find the agent and the terminal underneath it. Three details make the typed path reliable.
 
 **Finding the terminal.** The server is spawned detached, so its own controlling
 terminal reads as none. It walks up the process ancestry until it finds one that has

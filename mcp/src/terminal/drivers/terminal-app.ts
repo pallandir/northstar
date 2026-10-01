@@ -1,5 +1,7 @@
 import { appleQuote, osascript } from "../exec.js";
+import { type HandoffCommand, assertHandoffCommand } from "../payload.js";
 import type { TerminalDriver } from "../types.js";
+import { TTY_PATH } from "./iterm.js";
 
 function script(tty: string, body: string): string {
   return `if application "Terminal" is running then
@@ -39,13 +41,16 @@ async function runOrThrow(tty: string, body: string): Promise<string> {
 export class TerminalAppDriver implements TerminalDriver {
   readonly name = "terminal-app" as const;
 
-  constructor(private readonly tty: string) {}
+  constructor(private readonly tty: string) {
+    if (!TTY_PATH.test(tty)) throw new Error(`"${tty}" is not a terminal device`);
+  }
 
   async capture(): Promise<string> {
     return (await runOrThrow(this.tty, 'return "ok:" & (get contents of t)')).slice(3);
   }
 
-  async sendText(text: string): Promise<void> {
+  async sendText(text: HandoffCommand): Promise<void> {
+    assertHandoffCommand(text);
     await runOrThrow(
       this.tty,
       `set selected tab of w to t

@@ -4,6 +4,33 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.4.1] - 2026-10-01
+
+### Changed
+
+- **Protocol 4.** Send to AI wakes the assistant by exactly one path, with no
+  fallback. Claude Code gets a channel event and Codex and Gemini CLI get one fixed
+  line typed into their terminal. The server confirms the agent called
+  `list_comments` within 20 seconds and reports the real outcome, with a reason and a
+  fix when it did not. `POST /comments` no longer triggers a handoff, `POST /handoff`
+  does, and `/status` reports agent readiness and the open comment count. Send is
+  disabled with the exact fix when the agent cannot be woken, and works whenever
+  comments are open on the server.
+- The extension binds a page to the running server whose project root contains the
+  page's source files, through the new token protected `POST /owns`, and ignores
+  servers on another protocol version.
+
+### Added
+
+- WezTerm and kitty terminal drivers, so typing works on Linux and macOS.
+- Every pane, window and tty id is validated before use, and drivers accept only the
+  fixed handoff line.
+
+### Removed
+
+- The 8 second typed fallback after a channel push, and the Claude Code slash command
+  typing path.
+
 ## [2.4.0] - 2026-10-01
 
 Northstar becomes a design engine. The first test of the framework produced a clean

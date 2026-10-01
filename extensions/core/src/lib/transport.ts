@@ -1,11 +1,10 @@
-import { samePage } from "@northstar/protocol";
+import { type AgentReadiness, samePage } from "@northstar/protocol";
 import type {
   DeferralNotice,
   HandoffNote,
   ProblemNote,
   QueueStatus,
   SendOutcome,
-  TerminalStatus,
 } from "../messages.js";
 import type {
   CommentMetadata,
@@ -59,9 +58,11 @@ export interface ServerComment {
   screenshot?: string | null;
 }
 
+type FlushCounts = Omit<SendOutcome, "woke">;
+
 export interface FlushResult {
   status: QueueStatus;
-  send: SendOutcome;
+  send: FlushCounts;
 }
 
 const SERVER_STATUSES: readonly string[] = ["open", "in_progress", "resolved", "wontfix"];
@@ -96,36 +97,55 @@ function parseServerComment(value: unknown): ServerComment {
 
 interface StatusBody {
   notices: DeferralNotice[];
-  terminal: TerminalStatus;
+  agent: AgentReadiness;
+  open: number;
   lastPolledAt: string | null;
   handoff: HandoffNote | null;
 }
 
+const AGENTS: readonly string[] = ["claude-code", "codex", "gemini", "other"];
+
+function parseAgent(value: unknown): AgentReadiness {
+  if (
+    !isRecord(value) ||
+    typeof value.ready !== "boolean" ||
+    typeof value.agent !== "string" ||
+    !AGENTS.includes(value.agent)
+  ) {
+    throw unreadable("status");
+  }
+  return value as unknown as AgentReadiness;
+}
+
 function parseHandoff(value: unknown): HandoffNote | null {
   if (value === null || value === undefined) return null;
-  if (!isRecord(value) || typeof value.typed !== "boolean" || typeof value.at !== "string") {
+  if (
+    !isRecord(value) ||
+    typeof value.delivered !== "boolean" ||
+    typeof value.at !== "string" ||
+    typeof value.agent !== "string" ||
+    !AGENTS.includes(value.agent)
+  ) {
     throw unreadable("status");
   }
   return {
-    delivered: value.typed || value.channel === true,
+    delivered: value.delivered,
+    agent: value.agent as HandoffNote["agent"],
     reason: typeof value.reason === "string" ? value.reason : undefined,
+    fix: typeof value.fix === "string" ? value.fix : undefined,
     at: value.at,
   };
 }
 
 function parseStatusBody(value: unknown): StatusBody {
-  if (
-    !isRecord(value) ||
-    !Array.isArray(value.notices) ||
-    !isRecord(value.terminal) ||
-    typeof value.terminal.available !== "boolean"
-  ) {
+  if (!isRecord(value) || !Array.isArray(value.notices) || typeof value.open !== "number") {
     throw unreadable("status");
   }
   const polled = value.lastPolledAt;
   return {
     notices: value.notices as DeferralNotice[],
-    terminal: value.terminal as unknown as TerminalStatus,
+    agent: parseAgent(value.agent),
+    open: value.open,
     lastPolledAt: typeof polled === "string" ? polled : null,
     handoff: parseHandoff(value.handoff),
   };
@@ -143,7 +163,8 @@ function baseStatus(counts: { queued: number; failed: number }): QueueStatus {
     port: null,
     root: null,
     notices: [],
-    terminal: { available: false },
+    agent: null,
+    open: 0,
     lastPolledAt: null,
     handoff: null,
     servers: [],
@@ -360,10 +381,22 @@ async function flushQueue(origin: string): Promise<FlushResult> {
   }
   await finishSend(cids, body.accepted, rejections);
 
-  const send: SendOutcome = {
+  const send: FlushCounts = {
     sent: body.accepted.length,
     rejected: Object.keys(rejections).length,
     reason: failure ? failure.message : undefined,
   };
   return { status: await status(origin), send };
+}
+
+export async function sendToAgent(
+  origin: string,
+): Promise<{ status: QueueStatus; send: SendOutcome }> {
+  const flushed = await flush(origin);
+  if (flushed.status.open === 0) {
+    return { status: flushed.status, send: { ...flushed.send, woke: null } };
+  }
+  const link = requireConnected(await resolveLink(origin));
+  const woke = parseHandoff(await callServer(link, "POST", "/handoff"));
+  return { status: await status(origin), send: { ...flushed.send, woke } };
 }

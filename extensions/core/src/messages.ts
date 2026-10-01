@@ -1,3 +1,4 @@
+import type { AgentKind, AgentReadiness } from "@northstar/protocol";
 import { UserError } from "./lib/errors.js";
 import type { Failure } from "./lib/errors.js";
 import type { DraftRequest, OperationType, QueuedRequest, Rect, Rejection } from "./types.js";
@@ -34,22 +35,19 @@ export interface DeferralNotice {
   createdAt: string;
 }
 
-export interface TerminalStatus {
-  available: boolean;
-  driver?: string;
+export interface HandoffNote {
+  delivered: boolean;
+  agent: AgentKind;
   reason?: string;
+  fix?: string;
+  at: string;
 }
 
 export interface SendOutcome {
   sent: number;
   rejected: number;
   reason?: string;
-}
-
-export interface HandoffNote {
-  delivered: boolean;
-  reason?: string;
-  at: string;
+  woke: HandoffNote | null;
 }
 
 export type Connection = "connected" | "offline" | "unpaired" | "choose" | "mismatch";
@@ -72,7 +70,8 @@ export interface QueueStatus {
   port: number | null;
   root: string | null;
   notices: DeferralNotice[];
-  terminal: TerminalStatus;
+  agent: AgentReadiness | null;
+  open: number;
   lastPolledAt: string | null;
   handoff: HandoffNote | null;
   servers: ServerChoice[];
@@ -101,6 +100,7 @@ export type Message =
       screenshotDataUrl?: string | null;
     }
   | { type: "flush" }
+  | { type: "report-sources"; paths: string[] }
   | { type: "dismiss-notice"; commentId: string }
   | { type: "queue-status" }
   | { type: "reopen-comment"; id: string; note?: string };
@@ -187,6 +187,13 @@ export function parseMessage(raw: unknown): Message {
     case "flush":
     case "queue-status":
       return { type: raw.type };
+    case "report-sources": {
+      const paths = raw.paths;
+      if (!Array.isArray(paths) || !paths.every((p) => typeof p === "string")) {
+        throw invalid("paths must be a list of strings");
+      }
+      return { type: "report-sources", paths };
+    }
     case "pair-token":
       return { type: "pair-token", token: text(raw, "token"), port: number(raw, "port") };
     case "choose-server":

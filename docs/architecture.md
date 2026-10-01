@@ -87,12 +87,11 @@ One process exposes three faces.
   checks the Origin, the Host and the pairing token of every request, and validates
   each payload against a strict schema before handing it to the store. Only the
   health check and the pairing page are open.
-- **Terminal handoff** is what starts the work. After a batch lands it finds the
-  terminal the assistant is running in, waits for it to go quiet, and types one
-  fixed line followed by Enter. For Claude Code that line is
-  `/mcp__northstar__resolve-comments`. When Claude Code advertises channels, the
-  server pushes a channel event first and types only if no agent call follows
-  within 8 seconds. See [How it works](./how-it-works.md#the-handoff).
+- **Delivery** is what starts the work. `POST /handoff` wakes the assistant by one
+  path only. Claude Code gets a channel event, and Codex and Gemini get one fixed
+  line typed into their terminal followed by Enter. The server then waits for the
+  agent's first `list_comments` call and reports the real outcome. There is no
+  fallback. See [How it works](./how-it-works.md#the-handoff).
 - **MCP server** is the assistant's entry point. It speaks MCP over stdio and
   registers 24 tools across seven packs and nine prompts (`resolve-comments`
   and the eight design stages), carrying the instruction to treat comment text as

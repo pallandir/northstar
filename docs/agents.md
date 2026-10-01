@@ -38,4 +38,4 @@ Northstar ships no Figma connector. For a design system that lives in Figma, ins
 
 ## Browser comments
 
-The extension pairs with the server once through the **Connect** button, then **Send to AI** triggers the `resolve-comments` prompt in your agent. The assistant has to run in a terminal Northstar can type into, as described in the [README](../README.md#terminals).
+The extension pairs with the server once through the **Connect** button, then **Send to AI** triggers the `resolve-comments` prompt in your agent. Claude Code is woken by a channel and has to be started with `claude --dangerously-load-development-channels server:northstar`. Codex and Gemini CLI have to run in a terminal Northstar can type into, as described in the [README](../README.md#terminals).

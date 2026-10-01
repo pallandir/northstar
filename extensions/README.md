@@ -13,11 +13,14 @@ builds two targets, `chromium/` and `firefox/`.
 - Captures the element fingerprint (selector, text, computed styles, rect) and
   probes the page's own framework state, in the main world, for the component
   name, source location and route it belongs to.
-- On `localhost`, posts comments to the project's MCP server (choosing the most
-  recently started one) so they save into the repo as you go. On a remote page it
+- On `localhost`, posts comments to the project's MCP server so they save into the repo as you go.
+  With several projects running, it binds the page to the one whose root contains the
+  page's source files, and only asks when none does. On a remote page it
   keeps them in extension storage for **Handoff** export and never calls loopback.
-- Sending a batch is one request. The server answers whether it managed to type the
-  request into your terminal, and the toolbar shows the reason when it did not.
+- Send to AI saves the batch, then asks the server to wake the assistant. The server
+  answers whether the assistant started on the comments, and the toolbar shows the
+  reason and the fix when it did not. The button is disabled when no assistant can be
+  woken.
 
 ## Source location (the gold path)
 

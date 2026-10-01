@@ -1,8 +1,3 @@
-export { TerminalHandoff } from "./inject.js";
-export type {
-  DriverName,
-  Handoff,
-  HandoffResult,
-  TerminalDriver,
-  TerminalStatus,
-} from "./types.js";
+export { TerminalTyper } from "./inject.js";
+export type { TerminalCheck, TypeResult } from "./inject.js";
+export type { DriverName, TerminalDriver } from "./types.js";

@@ -1,37 +1,43 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from "node:fs/promises";
 import { request as httpRequest } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, test } from "node:test";
 import { PROTOCOL_HEADER, PROTOCOL_VERSION, TOKEN_HEADER, isApiError } from "@northstar/protocol";
+import type { AgentReadiness, HandoffOutcome } from "@northstar/protocol";
 import { Broker } from "../src/broker.js";
+import type { Delivery } from "../src/delivery.js";
 import { type IngestServer, startIngestServer } from "../src/http.js";
 import { tokenPath } from "../src/lib/token.js";
 import { CommentStore } from "../src/store.js";
-import type { Handoff, HandoffResult, TerminalStatus } from "../src/terminal/index.js";
 import { draft } from "./fixtures.js";
 
 let server: IngestServer;
 let root: string;
 let home: string;
 let token: string;
-let handoff: FakeHandoff;
+let handoff: FakeDelivery;
 let logs: string[];
 
-class FakeHandoff implements Handoff {
+class FakeDelivery implements Delivery {
   sends = 0;
-  result: HandoffResult = { typed: true, driver: "tmux" };
+  outcome: HandoffOutcome = {
+    delivered: true,
+    agent: "codex",
+    via: "terminal",
+    at: "2026-01-01T00:00:00.000Z",
+  };
   gate: Promise<void> | null = null;
 
-  async describe(): Promise<TerminalStatus> {
-    return { available: true, driver: "tmux" };
+  async readiness(): Promise<AgentReadiness> {
+    return { ready: true, agent: "codex", via: "terminal", driver: "tmux" };
   }
 
-  async send(): Promise<HandoffResult> {
+  async deliver(): Promise<HandoffOutcome> {
     this.sends += 1;
     if (this.gate) await this.gate;
-    return this.result;
+    return this.outcome;
   }
 }
 
@@ -94,7 +100,7 @@ function assertApiError(reply: Reply, status: number): void {
 before(async () => {
   root = await mkdtemp(join(tmpdir(), "northstar-http-"));
   home = await mkdtemp(join(tmpdir(), "northstar-home-"));
-  handoff = new FakeHandoff();
+  handoff = new FakeDelivery();
   logs = [];
   server = await startIngestServer(
     new CommentStore(root),
@@ -287,67 +293,126 @@ test("OPTIONS preflight needs an extension origin and no token", async () => {
   assertApiError(await call("OPTIONS", "/comments", { Host: host() }), 403);
 });
 
-test("/status carries notices, terminal and the last poll without the token leaking elsewhere", async () => {
+test("/status carries notices, agent readiness and the last poll without the token leaking elsewhere", async () => {
   const res = await call("GET", "/status", authed());
   assert.equal(res.status, 200);
   const body = parse(res);
   assert.ok(Array.isArray(body.notices));
-  assert.equal(body.terminal.driver, "tmux");
+  assert.equal(body.agent.driver, "tmux");
+  assert.equal(typeof body.open, "number");
   assert.equal(body.lastPolledAt, null);
   assert.ok(!res.body.includes(token));
 });
 
 test("a protocol header that differs is a 426 naming the side to update", async () => {
-  const older = await call("GET", "/status", authed({ [PROTOCOL_HEADER]: "2" }));
+  const older = await call(
+    "GET",
+    "/status",
+    authed({ [PROTOCOL_HEADER]: String(PROTOCOL_VERSION - 1) }),
+  );
   assertApiError(older, 426);
   assert.equal(parse(older).fix, "Update the Northstar extension.");
-  const newer = await call("GET", "/status", authed({ [PROTOCOL_HEADER]: "4" }));
+  const newer = await call(
+    "GET",
+    "/status",
+    authed({ [PROTOCOL_HEADER]: String(PROTOCOL_VERSION + 1) }),
+  );
   assertApiError(newer, 426);
   assert.match(parse(newer).fix, /Update Northstar/);
-  assert.equal((await call("GET", "/status", authed({ [PROTOCOL_HEADER]: "3" }))).status, 200);
+  assert.equal(
+    (await call("GET", "/status", authed({ [PROTOCOL_HEADER]: String(PROTOCOL_VERSION) }))).status,
+    200,
+  );
 });
 
-test("POST /comments answers 201 before the handoff finishes and /status reports its outcome", async () => {
+test("POST /comments never wakes the agent", async () => {
+  const before = handoff.sends;
+  const res = await post([draft({ cid: "quiet-1" })]);
+  assert.equal(res.status, 201);
+  assert.equal(handoff.sends, before);
+  assert.deepEqual(Object.keys(parse(res)).sort(), ["accepted", "ids", "rejected"]);
+});
+
+test("POST /handoff wakes the agent once and answers with the real outcome", async () => {
+  await post([draft({ cid: "wake-1" })]);
+  const before = handoff.sends;
+  const res = await call("POST", "/handoff", authed());
+  assert.equal(res.status, 200);
+  assert.equal(parse(res).delivered, true);
+  assert.equal(handoff.sends, before + 1);
+  const status = parse(await call("GET", "/status", authed()));
+  assert.equal(status.handoff.delivered, true);
+  assert.equal(status.handoff.agent, "codex");
+});
+
+test("a handoff the agent did not pick up is returned and recorded as failed", async () => {
+  await post([draft({ cid: "wake-2" })]);
+  const real = handoff.outcome;
+  handoff.outcome = {
+    ...real,
+    delivered: false,
+    reason: "Codex did not start on the comments within 20 seconds.",
+    fix: "Check Codex, then click Send to AI again.",
+  };
+  const res = await call("POST", "/handoff", authed());
+  assert.equal(res.status, 200);
+  assert.equal(parse(res).delivered, false);
+  assert.equal(parse(await call("GET", "/status", authed())).handoff.fix, handoff.outcome.fix);
+  assert.ok(logs.some((l) => l.includes("did not start on the comments")));
+  handoff.outcome = real;
+});
+
+test("POST /handoff needs the token, an open comment and no send in flight", async () => {
+  assertApiError(await call("POST", "/handoff", { Host: host() }), 401);
+  await call("DELETE", "/comments?all=true", authed());
+  assertApiError(await call("POST", "/handoff", authed()), 400);
+
+  await post([draft({ cid: "wake-3" })]);
   let release: () => void = () => {};
   handoff.gate = new Promise((resolve) => {
     release = resolve;
   });
-  const before = handoff.sends;
-  const res = await post([draft({ cid: "fast-1" })]);
-  assert.equal(res.status, 201);
-  const body = parse(res);
-  assert.equal(body.accepted[0].cid, "fast-1");
-  assert.equal(body.typed, false);
-  assert.equal(body.ids.length, 1);
-  assert.equal(handoff.sends, before + 1);
-
+  const first = call("POST", "/handoff", authed());
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  assertApiError(await call("POST", "/handoff", authed()), 409);
   handoff.gate = null;
   release();
-  await new Promise((resolve) => setTimeout(resolve, 20));
-  const status = parse(await call("GET", "/status", authed()));
-  assert.equal(status.handoff.typed, true);
-  assert.equal(status.handoff.driver, "tmux");
+  assert.equal((await first).status, 200);
 });
 
-test("a handoff that throws is logged and recorded, never unhandled", async () => {
-  handoff.send = async () => {
-    throw new Error("terminal exploded");
-  };
-  const res = await post([draft()]);
-  assert.equal(res.status, 201);
-  await new Promise((resolve) => setTimeout(resolve, 20));
-  assert.ok(logs.some((l) => l.includes("terminal exploded")));
-  const status = parse(await call("GET", "/status", authed()));
-  assert.equal(status.handoff.reason, "terminal exploded");
-  handoff.send = FakeHandoff.prototype.send.bind(handoff);
+test("POST /owns counts the source files that exist under the project root", async () => {
+  await mkdir(join(root, "src"), { recursive: true });
+  await writeFile(join(root, "src", "App.jsx"), "export default 1");
+  const ask = (paths: unknown) => call("POST", "/owns", jsonHeaders(), JSON.stringify({ paths }));
+  const found = parse(await ask(["src/App.jsx", "src/Missing.jsx"]));
+  assert.equal(found.matches, 1);
+  assert.ok(found.depth > 1);
+  assert.equal(parse(await ask(["nope.jsx"])).matches, 0);
 });
 
-test("a multi-comment batch is one request and one handoff", async () => {
+test("POST /owns refuses traversal, absolute paths, symlink escapes and bad bodies", async () => {
+  const ask = (body: unknown) => call("POST", "/owns", jsonHeaders(), JSON.stringify(body));
+  assertApiError(await ask({ paths: ["../../etc/passwd"] }), 400);
+  assertApiError(await ask({ paths: ["src/../../secret"] }), 400);
+  assertApiError(await ask({ paths: "src/App.jsx" }), 400);
+  assertApiError(await ask({ paths: [] }), 400);
+  assertApiError(await ask({ paths: Array.from({ length: 21 }, () => "a.js") }), 400);
+  assertApiError(await ask({ paths: [1] }), 400);
+
+  const outside = await mkdtemp(join(tmpdir(), "northstar-outside-"));
+  await writeFile(join(outside, "secret.txt"), "x");
+  await symlink(outside, join(root, "escape"));
+  assert.equal(parse(await ask({ paths: ["escape/secret.txt"] })).matches, 0);
+  assertApiError(await call("POST", "/owns", { Host: host() }, "{}"), 401);
+  await rm(outside, { recursive: true, force: true });
+});
+
+test("a multi-comment batch is one request", async () => {
   const sends = handoff.sends;
   const res = await post([draft(), draft({ comment: "and this" }), draft({ comment: "third" })]);
   assert.equal(res.status, 201);
   assert.equal(parse(res).ids.length, 3);
-  assert.equal(handoff.sends, sends + 1);
+  assert.equal(handoff.sends, sends);
 });
 
 test("a body that is not a list of comments is a 400", async () => {
@@ -387,7 +452,7 @@ test("a batch is accepted or rejected per item with a reason, nothing is clipped
   );
   assert.equal(body.rejected[1].field, "comment");
   assert.match(body.rejected[1].error, /at most 8000/);
-  assert.equal(handoff.sends, sends + 1);
+  assert.equal(handoff.sends, sends);
 });
 
 test("source paths outside the project are rejected naming source.path, inside ones are accepted", async () => {
@@ -471,12 +536,12 @@ test("DELETE /comments needs exactly one of page and all", async () => {
   assert.equal(parse(rest).removed, 1);
 });
 
-test("GET /state returns version, comments, notices and terminal status", async () => {
+test("GET /state returns version, comments, notices and agent readiness", async () => {
   const body = parse(await call("GET", "/state", authed()));
   assert.equal(typeof body.version, "number");
   assert.ok(Array.isArray(body.comments));
   assert.ok(Array.isArray(body.notices));
-  assert.equal(body.terminal.available, true);
+  assert.equal(body.agent.ready, true);
 });
 
 test("reopen validates, 404s unknown ids and 409s an already open comment", async () => {

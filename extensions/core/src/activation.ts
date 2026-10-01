@@ -75,6 +75,12 @@ async function requestLoopbackAccess(): Promise<Grant> {
   }
 }
 
+function agentName(agent: string): string {
+  if (agent === "claude-code") return "Claude Code session";
+  if (agent === "gemini") return "Gemini CLI session";
+  return "Codex session";
+}
+
 function statusLine(url: string | undefined, status: QueueStatus): string {
   if (url === undefined || !isLocalUrl(url)) {
     return "Comments on this page are exported as a handoff file.";
@@ -90,9 +96,10 @@ function statusLine(url: string | undefined, status: QueueStatus): string {
       return `${status.problem?.error ?? "Versions differ."} ${status.problem?.fix ?? ""}`.trim();
     case "connected":
       if (status.problem) return `${status.problem.error} ${status.problem.fix}`;
-      return status.terminal.available
-        ? `Ready. Send to AI types into your ${status.terminal.driver} session.`
-        : `Connected, but no terminal. ${status.terminal.reason ?? "Northstar cannot reach the terminal your agent runs in."}`;
+      if (!status.agent) return "Connected, waiting for the agent status.";
+      return status.agent.ready
+        ? `Ready. Send to AI wakes your ${agentName(status.agent.agent)}.`
+        : `Connected, but Send to AI is off. ${status.agent.reason ?? ""} ${status.agent.fix ?? ""}`.trim();
   }
 }
 

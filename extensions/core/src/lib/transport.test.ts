@@ -22,6 +22,7 @@ const storage = (globalThis as unknown as { __northstarStorage: { local: Map<str
   .__northstarStorage.local;
 
 const ORIGIN = "http://localhost:3000";
+const AGENT = { ready: true, agent: "codex", via: "terminal", driver: "tmux" };
 const TOKEN = "a".repeat(64);
 
 const draft = (comment: string, url = `${ORIGIN}/`) => ({
@@ -39,7 +40,7 @@ const draft = (comment: string, url = `${ORIGIN}/`) => ({
   planFirst: false,
 });
 
-const health = (protocol = 3) => ({
+const health = (protocol = 4) => ({
   ok: true,
   service: "northstar",
   protocol,
@@ -106,13 +107,13 @@ describe("flush", () => {
           ids: ["c-1"],
           accepted: [{ cid: first.cid, id: "c-1" }],
           rejected: [],
-          typed: true,
         });
       }
       if (path === "/status") {
         return reply(200, {
           notices: [],
-          terminal: { available: true, driver: "tmux" },
+          agent: AGENT,
+          open: 0,
           lastPolledAt: null,
         });
       }
@@ -148,13 +149,13 @@ describe("flush", () => {
               fix: "Pick the element again.",
             },
           ],
-          typed: true,
         });
       }
       if (path === "/status") {
         return reply(200, {
           notices: [],
-          terminal: { available: true },
+          agent: AGENT,
+          open: 0,
           lastPolledAt: null,
           handoff: null,
         });
@@ -203,7 +204,8 @@ describe("flush", () => {
       if (path === "/status") {
         return reply(200, {
           notices: [],
-          terminal: { available: true },
+          agent: AGENT,
+          open: 0,
           lastPolledAt: null,
           handoff: null,
         });
@@ -276,7 +278,8 @@ describe("flush", () => {
       path === "/status"
         ? reply(200, {
             notices: [],
-            terminal: { available: true },
+            agent: AGENT,
+            open: 0,
             lastPolledAt: null,
             handoff: null,
           })
@@ -304,7 +307,8 @@ describe("flush", () => {
       if (path === "/status")
         return reply(200, {
           notices: [],
-          terminal: { available: true },
+          agent: AGENT,
+          open: 0,
           lastPolledAt: null,
           handoff: null,
         });
@@ -314,7 +318,6 @@ describe("flush", () => {
         ids: ["c-1"],
         accepted: [{ cid: item.cid, id: "c-1" }],
         rejected: [],
-        typed: true,
       });
     });
 
@@ -328,21 +331,22 @@ describe("flush", () => {
 });
 
 describe("status", () => {
-  it("carries the terminal status through to the toolbar", async () => {
+  it("carries the agent readiness through to the toolbar", async () => {
     storage.set("northstar-token", TOKEN);
     const mod = await import("./transport.js");
     stubServer((path) =>
       path === "/status"
         ? reply(200, {
             notices: [],
-            terminal: { available: true, driver: "tmux" },
+            agent: AGENT,
+            open: 0,
             lastPolledAt: null,
           })
         : undefined,
     );
     const status = await mod.status(ORIGIN);
     expect(status.connection).toBe("connected");
-    expect(status.terminal).toEqual({ available: true, driver: "tmux" });
+    expect(status.agent).toEqual(AGENT);
   });
 
   it("asks which project when more than one server answers", async () => {
@@ -388,5 +392,184 @@ describe("page scoping", () => {
     expect(() => mod.saveDraft(ORIGIN, draft("x", "http://localhost:5173/"))).toThrow(
       "The page changed before the comment was saved.",
     );
+  });
+});
+
+describe("sendToAgent", () => {
+  const handoffReply = {
+    delivered: true,
+    agent: "claude-code",
+    via: "channel",
+    at: "2026-01-01T00:00:00.000Z",
+  };
+
+  it("flushes, then wakes the agent and returns its outcome", async () => {
+    storage.set("northstar-token", TOKEN);
+    const mod = await import("./transport.js");
+    const item = await mod.saveDraft(ORIGIN, draft("first"));
+    let open = 0;
+    const calls = stubServer((path, call) => {
+      if (path === "/comments" && call.method === "POST") {
+        open = 1;
+        return reply(201, { ids: ["c-1"], accepted: [{ cid: item.cid, id: "c-1" }], rejected: [] });
+      }
+      if (path === "/status") {
+        return reply(200, { notices: [], agent: AGENT, open, lastPolledAt: null });
+      }
+      if (path === "/handoff") return reply(200, handoffReply);
+      return undefined;
+    });
+    const { send, status } = await mod.sendToAgent(ORIGIN);
+    expect(send.sent).toBe(1);
+    expect(send.woke).toMatchObject({ delivered: true, agent: "claude-code" });
+    expect(status.queued).toBe(0);
+    const order = calls.filter((c) => c.method === "POST").map((c) => new URL(c.url).pathname);
+    expect(order).toEqual(["/comments", "/handoff"]);
+  });
+
+  it("wakes the agent even when nothing is queued but comments are open on the server", async () => {
+    storage.set("northstar-token", TOKEN);
+    const mod = await import("./transport.js");
+    const calls = stubServer((path) => {
+      if (path === "/status") {
+        return reply(200, { notices: [], agent: AGENT, open: 2, lastPolledAt: null });
+      }
+      if (path === "/handoff") return reply(200, handoffReply);
+      return undefined;
+    });
+    const { send } = await mod.sendToAgent(ORIGIN);
+    expect(send.sent).toBe(0);
+    expect(send.woke?.delivered).toBe(true);
+    expect(calls.filter((c) => c.method === "POST")).toHaveLength(1);
+  });
+
+  it("does not wake anything when nothing is open", async () => {
+    storage.set("northstar-token", TOKEN);
+    const mod = await import("./transport.js");
+    const calls = stubServer((path) =>
+      path === "/status"
+        ? reply(200, { notices: [], agent: AGENT, open: 0, lastPolledAt: null })
+        : undefined,
+    );
+    const { send } = await mod.sendToAgent(ORIGIN);
+    expect(send.woke).toBeNull();
+    expect(calls.some((c) => c.method === "POST")).toBe(false);
+  });
+
+  it("returns a handoff the agent did not pick up with the server's reason and fix", async () => {
+    storage.set("northstar-token", TOKEN);
+    const mod = await import("./transport.js");
+    stubServer((path) => {
+      if (path === "/status") {
+        return reply(200, { notices: [], agent: AGENT, open: 1, lastPolledAt: null });
+      }
+      if (path === "/handoff") {
+        return reply(200, {
+          ...handoffReply,
+          delivered: false,
+          reason: "Claude Code did not start on the comments within 20 seconds.",
+          fix: "Check Claude Code, then click Send to AI again.",
+        });
+      }
+      return undefined;
+    });
+    const { send } = await mod.sendToAgent(ORIGIN);
+    expect(send.woke).toMatchObject({
+      delivered: false,
+      fix: "Check Claude Code, then click Send to AI again.",
+    });
+  });
+
+  it("surfaces a server refusal as an error with its fix", async () => {
+    storage.set("northstar-token", TOKEN);
+    const mod = await import("./transport.js");
+    stubServer((path) => {
+      if (path === "/status") {
+        return reply(200, { notices: [], agent: AGENT, open: 1, lastPolledAt: null });
+      }
+      if (path === "/handoff") {
+        return reply(409, {
+          error: "A send to the agent is already in progress.",
+          fix: "Wait for it to finish.",
+        });
+      }
+      return undefined;
+    });
+    await expect(mod.sendToAgent(ORIGIN)).rejects.toThrow("already in progress");
+  });
+});
+
+describe("binding to the right project", () => {
+  const owns = (matchesByPort: Record<string, number>, depthByPort: Record<string, number> = {}) =>
+    stubServerPorts((port, path) => {
+      if (path === "/health") {
+        return reply(200, { ...health(), root: port === "7474" ? "/work" : "/work/shop" });
+      }
+      if (path === "/owns") {
+        return reply(200, { matches: matchesByPort[port] ?? 0, depth: depthByPort[port] ?? 2 });
+      }
+      return undefined;
+    });
+
+  function stubServerPorts(handler: (port: string, path: string) => Response | undefined) {
+    const calls: string[] = [];
+    vi.stubGlobal("fetch", async (url: string) => {
+      const u = new URL(url);
+      if (!["7474", "7475"].includes(u.port)) throw new Error("refused");
+      calls.push(`${u.port}${u.pathname}`);
+      const answer = handler(u.port, u.pathname);
+      if (!answer) throw new Error(`unexpected ${u.port}${u.pathname}`);
+      return answer;
+    });
+    return calls;
+  }
+
+  it("binds to the only server whose root contains the page's source files", async () => {
+    storage.set("northstar-token", TOKEN);
+    const server = await import("./server.js");
+    await server.reportSources(ORIGIN, ["src/App.jsx"]);
+    owns({ "7475": 3 });
+    const link = await server.resolveLink(ORIGIN);
+    expect(link).toMatchObject({ kind: "connected", server: { port: 7475 } });
+  });
+
+  it("prefers the deepest root when several roots own the same files", async () => {
+    storage.set("northstar-token", TOKEN);
+    const server = await import("./server.js");
+    await server.reportSources(ORIGIN, ["src/App.jsx"]);
+    owns({ "7474": 2, "7475": 2 }, { "7474": 2, "7475": 5 });
+    expect(await server.resolveLink(ORIGIN)).toMatchObject({ server: { port: 7475 } });
+  });
+
+  it("asks which project only when no root owns the files, and honours that choice", async () => {
+    storage.set("northstar-token", TOKEN);
+    const server = await import("./server.js");
+    await server.reportSources(ORIGIN, ["src/Nowhere.jsx"]);
+    owns({});
+    expect((await server.resolveLink(ORIGIN)).kind).toBe("choose");
+    await server.chooseServer(ORIGIN, 7474);
+    expect(await server.resolveLink(ORIGIN)).toMatchObject({
+      kind: "connected",
+      server: { port: 7474 },
+    });
+  });
+
+  it("never offers a server on another protocol version", async () => {
+    storage.set("northstar-token", TOKEN);
+    const server = await import("./server.js");
+    stubServerPorts((port, path) =>
+      path === "/health" ? reply(200, { ...health(port === "7474" ? 3 : 4) }) : undefined,
+    );
+    expect(await server.resolveLink(ORIGIN)).toMatchObject({
+      kind: "connected",
+      server: { port: 7475 },
+    });
+  });
+
+  it("reports a mismatch when every server is on another version", async () => {
+    storage.set("northstar-token", TOKEN);
+    const server = await import("./server.js");
+    stubServerPorts((_port, path) => (path === "/health" ? reply(200, health(3)) : undefined));
+    expect((await server.resolveLink(ORIGIN)).kind).toBe("mismatch");
   });
 });

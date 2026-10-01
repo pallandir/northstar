@@ -2,10 +2,16 @@ import { z } from "zod";
 import type { DeferralNotice } from "./comment.js";
 import type { Rejection } from "./draft-check.js";
 
-export interface TerminalStatus {
-  available: boolean;
+export type AgentKind = "claude-code" | "codex" | "gemini" | "other";
+export type DeliveryVia = "channel" | "terminal";
+
+export interface AgentReadiness {
+  ready: boolean;
+  agent: AgentKind;
+  via: DeliveryVia | null;
   driver?: string;
   reason?: string;
+  fix?: string;
 }
 
 export const healthSchema = z.object({
@@ -20,18 +26,25 @@ export const healthSchema = z.object({
 export type Health = z.infer<typeof healthSchema>;
 
 export interface HandoffOutcome {
-  typed: boolean;
-  channel?: boolean;
-  driver?: string;
+  delivered: boolean;
+  agent: AgentKind;
+  via: DeliveryVia | null;
   reason?: string;
+  fix?: string;
   at: string;
 }
 
 export interface StatusResponse {
   notices: DeferralNotice[];
-  terminal: TerminalStatus;
+  agent: AgentReadiness;
+  open: number;
   lastPolledAt: string | null;
   handoff: HandoffOutcome | null;
+}
+
+export interface OwnsResponse {
+  matches: number;
+  depth: number;
 }
 
 export interface AcceptedDraft {
@@ -43,9 +56,6 @@ export interface PostCommentsResponse {
   ids: string[];
   accepted: AcceptedDraft[];
   rejected: Rejection[];
-  typed: boolean;
-  channel: boolean;
-  reason?: string;
 }
 
 export interface DeleteCommentsResponse {

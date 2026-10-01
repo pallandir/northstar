@@ -59,7 +59,8 @@ function reachableStatus(overrides: Partial<QueueStatus> = {}): QueueStatus {
     port: 7474,
     root: "/repo",
     notices: [],
-    terminal: { available: true, driver: "tmux" },
+    agent: { ready: true, agent: "codex", via: "terminal", driver: "tmux" },
+    open: 0,
     lastPolledAt: null,
     handoff: null,
     servers: [],
@@ -120,11 +121,20 @@ describe("Toolbar failure strip", () => {
 
     toolbar.render(
       state({
-        status: reachableStatus({ terminal: { available: false, reason: "no terminal found" } }),
+        status: reachableStatus({
+          agent: {
+            ready: false,
+            agent: "codex",
+            via: "terminal",
+            reason: "no terminal found",
+            fix: "Run it in tmux.",
+          },
+        }),
       }),
     );
-    expect(document.querySelector(".ns-setup-title")?.textContent).toBe(
-      "Comments will not reach your agent",
+    expect(document.querySelector(".ns-setup-title")?.textContent).toBe("Send to AI is off");
+    expect(document.querySelector(".ns-setup-hint")?.textContent).toBe(
+      "no terminal found Run it in tmux.",
     );
   });
 });
@@ -211,14 +221,16 @@ describe("Toolbar connection strips", () => {
         status: reachableStatus({
           handoff: {
             delivered: false,
+            agent: "codex",
             reason: "the agent did not settle",
+            fix: "Wait for it.",
             at: "2026-01-01T00:00:00Z",
           },
         }),
       }),
     );
     expect(document.querySelector(".ns-setup-title")?.textContent).toBe(
-      "Comments saved, not announced",
+      "Comments saved, the agent did not start",
     );
   });
 
@@ -349,8 +361,39 @@ describe("Toolbar tooltips", () => {
     toolbar.render(state({ status: reachableStatus({ queued: 3 }) }));
     expect(send().dataset.tip).toBe("Send 3 comments to your AI assistant");
 
+    toolbar.render(state({ status: reachableStatus({ queued: 0, open: 2 }) }));
+    expect(send().disabled).toBe(false);
+    expect(send().dataset.tip).toBe("Send 2 comments to your AI assistant");
+
+    toolbar.render(
+      state({
+        status: reachableStatus({
+          queued: 2,
+          agent: {
+            ready: false,
+            agent: "claude-code",
+            via: "channel",
+            reason: "Claude Code was started without the northstar channel.",
+            fix: "Restart it with the channel flag.",
+          },
+        }),
+      }),
+    );
+    expect(send().disabled).toBe(true);
+    expect(send().dataset.tip).toBe(
+      "Send to AI is off, Claude Code was started without the northstar channel. Restart it with the channel flag.",
+    );
+
     toolbar.setSending(true);
-    expect(send().dataset.tip).toBe("Sending your comments");
+    expect(send().dataset.tip).toBe("Waking your AI assistant");
+    toolbar.setSending(false);
+
+    toolbar.flashSent({
+      sent: 0,
+      rejected: 0,
+      woke: { delivered: true, agent: "claude-code", at: "now" },
+    });
+    expect(document.body.textContent).toContain("Sent to Claude");
   });
 
   it("the dismiss button on a notice is named for screen readers and hover", () => {
