@@ -7,6 +7,9 @@ const commands: Record<string, () => Promise<Command>> = {
   detect: async () => (await import("./cli/detect.js")).detect,
   hook: async () => (await import("./cli/hook.js")).hook,
   conflicts: async () => (await import("./cli/conflicts.js")).conflicts,
+  install: async () => (await import("./cli/setup.js")).installCommand,
+  uninstall: async () => (await import("./cli/setup.js")).uninstallCommand,
+  doctor: async () => (await import("./cli/setup.js")).doctorCommand,
 };
 
 const USAGE = `northstar ${VERSION}
@@ -19,6 +22,9 @@ Commands:
   detect      scan UI files for generic AI patterns, exits 1 on errors
   hook        agent hook entry point, never fails an edit
   conflicts   find overlapping design skills, --remove quarantines them
+  install     set Northstar up in Claude Code, Codex, Cursor, Gemini CLI and OpenCode
+  uninstall   remove what install added
+  doctor      check the install, hooks, assets and conflicts
   --version   print the version`;
 
 async function run(argv: string[]): Promise<number> {

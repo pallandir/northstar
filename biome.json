@@ -11,7 +11,8 @@
       "node_modules",
       ".husky/_",
       "packages/data/json",
-      "packages/detector/fixtures/fail"
+      "packages/detector/fixtures/fail",
+      "integrations"
     ]
   },
   "formatter": {

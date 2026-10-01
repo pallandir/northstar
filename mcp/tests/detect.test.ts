@@ -152,3 +152,57 @@ test("the hook command never fails an edit, even on garbage input", () => {
     assert.equal(result.stdout, "", input);
   }
 });
+
+import { feedbackText, filesFor, render } from "../src/cli/hook.js";
+
+test("each agent's hook input is read and its feedback is rendered in its own dialect", () => {
+  const codex = {
+    tool_name: "apply_patch",
+    cwd: root,
+    tool_input: { command: "*** Begin Patch\n*** Update File: src/Hero.tsx\n@@\n*** End Patch" },
+  };
+  assert.deepEqual(filesFor("codex", codex), ["src/Hero.tsx"]);
+  const text = feedbackText("codex", codex, root);
+  assert.match(text ?? "", /NS-SLOP-GRADIENT-TEXT/);
+  assert.equal(
+    JSON.parse(render("codex", text ?? "")).hookSpecificOutput.hookEventName,
+    "PostToolUse",
+  );
+
+  const gemini = {
+    tool_name: "write_file",
+    cwd: root,
+    tool_input: { file_path: join(root, "src/Hero.tsx") },
+  };
+  assert.equal(
+    JSON.parse(render("gemini", feedbackText("gemini", gemini, root) ?? "")).hookSpecificOutput
+      .hookEventName,
+    "AfterTool",
+  );
+  assert.equal(
+    feedbackText("gemini", { ...gemini, tool_name: "run_shell_command" }, root),
+    undefined,
+  );
+
+  const opencode = { cwd: root, tool_input: { file_path: "src/Hero.tsx" } };
+  assert.match(
+    render("opencode", feedbackText("opencode", opencode, root) ?? ""),
+    /^Northstar found UI errors in src\/Hero\.tsx/,
+  );
+  assert.equal(render("cursor", "x"), "");
+});
+
+test("the hook command accepts every agent name and ignores an unknown one", () => {
+  for (const agent of ["codex", "gemini", "opencode", "cursor", "nope"]) {
+    const result = spawnSync(
+      process.execPath,
+      ["--import", "tsx", "src/cli.ts", "hook", "post-edit", "--agent", agent],
+      {
+        input: "garbage",
+        encoding: "utf8",
+      },
+    );
+    assert.equal(result.status, 0, agent);
+    assert.equal(result.stdout, "", agent);
+  }
+});

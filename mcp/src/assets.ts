@@ -41,3 +41,14 @@ export function getData(): DesignData {
   cachedData ??= loadData(dataRoot());
   return cachedData;
 }
+
+export function skillRoot(): string {
+  const candidates = [
+    process.env.NORTHSTAR_SKILL_ROOT,
+    join(here, "assets", "skill"),
+    join(here, "..", "..", "plugin", "skills", "northstar"),
+  ];
+  const found = candidates.find((path) => path && existsSync(join(path, "SKILL.md")));
+  if (!found) throw new Error("northstar skill assets not found, reinstall the package");
+  return found;
+}

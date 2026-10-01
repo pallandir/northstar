@@ -46,6 +46,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@northstar/adapters": "*",
     "@northstar/canon": "*",
     "@northstar/data": "*",
     "@northstar/design-md": "*",

@@ -159,7 +159,13 @@ test("removal is gated on an install record for the owning agent", () => {
   const shared = conflicts.find((c) => c.owner === "shared") as Conflict;
   assert.equal(installedFor(home, claudeSkill), false);
 
-  const record = { installedAt: "now", version: "2.2.0", scope: "user" as const, files: [] };
+  const record = {
+    installedAt: "now",
+    version: "2.2.0",
+    scope: "user" as const,
+    packs: "all" as const,
+    files: [],
+  };
   writeRecord(home, { agents: { claude: record } });
   assert.equal(installedFor(home, claudeSkill), true);
   assert.equal(installedFor(home, shared), false);
@@ -193,7 +199,13 @@ test("the conflicts command lists, refuses before an install, and removes with -
   assert.match(gated.stderr, /run northstar install first/);
   assert.ok(existsSync(join(home, ".claude/skills/impeccable")));
 
-  const record = { installedAt: "now", version: "2.2.0", scope: "user" as const, files: [] };
+  const record = {
+    installedAt: "now",
+    version: "2.2.0",
+    scope: "user" as const,
+    packs: "all" as const,
+    files: [],
+  };
   writeRecord(home, { agents: { claude: record } });
   const noTty = cli(home, "--remove");
   assert.equal(noTty.status, 2);
