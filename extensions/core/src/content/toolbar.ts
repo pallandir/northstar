@@ -5,6 +5,7 @@ import {
   ICON_COMMENT,
   ICON_GRIP,
   ICON_HANDOFF,
+  ICON_POWER,
   ICON_SEND,
   ICON_TARGET,
   ICON_TRASH,
@@ -15,6 +16,20 @@ import type { Surface } from "./surface.js";
 export type Mode = "local" | "remote";
 
 const POS_KEY = "cc-toolbar-pos";
+const TIP_ROOM = 56;
+const PICK_ON_TIP = "Picking is on, click to pause and use the page";
+const PICK_OFF_TIP = "Picking is paused, click to pick elements to comment on";
+const COMMENTS_OPEN_TIP = "Open the comments panel";
+const COMMENTS_CLOSE_TIP = "Close the comments panel";
+const SEND_READY_TIP = "Send your comments to your AI assistant";
+const HANDOFF_TIP = "Download all comments as a Markdown file";
+
+export function setTip(el: HTMLElement, tip: string): void {
+  el.dataset.tip = tip;
+  if (el.classList.contains("ns-action--icon") || el.classList.contains("ns-grip")) {
+    el.setAttribute("aria-label", tip);
+  }
+}
 
 export interface ToolbarHandlers {
   onComments: () => void;
@@ -22,6 +37,7 @@ export interface ToolbarHandlers {
   onHandoff: () => void;
   onReset: () => void;
   onTogglePick: () => void;
+  onDeactivate: () => void;
 }
 
 export interface ToolbarState {
@@ -42,6 +58,7 @@ export class Toolbar {
   private readonly sendBtn: HTMLButtonElement;
   private readonly handoffBtn: HTMLButtonElement;
   private readonly targetBtn: HTMLButtonElement;
+  private readonly deactivateBtn: HTMLButtonElement;
   private readonly sendLabel: Text;
   private panelKey = "";
   private dismissedKey = "";
@@ -49,6 +66,7 @@ export class Toolbar {
   private sending = false;
   private reachable = false;
   private hasQueued = false;
+  private queued = 0;
   private readonly onResize = () => this.clampIntoViewport();
 
   constructor(surface: Surface, handlers: ToolbarHandlers) {
@@ -60,15 +78,15 @@ export class Toolbar {
     this.panel.hidden = true;
 
     const grip = document.createElement("div");
-    grip.className = "ns-grip ns-has-tip";
+    grip.className = "ns-grip ns-has-tip ns-has-tip--start";
     grip.append(icon(ICON_GRIP, "ns-action-glyph"));
-    grip.dataset.tip = "Drag to move";
+    setTip(grip, "Drag to move the toolbar");
     this.makeDraggable(grip);
 
     this.targetBtn = document.createElement("button");
     this.targetBtn.type = "button";
     this.targetBtn.className = "ns-action ns-action--icon ns-action--active ns-has-tip";
-    this.targetBtn.dataset.tip = "Pause element picking";
+    setTip(this.targetBtn, PICK_ON_TIP);
     this.targetBtn.append(icon(ICON_TARGET, "ns-action-glyph"));
     this.targetBtn.addEventListener("click", () => handlers.onTogglePick());
 
@@ -76,7 +94,7 @@ export class Toolbar {
     this.commentsBtn = document.createElement("button");
     this.commentsBtn.type = "button";
     this.commentsBtn.className = "ns-action ns-has-tip";
-    this.commentsBtn.dataset.tip = "Open the comments panel";
+    setTip(this.commentsBtn, COMMENTS_OPEN_TIP);
     this.commentsBtn.append(icon(ICON_COMMENT, "ns-action-glyph"), this.commentsLabel);
     this.commentsBtn.addEventListener("click", () => handlers.onComments());
 
@@ -84,20 +102,25 @@ export class Toolbar {
     this.sendBtn = document.createElement("button");
     this.sendBtn.type = "button";
     this.sendBtn.className = "ns-action ns-action--primary ns-has-tip";
-    this.sendBtn.dataset.tip = "Send all comments to your AI assistant";
+    setTip(this.sendBtn, SEND_READY_TIP);
     this.sendBtn.append(icon(ICON_SEND, "ns-action-glyph"), this.sendLabel);
     this.sendBtn.addEventListener("click", () => handlers.onSend());
 
-    this.handoffBtn = action(ICON_HANDOFF, "Handoff", "Download a Markdown handoff", () =>
-      handlers.onHandoff(),
-    );
+    this.handoffBtn = action(ICON_HANDOFF, "Handoff", HANDOFF_TIP, () => handlers.onHandoff());
 
     const resetBtn = document.createElement("button");
     resetBtn.type = "button";
     resetBtn.className = "ns-action ns-action--icon ns-action--danger ns-has-tip";
-    resetBtn.dataset.tip = "Delete all comments";
+    setTip(resetBtn, "Delete all comments");
     resetBtn.append(icon(ICON_TRASH, "ns-action-glyph"));
     resetBtn.addEventListener("click", () => handlers.onReset());
+
+    this.deactivateBtn = document.createElement("button");
+    this.deactivateBtn.type = "button";
+    this.deactivateBtn.className = "ns-action ns-action--icon ns-has-tip ns-has-tip--end";
+    setTip(this.deactivateBtn, "Deactivate Northstar on this tab, your comments are kept");
+    this.deactivateBtn.append(icon(ICON_POWER, "ns-action-glyph"));
+    this.deactivateBtn.addEventListener("click", () => handlers.onDeactivate());
 
     this.root.append(
       this.panel,
@@ -109,6 +132,8 @@ export class Toolbar {
       this.sendBtn,
       this.handoffBtn,
       resetBtn,
+      sep(),
+      this.deactivateBtn,
     );
     surface.append(this.root);
     window.addEventListener("resize", this.onResize);
@@ -128,11 +153,22 @@ export class Toolbar {
 
   private syncSendButton(): void {
     this.sendBtn.disabled = this.sending || !this.reachable || !this.hasQueued;
+    setTip(this.sendBtn, this.sendTip());
+  }
+
+  private sendTip(): string {
+    if (this.sending) return "Sending your comments";
+    if (!this.reachable) return "Not connected, start your AI agent in this project first";
+    if (!this.hasQueued) return "Nothing to send yet, add a comment first";
+    return this.queued === 1
+      ? "Send 1 comment to your AI assistant"
+      : `Send ${this.queued} comments to your AI assistant`;
   }
 
   render(state: ToolbarState): void {
     this.targetBtn.classList.toggle("ns-action--active", state.picking);
-    this.targetBtn.dataset.tip = state.picking ? "Pause element picking" : "Resume element picking";
+    setTip(this.targetBtn, state.picking ? PICK_ON_TIP : PICK_OFF_TIP);
+    setTip(this.commentsBtn, state.drawerOpen ? COMMENTS_CLOSE_TIP : COMMENTS_OPEN_TIP);
 
     this.commentsLabel.textContent =
       state.noticeCount > 0
@@ -145,19 +181,19 @@ export class Toolbar {
       // tooltip says why.
       this.sendBtn.hidden = true;
       this.handoffBtn.classList.add("ns-action--primary");
-      this.handoffBtn.dataset.tip =
-        "Comment freely, then export a handoff file for your developers";
+      setTip(this.handoffBtn, "Comment freely, then export a handoff file for your developers");
       this.clearPanel();
       return;
     }
 
     this.sendBtn.hidden = false;
-    this.handoffBtn.dataset.tip = "Download a Markdown handoff";
+    setTip(this.handoffBtn, HANDOFF_TIP);
 
     const status = state.status;
     const reachable = Boolean(status?.serverReachable);
     this.reachable = reachable;
     this.hasQueued = Boolean(status && status.queued > 0);
+    this.queued = status?.queued ?? 0;
     this.syncSendButton();
     this.handoffBtn.classList.toggle("ns-action--primary", !reachable);
 
@@ -263,6 +299,7 @@ export class Toolbar {
     this.root.style.top = `${Math.min(Math.max(0, top), maxTop)}px`;
     this.root.style.transform = "none";
     this.root.style.bottom = "auto";
+    this.root.toggleAttribute("data-tip-below", top < TIP_ROOM);
   }
 
   private clampIntoViewport(): void {
@@ -289,7 +326,7 @@ function action(
   const btn = document.createElement("button");
   btn.type = "button";
   btn.className = "ns-action ns-has-tip";
-  btn.dataset.tip = tip;
+  setTip(btn, tip);
   btn.append(icon(iconNode, "ns-action-glyph"), label);
   btn.addEventListener("click", onClick);
   return btn;
@@ -315,6 +352,8 @@ function hintStrip(title: string, body: string, onDismiss: () => void): HTMLElem
   const dismiss = document.createElement("button");
   dismiss.type = "button";
   dismiss.className = "ns-icon-btn ns-drawer-close";
+  dismiss.title = "Dismiss this notice";
+  dismiss.setAttribute("aria-label", "Dismiss this notice");
   dismiss.append(icon(ICON_CLOSE, "ns-drawer-close-icon"));
   dismiss.addEventListener("click", onDismiss);
   row.append(heading, dismiss);

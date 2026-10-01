@@ -57,6 +57,8 @@ export class Drawer {
     const close = document.createElement("button");
     close.type = "button";
     close.className = "ns-icon-btn ns-drawer-close";
+    close.title = "Close the comments panel";
+    close.setAttribute("aria-label", "Close the comments panel");
     close.append(icon(ICON_CLOSE, "ns-drawer-close-icon"));
     close.addEventListener("click", () => handlers.onClose());
     head.append(this.tabsEl, close);
@@ -266,6 +268,7 @@ export class Drawer {
       revert.type = "button";
       revert.className = "ns-btn ns-btn--secondary";
       revert.textContent = "Revert";
+      revert.title = "Undo the previewed change on the page";
       revert.addEventListener("click", () => this.handlers.onRevert(pin.key));
       actions.append(revert);
       row.append(actions);
@@ -344,6 +347,7 @@ export class Drawer {
       del.type = "button";
       del.className = "ns-btn ns-btn--ghost ns-drawer-del";
       del.textContent = "Delete";
+      del.title = "Delete this comment";
       del.addEventListener("click", () => this.handlers.onRemove(pin.key));
       actions.append(edit, del);
       row.append(actions);

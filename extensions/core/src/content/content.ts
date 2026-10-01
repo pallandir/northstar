@@ -117,6 +117,7 @@ function init(): Instance {
         onHandoff: handleHandoff,
         onReset: handleReset,
         onTogglePick: () => setPicking(!st.picking),
+        onDeactivate: () => void send({ type: "deactivate" }),
       });
       drawer = new Drawer(surface, {
         onEdit: (cid, text, opts) => void editComment(cid, text, opts),

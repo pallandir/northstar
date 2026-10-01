@@ -39,6 +39,14 @@ unchanged.
   libraries, mode and rules, and the files an agent edits are scanned when it
   resolves the comment.
 
+- **A deactivate button in the toolbar.** The power button at the end of the toolbar
+  turns Northstar off for the tab and keeps your comments. It sits behind its own
+  separator so it is not hit by accident next to Delete all comments.
+- **Clearer tooltips on every toolbar control.** The pick toggle and the comments button
+  say what the next click does, Send explains why it is disabled and counts what it
+  will send, icon only buttons have accessible names, and the tooltips at either end of
+  the toolbar no longer run off screen or get cut off near the top of the window.
+
 ### Changed
 
 - **The project is now MIT licensed**, previously PolyForm Noncommercial. Versions

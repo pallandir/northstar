@@ -139,6 +139,11 @@ async function handle(message: Message, sender: chrome.runtime.MessageSender): P
       await setOverlay(message.tabId, message.on);
       return { ok: true };
     }
+    case "deactivate": {
+      const tabId = sender.tab?.id;
+      if (tabId !== undefined) await setOverlay(tabId, false);
+      return { ok: true };
+    }
     case "capture-region": {
       try {
         const dataUrl = await captureRegion(sender.tab?.windowId, message.rect, message.dpr);

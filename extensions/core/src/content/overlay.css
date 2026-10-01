@@ -515,7 +515,7 @@
 
 .ns-action:disabled {
   cursor: not-allowed;
-  opacity: 0.45;
+  color: color-mix(in srgb, var(--ns-text) 45%, transparent);
   transform: none;
 }
 
@@ -525,7 +525,7 @@
 
 .ns-action--primary:disabled,
 .ns-toolbar .ns-action--primary:disabled:hover {
-  background: var(--ns-accent);
+  background: color-mix(in srgb, var(--ns-accent) 45%, transparent);
   color: var(--ns-on-accent);
 }
 
@@ -741,9 +741,30 @@
   transition: opacity 0.14s var(--ns-ease), transform 0.14s var(--ns-ease);
 }
 
+.ns-has-tip--start::after {
+  left: 0;
+  transform: translateY(4px);
+}
+
+.ns-has-tip--end::after {
+  left: auto;
+  right: 0;
+  transform: translateY(4px);
+}
+
+.ns-toolbar[data-tip-below] .ns-has-tip::after {
+  bottom: auto;
+  top: calc(100% + 10px);
+}
+
 .ns-has-tip:hover::after {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+.ns-has-tip--start:hover::after,
+.ns-has-tip--end:hover::after {
+  transform: translateY(0);
 }
 
 .ns-drawer {
