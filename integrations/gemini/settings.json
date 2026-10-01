@@ -19,7 +19,7 @@
           {
             "type": "command",
             "name": "northstar-scan",
-            "command": "sh -c '(command -v northstar >/dev/null 2>&1 && northstar hook post-edit --agent gemini) || npx -y @pallandir/northstar@2.1.0 hook post-edit --agent gemini || true'",
+            "command": "sh -c '(command -v northstar >/dev/null 2>&1 && northstar hook post-edit --agent gemini) || npx -y @pallandir/northstar@2.2.0 hook post-edit --agent gemini || true'",
             "timeout": 20000
           }
         ]

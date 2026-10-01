@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 
-const COMMAND = "sh -c '(command -v northstar >/dev/null 2>&1 && northstar hook post-edit --agent opencode) || npx -y @pallandir/northstar@2.1.0 hook post-edit --agent opencode || true'";
+const COMMAND = "sh -c '(command -v northstar >/dev/null 2>&1 && northstar hook post-edit --agent opencode) || npx -y @pallandir/northstar@2.2.0 hook post-edit --agent opencode || true'";
 const EDIT_TOOLS = new Set(["edit", "write", "patch", "multiedit"]);
 
 export const Northstar = async ({ directory }: { directory: string }) => ({

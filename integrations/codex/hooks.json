@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh -c '(command -v northstar >/dev/null 2>&1 && northstar hook post-edit --agent codex) || npx -y @pallandir/northstar@2.1.0 hook post-edit --agent codex || true'",
+            "command": "sh -c '(command -v northstar >/dev/null 2>&1 && northstar hook post-edit --agent codex) || npx -y @pallandir/northstar@2.2.0 hook post-edit --agent codex || true'",
             "timeout": 30,
             "statusMessage": "Northstar scan"
           }
