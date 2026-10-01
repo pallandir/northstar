@@ -34,7 +34,8 @@
     "format": "biome format --write .",
     "prepare": "husky",
     "gen": "npm run gen --workspace @northstar/adapters",
-    "gen:check": "npm run gen:check --workspace @northstar/adapters"
+    "gen:check": "npm run gen:check --workspace @northstar/adapters",
+    "check:pack": "node scripts/check-pack-size.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
