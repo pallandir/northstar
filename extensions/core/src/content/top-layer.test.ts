@@ -7,11 +7,15 @@ function stubPopover(): void {
     showPopover(this: HTMLElement) {
       shown.push(`show:${this.id}`);
       this.dataset.popoverOpen = "true";
+      this.dispatchEvent(new Event("beforetoggle", { bubbles: false }));
+      this.dispatchEvent(new Event("toggle", { bubbles: false }));
     },
     hidePopover(this: HTMLElement) {
       if (!this.dataset.popoverOpen) throw new Error("not showing");
       shown.push(`hide:${this.id}`);
       delete this.dataset.popoverOpen;
+      this.dispatchEvent(new Event("beforetoggle", { bubbles: false }));
+      this.dispatchEvent(new Event("toggle", { bubbles: false }));
     },
   });
 }
@@ -124,6 +128,27 @@ describe("TopLayer", () => {
 
     expect(shadow.activeElement).toBe(field);
     expect([field.selectionStart, field.selectionEnd]).toEqual([4, 9]);
+    layer.detach();
+  });
+
+  it("does not keep re-promoting itself after its own toggle events", async () => {
+    const { layer } = await makeLayer();
+    await settle();
+    shown.length = 0;
+    await settle();
+    expect(shown).toEqual([]);
+    layer.detach();
+  });
+
+  it("re-attaches the host when the page removes the dialog holding it", async () => {
+    enableModalSelector();
+    const { host, layer } = await makeLayer();
+    const dialog = openDialog();
+    await settle();
+    expect(host.parentElement).toBe(dialog);
+    dialog.remove();
+    await settle();
+    expect(host.isConnected).toBe(true);
     layer.detach();
   });
 

@@ -34,8 +34,17 @@ export class TopLayer {
   private host: HTMLElement | null = null;
   private shadow: ShadowRoot | null = null;
 
-  private readonly onToggle = () => this.schedule();
-  private readonly onMutate = () => this.schedule();
+  private readonly onToggle = (event: Event) => {
+    if (event.target === this.host) return;
+    this.schedule();
+  };
+  private readonly onMutate = (records: MutationRecord[]) => {
+    const host = this.host;
+    if (!host) return;
+    const openChanged = records.some((r) => r.type === "attributes");
+    const rootChanged = records.some((r) => r.target === document.documentElement);
+    if (openChanged || !host.isConnected || rootChanged) this.schedule();
+  };
 
   attach(host: HTMLElement, shadow: ShadowRoot): void {
     this.host = host;
@@ -49,6 +58,7 @@ export class TopLayer {
     this.observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["open"],
+      childList: true,
       subtree: true,
     });
   }
@@ -83,7 +93,7 @@ export class TopLayer {
 
   private promote(): void {
     const host = this.host;
-    if (!host?.isConnected) return;
+    if (!host) return;
 
     // A modal dialog makes everything outside its subtree inert, top layer included, so the only
     // way to stay clickable over one is to become part of it.
