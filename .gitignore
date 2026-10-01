@@ -65,6 +65,7 @@ CLAUDE.local.md
 .github/copilot-instructions.md
 AGENTS.md
 .mcp.json
+!plugin/.mcp.json
 *.local.md
 DESIGN.md
 .playwright-mcp/
