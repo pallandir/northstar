@@ -262,3 +262,45 @@ test("exports to css, tailwind and dtcg use the resolved token values", () => {
   assert.deepEqual(dtcg.radius.md.$value, { value: 8, unit: "px" });
   assert.equal(dtcg.fontFamily.body.$value, "Source Sans 3");
 });
+
+test("an on-colour label becomes its own role so its contrast pair is checked", () => {
+  const { markdown, report } = normalizeDirection(
+    "# X\n\n- Primary: #1D4ED8\n- On primary: #93C5FD\n- Background: #FFFFFF\n- Text: #111111\n",
+  );
+  assert.deepEqual(report.extracted.colors, ["primary", "on-primary", "background", "text"]);
+  const found = validateDesign(markdown, options).issues.filter(
+    (i) => i.rule === "NS-A11Y-CONTRAST",
+  );
+  assert.equal(found.length, 1);
+  assert.match(found[0]?.path ?? "", /colors\.on-primary on colors\.primary/);
+});
+
+test("defaults fill gaps without being reported as missing, and are listed as assumed", () => {
+  const { report, markdown } = normalizeDirection("# Y\n\n- Primary: #1D4ED8\n", {
+    defaults: {
+      rounded: "8px",
+      spacing: "4px",
+      headingSize: "2rem",
+      libraries: { components: "shadcn/ui", icons: "lucide", fonts: "fontsource" },
+    },
+  });
+  assert.ok(
+    !report.missing.some(
+      (m) => m.startsWith("rounded") || m.startsWith("spacing") || m.startsWith("libraries"),
+    ),
+  );
+  assert.ok(report.assumed.includes("rounded.md: 8px"));
+  assert.ok(report.assumed.includes("libraries.icons: lucide"));
+  const fm = parseDesign(markdown).frontmatter as Record<string, Record<string, unknown>>;
+  assert.equal(fm.rounded?.md, "8px");
+  assert.equal(fm.spacing?.unit, "4px");
+  assert.equal((fm.northstar?.libraries as Record<string, string>).icons, "lucide");
+});
+
+test("a value found in the direction wins over a default", () => {
+  const { report, markdown } = normalizeDirection("# Z\n\nRadius: 12px corners.\n", {
+    defaults: { rounded: "8px" },
+  });
+  assert.equal((parseDesign(markdown).frontmatter.rounded as Record<string, string>).md, "12px");
+  assert.ok(!report.assumed.some((a) => a.startsWith("rounded")));
+});

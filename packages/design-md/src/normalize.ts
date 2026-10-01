@@ -1,8 +1,16 @@
 import { stringify } from "yaml";
 
+export interface NormalizeDefaults {
+  rounded?: string;
+  spacing?: string;
+  headingSize?: string;
+  libraries?: { components?: string; icons?: string; fonts?: string };
+}
+
 export interface NormalizeOptions {
   knownFamilies?: Set<string>;
   stack?: string;
+  defaults?: NormalizeDefaults;
 }
 
 export interface NormalizeReport {
@@ -16,6 +24,7 @@ export interface NormalizeReport {
     spacing: boolean;
   };
   missing: string[];
+  assumed: string[];
   questions: string[];
 }
 
@@ -76,7 +85,12 @@ function cleanLabel(text: string): string {
 }
 
 function roleOf(label: string): string | undefined {
-  const lower = label.toLowerCase();
+  const lower = label.toLowerCase().trim();
+  const on = /^on[\s-]+(.+)$/.exec(lower);
+  if (on?.[1]) {
+    const base = ROLE_WORDS.find(([, pattern]) => pattern.test(on[1] ?? ""))?.[0];
+    return base ? `on-${base}` : undefined;
+  }
   return ROLE_WORDS.find(([, pattern]) => pattern.test(lower))?.[0];
 }
 
@@ -204,6 +218,34 @@ export function normalizeDirection(
     missingColors.push("primary");
   }
 
+  const defaults = options.defaults ?? {};
+  const assumed: string[] = [];
+  const assume = <T extends string>(
+    found: T | undefined,
+    fallback: T | undefined,
+    label: string,
+  ): T | undefined => {
+    if (found !== undefined) return found;
+    if (fallback !== undefined) assumed.push(`${label}: ${fallback}`);
+    return fallback;
+  };
+  const radiusValue = assume(radius, defaults.rounded, "rounded.md");
+  const unitValue = assume(unit, defaults.spacing, "spacing.unit");
+  const headingSize = assume<string>(
+    undefined,
+    defaults.headingSize,
+    "typography.heading.fontSize",
+  );
+  const libs = {
+    components: assume(
+      libraries.components,
+      defaults.libraries?.components,
+      "libraries.components",
+    ),
+    icons: assume(libraries.icons, defaults.libraries?.icons, "libraries.icons"),
+    fonts: assume(libraries.fonts, defaults.libraries?.fonts, "libraries.fonts"),
+  };
+
   const type = (family: string | undefined, size: string, weight: number, lineHeight: number) => ({
     fontFamily: family ?? "<family>",
     fontSize: size,
@@ -215,19 +257,19 @@ export function normalizeDirection(
     description: description ?? "<One sentence: what the product is and who it is for>",
     colors: colorMap,
     typography: {
-      heading: type(fonts.heading, "<rem>", 600, 1.2),
+      heading: type(fonts.heading, headingSize ?? "<rem>", 600, 1.2),
       body: type(fonts.body, "1rem", 400, 1.6),
       ...(fonts.code ? { code: type(fonts.code, "0.875rem", 400, 1.5) } : {}),
     },
-    rounded: { md: radius ?? "<px>" },
-    spacing: { unit: unit ?? "<px>" },
+    rounded: { md: radiusValue ?? "<px>" },
+    spacing: { unit: unitValue ?? "<px>" },
     northstar: {
       mode: mode ?? "<operate | read | persuade | experience>",
       stack: options.stack ?? "<react | next | vue | svelte | angular | solid | html>",
       libraries: {
-        components: libraries.components ?? "<for example shadcn/ui>",
-        icons: libraries.icons ?? "<for example lucide>",
-        fonts: libraries.fonts ?? "<for example fontsource>",
+        components: libs.components ?? "<for example shadcn/ui>",
+        icons: libs.icons ?? "<for example lucide>",
+        fonts: libs.fonts ?? "<for example fontsource>",
       },
       allow: [],
       ignore: [],
@@ -297,11 +339,11 @@ export function normalizeDirection(
   if (!fonts.body) missing.push("typography: body family");
   if (!mode) missing.push("mode");
   if (!options.stack) missing.push("stack");
-  for (const slot of ["components", "icons", "fonts"]) {
-    if (!libraries[slot]) missing.push(`libraries: ${slot}`);
+  for (const slot of ["components", "icons", "fonts"] as const) {
+    if (!libs[slot]) missing.push(`libraries: ${slot}`);
   }
-  if (!radius) missing.push("rounded: radius scale");
-  if (!unit) missing.push("spacing: base unit");
+  if (!radiusValue) missing.push("rounded: radius scale");
+  if (!unitValue) missing.push("spacing: base unit");
 
   const questions: string[] = [];
   if (!mode)
@@ -330,6 +372,7 @@ export function normalizeDirection(
         spacing: Boolean(unit),
       },
       missing,
+      assumed,
       questions: questions.slice(0, 3),
     },
   };
