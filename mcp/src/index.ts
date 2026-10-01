@@ -25,8 +25,13 @@ async function main(): Promise<void> {
   const server = createMcpServer(store, broker);
   const handoff = new ChannelHandoff({ server: server.server, store, broker, terminal, log });
 
-  const ingest = await startIngestServer(store, parsePorts(), log, broker, handoff);
-  log(`ingest listening on http://127.0.0.1:${ingest.port}, store root ${root}`);
+  const ingest = await startIngestServer(store, parsePorts(), log, broker, handoff).catch(
+    (err: Error) => {
+      log(`ingest disabled: ${err.message}`);
+      return null;
+    },
+  );
+  if (ingest) log(`ingest listening on http://127.0.0.1:${ingest.port}, store root ${root}`);
 
   const status = await handoff.describe();
   log(status.available ? `terminal handoff via ${status.driver}` : `no handoff: ${status.reason}`);
@@ -37,7 +42,7 @@ async function main(): Promise<void> {
   const shutdown = async () => {
     if (closing) return;
     closing = true;
-    await ingest.close();
+    await ingest?.close();
     process.exit(0);
   };
 
