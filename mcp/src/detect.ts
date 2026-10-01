@@ -6,6 +6,7 @@ import {
   type Finding,
   type ScanConfig,
   configFromDesign,
+  hookFeedback,
   kindOf,
   scanPaths,
 } from "@northstar/detector";
@@ -61,4 +62,26 @@ export function runScan(request: ScanRequest): ScanOutcome {
   if (request.diff && paths.length === 0) return { findings: [], scanned: 0, config };
   const { findings, scanned } = scanPaths(root, paths, config, getCanon());
   return { findings, scanned, config };
+}
+
+const SCAN_CAP = 5;
+
+export function scanEdited(root: string, files: string[] | undefined): string {
+  const paths: string[] = [];
+  for (const file of files ?? []) {
+    try {
+      const relative = resolveInside(root, file);
+      if (kindOf(relative)) paths.push(relative);
+    } catch {}
+  }
+  if (!paths.length) return "";
+  try {
+    const { findings } = runScan({ root, paths });
+    const feedback = hookFeedback(findings, SCAN_CAP);
+    return feedback
+      ? `\nNorthstar scan of the edited files found errors, fix them:\n${feedback}`
+      : "";
+  } catch {
+    return "";
+  }
 }

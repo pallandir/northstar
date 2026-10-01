@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { countPlaceholders } from "@northstar/design-md";
 import { parse } from "yaml";
 
 export type StackName = "next" | "react" | "vue" | "svelte" | "angular" | "solid" | "html";
@@ -71,7 +72,7 @@ export function readDesign(root: string): DesignDoc {
     return {
       exists: true,
       valid: typeof data.name === "string" && typeof data.colors === "object",
-      placeholders: /"<[^">]+>"/.test(source),
+      placeholders: countPlaceholders(data) > 0,
       name: typeof data.name === "string" ? data.name : undefined,
       mode: typeof northstar.mode === "string" ? northstar.mode : undefined,
       libraries,
