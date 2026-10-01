@@ -14,11 +14,11 @@ import {
 const DRIVE = /^[a-zA-Z]:[\\/]/;
 const FOLD_CASE = process.platform === "win32" || process.platform === "darwin";
 
-export function toPosix(path: string): string {
+function toPosix(path: string): string {
   return path.replace(/\\/g, "/");
 }
 
-export function isAbsolutePath(path: string): boolean {
+function isAbsolutePath(path: string): boolean {
   return isAbsolute(path) || DRIVE.test(path) || path.startsWith("\\\\");
 }
 

@@ -143,7 +143,7 @@ export function runHost(options: HostOptions): Promise<void> {
           "The extension and the Northstar package versions differ.",
           older
             ? "Update the Northstar browser extension."
-            : "Update Northstar with npx @pallandir/northstar install.",
+            : "Update Northstar with npm install -g @pallandir/northstar, then northstar install.",
         ),
       );
       return;

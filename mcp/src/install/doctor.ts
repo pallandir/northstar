@@ -18,7 +18,7 @@ import { northstarPluginInstalled } from "./plugin.js";
 import { readRecord } from "./record.js";
 import { detectShell, shellInstalled } from "./shell.js";
 
-export interface Check {
+interface Check {
   name: string;
   status: "ok" | "warn" | "fail";
   detail: string;

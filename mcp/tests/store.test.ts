@@ -391,3 +391,29 @@ test("a symlink that leaves the project is rejected", async () => {
   assert.equal(outcome?.ok, false);
   await rm(outside, { recursive: true, force: true });
 });
+
+test("two store instances on one root, as the daemon and an MCP server are, see each other's writes", async () => {
+  const daemon = new CommentStore(root);
+  const server = new CommentStore(root);
+
+  const added = await daemon.add(sample({ comment: "added by the daemon" }));
+  assert.equal((await server.list("open")).length, 1);
+
+  const claimed = await server.claim(added.id);
+  assert.equal(claimed?.claimed, true);
+  assert.equal((await daemon.list("in_progress")).length, 1);
+  assert.equal((await daemon.list("open")).length, 0);
+
+  await server.update(added.id, "resolved", { note: "done", files: ["src/Card.tsx"] });
+  const seen = await daemon.get(added.id);
+  assert.equal(seen?.status, "resolved");
+  assert.equal(seen?.resolution?.note, "done");
+
+  const both = await Promise.all([
+    daemon.add(sample({ comment: "concurrent one" })),
+    server.add(sample({ comment: "concurrent two" })),
+  ]);
+  assert.notEqual(both[0].id, both[1].id);
+  assert.equal((await daemon.list()).length, 3);
+  assert.equal((await server.list()).length, 3);
+});

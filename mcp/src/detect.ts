@@ -52,14 +52,14 @@ export function loadScanConfig(root: string, mode?: Mode): ScanConfig {
   return mode ? { ...config, mode } : config;
 }
 
-export interface ScanRequest {
+interface ScanRequest {
   root: string;
   paths?: string[];
   diff?: boolean;
   mode?: Mode;
 }
 
-export interface ScanOutcome {
+interface ScanOutcome {
   findings: Finding[];
   scanned: number;
   config: ScanConfig;

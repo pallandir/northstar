@@ -24,30 +24,28 @@ interface ActivePin {
   broken: boolean;
 }
 
-export interface PinEditOptions {
+interface PinEditOptions {
   planFirst?: boolean;
   attachScreenshot?: boolean;
 }
 
-export interface PinHandlers {
+interface PinHandlers {
   onRemove: (key: string) => void;
   onEdit: (key: string, text: string, opts?: PinEditOptions) => void | Promise<void>;
 }
 
-export interface ModalAction {
+interface ModalAction {
   label: string;
   variant?: "danger" | "ghost";
   onClick: () => void;
 }
 
-export interface ModalOptions {
+interface ModalOptions {
   title: string;
   body: string;
   actions: ModalAction[];
   onDismiss: () => void;
 }
-
-export type { InspectorOptions, InspectorSubmission };
 
 export class Surface {
   private readonly host: HTMLElement;

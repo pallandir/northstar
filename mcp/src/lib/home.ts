@@ -12,8 +12,6 @@ export function stateRoot(home: string = northstarHome()): string {
 }
 
 export function runtimeDir(home: string = northstarHome()): string {
-  const xdg = process.env.XDG_RUNTIME_DIR;
-  if (xdg && process.env.NORTHSTAR_HOME === undefined) return join(xdg, "northstar");
   return join(stateRoot(home), "run");
 }
 

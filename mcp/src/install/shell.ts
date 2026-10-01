@@ -33,7 +33,7 @@ function rcPath(home: string, shell: Shell): string | null {
 function posixScript(agents: readonly string[]): string {
   const body = agents.map(
     (id) =>
-      `${id}() {\n  if command -v northstar >/dev/null 2>&1; then\n    command northstar run ${id} "$@"\n  else\n    printf 'northstar is not on the PATH, running ${id} without Send to AI\\n' >&2\n    command ${id} "$@"\n  fi\n}\n`,
+      `unalias ${id} 2>/dev/null\nfunction ${id} {\n  if command -v northstar >/dev/null 2>&1; then\n    command northstar run ${id} "$@"\n  else\n    printf 'northstar is not on the PATH, running ${id} without Send to AI\\n' >&2\n    command ${id} "$@"\n  fi\n}\n`,
   );
   return `${BEGIN}\n${body.join("\n")}${END}\n`;
 }

@@ -103,11 +103,13 @@ gets there.
 ## The design engine
 
 ```sh
-npx -y @pallandir/northstar install
+npm install -g @pallandir/northstar
+northstar install
 ```
 
 That sets Northstar up for Claude Code, Codex, Cursor, Gemini CLI and OpenCode, after
-showing you exactly what it will change. Then ask your agent for UI work as you
+showing you exactly what it will change. For the design tools alone, without the browser
+comments, `npx -y @pallandir/northstar install --no-host` works without a global install. Then ask your agent for UI work as you
 normally would.
 
 | Piece | What it does |
@@ -284,7 +286,8 @@ if Northstar is ever removed.
 Open your frontend on a `localhost` dev server and click the Northstar toolbar icon
 to turn the overlay on. There is nothing to connect or pair. Mark up the page, then
 click **Send to AI**. You can also select text on any page and use the right click
-menu **Send selection to AI**, or press `Ctrl+Shift+A` (`Command+Shift+A` on macOS).
+menu **Send selection to AI**, or press `Alt+Shift+A`. The shortcut can be changed in `chrome://extensions/shortcuts` or in
+Firefox under Manage Extension Shortcuts.
 
 Delivery is automatic. Northstar waits until the assistant has stopped printing,
 types one fixed line, and presses Enter for you. It stops and tells you in the

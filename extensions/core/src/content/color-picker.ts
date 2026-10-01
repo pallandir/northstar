@@ -1,4 +1,4 @@
-export interface ColorPicker {
+interface ColorPicker {
   el: HTMLElement;
   set(hex: string): void;
 }

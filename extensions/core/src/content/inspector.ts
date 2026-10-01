@@ -2,7 +2,7 @@ import { formatColor, sameColor, samplePageColors, toHex } from "../lib/color.js
 import type { Operation } from "../types.js";
 import { buildColorPicker } from "./color-picker.js";
 
-export type InspectorTabId = "comment" | "text" | "color";
+type InspectorTabId = "comment" | "text" | "color";
 
 export interface InspectorSubmission {
   comment: string;

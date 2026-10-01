@@ -257,7 +257,8 @@ export class Toolbar {
       this.showFailure(
         `offline:${status?.problem?.error ?? ""}`,
         status?.problem?.error ?? "Northstar's browser helper is not reachable",
-        status?.problem?.fix ?? "Run npx @pallandir/northstar install, then reload this page.",
+        status?.problem?.fix ??
+          "Run npm install -g @pallandir/northstar, then northstar install, then reload this page.",
       );
     } else if (connection === "noproject") {
       this.showFailure(

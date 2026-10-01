@@ -1,7 +1,7 @@
 import { pageKey } from "@northstar/protocol";
 import { onNavigate } from "../probe/client.js";
 
-export interface PageTracker {
+interface PageTracker {
   key: () => string;
   check: () => boolean;
   stop: () => void;

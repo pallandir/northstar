@@ -210,7 +210,7 @@ test("a version mismatch names the side to update", async () => {
   assert.equal(older.code, "VERSION_MISMATCH");
   assert.match(older.fix as string, /browser extension/);
   h.send({ ...envelope("v2", "system.info"), version: PROTOCOL_VERSION + 1 });
-  assert.match((await h.next()).fix as string, /npx @pallandir\/northstar install/);
+  assert.match((await h.next()).fix as string, /npm install -g @pallandir\/northstar/);
   await h.end();
 });
 

@@ -39,10 +39,6 @@ export async function startDaemon(options: DaemonServerOptions): Promise<Running
   const path = socketPath(home);
   mkdirSync(runtimeDir(home), { recursive: true, mode: 0o700 });
   chmodSync(runtimeDir(home), 0o700);
-  if (await alreadyRunning(home, log)) {
-    throw new Error(`A Northstar daemon is already running on ${path}.`);
-  }
-  rmSync(path, { force: true });
 
   let finish: () => void = () => {};
   const closed = new Promise<void>((resolve) => {
@@ -59,13 +55,24 @@ export async function startDaemon(options: DaemonServerOptions): Promise<Running
   const server = createServer((socket) => {
     daemon.attach(socket);
   });
-  await new Promise<void>((resolve, reject) => {
-    server.once("error", reject);
-    server.listen(path, () => {
-      server.removeListener("error", reject);
-      resolve();
+  const listen = () =>
+    new Promise<void>((resolve, reject) => {
+      server.once("error", reject);
+      server.listen(path, () => {
+        server.removeListener("error", reject);
+        resolve();
+      });
     });
-  });
+  try {
+    await listen();
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "EADDRINUSE") throw error;
+    if (await alreadyRunning(home, log)) {
+      throw new Error(`A Northstar daemon is already running on ${path}.`);
+    }
+    rmSync(path, { force: true });
+    await listen();
+  }
   chmodSync(path, 0o600);
 
   let idleSince: number | null = null;

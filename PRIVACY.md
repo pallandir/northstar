@@ -46,22 +46,22 @@ counts. The logs never contain comment text, selected text or anything typed.
 
 ## Permissions
 
-- `activeTab`, `scripting` — to inject the overlay into, and read the element you
+- `activeTab`, `scripting`: to inject the overlay into, and read the element you
   comment on from, only the single tab you activate by clicking the toolbar icon.
   The extension has no standing access to any site and runs on no page until you
   click; the access ends when the tab navigates. `scripting` also injects a small
   read-only script into the page's own main world to resolve the component and
   route an element belongs to; it never writes back to the page and has no
   extension API access from that world.
-- host access to `localhost`/`127.0.0.1`/`*.localhost` — used only so the overlay can
+- host access to `localhost`/`127.0.0.1`/`*.localhost`: used only so the overlay can
   run on a local dev server you activated. The extension makes no network request
   with it, and it grants no ability to contact any other site. On Firefox this is
   opt-in and is requested the first time you activate the overlay.
-- `nativeMessaging` — to reach the local Northstar helper described above. The helper
+- `nativeMessaging`: to reach the local Northstar helper described above. The helper
   only answers the Northstar extension and accepts a fixed list of actions.
-- `contextMenus` — to add **Send selection to AI** to the right click menu and to
+- `contextMenus`: to add **Send selection to AI** to the right click menu and to
   offer the keyboard shortcut. They use `activeTab` for the page you used them on.
-- `storage`, `unlimitedStorage` — to queue comments (including a screenshot when
+- `storage`, `unlimitedStorage`: to queue comments (including a screenshot when
   you asked for one) locally until your assistant's project is reachable.
 
 ## Contact

@@ -52,7 +52,7 @@ and to an assistant session that Northstar itself started.
   data anywhere.
 - **Northstar can only write into sessions it started.** `northstar run` starts the
   assistant in a pseudo terminal that Northstar owns, and that terminal is the only
-  place a send can write. Northstar does not use `tmux`, AppleScript, accessibility
+  place a send can write. Northstar does not use a terminal multiplexer, AppleScript, accessibility
   permissions or any terminal automation, so it cannot type into another window, and
   there is nothing to grant. There is also no channel and no development flag.
 - **What Northstar writes is a fixed constant.** A send makes the session write one

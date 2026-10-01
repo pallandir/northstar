@@ -13,7 +13,7 @@ export const SCAFFOLDS: Scaffold[] = [
   { template: "decisions.template.md", target: "design/decisions.md" },
 ];
 
-export interface InitResult {
+interface InitResult {
   created: string[];
   skipped: string[];
 }

@@ -126,7 +126,7 @@ describe("Toolbar failure strip", () => {
         status: offlineStatus({
           problem: {
             error: "Northstar's browser helper is not installed.",
-            fix: "Run npx @pallandir/northstar install, then reload this page.",
+            fix: "Run npm install -g @pallandir/northstar, then northstar install, then reload this page.",
           },
         }),
       }),
@@ -135,7 +135,7 @@ describe("Toolbar failure strip", () => {
       "Northstar's browser helper is not installed.",
     );
     expect(document.querySelector(".ns-setup-hint")?.textContent).toContain(
-      "npx @pallandir/northstar install",
+      "npm install -g @pallandir/northstar",
     );
   });
 

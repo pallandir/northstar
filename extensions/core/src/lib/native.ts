@@ -12,7 +12,8 @@ const FAST_TIMEOUT_MS = 20_000;
 const SLOW_TIMEOUT_MS = 70_000;
 const SLOW_ACTIONS = new Set<NativeAction>(["session.send", "quickrun.execute"]);
 
-const INSTALL_FIX = "Run npx @pallandir/northstar install, then reload this page.";
+const INSTALL_FIX =
+  "Run npm install -g @pallandir/northstar, then northstar install, then reload this page.";
 
 export class BridgeError extends UserError {
   constructor(
@@ -55,7 +56,7 @@ function disconnectError(message: string | undefined): BridgeError {
   if (message && /forbidden/i.test(message)) {
     return new BridgeError(
       "The Northstar helper does not allow this extension.",
-      "Install the extension from the Chrome Web Store or Firefox Add-ons, or run npx @pallandir/northstar install --allow-extension <id> for an unpacked build.",
+      "Install the extension from the Chrome Web Store or Firefox Add-ons, or run northstar install --allow-extension <id> for an unpacked build.",
       "offline",
       "NO_HELPER",
     );

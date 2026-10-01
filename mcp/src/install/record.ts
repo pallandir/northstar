@@ -27,7 +27,7 @@ const recordSchema = z.object({
 
 export type InstalledFile = z.infer<typeof installedFileSchema>;
 export type AgentRecord = z.infer<typeof agentRecordSchema>;
-export type InstallRecord = z.infer<typeof recordSchema>;
+type InstallRecord = z.infer<typeof recordSchema>;
 
 export function recordKey(agent: AgentName, scope: Scope, project: string): string {
   return scope === "project" ? `${agent}:project:${project}` : `${agent}:user`;

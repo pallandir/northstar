@@ -55,7 +55,7 @@ export interface ServerComment {
 
 type FlushCounts = Omit<SendOutcome, "woke">;
 
-export interface FlushResult {
+interface FlushResult {
   status: QueueStatus;
   send: FlushCounts;
 }
@@ -349,7 +349,7 @@ async function flushQueue(origin: string): Promise<FlushResult> {
   return { status: await status(origin), send };
 }
 
-export interface SendOptions {
+interface SendOptions {
   sessionId?: string;
   template?: TemplateId;
 }

@@ -25,11 +25,11 @@ const SHOT_EXTENSIONS: Record<string, string> = {
   webp: "webp",
 };
 
-export type IngestOutcome =
+type IngestOutcome =
   | { ok: true; comment: Comment; duplicate: boolean }
   | { ok: false; rejection: Rejection };
 
-export interface UpdateOutcome {
+interface UpdateOutcome {
   comment: Comment;
   changed: boolean;
 }

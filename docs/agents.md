@@ -3,8 +3,11 @@
 One command registers the Northstar MCP server, installs the skills and adds the edit hooks for every supported agent it finds on your machine:
 
 ```sh
-npx -y @pallandir/northstar install
+npm install -g @pallandir/northstar
+northstar install
 ```
+
+The browser helper that `install` registers points at the installed package, so use a global install. For the design tools alone, `npx -y @pallandir/northstar install --no-host` works without one.
 
 It prints a plan, asks before changing anything and backs up every file it overwrites. `--agent claude,codex` picks agents, `--scope project` writes into the current project instead of your home folder, `--dry-run` only shows the plan, and `--packs dynamic|all` chooses which tool packs start enabled. `northstar doctor` checks the result and `northstar uninstall` removes exactly what install added. To try a local build, pass `--bin` with the path of `mcp/dist/cli.js`.
 

@@ -178,7 +178,7 @@ test("shell functions start each agent through northstar run and fall back with 
     ["created", "created"],
   );
   const script = readFileSync(join(home, ".northstar/shell/northstar.sh"), "utf8");
-  assert.match(script, /claude\(\) \{/);
+  assert.match(script, /unalias claude 2>\/dev\/null\nfunction claude \{/);
   assert.match(script, /command northstar run claude "\$@"/);
   assert.match(script, /running claude without Send to AI/);
   assert.ok(shellInstalled(home, "zsh"));
@@ -196,6 +196,18 @@ test("shell functions start each agent through northstar run and fall back with 
     { encoding: "utf8" },
   );
   assert.match(out, /northstar is not on the PATH, running claude without Send to AI/);
+});
+
+test("an alias the user already has for an agent does not shadow or break the function", () => {
+  const home = temp();
+  installShell({ home, shell: "bash", agents: ["claude"] });
+  const script = join(home, ".northstar/shell/northstar.sh");
+  const out = execFileSync(
+    "bash",
+    ["-c", `shopt -s expand_aliases\nalias claude=/bin/echo\n. '${script}'\ntype claude`],
+    { encoding: "utf8" },
+  );
+  assert.match(out, /claude is a function/);
 });
 
 test("uninstalling the shell integration leaves the rest of the rc file alone", () => {

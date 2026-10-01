@@ -39,8 +39,9 @@ and Firefox Native Messaging, so there is no local web server and no pairing.
   Aider and Goose are built in, and `northstar agent add` registers your own.
 - Several sessions at once, with a picker in the toolbar, a preferred agent, and site to
   project mappings set on the new extension options page.
-- A right click menu and a keyboard shortcut (`Ctrl+Shift+A`, `Command+Shift+A` on
-  macOS) that send selected text, stored as a comment, to the mapped project.
+- A right click menu and a keyboard shortcut (`Alt+Shift+A`, changeable in the
+  browser's extension shortcut settings) that send selected text, stored as a comment, to
+  the mapped project.
 - Six fixed templates (resolve, implement, explain, fix, review, add to task) that
   change what the agent is asked to do. The line written is always one of them.
 - **Copy the line** and **Quick run**, offered, never automatic, when no session runs.

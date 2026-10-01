@@ -15,7 +15,7 @@ const STACK_ORDER: Array<[StackName, string]> = [
   ["react", "react"],
 ];
 
-export interface DesignDoc {
+interface DesignDoc {
   exists: boolean;
   valid: boolean;
   ready: boolean;
@@ -31,7 +31,7 @@ export interface DesignRead extends DesignDoc {
   frontmatter?: Record<string, unknown>;
 }
 
-export interface Gate {
+interface Gate {
   open: boolean;
   gap?: string;
   next?: string;
@@ -75,7 +75,7 @@ function gateOf(design: DesignDoc): Gate {
   };
 }
 
-export interface ProjectState {
+interface ProjectState {
   root: string;
   stack: StackName;
   shadcn: boolean;

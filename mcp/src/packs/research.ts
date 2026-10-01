@@ -7,7 +7,7 @@ const domainSchema = z.enum(DOMAINS);
 
 const SUMMARY_FIELDS = 4;
 
-export function brief(row: Row): string {
+function brief(row: Row): string {
   const facts = Object.entries(row.fields)
     .slice(0, SUMMARY_FIELDS)
     .map(([key, value]) => `${key}: ${value}`)
@@ -16,7 +16,7 @@ export function brief(row: Row): string {
   return `- ${row.id}: ${row.name}\n  ${row.summary}\n  ${facts}${caution}`;
 }
 
-export function full(row: Row): string {
+function full(row: Row): string {
   const lines = [`# ${row.name} (${row.id})`, "", row.summary, ""];
   for (const [key, value] of Object.entries(row.fields)) lines.push(`${key}: ${value}`);
   if (row.modes.length) lines.push(`modes: ${row.modes.join(", ")}`);

@@ -19,9 +19,6 @@ export const base = {
   // Page access comes solely from activeTab, granted per tab when the user clicks the toolbar
   // action and gone on navigation. scripting lets the worker inject the overlay into that one tab,
   // and inject the main-world targeting probe alongside it.
-  // nativeMessaging reaches the local Northstar helper, which only answers this extension. The
-  // context menu and the shortcut send a selection to the agent, and activeTab covers the page
-  // they were used on.
   permissions: [
     "activeTab",
     "scripting",
@@ -41,7 +38,7 @@ export const base = {
   },
   commands: {
     "send-to-ai": {
-      suggested_key: { default: "Ctrl+Shift+A", mac: "Command+Shift+A" },
+      suggested_key: { default: "Alt+Shift+A", mac: "Alt+Shift+A" },
       description: "Send the selection or your comments to your AI agent",
     },
   },

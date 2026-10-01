@@ -129,7 +129,8 @@ export async function resolveLink(pageOrigin: string, page?: string): Promise<Li
 const offlineError = (link?: Extract<Link, { kind: "offline" }>): UserError =>
   new UserError(
     link?.problem.error ?? "Northstar's browser helper is not reachable.",
-    link?.problem.fix ?? "Run npx @pallandir/northstar install, then reload this page.",
+    link?.problem.fix ??
+      "Run npm install -g @pallandir/northstar, then northstar install, then reload this page.",
     "offline",
   );
 

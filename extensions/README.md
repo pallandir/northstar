@@ -24,7 +24,7 @@ builds two targets, `chromium/` and `firefox/`.
   the assistant is waiting on a prompt, or when more than one session needs a pick.
   With no session it offers **Copy the line** and **Quick run**.
 - The right click menu (**Send selection to AI**, and a submenu of templates) and
-  `Ctrl+Shift+A` (`Command+Shift+A` on macOS) send the selected text, stored as a
+  `Alt+Shift+A` send the selected text, stored as a
   comment, to the project that site is mapped to. The options page sets the preferred
   agent, the default template and the site mappings.
 

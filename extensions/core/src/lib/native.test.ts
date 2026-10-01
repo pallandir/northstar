@@ -75,7 +75,7 @@ describe("the native port", () => {
     const { request } = await import("./native.js");
     await expect(request("system.info")).rejects.toMatchObject({
       message: "Northstar's browser helper is not installed.",
-      fix: "Run npx @pallandir/northstar install, then reload this page.",
+      fix: "Run npm install -g @pallandir/northstar, then northstar install, then reload this page.",
       kind: "offline",
       code: "NO_HELPER",
     });

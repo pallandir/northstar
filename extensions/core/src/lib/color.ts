@@ -1,4 +1,4 @@
-export interface ParsedColor {
+interface ParsedColor {
   hex: string;
   alpha: number;
 }

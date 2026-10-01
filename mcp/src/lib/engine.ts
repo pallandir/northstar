@@ -16,7 +16,7 @@ import {
   validateDesign,
 } from "@northstar/design-md";
 
-export interface SystemRequest {
+interface SystemRequest {
   name: string;
   description: string;
   mode?: Mode;
@@ -30,7 +30,7 @@ export interface SystemRequest {
   libraries: { components: string; icons: string; fonts: string };
 }
 
-export interface BuiltSystem {
+interface BuiltSystem {
   markdown: string;
   notes: string[];
   issues: Issue[];
@@ -48,7 +48,7 @@ function catalogOf(canon: Canon) {
   return entries;
 }
 
-export function pickArchetype(canon: Canon, query: string, mode?: Mode): string {
+function pickArchetype(canon: Canon, query: string, mode?: Mode): string {
   const hits = findInCatalog(catalogOf(canon), canon, query, {
     kind: "archetype",
     stage: "direction",

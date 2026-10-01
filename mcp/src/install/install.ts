@@ -29,7 +29,7 @@ import {
   writeRecord,
 } from "./record.js";
 
-export interface InstallOptions {
+interface InstallOptions {
   agents: AgentName[];
   scope: Scope;
   packs: Packs;
@@ -58,7 +58,7 @@ export interface InstallOutcome {
   notes: string[];
 }
 
-export function contextFor(
+function contextFor(
   agent: AgentName,
   options: Pick<InstallOptions, "scope" | "packs" | "home" | "project" | "bin" | "gate" | "plugin">,
 ): PlanContext {
@@ -121,7 +121,7 @@ function filesUnder(dir: string): string[] {
     .sort();
 }
 
-export function treeHash(dir: string): string | undefined {
+function treeHash(dir: string): string | undefined {
   if (!existsSync(dir)) return undefined;
   const hash = createHash("sha256");
   for (const file of filesUnder(dir)) {
@@ -250,7 +250,7 @@ export function install(options: InstallOptions): InstallOutcome {
   return { results, notes };
 }
 
-export interface UninstallOptions {
+interface UninstallOptions {
   agents: AgentName[];
   scope: Scope;
   home: string;

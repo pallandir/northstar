@@ -26,7 +26,7 @@ export interface Conflict {
   broken: boolean;
 }
 
-export const CONFLICT_SKILLS = [
+const CONFLICT_SKILLS = [
   "impeccable",
   "wondelai-top-design",
   "frontend-design",
@@ -38,12 +38,12 @@ export const CONFLICT_SKILLS = [
   "make-interfaces-feel-better",
   "emil-design-eng",
 ];
-export const CONFLICT_AGENT_PREFIX = "impeccable-";
-export const CONFLICT_PLUGINS = [
+const CONFLICT_AGENT_PREFIX = "impeccable-";
+const CONFLICT_PLUGINS = [
   "ui-ux-pro-max@ui-ux-pro-max-skill",
   "frontend-design@claude-plugins-official",
 ];
-export const CONFLICT_PLUGIN_PREFIX = "impeccable@";
+const CONFLICT_PLUGIN_PREFIX = "impeccable@";
 
 const SKILL_ROOTS: Array<[Conflict["owner"], string]> = [
   ["claude", ".claude/skills"],
@@ -127,7 +127,7 @@ export function installedFor(home: string, conflict: Conflict): boolean {
 
 export type Runner = (command: string, args: string[]) => void;
 
-export interface QuarantineEntry {
+interface QuarantineEntry {
   from: string;
   to: string;
   kind: ConflictKind;

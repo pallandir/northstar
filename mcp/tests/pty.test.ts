@@ -27,6 +27,14 @@ after(() => {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+async function until(check: () => boolean, ms = 8_000): Promise<void> {
+  const deadline = Date.now() + ms;
+  while (!check()) {
+    if (Date.now() > deadline) throw new Error("timed out waiting for the test agent");
+    await sleep(25);
+  }
+}
+
 async function start(mode: string): Promise<{ session: PtySession; log: string }> {
   const dir = mkdtempSync(join(tmpdir(), "northstar-pty-"));
   dirs.push(dir);
@@ -44,7 +52,7 @@ async function start(mode: string): Promise<{ session: PtySession; log: string }
     onExit: () => {},
   });
   sessions.push(session);
-  await sleep(600);
+  await until(() => session.lines().join("\n").includes("Test Agent"));
   return { session, log };
 }
 
@@ -98,7 +106,8 @@ test("a pending yes or no prompt is never answered", async () => {
 test("text already in the agent input is never written over", async () => {
   const { session, log } = await start("idle");
   session.userInput("half a sentence");
-  await sleep(500);
+  await until(() => session.lines().join("\n").includes("half a sentence"));
+  await sleep(200);
   const outcome = await deliverLine(session, templateLine("resolve"), FAST);
   assert.equal(outcome.delivered, false);
   assert.equal(!outcome.delivered && outcome.blocked, "input");
@@ -124,8 +133,7 @@ test("keystrokes typed during a delivery are held and released after it", async 
   await sleep(300);
   assert.ok(!session.lines().join("\n").includes("abc"));
   session.holdUserInput(false);
-  await sleep(300);
-  assert.ok(session.lines().join("\n").includes("abc"));
+  await until(() => session.lines().join("\n").includes("abc"));
 });
 
 test("screen state tells a choice prompt, a confirm prompt and typed input apart", () => {
