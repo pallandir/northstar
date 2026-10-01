@@ -100,7 +100,7 @@ export function buildSystem(
     seeds.hue = hueOfHex(request.brand);
     seeds.chroma = clamp(chromaOfHex(request.brand), 0.04, 0.22);
     notes.push(
-      `brand ${request.brand} seeds hue ${Math.round(seeds.hue)} and chroma ${seeds.chroma.toFixed(2)}, the tokens are derived from it and not copied`,
+      `brand ${request.brand} seeds the ramp at hue ${Math.round(seeds.hue)} and chroma ${seeds.chroma.toFixed(2)}`,
     );
   }
   for (const font of Object.values(style.fonts)) {
@@ -111,7 +111,8 @@ export function buildSystem(
     }
   }
 
-  const tokens = generateTokens({ seeds, fonts: style.fonts, mode });
+  const tokens = generateTokens({ seeds, fonts: style.fonts, mode, brand: request.brand });
+  notes.push(...tokens.notes);
   const markdown = renderDesign(tokens, {
     name: request.name,
     description: request.description,

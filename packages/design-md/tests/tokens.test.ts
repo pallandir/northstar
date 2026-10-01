@@ -220,3 +220,31 @@ test("blends take only what a secondary archetype may contribute", () => {
   );
   assert.throws(() => resolveStyle(canon, "nope"), /unknown archetype/);
 });
+
+test("a brand colour that passes contrast comes back unchanged as the primary", () => {
+  const t = generateTokens({ seeds: seeds(266), fonts, mode: "operate", brand: "#1E40AF" });
+  assert.equal(t.light.colors.primary, "#1e40af");
+  assert.ok(t.notes.some((n) => /light primary is the brand colour #1E40AF as given/.test(n)));
+  assert.ok(ratio(t.light.colors["on-primary"] as string, t.light.colors.primary as string) >= 4.5);
+});
+
+test("a brand colour that fails contrast is derived and the change is reported", () => {
+  const t = generateTokens({ seeds: seeds(95), fonts, mode: "operate", brand: "#F5E050" });
+  assert.notEqual(t.light.colors.primary, "#f5e050");
+  assert.ok(t.notes.some((n) => /light primary was derived from the brand colour #F5E050/.test(n)));
+  assert.ok(ratio(t.light.colors.primary as string, t.light.colors.muted as string) >= 4.5);
+});
+
+test("the dark theme derives its own primary when the brand does not read on dark surfaces", () => {
+  const t = generateTokens({ seeds: seeds(266), fonts, mode: "operate", brand: "#1E40AF" });
+  assert.ok(t.notes.some((n) => /dark primary was derived/.test(n)));
+  assert.ok(ratio(t.dark.colors.primary as string, t.dark.colors.muted as string) >= 4.5);
+});
+
+test("the accent never lands in the purple band unless the brand itself is purple", () => {
+  for (let hue = 0; hue < 360; hue += 10) {
+    const t = generateTokens({ seeds: seeds(hue), fonts, mode: "operate" });
+    const accent = hueOfHex(t.light.colors.accent as string);
+    assert.ok(accent < 262 || accent > 328, `hue ${hue} gave an accent at ${Math.round(accent)}`);
+  }
+});

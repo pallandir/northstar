@@ -13,6 +13,7 @@ export interface TokenInput {
   seeds: Seeds;
   fonts: TokenFonts;
   mode: Mode;
+  brand?: string;
 }
 
 export interface ThemeTokens {
@@ -36,6 +37,7 @@ export interface GeneratedTokens {
   spacing: Record<string, string>;
   typography: Record<string, TypeRole>;
   motion: Record<string, string>;
+  notes: string[];
 }
 
 const TEXT_TARGET = 7;
@@ -44,6 +46,19 @@ const STEP = 0.005;
 const HUE_COOL = 255;
 const HUE_WARM = 70;
 const ACCENT_SHIFT = 150;
+
+function keepBrand(
+  brand: string,
+  surface: string,
+  onCandidates: string[],
+): { primary: string; onPrimary: string } | undefined {
+  const primary = toHex(rgbFromHex(brand));
+  if (contrastRatio(rgbFromHex(primary), rgbFromHex(surface)) < UI_TARGET) return undefined;
+  const onPrimary = onCandidates.find(
+    (candidate) => contrastRatio(rgbFromHex(candidate), rgbFromHex(primary)) >= UI_TARGET,
+  );
+  return onPrimary ? { primary, onPrimary } : undefined;
+}
 
 const encode = (linear: number) =>
   linear <= 0.0031308 ? 12.92 * linear : 1.055 * linear ** (1 / 2.4) - 0.055;
@@ -151,9 +166,18 @@ interface Semantic {
   chroma: number;
 }
 
+const PURPLE_BAND: [number, number] = [265, 325];
+
+function accentHue(hue: number): number {
+  const shifted = (hue + ACCENT_SHIFT) % 360;
+  const [low, high] = PURPLE_BAND;
+  if (shifted < low || shifted > high) return shifted;
+  return shifted < (low + high) / 2 ? low - 10 : high + 10;
+}
+
 function semantics(seeds: Seeds): Record<string, Semantic> {
   return {
-    accent: { hue: (seeds.hue + ACCENT_SHIFT) % 360, chroma: Math.min(0.16, seeds.chroma) },
+    accent: { hue: accentHue(seeds.hue), chroma: Math.min(0.16, seeds.chroma) },
     danger: { hue: 27, chroma: 0.17 },
     success: { hue: 150, chroma: 0.14 },
     warning: { hue: 75, chroma: 0.13 },
@@ -163,6 +187,8 @@ function semantics(seeds: Seeds): Record<string, Semantic> {
 function buildTheme(
   seeds: Seeds,
   theme: "light" | "dark",
+  brand: string | undefined,
+  notes: string[],
 ): { tokens: ThemeTokens; ramp: string[] } {
   const tint = neutralTint(seeds);
   const levels = theme === "light" ? LIGHT_RAMP : DARK_RAMP;
@@ -187,18 +213,34 @@ function buildTheme(
     direction,
     softStart,
   );
-  const primary = solve(
-    "primary",
-    seeds.hue,
-    seeds.chroma,
-    strongest,
-    UI_TARGET,
-    direction,
-    light ? 0.58 : 0.66,
-  );
-  const onPrimary = light
-    ? hexOf(0.99, 0.004, seeds.hue)
-    : hexOf(0.16, Math.min(0.03, seeds.chroma * 0.2), seeds.hue);
+  const onCandidates = [
+    hexOf(0.99, 0.004, seeds.hue),
+    hexOf(0.16, Math.min(0.03, seeds.chroma * 0.2), seeds.hue),
+  ];
+  const kept = brand ? keepBrand(brand, strongest, onCandidates) : undefined;
+  let primary: string;
+  let onPrimary: string;
+  if (kept) {
+    primary = kept.primary;
+    onPrimary = kept.onPrimary;
+    notes.push(`${theme} primary is the brand colour ${brand} as given`);
+  } else {
+    primary = solve(
+      "primary",
+      seeds.hue,
+      seeds.chroma,
+      strongest,
+      UI_TARGET,
+      direction,
+      light ? 0.58 : 0.66,
+    );
+    onPrimary = light ? (onCandidates[0] as string) : (onCandidates[1] as string);
+    if (brand) {
+      notes.push(
+        `${theme} primary was derived from the brand colour ${brand}, because the brand itself does not reach ${UI_TARGET}:1 on the ${theme} muted surface with a readable on-primary`,
+      );
+    }
+  }
   if (contrastRatio(rgbFromHex(onPrimary), rgbFromHex(primary)) < UI_TARGET) {
     throw new TokenError(
       `on-primary cannot reach ${UI_TARGET}:1 on primary at hue ${Math.round(seeds.hue)} and chroma ${seeds.chroma}. Lower the chroma or pick another hue.`,
@@ -346,8 +388,9 @@ export function generateTokens(input: TokenInput): GeneratedTokens {
   }
   if (seeds.hue < 0 || seeds.hue > 360)
     throw new TokenError(`hue ${seeds.hue} is outside 0 to 360`);
-  const light = buildTheme(seeds, "light");
-  const dark = buildTheme(seeds, "dark");
+  const notes: string[] = [];
+  const light = buildTheme(seeds, "light", input.brand, notes);
+  const dark = buildTheme(seeds, "dark", input.brand, notes);
   return {
     light: light.tokens,
     dark: dark.tokens,
@@ -356,6 +399,7 @@ export function generateTokens(input: TokenInput): GeneratedTokens {
     spacing: { ...SPACING[seeds.density] },
     typography: typography(input),
     motion: motion(seeds.feel),
+    notes,
   };
 }
 

@@ -22,7 +22,9 @@ only what gets banned.
   archetype and an optional brand colour: a tinted OKLCH neutral ramp, accent and
   status colours, light and dark themes, layered shadows, radii that nest, spacing, a
   type scale with tracking and motion tokens. Contrast is solved for every pair, and
-  a pair that cannot pass stops the run with a fix.
+  a pair that cannot pass stops the run with a fix. A supplied brand colour is kept
+  exactly as given when it passes contrast, and only derived, with a note saying why,
+  when it does not. The accent stays out of the purple band.
 - **Exports.** CSS, Tailwind and DTCG output now carries shadows, motion tokens and
   the dark theme.
 - **Finish layer.** New references for finish and interaction, a rewritten motion
