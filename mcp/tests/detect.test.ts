@@ -33,7 +33,7 @@ beforeEach(async () => {
   );
   await writeFile(join(root, "src/Hero.tsx"), BAD);
   await writeFile(join(root, "src/Clean.tsx"), '<h1 className="text-4xl">x</h1>');
-  const server = createMcpServer(new CommentStore(root), undefined, undefined, {
+  const server = createMcpServer(new CommentStore(root), noopLink, undefined, {
     root,
     packs: "all",
   });
@@ -309,6 +309,7 @@ test("tests, fixtures and specs are never scanned by the hook", async () => {
 import { renderDeny } from "../src/cli/hook.js";
 import { gateReason, preEditReason } from "../src/lib/hook-feedback.js";
 import { designGap, readDesign } from "../src/project.js";
+import { noopLink } from "./fixtures.js";
 
 const CLEAN = '<h1 className="text-4xl">x</h1>';
 const FULL_TOKENS =

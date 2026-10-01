@@ -12,6 +12,8 @@ the curated design data.
 | `@modelcontextprotocol/sdk` | 1.29.0 | MIT | https://github.com/modelcontextprotocol/typescript-sdk |
 | `zod` | 3.25.76 | MIT | https://github.com/colinhacks/zod |
 | `yaml` | 2.9.0 | ISC | https://github.com/eemeli/yaml |
+| `@lydell/node-pty` | 1.1.0 | MIT | https://github.com/lydell/node-pty |
+| `@xterm/headless` | 6.0.0 | MIT | https://github.com/xtermjs/xterm.js |
 | `dompurify` | 3.4.11 | MPL-2.0 OR Apache-2.0 | https://github.com/cure53/DOMPurify |
 | `marked` | 18.0.5 | MIT | https://github.com/markedjs/marked |
 | `@material-symbols/svg-400` | 0.45.4 | Apache-2.0 | https://github.com/marella/material-symbols |

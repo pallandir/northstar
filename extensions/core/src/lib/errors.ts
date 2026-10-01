@@ -1,4 +1,4 @@
-export type FailureKind = "offline" | "unpaired" | "mismatch" | "choose" | "api" | "input";
+export type FailureKind = "offline" | "mismatch" | "choose" | "api" | "input";
 
 export class UserError extends Error {
   constructor(

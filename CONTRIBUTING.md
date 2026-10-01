@@ -26,7 +26,8 @@ npm run build
 ## How the repo is laid out
 
 - `mcp/` is the MCP server and the `northstar` command line. It speaks MCP over
-  stdio to the assistant and runs a loopback HTTP listener for the extension.
+  stdio to the assistant, and holds the local daemon, the native messaging host and
+  the `northstar run` session wrapper (`src/daemon`, `src/native`, `src/pty`).
 - `canon/` is the design canon: the framework text, rules, references, arbitration
   and the skill template. `packages/` holds the shared libraries (`protocol`,
   `detector`, `design-md`, `data`, `adapters`).

@@ -8,18 +8,28 @@ import {
 import contentScript from "./content/content.ts?script";
 import { handle } from "./handlers.js";
 import { browser } from "./lib/browser.js";
-import { onPairTabUpdated } from "./pairing.js";
+import { COMMAND, installMenus, onMenuClick, runSend } from "./send-menu.js";
 
 const activation = createActivation(contentScript);
 
 browser.runtime.onInstalled.addListener(() => {
   logFailure("badge", initBadge());
   logFailure("titles", refreshActiveTitles());
+  logFailure("menus", installMenus());
 });
 
 browser.runtime.onStartup.addListener(() => {
   logFailure("badge", initBadge());
   logFailure("titles", refreshActiveTitles());
+  logFailure("menus", installMenus());
+});
+
+browser.contextMenus.onClicked.addListener((info, tab) => {
+  logFailure("menu click", onMenuClick(info, tab));
+});
+
+browser.commands.onCommand.addListener((command, tab) => {
+  if (command === COMMAND) logFailure("send command", runSend(tab));
 });
 
 browser.action.onClicked.addListener((tab) => {
@@ -36,7 +46,6 @@ browser.tabs.onRemoved.addListener((tabId) => {
 
 browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
   logFailure("tab update", activation.onTabUpdated(tabId, changeInfo));
-  logFailure("pairing relay", onPairTabUpdated(tabId, changeInfo));
 });
 
 browser.runtime.onMessage.addListener((message: unknown, sender, sendResponse) => {

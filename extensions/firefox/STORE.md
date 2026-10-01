@@ -55,8 +55,9 @@ so you can export them later, and nothing is ever sent to a remote server.
 Privacy first, by design
 
 Everything Northstar captures stays on your computer. There is no analytics, no
-tracking, and no third party service involved. The only network connection it makes
-is to a server running locally on your own machine at 127.0.0.1. Your comments,
+tracking, and no third party service involved. It makes no network connection at
+all. It talks to a small helper program on your own machine through the browser's
+native messaging, and that helper only answers this extension. Your comments,
 screenshots, and source references never leave your device, even when the page you
 are commenting on is hosted elsewhere.
 
@@ -67,9 +68,12 @@ between spotting something on screen and getting it fixed in code.
 
 ## Notes for reviewers
 
-- The extension talks only to a loopback MCP server the developer runs locally
-  (`http://localhost`, `http://127.0.0.1`, `http://*.localhost`). It makes no other
-  network requests and has no remote code.
+- The extension talks only to a local helper through `runtime.connectNative`, a native
+  messaging host the developer installs with `northstar install`. The host manifest
+  allows only this extension id. The extension makes no network requests and has no
+  remote code.
+- `nativeMessaging` is the only channel to that helper, and `contextMenus` adds a right
+  click entry and a keyboard shortcut that run under `activeTab`.
 - `activeTab` and `scripting` grant access only to the tab the user actively clicks
   the toolbar icon on; there is no standing content script. Only after a reload of
   a tab already turned on, and only on loopback pages that hold the localhost
@@ -78,7 +82,7 @@ between spotting something on screen and getting it fixed in code.
   only reads DOM and framework debug state already present in the page; it writes
   nothing back to the page and has no extension API access from that world.
 - `storage` / `unlimitedStorage` queue comments locally so commenting still works
-  when the local server is not running. The queue is sent only when the user presses
+  when the local helper is not running. The queue is sent only when the user presses
   Send to AI.
 - See [`PRIVACY.md`](https://github.com/pallandir/northstar/blob/main/PRIVACY.md)
   for the full data-handling description.

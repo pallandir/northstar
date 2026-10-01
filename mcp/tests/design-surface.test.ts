@@ -9,13 +9,14 @@ import { scaffold } from "../src/lib/scaffold.js";
 import { VERBS } from "../src/prompts.js";
 import { createMcpServer } from "../src/server.js";
 import { CommentStore } from "../src/store.js";
+import { noopLink } from "./fixtures.js";
 
 let root: string;
 let client: Client;
 
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), "northstar-design-"));
-  const server = createMcpServer(new CommentStore(root));
+  const server = createMcpServer(new CommentStore(root), noopLink);
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   client = new Client({ name: "test", version: "0.0.0" });
   await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);

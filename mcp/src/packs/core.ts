@@ -8,7 +8,7 @@ import {
   renderHits,
 } from "@northstar/canon";
 import { z } from "zod";
-import type { IngestStatus } from "../ingest-status.js";
+import type { BridgeStatus } from "../daemon/link.js";
 import { inspectProject } from "../project.js";
 import { PACK_NAMES, PACK_SUMMARIES, type PackName, type PackRegistry } from "./registry.js";
 import { error, text } from "./util.js";
@@ -21,7 +21,7 @@ const STAGES = ["brief", "direction", "system", "compose", "critique", "polish"]
 export function registerCore(
   registry: PackRegistry,
   root: string,
-  ingest: () => IngestStatus,
+  bridge: () => BridgeStatus,
   canon: Canon,
 ): void {
   let catalog: CatalogEntry[] | undefined;
@@ -91,12 +91,10 @@ export function registerCore(
         summary: PACK_SUMMARIES[name],
         tools: registry.toolsOf(name),
       }));
-      const status = ingest();
-      const channel =
-        status.state === "on"
-          ? { ingest: "on", port: status.port }
-          : { ingest: "off", error: status.error };
-      return text(JSON.stringify({ ...state, channel, packs }, null, 2));
+      const status = bridge();
+      const bridgeState =
+        status.state === "on" ? { daemon: "on" } : { daemon: "off", error: status.error };
+      return text(JSON.stringify({ ...state, bridge: bridgeState, packs }, null, 2));
     },
   );
 

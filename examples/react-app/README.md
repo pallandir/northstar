@@ -30,9 +30,10 @@ The app is served at `http://localhost:3001` and has two routes:
 
 ## Load the local extensions
 
-In Chrome or another Chromium browser, open `chrome://extensions`, enable
-Developer mode, choose **Load unpacked**, and select
-`extensions/chromium/dist`.
+In Chrome, open `chrome://extensions`, enable Developer mode, choose **Load unpacked**,
+and select `extensions/chromium/dist`. Copy the extension id shown on its card, the
+local helper only answers extensions it was told about, you pass the id in the next
+section.
 
 In Firefox, open `about:debugging` > **This Firefox** > **Load Temporary Add-on**
 and select `extensions/firefox/dist/manifest.json`. Grant the extension access to
@@ -40,21 +41,30 @@ and select `extensions/firefox/dist/manifest.json`. Grant the extension access t
 
 ## Connect Codex to the local MCP server
 
-After the MCP build above, run this from `examples/react-app`:
+After the MCP build above, register the helper and the server from the repository root.
+Pass the Chrome extension id you copied, or leave `--allow-extension` out when you only
+use Firefox:
 
 ```bash
-codex mcp add northstar -- node ../../mcp/dist/index.js
+node mcp/dist/cli.js install --agent codex --allow-extension <chrome extension id>
 ```
 
-This registers the local server command with Codex. Start Codex from
-`examples/react-app` so its working directory is the demo, the server writes
-`.northstar/` there, and source paths match the demo files.
+This registers the MCP server with Codex and the native messaging helper for Chrome
+and Firefox, both pointing at your working tree build. Then start Codex through
+Northstar from `examples/react-app`, so its working directory is the demo, the server
+writes `.northstar/` there, and source paths match the demo files:
 
-Activate Northstar in the browser. The first time the toolbar shows **Connect**:
-click it, then click **Allow** on the page that opens. Then click an element, leave a comment, and use
-**Send to AI**. Exercise both routes and confirm that Codex can read the local
-comment through the `list_comments` MCP tool. Comments and screenshots remain
-in the gitignored `.northstar/` directory.
+```bash
+cd examples/react-app
+node ../../mcp/dist/cli.js run codex
+```
+
+Activate Northstar in the browser. There is nothing to connect. Click an element, leave
+a comment, and use **Send to AI**. Northstar waits for Codex to be idle, writes one
+fixed line and presses Enter, and Codex reads the comment through the `list_comments`
+MCP tool. Try it with a permission prompt on screen to see Northstar decline and say
+why, and from the right click menu with some text selected. Comments and screenshots
+remain in the gitignored `.northstar/` directory.
 
 The example's `react-router-dom` dependency is installed by the dedicated
 `npm ci --prefix examples/react-app` command above; it is not supplied by the

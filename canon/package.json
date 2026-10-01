@@ -1,6 +1,6 @@
 {
   "name": "@northstar/canon",
-  "version": "2.4.1",
+  "version": "3.0.0",
   "private": true,
   "type": "module",
   "description": "The Northstar design canon: method, rules, libraries, rubric and references.",

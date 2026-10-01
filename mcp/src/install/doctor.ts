@@ -4,13 +4,19 @@ import { join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { planAgent } from "@northstar/adapters";
 import { validateDesign } from "@northstar/design-md";
-import { PROTOCOL_VERSION, SERVER_PORTS, healthSchema } from "@northstar/protocol";
+import { PROTOCOL_VERSION } from "@northstar/protocol";
 import { getCanon, getData } from "../assets.js";
 import { VERSION } from "../config.js";
+import { connectDaemon } from "../daemon/client.js";
+import { RpcError } from "../daemon/rpc.js";
+import { northstarHome } from "../lib/home.js";
+import { extraExtensionIds } from "../native/host.js";
 import { type Runner, findConflicts } from "./conflicts.js";
 import { contextForRecord } from "./install.js";
+import { checkHost } from "./native-manifest.js";
 import { northstarPluginInstalled } from "./plugin.js";
 import { readRecord } from "./record.js";
+import { detectShell, shellInstalled } from "./shell.js";
 
 export interface Check {
   name: string;
@@ -29,10 +35,9 @@ export interface DoctorOptions {
   project: string;
   run: Runner;
   scanHook: (input: HookProbeInput) => string | undefined;
-  probePorts?: readonly number[];
+  host?: { node: string; script: string };
+  loadPty?: () => Promise<unknown>;
 }
-
-const TOKEN = /^[0-9a-f]{64}$/;
 
 const FIXTURE_FILE = "Landing.tsx";
 const FIXTURE_SOURCE = `export function Landing() {
@@ -68,42 +73,6 @@ function skillVersion(dir: string): string | undefined {
 function sameConfig(path: string, current: string, wanted: string): boolean {
   if (!path.endsWith(".json")) return current === wanted;
   return isDeepStrictEqual(JSON.parse(current), JSON.parse(wanted));
-}
-
-type Probe = { port: number; state: "closed" | "northstar" | "other" | "error"; detail?: string };
-
-async function probe(port: number): Promise<Probe> {
-  let response: Response;
-  try {
-    response = await fetch(`http://127.0.0.1:${port}/health`, {
-      signal: AbortSignal.timeout(1000),
-    });
-  } catch (err) {
-    const cause = (err as { cause?: { code?: string } }).cause;
-    if (cause?.code === "ECONNREFUSED") return { port, state: "closed" };
-    return { port, state: "error", detail: `${(err as Error).name}: ${(err as Error).message}` };
-  }
-  let body: unknown;
-  try {
-    body = await response.json();
-  } catch {
-    return { port, state: "other" };
-  }
-  const health = healthSchema.safeParse(body);
-  if (!health.success) {
-    const older = (body as { service?: unknown } | null)?.service === "northstar";
-    return older
-      ? { port, state: "northstar", detail: "an older server without a protocol number" }
-      : { port, state: "other" };
-  }
-  return {
-    port,
-    state: "northstar",
-    detail:
-      health.data.protocol === PROTOCOL_VERSION
-        ? undefined
-        : `protocol ${health.data.protocol}, this package speaks ${PROTOCOL_VERSION}`,
-  };
 }
 
 function hookFixtureCheck(options: DoctorOptions): Check {
@@ -239,48 +208,69 @@ export async function doctor(options: DoctorOptions): Promise<Check[]> {
 
   checks.push(hookFixtureCheck(options));
 
-  const tokenPath = join(process.env.NORTHSTAR_HOME ?? options.home, ".northstar", "token");
-  attempt("token", () => {
-    const token = readIfPresent(tokenPath)?.trim();
-    if (token === undefined) {
-      add(
-        "token",
-        "warn",
-        "No pairing token yet. Start the agent once, then click Connect in the Northstar toolbar",
-      );
-    } else if (!TOKEN.test(token)) {
-      add(
-        "token",
-        "fail",
-        `${tokenPath} is not a 64 character hex token, delete it and restart the agent`,
-      );
-    } else {
-      add("token", "ok", tokenPath);
+  const ns = options.home;
+  if (options.host) {
+    for (const check of checkHost({
+      home: options.home,
+      node: options.host.node,
+      script: options.host.script,
+      extensionIds: extraExtensionIds(ns),
+    })) {
+      add(check.name, check.status, check.detail);
     }
-  });
+  }
 
-  const probes = await Promise.all((options.probePorts ?? SERVER_PORTS).map(probe));
-  const running = probes.filter((p) => p.state === "northstar");
-  for (const p of probes.filter((candidate) => candidate.state === "other")) {
-    add("ingest", "warn", `port ${p.port} is used by another service, set NORTHSTAR_PORT`);
-  }
-  for (const p of probes.filter((candidate) => candidate.state === "error")) {
-    add("ingest", "warn", `port ${p.port} did not answer (${p.detail})`);
-  }
-  for (const p of running.filter((candidate) => candidate.detail)) {
+  try {
+    await (options.loadPty ?? (() => import("@lydell/node-pty")))();
+    add("node-pty", "ok", "the pseudo terminal module loads");
+  } catch (err) {
     add(
-      "ingest",
-      "warn",
-      `port ${p.port} runs ${p.detail}, update the extension or the server so both match`,
+      "node-pty",
+      "fail",
+      `the pseudo terminal module did not load: ${(err as Error).message}. Reinstall Northstar with npm install -g @pallandir/northstar`,
     );
   }
-  add(
-    "ingest",
-    "ok",
-    running.length
-      ? `listening on ${running.map((p) => p.port).join(", ")}`
-      : "not running, normal when no agent session is open",
-  );
+
+  try {
+    const peer = await connectDaemon(() => {}, null, northstarHome());
+    const info = await peer.call<{ version: string; protocol: number }>("request", {
+      action: "system.info",
+      params: {},
+    });
+    peer.close();
+    if (info.protocol !== PROTOCOL_VERSION) {
+      add(
+        "daemon",
+        "warn",
+        `the daemon speaks protocol ${info.protocol}, this package speaks ${PROTOCOL_VERSION}, run northstar daemon stop`,
+      );
+    } else {
+      add("daemon", "ok", `running, version ${info.version}`);
+    }
+  } catch (err) {
+    if (err instanceof RpcError) {
+      add("daemon", "ok", "not running, it starts on demand when you run an agent");
+    } else {
+      add("daemon", "fail", (err as Error).message);
+    }
+  }
+
+  let shell: ReturnType<typeof detectShell> | null = null;
+  try {
+    shell = detectShell();
+  } catch (err) {
+    add("shell integration", "warn", (err as Error).message);
+  }
+  if (shell) {
+    const installed = shellInstalled(options.home, shell);
+    add(
+      "shell integration",
+      installed ? "ok" : "warn",
+      installed
+        ? `${shell} starts agents through northstar run`
+        : `not installed for ${shell}, run northstar shell install`,
+    );
+  }
 
   const designPath = join(options.project, "DESIGN.md");
   if (existsSync(designPath)) {

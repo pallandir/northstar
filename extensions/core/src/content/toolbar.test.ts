@@ -30,8 +30,9 @@ function handlers(overrides: Partial<ToolbarHandlers> = {}): ToolbarHandlers {
     onReset: vi.fn(),
     onTogglePick: vi.fn(),
     onDeactivate: vi.fn(),
-    onConnect: vi.fn(),
-    onChooseServer: vi.fn(),
+    onChooseProject: vi.fn(),
+    onQuickRun: vi.fn(),
+    onCopyLine: vi.fn(),
     ...overrides,
   };
 }
@@ -50,24 +51,56 @@ function state(overrides: Partial<ToolbarState> = {}): ToolbarState {
   };
 }
 
+const SESSION = {
+  id: "s1",
+  agent: "codex",
+  name: "Codex",
+  command: "/bin/codex",
+  cwd: "/repo",
+  root: "/repo",
+  pid: 1,
+  createdAt: "2026-01-01T00:00:00Z",
+  lastActivityAt: "2026-01-01T00:00:00Z",
+  kind: "interactive" as const,
+};
+
 function reachableStatus(overrides: Partial<QueueStatus> = {}): QueueStatus {
   return {
     queued: 1,
     failed: 0,
     connection: "connected",
     serverReachable: true,
-    port: 7474,
     root: "/repo",
     notices: [],
-    agent: { ready: true, agent: "codex", via: "terminal", driver: "tmux" },
+    readiness: { ready: true, sessions: [SESSION], target: "s1", needsPick: false },
     open: 0,
     lastPolledAt: null,
     handoff: null,
-    servers: [],
+    projects: [],
+    agents: [],
+    template: "resolve",
     problem: null,
     ...overrides,
   };
 }
+
+function offlineStatus(overrides: Partial<QueueStatus> = {}): QueueStatus {
+  return reachableStatus({
+    connection: "offline",
+    serverReachable: false,
+    readiness: null,
+    ...overrides,
+  });
+}
+
+const NO_SESSION = {
+  ready: false,
+  sessions: [],
+  target: null,
+  needsPick: false,
+  reason: "No agent session is running in this project.",
+  fix: "Start your agent with northstar run claude.",
+};
 
 describe("Toolbar remote mode", () => {
   it("never shows a floating panel on a remote page", () => {
@@ -86,12 +119,30 @@ describe("Toolbar remote mode", () => {
 });
 
 describe("Toolbar failure strip", () => {
-  it("shows a strip when the server is unreachable", () => {
+  it("shows a strip with the install command when the helper is missing", () => {
     const toolbar = new Toolbar(fakeSurface(), handlers());
-    toolbar.render(state({ status: { ...reachableStatus(), serverReachable: false, port: null } }));
-    expect(document.querySelector(".ns-setup-title")?.textContent).toBe(
-      "No Northstar server on this machine",
+    toolbar.render(
+      state({
+        status: offlineStatus({
+          problem: {
+            error: "Northstar's browser helper is not installed.",
+            fix: "Run npx @pallandir/northstar install, then reload this page.",
+          },
+        }),
+      }),
     );
+    expect(document.querySelector(".ns-setup-title")?.textContent).toBe(
+      "Northstar's browser helper is not installed.",
+    );
+    expect(document.querySelector(".ns-setup-hint")?.textContent).toContain(
+      "npx @pallandir/northstar install",
+    );
+  });
+
+  it("says no project is running when the helper answers but no agent has started", () => {
+    const toolbar = new Toolbar(fakeSurface(), handlers());
+    toolbar.render(state({ status: offlineStatus({ connection: "noproject" }) }));
+    expect(document.querySelector(".ns-setup-title")?.textContent).toBe("No project is running");
   });
 
   it("shows nothing once the server is reachable and everything is healthy", () => {
@@ -102,7 +153,7 @@ describe("Toolbar failure strip", () => {
 
   it("dismissing a strip keeps it hidden while the same problem persists", () => {
     const toolbar = new Toolbar(fakeSurface(), handlers());
-    const offline = state({ status: { ...reachableStatus(), serverReachable: false, port: null } });
+    const offline = state({ status: offlineStatus() });
     toolbar.render(offline);
     expect(document.querySelector<HTMLElement>(".ns-tb-panel")?.hidden).toBe(false);
 
@@ -116,56 +167,41 @@ describe("Toolbar failure strip", () => {
 
   it("a genuinely different problem still shows after an earlier one was dismissed", () => {
     const toolbar = new Toolbar(fakeSurface(), handlers());
-    toolbar.render(state({ status: { ...reachableStatus(), serverReachable: false, port: null } }));
+    toolbar.render(state({ status: offlineStatus() }));
     document.querySelector<HTMLButtonElement>(".ns-setup-row .ns-drawer-close")?.click();
 
     toolbar.render(
       state({
         status: reachableStatus({
-          agent: {
-            ready: false,
-            agent: "codex",
-            via: "terminal",
-            reason: "no terminal found",
-            fix: "Run it in tmux.",
+          readiness: {
+            ...NO_SESSION,
+            reason: "no session found",
+            fix: "Run it with northstar run.",
           },
         }),
       }),
     );
-    expect(document.querySelector(".ns-setup-title")?.textContent).toBe("Send to AI is off");
+    expect(document.querySelector(".ns-setup-title")?.textContent).toBe(
+      "No agent session in this project",
+    );
     expect(document.querySelector(".ns-setup-hint")?.textContent).toBe(
-      "no terminal found Run it in tmux.",
+      "no session found Run it with northstar run.",
     );
   });
 });
 
 describe("Toolbar connection strips", () => {
-  it("offers one Connect button when the browser is not paired", () => {
-    const onConnect = vi.fn();
-    const toolbar = new Toolbar(fakeSurface(), handlers({ onConnect }));
-    toolbar.render(
-      state({
-        status: reachableStatus({ connection: "unpaired", serverReachable: false }),
-      }),
-    );
-    const buttons = document.querySelectorAll<HTMLButtonElement>(".ns-setup-actions button");
-    expect(buttons).toHaveLength(1);
-    expect(buttons[0].textContent).toBe("Connect");
-    buttons[0].click();
-    expect(onConnect).toHaveBeenCalledOnce();
-  });
-
   it("lists every running project and reports the one picked", () => {
-    const onChooseServer = vi.fn();
-    const toolbar = new Toolbar(fakeSurface(), handlers({ onChooseServer }));
+    const onChooseProject = vi.fn();
+    const toolbar = new Toolbar(fakeSurface(), handlers({ onChooseProject }));
     toolbar.render(
       state({
         status: reachableStatus({
           connection: "choose",
           serverReachable: false,
-          servers: [
-            { port: 7474, project: "shop" },
-            { port: 7475, project: "blog" },
+          projects: [
+            { root: "/work/shop", project: "shop" },
+            { root: "/work/blog", project: "blog" },
           ],
         }),
       }),
@@ -175,7 +211,68 @@ describe("Toolbar connection strips", () => {
     );
     expect(buttons.map((b) => b.textContent)).toEqual(["shop", "blog"]);
     buttons[1].click();
-    expect(onChooseServer).toHaveBeenCalledWith(7475);
+    expect(onChooseProject).toHaveBeenCalledWith("/work/blog");
+  });
+
+  it("asks which session to send to when more than one runs, and sends to the one picked", () => {
+    const onSend = vi.fn();
+    const toolbar = new Toolbar(fakeSurface(), handlers({ onSend }));
+    const other = { ...SESSION, id: "s2", agent: "claude", name: "Claude Code", cwd: "/repo/web" };
+    toolbar.render(
+      state({
+        status: reachableStatus({
+          readiness: {
+            ready: true,
+            sessions: [SESSION, other],
+            target: null,
+            needsPick: true,
+            reason: "More than one agent session is running in this project.",
+            fix: "Pick the session to send to.",
+          },
+        }),
+      }),
+    );
+    const buttons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(".ns-setup-actions button"),
+    );
+    expect(buttons.map((b) => b.textContent)).toEqual(["Codex, repo", "Claude Code, web"]);
+    buttons[1].click();
+    expect(onSend).toHaveBeenCalledWith("s2");
+    const send = Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find((b) =>
+      b.textContent?.startsWith("Send"),
+    );
+    expect(send?.disabled).toBe(true);
+    expect(send?.dataset.tip).toBe("Pick the session to send to below");
+  });
+
+  it("offers Copy the line and a quick run for each installed agent only when there is something to send", () => {
+    const onQuickRun = vi.fn();
+    const onCopyLine = vi.fn();
+    const toolbar = new Toolbar(fakeSurface(), handlers({ onQuickRun, onCopyLine }));
+    const agents = [
+      { id: "codex", name: "Codex", installed: true, path: "/bin/codex", quickRun: true },
+      { id: "claude", name: "Claude Code", installed: true, path: "/bin/claude", quickRun: true },
+    ];
+    toolbar.render(
+      state({ status: reachableStatus({ queued: 0, open: 0, readiness: NO_SESSION, agents }) }),
+    );
+    expect(document.querySelectorAll(".ns-setup-actions button")).toHaveLength(0);
+
+    toolbar.render(
+      state({ status: reachableStatus({ queued: 2, readiness: NO_SESSION, agents }) }),
+    );
+    const buttons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(".ns-setup-actions button"),
+    );
+    expect(buttons.map((b) => b.textContent)).toEqual([
+      "Copy the line",
+      "Quick run with Codex",
+      "Quick run with Claude Code",
+    ]);
+    buttons[0].click();
+    buttons[2].click();
+    expect(onCopyLine).toHaveBeenCalledOnce();
+    expect(onQuickRun).toHaveBeenCalledWith("claude");
   });
 
   it("names the side to update on a version mismatch", () => {
@@ -221,9 +318,9 @@ describe("Toolbar connection strips", () => {
         status: reachableStatus({
           handoff: {
             delivered: false,
-            agent: "codex",
-            reason: "the agent did not settle",
-            fix: "Wait for it.",
+            session: { id: "s1", agent: "codex", name: "Codex" },
+            reason: "Codex did not start on the comments within 20 seconds.",
+            fix: "Check Codex.",
             at: "2026-01-01T00:00:00Z",
           },
         }),
@@ -232,6 +329,28 @@ describe("Toolbar connection strips", () => {
     expect(document.querySelector(".ns-setup-title")?.textContent).toBe(
       "Comments saved, the agent did not start",
     );
+  });
+
+  it("tells the user when the agent needs them first, with why and how to fix it", () => {
+    const toolbar = new Toolbar(fakeSurface(), handlers());
+    toolbar.render(
+      state({
+        status: reachableStatus({
+          handoff: {
+            delivered: false,
+            session: { id: "s1", agent: "codex", name: "Codex" },
+            blocked: "prompt",
+            reason: "Northstar did not write to Codex, the agent is waiting on a prompt.",
+            fix: "Answer the prompt in the agent, then click Send to AI again.",
+            at: "2026-01-01T00:00:00Z",
+          },
+        }),
+      }),
+    );
+    expect(document.querySelector(".ns-setup-title")?.textContent).toBe(
+      "Comments saved, the agent needs you first",
+    );
+    expect(document.querySelector(".ns-setup-hint")?.textContent).toContain("Answer the prompt");
   });
 
   it("flashes Saved on the comments button, then restores the count", () => {
@@ -347,9 +466,11 @@ describe("Toolbar tooltips", () => {
         b.textContent?.startsWith("Send"),
       ) as HTMLButtonElement;
 
-    toolbar.render(state({ status: { ...reachableStatus(), serverReachable: false, port: null } }));
+    toolbar.render(state({ status: offlineStatus() }));
     expect(send().disabled).toBe(true);
-    expect(send().dataset.tip).toBe("Not connected, start your AI agent in this project first");
+    expect(send().dataset.tip).toBe(
+      "Not connected, start your AI agent in this project with northstar run",
+    );
 
     toolbar.render(state({ status: reachableStatus({ queued: 0 }) }));
     expect(send().dataset.tip).toBe("Nothing to send yet, add a comment first");
@@ -367,38 +488,33 @@ describe("Toolbar tooltips", () => {
 
     toolbar.render(
       state({
-        status: reachableStatus({
-          queued: 2,
-          agent: {
-            ready: false,
-            agent: "claude-code",
-            via: "channel",
-            reason: "Claude Code was started without the northstar channel.",
-            fix: "Restart it with the channel flag.",
-          },
-        }),
+        status: reachableStatus({ queued: 2, readiness: NO_SESSION }),
       }),
     );
     expect(send().disabled).toBe(true);
     expect(send().dataset.tip).toBe(
-      "Send to AI is off, Claude Code was started without the northstar channel. Restart it with the channel flag.",
+      "Send to AI is off, No agent session is running in this project. Start your agent with northstar run claude.",
     );
 
     toolbar.setSending(true);
-    expect(send().dataset.tip).toBe("Waking your AI assistant");
+    expect(send().dataset.tip).toBe("Sending to your AI assistant");
     toolbar.setSending(false);
 
     toolbar.flashSent({
       sent: 0,
       rejected: 0,
-      woke: { delivered: true, agent: "claude-code", at: "now" },
+      woke: {
+        delivered: true,
+        session: { id: "s1", agent: "claude", name: "Claude Code" },
+        at: "now",
+      },
     });
-    expect(document.body.textContent).toContain("Sent to Claude");
+    expect(document.body.textContent).toContain("Sent to Claude Code");
   });
 
   it("the dismiss button on a notice is named for screen readers and hover", () => {
     const toolbar = new Toolbar(fakeSurface(), handlers());
-    toolbar.render(state({ status: { ...reachableStatus(), serverReachable: false, port: null } }));
+    toolbar.render(state({ status: offlineStatus() }));
     const dismiss = document.querySelector<HTMLButtonElement>(".ns-setup-row .ns-drawer-close");
     expect(dismiss?.title).toBe("Dismiss this notice");
     expect(dismiss?.getAttribute("aria-label")).toBe("Dismiss this notice");

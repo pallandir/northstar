@@ -7,6 +7,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createMcpServer } from "../src/server.js";
 import { CommentStore } from "../src/store.js";
+import { noopLink } from "./fixtures.js";
 
 let root: string;
 let client: Client;
@@ -21,7 +22,7 @@ const call = (name: string, args: Record<string, unknown> = {}) =>
 
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), "northstar-engine-"));
-  const server = createMcpServer(new CommentStore(root), undefined, undefined, {
+  const server = createMcpServer(new CommentStore(root), noopLink, undefined, {
     root,
     packs: "all",
   });

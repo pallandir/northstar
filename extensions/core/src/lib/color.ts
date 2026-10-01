@@ -45,7 +45,7 @@ function viaCanvas(value: string): ParsedColor {
   return parsed;
 }
 
-export function parseColor(value: string): ParsedColor {
+function parseColor(value: string): ParsedColor {
   const trimmed = value.trim().toLowerCase();
   if (trimmed === "transparent") return { hex: "#000000", alpha: 0 };
   if (trimmed.startsWith("#")) {

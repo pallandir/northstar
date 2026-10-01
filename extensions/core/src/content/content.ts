@@ -1,4 +1,4 @@
-import { pageKey } from "@northstar/protocol";
+import { pageKey, templateLine } from "@northstar/protocol";
 import { browser } from "../lib/browser.js";
 import { UserError } from "../lib/errors.js";
 import { isLocalUrl } from "../lib/origins.js";
@@ -206,17 +206,18 @@ function init(): Instance {
       st.problem = null;
       toolbar = new Toolbar(surface, {
         onComments: toggleDrawer,
-        onSend: () => void run(handleSend),
+        onSend: (sessionId) => void run(() => handleSend(sessionId)),
         onHandoff: () => void run(handleHandoff),
         onReset: handleReset,
         onTogglePick: () => setPicking(!st.picking),
         onDeactivate: () => void run(() => call({ type: "deactivate" }).then(() => undefined)),
-        onConnect: () => void run(() => call({ type: "connect" }).then(() => undefined)),
-        onChooseServer: (port) =>
+        onChooseProject: (root) =>
           void run(async () => {
-            await call({ type: "choose-server", port });
+            await call({ type: "choose-project", root });
             await refresh();
           }),
+        onQuickRun: (agent) => void run(() => handleQuickRun(agent)),
+        onCopyLine: () => void run(handleCopyLine),
       });
       drawer = new Drawer(surface, {
         onEdit: (cid, text, opts) => void run(() => editComment(cid, text, opts)),
@@ -379,12 +380,12 @@ function init(): Instance {
     await refresh();
   }
 
-  async function handleSend(): Promise<void> {
+  async function sendWith(message: Message): Promise<void> {
     if (st.sending) return;
     st.sending = true;
     toolbar?.setSending(true);
     try {
-      const res = await call({ type: "flush" });
+      const res = await call(message);
       st.lastSend = field(res.send);
       if (st.lastSend.woke?.delivered) toolbar?.flashSent(st.lastSend);
       await refresh();
@@ -392,6 +393,28 @@ function init(): Instance {
       st.sending = false;
       toolbar?.setSending(false);
     }
+  }
+
+  function handleSend(sessionId?: string): Promise<void> {
+    return sendWith({ type: "flush", sessionId });
+  }
+
+  function handleQuickRun(agent: string): Promise<void> {
+    return sendWith({ type: "quick-run", agent });
+  }
+
+  async function handleCopyLine(): Promise<void> {
+    const line = templateLine(st.lastStatus?.template ?? "resolve");
+    try {
+      await navigator.clipboard.writeText(line);
+    } catch (err) {
+      console.error("[northstar] clipboard write failed", err);
+      throw new UserError(
+        "Northstar could not copy the line to the clipboard.",
+        "Click the page once to focus it and try again, or paste this line into your agent by hand.",
+      );
+    }
+    toolbar?.flashCopied();
   }
 
   async function handleHandoff(): Promise<void> {

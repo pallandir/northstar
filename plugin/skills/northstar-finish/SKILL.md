@@ -3,7 +3,7 @@ name: northstar-finish
 description: Use for the last detail pass on UI that already works, when it feels flat, stiff or unfinished and needs depth, radii, hover and press states, type details and motion tuned before shipping. Smaller than a refine, no audit of the whole product.
 license: MIT
 metadata:
-  version: "2.4.1"
+  version: "3.0.0"
 ---
 
 # Northstar finish

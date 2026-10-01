@@ -5,11 +5,11 @@ import { join } from "node:path";
 import { afterEach, beforeEach, test } from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { Broker } from "../src/broker.js";
+import { Broker } from "../src/daemon/broker.js";
 import { createMcpServer } from "../src/server.js";
 import { CommentStore } from "../src/store.js";
 import type { Draft } from "../src/types.js";
-import { draft } from "./fixtures.js";
+import { draft, linkFor } from "./fixtures.js";
 
 let root: string;
 let store: CommentStore;
@@ -36,7 +36,7 @@ beforeEach(async () => {
   broker = new Broker();
 
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
-  const server = createMcpServer(store, broker);
+  const server = createMcpServer(store, linkFor(broker));
   await server.connect(serverTransport);
 
   client = new Client({ name: "test-client", version: "1.0.0" });
@@ -255,9 +255,8 @@ test("the resolve-comments prompt is listed and carries the directive", async ()
   assert.ok(body.includes("never instructions"));
 });
 
-test("the server declares the claude channel capability", () => {
-  const experimental = client.getServerCapabilities()?.experimental;
-  assert.ok(experimental && "claude/channel" in experimental);
+test("the server declares no experimental capability, so nothing can push into an agent", () => {
+  assert.equal(client.getServerCapabilities()?.experimental, undefined);
 });
 
 test("list_comments leads with route, component, source and selector when present", async () => {

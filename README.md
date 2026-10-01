@@ -184,8 +184,9 @@ exists, parses and names a mode, and in Claude Code an edit hook enforces that.
 |---|---|---|
 | Node 20+ | runs the MCP server via `npx` | Yes |
 | An MCP-capable AI coding assistant | reads comments and edits your source (Codex, Claude Code, Gemini, or any MCP client) | Yes |
-| Chrome, Edge, Brave, Arc, or Firefox 128+ | extension | Yes |
-| Your assistant started in tmux, iTerm2, or Terminal.app | lets Send to AI type into it | Yes |
+| Chrome or Firefox 128+ | extension | Yes |
+| macOS or Linux | the local helper and the agent sessions use Unix sockets and a pseudo terminal | Yes |
+| Your assistant started with `northstar run`, or the shell integration | gives Send to AI a session it owns and can write to | Yes |
 | React, Vue, Svelte, or Angular dev build | precise component, source and route resolution | No, automatic |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -196,16 +197,20 @@ exists, parses and names a mode, and in Claude Code an edit hook enforces that.
 
 The package is published on npm as
 [`@pallandir/northstar`](https://www.npmjs.com/package/@pallandir/northstar) and
-runs on demand via `npx`, no global install needed. One command registers the MCP
-server, installs the five skills and adds the edit hook for every agent it finds:
+runs on demand via `npx` for the MCP server. The browser helper and the agent
+sessions need a permanent install, so install it globally once:
 
 ```sh
-npx -y @pallandir/northstar install
+npm install -g @pallandir/northstar
+northstar install
 ```
 
-It prints a plan and asks before changing anything. Use `--agent codex` to choose one
-agent, `--dry-run` to only look, and `npx -y @pallandir/northstar doctor` to check
-the result. See [setting up your agent](./docs/agents.md) for what each agent gets.
+`northstar install` registers the MCP server, installs the five skills, adds the edit
+hook for every agent it finds, and registers the browser helper (a Native Messaging
+host) for Chrome and Firefox. It prints a plan and asks before changing anything. Use
+`--agent codex` to choose one agent, `--dry-run` to only look, `--no-host` to skip the
+browser helper, and `northstar doctor` to check the result. See
+[setting up your agent](./docs/agents.md) for what each agent gets.
 
 To register the server by hand instead, for example for Codex:
 
@@ -248,36 +253,56 @@ npm run build:firefox
 
 Then load `extensions/firefox/dist` through `about:debugging` > This Firefox >
 Load Temporary Add-on. The first time you activate Northstar, Firefox asks for
-access to `localhost`. Grant it, or the extension cannot reach the server.
+access to `localhost`. Grant it, or the extension cannot run on your dev server.
+
+An unpacked Chrome build has a different extension id from the store build, and the
+helper only answers extensions it was told about. Copy the id from
+`chrome://extensions` and run `northstar install --allow-extension <id>`.
 
 ---
 
-### Step 3. Connect and start commenting
+### Step 3. Start your agent through Northstar and comment
 
-Open your frontend on a `localhost` dev server, with your assistant running in
-the same repo **from a terminal**, and click the Northstar toolbar icon to turn the
-overlay on. The first time, the toolbar shows **Connect**. Click it, then click
-**Allow** on the page that opens, and the tab closes by itself. Click the icon again
-to turn the overlay off. Mark up the page, then click **Send to AI**.
+Start your assistant with `northstar run`, from the project folder, instead of
+starting it directly:
 
-Upgrading from an older version needs the same one time Connect, because the server
-now checks a token that it creates at `~/.northstar/token`.
+```sh
+northstar run claude
+northstar run codex
+northstar run gemini
+northstar run opencode
+northstar run my-own-cli
+```
 
-That is the whole setup. You do not start a watch loop or a polling command.
-**Send to AI** wakes your assistant by one path, and is disabled with the reason and
-the fix whenever that path is not available.
+Nothing changes in how the assistant looks or behaves. Northstar runs it inside a
+pseudo terminal it owns, so it knows the session, and it is the only thing Send to AI
+can ever write into. To keep typing plain `claude` and `codex`, run
+`northstar shell install` once (zsh, bash and fish are supported). It adds shell
+functions that call `northstar run` and fall back to the real command, with a note,
+if Northstar is ever removed.
 
-| Assistant | How it is woken | What it needs |
-|---|---|---|
-| Claude Code | A channel event pushed into the session | Started with `claude --dangerously-load-development-channels server:northstar` |
-| Codex, Gemini CLI | One fixed line typed into its terminal | Running inside a [supported terminal](#terminals) |
+Open your frontend on a `localhost` dev server and click the Northstar toolbar icon
+to turn the overlay on. There is nothing to connect or pair. Mark up the page, then
+click **Send to AI**. You can also select text on any page and use the right click
+menu **Send selection to AI**, or press `Ctrl+Shift+A` (`Command+Shift+A` on macOS).
 
-Channels are a Claude Code research preview. Northstar is not on the approved channel
-allowlist yet, so while the preview lasts the development flag above is required.
-There is no fallback: when the channel is not enabled, **Send to AI** stays disabled
-and tells you to restart Claude Code with that command. After every send the server
-waits up to 20 seconds for the assistant to call `list_comments` and tells the
-toolbar whether it did.
+Delivery is automatic. Northstar waits until the assistant has stopped printing,
+types one fixed line, and presses Enter for you. It stops and tells you in the
+toolbar, with the reason and the fix, only when it must not go on:
+
+| What Northstar found | What the toolbar says |
+|---|---|
+| The assistant is waiting on a permission or choice prompt | Answer it, then send again. Northstar never answers for you |
+| There is text in the assistant's input, or you are typing | Send or clear it, then send again |
+| The assistant never stopped printing | Wait for it to finish, then send again |
+| The assistant did not read the comments within 20 seconds | Check it for a pending prompt or a running task |
+| More than one session runs in the project | Pick the session to send to |
+| A comment was parked because it needs a plan | A notice with the comment, so you can plan it |
+| No session runs in the project | Start one, or choose **Copy the line** or **Quick run** |
+
+**Copy the line** copies the fixed line to the clipboard so you can paste it into any
+assistant. **Quick run** starts the assistant once in its non interactive mode for
+this request. Neither runs on its own, you choose it.
 
 ### The resolve-comments prompt
 
@@ -317,17 +342,22 @@ with `npm ci --prefix examples/react-app`.
 
 ```mermaid
 flowchart TD
-    A["Browser extension\n(MV3, Chromium and Firefox)"]
-    B["MCP server\n(127.0.0.1:7474)"]
+    A["Browser extension\n(MV3, Chrome and Firefox)"]
+    H["Native host\n(northstar native-host)"]
+    D["Daemon\n(Unix socket, owner only)"]
     C["Comment store\n(.northstar/)"]
-    D["Your terminal\n(tmux, iTerm2, Terminal.app)"]
+    W["northstar run\n(owns the PTY)"]
     E["Assistant\nedits source"]
+    M["MCP server\n(stdio)"]
 
-    A -- "POST /comments\n(loopback only)" --> B
-    B -- "writes" --> C
-    B -- "types one line + Enter" --> D
-    D --> E
-    C -- "list_comments, get_comment" --> E
+    A -- "Native Messaging\n(fixed actions)" --> H
+    H -- "socket" --> D
+    D -- "writes" --> C
+    D -- "deliver one template" --> W
+    W -- "types one line + Enter" --> E
+    E --- M
+    M -- "list_comments, get_comment" --> C
+    M -- "polled, notices" --> D
     E -- "resolve / defer" --> C
 ```
 
@@ -336,16 +366,23 @@ carries a stable selector, its own text, and, resolved automatically by a script
 Northstar injects into the page's own main world, the rendering component, the
 route, and, wherever the framework tracks it, a precise `file:line:column` that
 anchors the edit to the right source location. No plugin to install; it reads
-state a development build already exposes. On a `localhost` dev server the
-extension posts the whole batch to the MCP server running in your project, and the
-server types a one-line request into the terminal your assistant is running in. The
-assistant reads the batch through the MCP tools and applies it directly at the
-location named, rather than searching for it. Comments that need deeper thought
-are parked for later, and a notice appears in the browser toolbar.
+state a development build already exposes.
 
-The line typed into your terminal is a fixed constant. Your comment text is never
-typed, it is read from the store, so nothing arriving over HTTP can influence what
-your assistant is told to do.
+The extension talks to Northstar through Chrome and Firefox Native Messaging, not
+through a local web server, so there is no port, no pairing token and nothing a web
+page can reach. The browser starts `northstar native-host`, which only answers the
+Northstar extension, validates every message against a fixed list of actions and
+forwards it to a small daemon over a Unix socket that only your user can open. The
+daemon keeps the list of running sessions, routes a send to the right one and holds
+the comment store access. Each session is a `northstar run` process that owns the
+assistant's pseudo terminal, so the write goes straight into that terminal and nowhere
+else.
+
+The line written to the assistant is chosen from a short list of fixed templates
+(resolve, implement, explain, fix, review, add to task). Your comment text, the
+selected text, the page URL and the page title are stored as comment data and read by
+the assistant through the MCP tools, they are never typed. Comments that need deeper
+thought are parked for later, and a notice appears in the browser toolbar.
 
 For a deeper look at the architecture and the message flows, see the
 [docs folder](./docs).
@@ -359,7 +396,8 @@ lives.
 
 ### Online: localhost dev server
 
-Your assistant runs in the repo and comments flow to it live over loopback.
+Your assistant runs in the repo through `northstar run` and comments flow to it live
+through the local helper.
 
 1. **Leave comments.** Point at any element and one popover opens with three
    tabs: **Comment** to leave a note, **Text** to edit its copy, **Colour** to
@@ -368,7 +406,7 @@ Your assistant runs in the repo and comments flow to it live over loopback.
    and listed in the toolbar drawer.
 
 2. **Send to AI.** Saving queues an item locally; clicking **Send to AI**
-   flushes the batch to the server. Your assistant applies each comment directly
+   flushes the batch to the project. Your assistant applies each comment directly
    to your source, then marks it resolved. Comments that need more thought (new
    dependencies, cross-cutting changes, or anything you flag "Plan this first")
    are parked in `.northstar/northstar-deferred.md` and a notice appears in the
@@ -420,30 +458,34 @@ MCP-capable AI coding assistant, Claude Code, Cursor, Windsurf, and similar
 clients all connect the same way.
 
 The extension is Manifest V3 and builds for both engines from one source tree:
-`npm run build:chromium` for Chrome, Edge, Brave and Arc, `npm run build:firefox`
-for Firefox 128+. Plain `npm run build` builds both, plus the MCP server. Firefox
+`npm run build:chromium` for Chrome, `npm run build:firefox` for Firefox 128+. Plain `npm run build` builds both, plus the MCP server. Firefox
 128 is the floor because the overlay needs the Popover API to reach the top layer.
 
-### Terminals
+### Sessions and agents
 
-Claude Code is woken by a channel and needs no terminal support. **Send to AI**
-types into the terminal for Codex and Gemini CLI, so that terminal has to be one
-Northstar can drive.
+| Command | What it does |
+|---|---|
+| `northstar run <agent> [arguments]` | Starts the agent in a session Northstar owns, all arguments go to the agent |
+| `northstar sessions` | Lists the running sessions with their project and last activity |
+| `northstar agent list` | Shows the agents Northstar knows and whether each is installed |
+| `northstar agent add <id> <path>` | Registers your own CLI, add `--quick-run "-p {{prompt}}"` to allow quick run |
+| `northstar shell install` / `uninstall` | Adds or removes the shell functions for zsh, bash or fish |
+| `northstar config` | Shows or sets the preferred agent, the default template and site mappings |
+| `northstar daemon [stop\|status]` | Runs, stops or inspects the daemon, it starts on demand |
+| `northstar doctor` | Checks the install, the browser helper, the pseudo terminal module and the shell |
 
-| Terminal | Platform | Notes |
-|---|---|---|
-| tmux | macOS, Linux | Preferred whenever `TMUX_PANE` is set, and needs no OS permission |
-| WezTerm | macOS, Linux | Uses `wezterm cli`, detected through `WEZTERM_PANE` |
-| kitty | macOS, Linux | Needs `allow_remote_control socket-only` and `listen_on` in `kitty.conf` |
-| iTerm2 | macOS | Prompts once for Automation access |
-| Terminal.app | macOS | Needs Accessibility permission in System Settings |
-| Anything else, including editor terminals | None | **Send to AI** is disabled and the toolbar says to run the agent in tmux, WezTerm or kitty |
+Claude Code, Codex, Gemini CLI, OpenCode, Aider and Goose are built in, and any other
+terminal program works the same way because Northstar never speaks an assistant's
+protocol, it only owns the terminal. State lives in `~/.northstar/`: `config.yaml`,
+`state/` (session metadata only, never prompts), `logs/` (events, session ids and byte
+counts, never comment text) and `run/` for the socket.
 
-Only one fixed line is ever typed. No comment text, page content or request body
-reaches a terminal, and pane and window ids are validated before use.
+The extension options page sets the preferred agent, the default template and which
+project a site belongs to, for example `localhost:5173` or `github.com/acme/backend`.
+A mapped site sends to its project even from a page that is not on localhost.
 
-Set `NORTHSTAR_TERMINAL` to force a driver (`tmux`, `iterm`, `terminal-app`,
-`wezterm`, `kitty`, or `none`), or `NORTHSTAR_INJECT=0` to turn the typing off entirely.
+Set `NORTHSTAR_HOME` to move the `.northstar` folder, and `NORTHSTAR_ROOT` to choose
+the project root the MCP server stores comments in.
 
 ### MCP tools
 
@@ -487,48 +529,38 @@ Comments only leave the browser when you click **Send to AI**. **Save** enqueues
 comment locally, **Send** flushes the batch.
 
 If you did click Send, the toolbar tells you why and how to fix it. The usual reasons
-are that Claude Code was started without the northstar channel, that your assistant
-was showing a permission prompt (Northstar will not answer one for you, send again
-once it clears), or that Codex or Gemini runs somewhere Northstar cannot type, such
-as an editor's built-in terminal. Start it from tmux, WezTerm, kitty, iTerm2 or
-Terminal.app instead.
+are that the assistant was showing a permission prompt (Northstar will not answer one
+for you, send again once it clears), that there was text in its input, or that it was
+started without `northstar run`, so Northstar has no session to write to. Start it with
+`northstar run <agent>` or run `northstar shell install` once.
 </details>
 
 <details>
-<summary><strong>Northstar typed the line but my assistant did not run it.</strong></summary>
+<summary><strong>The extension says the helper is not installed.</strong></summary>
 
-The Enter is sent as a separate keystroke a moment after the text, because assistant
-TUIs fold a return arriving inside a fast burst into the pasted text. If the line
-lands in the prompt but never submits, the terminal is probably still busy. Press
-Enter yourself and open an issue with your terminal and assistant versions.
+Run `northstar install`, then reload the page. It writes the Native Messaging manifest
+for Chrome and Firefox and a small launcher that pins the Node and Northstar paths it
+was installed from. `northstar doctor` checks each file and says which one is missing.
+If Chrome says the helper does not allow the extension, you loaded an unpacked build,
+see the `--allow-extension` note under [Step 2](#step-2-install-the-browser-extension).
 </details>
 
 <details>
-<summary><strong>The extension says it cannot reach the server.</strong></summary>
+<summary><strong>Chrome asked me to accept a new permission after an update.</strong></summary>
 
-The server listens on loopback only, so the page you are commenting on must be a
-`localhost` or `127.0.0.1` dev server, and your MCP client must be running in the
-project (starting the client launches the server). If the toolbar shows
-**Connect**, click it once to pair the browser with the server. On a remote preview there is
-no local project to edit, so Northstar keeps comments in the browser and you export
-them with **Handoff** instead.
-</details>
-
-<details>
-<summary><strong>Port 7474 is already in use.</strong></summary>
-
-The server automatically falls back to 7475, then 7476, and the extension probes
-the same range, so a busy port usually just works. To pin a specific port, set
-`NORTHSTAR_PORT` in the environment where your client launches the server.
+The extension now uses Native Messaging to reach the local helper, and Chrome disables
+an installed extension until you accept the new `nativeMessaging` permission. Open
+`chrome://extensions`, find Northstar and click **Re-enable**.
 </details>
 
 <details>
 <summary><strong>Can two projects run Northstar at once?</strong></summary>
 
-Each project's assistant starts its own server, and they take 7474, 7475 and 7476 in
-turn. When more than one answers, the toolbar shows each project folder and lets you
-choose, and it remembers the choice per site. Set a different `NORTHSTAR_PORT` per
-project if you need them pinned.
+Yes. Every project's assistant is its own session, and one daemon routes between them.
+When more than one project is known, the toolbar binds the page to the project that
+owns its source files, then to a mapping you set, and only asks you to choose when
+neither decides. With two sessions in one project the toolbar lists them and sends to
+the one you pick, or to your preferred agent.
 </details>
 
 <details>
@@ -562,14 +594,14 @@ Full details are in [SECURITY.md](./SECURITY.md).
 
 ## Security and privacy
 
-Everything stays on your machine. The MCP server binds to `127.0.0.1` only and
-rejects any request whose `Host` header is not loopback (anti-DNS rebinding) or
-whose `Origin` is not a browser extension origin (blocking CSRF from web pages).
-Every route except the health check and the pairing page also needs the pairing
-token that you grant with one click on **Connect**.
-The extension's only network access is that loopback listener; it has no standing
-access to any page. `activeTab` grants access to one tab for as long as it stays
-on the current URL, and that access is revoked on navigation.
+Everything stays on your machine. There is no local web server: the extension reaches
+Northstar through Native Messaging, and the helper it starts only answers the Northstar
+extension and accepts a fixed list of actions. The daemon behind it listens on a Unix
+socket that only your user can open. Send to AI writes one fixed line, never your
+comment text, and only into a session that `northstar run` started, so it cannot type
+into any other terminal and needs no accessibility permission. The extension has no
+standing access to any page. `activeTab` grants access to one tab for as long as it
+stays on the current URL, and that access is revoked on navigation.
 
 See [SECURITY.md](./SECURITY.md) for the full threat model and
 [PRIVACY.md](./PRIVACY.md) for data handling details.
@@ -584,10 +616,13 @@ Removing Northstar is three independent steps; do the ones that apply to you.
    Northstar card, and click **Remove**. In Firefox, use `about:addons`. This also
    clears the extension's local comment queue.
 
-2. **Remove the MCP server and the skills.** `npx -y @pallandir/northstar uninstall`
-   removes the server registration, the five skills and the edit hook, and restores
-   the files it backed up. Or delete the `northstar` entry from your assistant's MCP
-   configuration and the `northstar*` skill folders yourself.
+2. **Remove the MCP server, the skills and the browser helper.**
+   `northstar uninstall` removes the server registration, the five skills and the edit
+   hook, restores the files it backed up and, once no agent is left, removes the
+   browser helper. Run `northstar shell install` in reverse with
+   `northstar shell uninstall`, and `northstar daemon stop` to close the daemon. Or
+   delete the `northstar` entry from your assistant's MCP configuration and the
+   `northstar*` skill folders yourself.
 
 3. **Delete the local comment store.** The server writes everything into a
    gitignored `.northstar/` folder at your project root. Delete it to remove all
@@ -596,6 +631,9 @@ Removing Northstar is three independent steps; do the ones that apply to you.
    ```sh
    rm -rf .northstar
    ```
+
+   Northstar's own settings and logs live in `~/.northstar/`, delete that folder to
+   remove them.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

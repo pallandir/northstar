@@ -1,4 +1,4 @@
-import type { AgentKind, AgentReadiness } from "@northstar/protocol";
+import type { AgentInfo, HandoffOutcome, Readiness, TemplateId } from "@northstar/protocol";
 import { UserError } from "./lib/errors.js";
 import type { Failure } from "./lib/errors.js";
 import type { DraftRequest, OperationType, QueuedRequest, Rect, Rejection } from "./types.js";
@@ -35,25 +35,19 @@ export interface DeferralNotice {
   createdAt: string;
 }
 
-export interface HandoffNote {
-  delivered: boolean;
-  agent: AgentKind;
-  reason?: string;
-  fix?: string;
-  at: string;
-}
+export type { HandoffOutcome };
 
 export interface SendOutcome {
   sent: number;
   rejected: number;
   reason?: string;
-  woke: HandoffNote | null;
+  woke: HandoffOutcome | null;
 }
 
-export type Connection = "connected" | "offline" | "unpaired" | "choose" | "mismatch";
+export type Connection = "connected" | "offline" | "noproject" | "choose" | "mismatch";
 
-export interface ServerChoice {
-  port: number;
+export interface ProjectChoice {
+  root: string;
   project: string;
 }
 
@@ -67,14 +61,15 @@ export interface QueueStatus {
   failed: number;
   connection: Connection;
   serverReachable: boolean;
-  port: number | null;
   root: string | null;
   notices: DeferralNotice[];
-  agent: AgentReadiness | null;
+  readiness: Readiness | null;
   open: number;
   lastPolledAt: string | null;
-  handoff: HandoffNote | null;
-  servers: ServerChoice[];
+  handoff: HandoffOutcome | null;
+  projects: ProjectChoice[];
+  agents: AgentInfo[];
+  template: TemplateId;
   problem: ProblemNote | null;
 }
 
@@ -83,9 +78,7 @@ export type Message =
   | { type: "refresh" }
   | { type: "sync-active" }
   | { type: "deactivate" }
-  | { type: "connect" }
-  | { type: "pair-token"; token: string; port: number }
-  | { type: "choose-server"; port: number }
+  | { type: "choose-project"; root: string }
   | { type: "capture-region"; rect: Rect; dpr: number }
   | { type: "save-request"; draft: DraftRequest }
   | { type: "page-comments"; page: string }
@@ -99,7 +92,8 @@ export type Message =
       planFirst?: boolean;
       screenshotDataUrl?: string | null;
     }
-  | { type: "flush" }
+  | { type: "flush"; sessionId?: string }
+  | { type: "quick-run"; agent: string }
   | { type: "report-sources"; paths: string[] }
   | { type: "dismiss-notice"; commentId: string }
   | { type: "queue-status" }
@@ -182,11 +176,18 @@ export function parseMessage(raw: unknown): Message {
     case "refresh":
     case "sync-active":
     case "deactivate":
-    case "connect":
     case "clear-all":
-    case "flush":
     case "queue-status":
       return { type: raw.type };
+    case "flush": {
+      const sessionId = raw.sessionId;
+      if (sessionId !== undefined && typeof sessionId !== "string") {
+        throw invalid("sessionId must be a string");
+      }
+      return { type: "flush", sessionId };
+    }
+    case "quick-run":
+      return { type: "quick-run", agent: text(raw, "agent") };
     case "report-sources": {
       const paths = raw.paths;
       if (!Array.isArray(paths) || !paths.every((p) => typeof p === "string")) {
@@ -194,10 +195,8 @@ export function parseMessage(raw: unknown): Message {
       }
       return { type: "report-sources", paths };
     }
-    case "pair-token":
-      return { type: "pair-token", token: text(raw, "token"), port: number(raw, "port") };
-    case "choose-server":
-      return { type: "choose-server", port: number(raw, "port") };
+    case "choose-project":
+      return { type: "choose-project", root: text(raw, "root") };
     case "capture-region":
       return { type: "capture-region", rect: parseRect(raw.rect), dpr: number(raw, "dpr") };
     case "save-request":

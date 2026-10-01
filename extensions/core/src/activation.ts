@@ -37,7 +37,7 @@ function updateState(tabId: number, next: TabState | null): Promise<void> {
   });
 }
 
-export async function getTabState(tabId: number): Promise<TabState | null> {
+async function getTabState(tabId: number): Promise<TabState | null> {
   return (await readStates())[tabId] ?? null;
 }
 
@@ -75,31 +75,33 @@ async function requestLoopbackAccess(): Promise<Grant> {
   }
 }
 
-function agentName(agent: string): string {
-  if (agent === "claude-code") return "Claude Code session";
-  if (agent === "gemini") return "Gemini CLI session";
-  return "Codex session";
-}
-
 function statusLine(url: string | undefined, status: QueueStatus): string {
   if (url === undefined || !isLocalUrl(url)) {
     return "Comments on this page are exported as a handoff file.";
   }
   switch (status.connection) {
     case "offline":
-      return "No project connected. Start your AI agent in the project you are commenting on.";
-    case "unpaired":
-      return "Not connected. Click Connect in the Northstar toolbar on the page.";
+      return status.problem
+        ? `${status.problem.error} ${status.problem.fix}`
+        : "Northstar's browser helper is not reachable.";
+    case "noproject":
+      return "No project is running. Start your agent with northstar run in the project you are commenting on.";
     case "choose":
       return "More than one project is running. Pick one in the Northstar toolbar on the page.";
     case "mismatch":
       return `${status.problem?.error ?? "Versions differ."} ${status.problem?.fix ?? ""}`.trim();
-    case "connected":
+    case "connected": {
       if (status.problem) return `${status.problem.error} ${status.problem.fix}`;
-      if (!status.agent) return "Connected, waiting for the agent status.";
-      return status.agent.ready
-        ? `Ready. Send to AI wakes your ${agentName(status.agent.agent)}.`
-        : `Connected, but Send to AI is off. ${status.agent.reason ?? ""} ${status.agent.fix ?? ""}`.trim();
+      const readiness = status.readiness;
+      if (!readiness) return "Connected, waiting for the agent status.";
+      if (readiness.needsPick)
+        return "Ready. Pick the session to send to in the Northstar toolbar.";
+      if (readiness.ready) {
+        const target = readiness.sessions.find((s) => s.id === readiness.target);
+        return `Ready. Send to AI reaches your ${target?.name ?? "agent"} session.`;
+      }
+      return `Connected, but Send to AI is off. ${readiness.reason ?? ""} ${readiness.fix ?? ""}`.trim();
+    }
   }
 }
 

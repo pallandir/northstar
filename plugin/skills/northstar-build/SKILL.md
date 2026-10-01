@@ -3,7 +3,7 @@ name: northstar-build
 description: Use when creating new UI from scratch, such as a page, screen, flow or component, or when a brief asks for a professional design. Picks an archetype, generates the tokens and builds with libraries. For UI that already exists use northstar-refine.
 license: MIT
 metadata:
-  version: "2.4.1"
+  version: "3.0.0"
 ---
 
 # Northstar build

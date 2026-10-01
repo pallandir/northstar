@@ -1,13 +1,16 @@
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { AGENT_NAMES, type AgentName, type Packs, type Scope } from "@northstar/adapters";
 import { doctor } from "../install/doctor.js";
 import { type InstallOutcome, type OpResult, install, uninstall } from "../install/install.js";
+import { type HostResult, installHost, uninstallHost } from "../install/native-manifest.js";
 import { northstarPluginInstalled } from "../install/plugin.js";
+import { readRecord } from "../install/record.js";
 import { feedbackText } from "../lib/hook-feedback.js";
+import { recordUserPath } from "../lib/user-path.js";
 
 interface Options {
   agents: AgentName[];
@@ -20,6 +23,8 @@ interface Options {
   project: string;
   bin?: string;
   gate: boolean;
+  host: boolean;
+  extensionIds: string[];
 }
 
 function parse(args: string[]): Options {
@@ -33,6 +38,8 @@ function parse(args: string[]): Options {
     home: homedir(),
     project: process.env.NORTHSTAR_ROOT ?? process.cwd(),
     gate: true,
+    host: true,
+    extensionIds: [],
   };
   for (let i = 0; i < args.length; i++) {
     const arg = args[i] ?? "";
@@ -43,6 +50,8 @@ function parse(args: string[]): Options {
     };
     if (arg === "--all") options.all = true;
     else if (arg === "--no-gate") options.gate = false;
+    else if (arg === "--no-host") options.host = false;
+    else if (arg === "--allow-extension") options.extensionIds.push(value());
     else if (arg === "--dry-run") options.dryRun = true;
     else if (arg === "--yes") options.yes = true;
     else if (arg === "--agent") {
@@ -81,6 +90,30 @@ function detect(home: string): AgentName[] {
   );
 }
 
+function installBrowserHost(options: Options, dryRun: boolean): HostResult[] {
+  const script = process.argv[1];
+  if (!script) throw new Error("Northstar cannot tell which script the browser helper should run.");
+  const real = realpathSync(script);
+  if (/[\\/]_npx[\\/]/.test(real)) {
+    throw new Error(
+      "The browser helper needs a permanent install, this run comes from the temporary npx cache. Run npm install -g @pallandir/northstar, then northstar install, or pass --no-host to skip the browser helper.",
+    );
+  }
+  return installHost({
+    home: options.home,
+    node: process.execPath,
+    script: real,
+    extensionIds: options.extensionIds,
+    dryRun,
+  });
+}
+
+function printHost(results: HostResult[]): void {
+  for (const r of results) {
+    process.stdout.write(`${r.status.padEnd(9)} browser helper ${r.label}: ${r.target}\n`);
+  }
+}
+
 const run = (command: string, args: string[]) => {
   execFileSync(command, args, { stdio: "pipe" });
 };
@@ -104,7 +137,7 @@ async function confirm(question: string): Promise<boolean> {
 
 function usage(message: string, name: string): number {
   process.stderr.write(
-    `${message}\nUsage: northstar ${name} [--agent a,b | --all] [--scope user|project] [--packs all|dynamic] [--bin path] [--no-gate] [--home dir] [--project dir] [--dry-run] [--yes]\n`,
+    `${message}\nUsage: northstar ${name} [--agent a,b | --all] [--scope user|project] [--packs all|dynamic] [--bin path] [--no-gate] [--no-host] [--allow-extension id] [--home dir] [--project dir] [--dry-run] [--yes]\n`,
   );
   return 2;
 }
@@ -141,8 +174,10 @@ export async function installCommand(args: string[]): Promise<number> {
   }
   const request = { ...options, agents, plugin };
   let preview: InstallOutcome;
+  let hostPreview: HostResult[] = [];
   try {
     preview = install({ ...request, dryRun: true, run });
+    if (options.host) hostPreview = installBrowserHost(options, true);
   } catch (err) {
     return failure(err);
   }
@@ -150,10 +185,14 @@ export async function installCommand(args: string[]): Promise<number> {
     `Plan for ${agents.join(", ")} (${options.scope} scope, ${options.packs} packs):\n`,
   );
   print(preview);
+  printHost(hostPreview);
   const failed = preview.results.filter((r: OpResult) => r.status === "failed");
   if (failed.length) return 1;
   if (options.dryRun) return 0;
-  if (!preview.results.some((r) => r.status === "planned")) {
+  if (
+    !preview.results.some((r) => r.status === "planned") &&
+    !hostPreview.some((r) => r.status === "planned")
+  ) {
     process.stdout.write("Everything is already up to date.\n");
     return 0;
   }
@@ -164,13 +203,17 @@ export async function installCommand(args: string[]): Promise<number> {
     if (!(await confirm("Apply these changes?"))) return 0;
   }
   let outcome: InstallOutcome;
+  let applied: HostResult[] = [];
   try {
     outcome = install({ ...request, dryRun: false, run });
+    if (options.host) applied = installBrowserHost(options, false);
+    recordUserPath(options.home);
   } catch (err) {
     return failure(err);
   }
   process.stdout.write("\n");
   print(outcome);
+  printHost(applied);
   return outcome.results.some((r) => r.status === "failed") ? 1 : 0;
 }
 
@@ -189,7 +232,11 @@ export async function uninstallCommand(args: string[]): Promise<number> {
     if (!(await confirm(`Remove Northstar from ${agents.join(", ")}?`))) return 0;
   }
   let outcome: InstallOutcome;
+  let removed: HostResult[] = [];
   try {
+    const remaining = Object.values(readRecord(options.home).installs).filter(
+      (entry) => !(agents.includes(entry.agent) && entry.scope === options.scope),
+    );
     outcome = uninstall({
       agents,
       scope: options.scope,
@@ -198,10 +245,14 @@ export async function uninstallCommand(args: string[]): Promise<number> {
       dryRun: options.dryRun,
       run,
     });
+    if (options.host && remaining.length === 0) {
+      removed = uninstallHost({ home: options.home, dryRun: options.dryRun });
+    }
   } catch (err) {
     return failure(err);
   }
   print(outcome);
+  printHost(removed);
   return outcome.results.some((r) => r.status === "failed") ? 1 : 0;
 }
 
@@ -217,6 +268,9 @@ export async function doctorCommand(args: string[]): Promise<number> {
     project: options.project,
     run,
     scanHook: (input) => feedbackText("claude", input, input.cwd),
+    host: options.host
+      ? { node: process.execPath, script: realpathSync(process.argv[1] as string) }
+      : undefined,
   });
   for (const check of checks)
     process.stdout.write(`${check.status.padEnd(4)} ${check.name}: ${check.detail}\n`);

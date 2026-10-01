@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { Broker } from "../src/broker.js";
+import { Broker } from "../src/daemon/broker.js";
 
 function notice(id: string) {
   return { commentId: id, page: "/", summary: "s", createdAt: new Date().toISOString() };
@@ -56,8 +56,12 @@ test("pendingNotices hands out a copy, not the live array", () => {
 test("the last handoff outcome is remembered", () => {
   const broker = new Broker();
   assert.equal(broker.lastHandoff === null, true);
-  broker.recordHandoff({ delivered: true, agent: "codex", via: "terminal", at: "now" });
-  assert.equal(broker.lastHandoff?.agent, "codex");
+  broker.recordHandoff({
+    delivered: true,
+    session: { id: "s1", agent: "codex", name: "Codex" },
+    at: "now",
+  });
+  assert.equal(broker.lastHandoff?.session?.agent, "codex");
 });
 
 test("waitForPoll resolves true on a poll after the mark and false on timeout", async () => {

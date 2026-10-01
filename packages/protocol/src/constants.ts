@@ -1,8 +1,6 @@
-export const PROTOCOL_VERSION = 4;
-export const TOKEN_HEADER = "x-northstar-token";
-export const PROTOCOL_HEADER = "x-northstar-protocol";
-export const SERVER_PORTS = [7474, 7475, 7476] as const;
-export const HEALTH_PATH = "/health";
-export const PAIR_PATH = "/pair";
-export const PAIR_MESSAGE = "northstar:pair";
-export const SERVICE_NAME = "northstar";
+export const PROTOCOL_VERSION = 5;
+export const NATIVE_HOST_NAME = "com.northstar.bridge";
+export const CHROME_EXTENSION_ID = "mmpgoabhnlkcgboiiaebeahcbbeeaggb";
+export const FIREFOX_EXTENSION_ID = "northstar@pallandir.dev";
+export const MAX_REPLY_BYTES = 900_000;
+export const MAX_REQUEST_BYTES = 16 * 1024 * 1024;

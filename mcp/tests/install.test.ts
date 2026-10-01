@@ -9,7 +9,6 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, test } from "node:test";
@@ -17,6 +16,7 @@ import { AGENT_NAMES, type AgentName } from "@northstar/adapters";
 import { VERSION } from "../src/config.js";
 import { type DoctorOptions, doctor } from "../src/install/doctor.js";
 import { install, uninstall } from "../src/install/install.js";
+import { installHost } from "../src/install/native-manifest.js";
 import { type AgentRecord, readRecord } from "../src/install/record.js";
 import { feedbackText } from "../src/lib/hook-feedback.js";
 
@@ -49,12 +49,13 @@ const entryOf = (home: string, agent: AgentName): AgentRecord | undefined =>
 
 const scanHook: DoctorOptions["scanHook"] = (input) => feedbackText("claude", input, input.cwd);
 
-const doctorOptions = (w: ReturnType<typeof world>, probePorts: number[] = []): DoctorOptions => ({
+const doctorOptions = (w: ReturnType<typeof world>): DoctorOptions => ({
   home: w.home,
   project: w.project,
   run: w.run,
   scanHook,
-  probePorts,
+  host: { node: process.execPath, script: join(w.home, "cli.js") },
+  loadPty: async () => undefined,
 });
 
 const uninstallOf = (
@@ -276,7 +277,17 @@ test("doctor flags an outdated skill and overlapping skills", async () => {
 function cli(w: ReturnType<typeof world>, ...args: string[]) {
   return spawnSync(
     process.execPath,
-    ["--import", "tsx", "src/cli.ts", ...args, "--home", w.home, "--project", w.project],
+    [
+      "--import",
+      "tsx",
+      "src/cli.ts",
+      ...args,
+      "--home",
+      w.home,
+      "--project",
+      w.project,
+      "--no-host",
+    ],
     { encoding: "utf8", input: "" },
   );
 }
@@ -351,7 +362,7 @@ test("a local bin is used for the server and the hook, and doctor and uninstall 
   assert.equal(existsSync(join(w.home, ".codex/hooks.json")), false);
 });
 
-test("the extension id flag no longer exists", () => {
+test("the old extension id flag no longer exists", () => {
   const w = world();
   assert.equal(
     cli(w, "install", "--agent", "cursor", "--extension-id", "pemllnphnlcnkolginljldoejphkmbba")
@@ -508,56 +519,40 @@ test("with the Northstar plugin installed claude gets no duplicate hooks, skill 
   assert.equal(existsSync(join(w.home, ".claude/settings.json")), false);
 });
 
-test("doctor reports the pairing token, a running server and a protocol mismatch", async (t) => {
+test("doctor reports the browser helper, the pty module and the shell integration", async () => {
   const w = world();
   install(base(w, ["cursor"]));
-  const names = (checks: Awaited<ReturnType<typeof doctor>>, name: string) =>
+  const script = join(w.home, "cli.js");
+  put(script, "");
+  const options = {
+    ...doctorOptions(w),
+    host: { node: process.execPath, script },
+  };
+  const named = (checks: Awaited<ReturnType<typeof doctor>>, name: string) =>
     checks.filter((c) => c.name === name);
 
-  let checks = await doctor(doctorOptions(w));
-  assert.equal(names(checks, "token")[0]?.status, "warn");
-  assert.match(names(checks, "token")[0]?.detail ?? "", /click Connect in the Northstar toolbar/);
-  put(join(w.home, ".northstar/token"), "not hex");
-  checks = await doctor(doctorOptions(w));
-  assert.equal(names(checks, "token")[0]?.status, "fail");
-  put(join(w.home, ".northstar/token"), `${"ab".repeat(32)}\n`);
-  checks = await doctor(doctorOptions(w));
-  assert.equal(names(checks, "token")[0]?.status, "ok");
+  let checks = await doctor(options);
+  assert.equal(named(checks, "chrome native host manifest")[0]?.status, "warn");
+  assert.match(
+    named(checks, "firefox native host manifest")[0]?.detail ?? "",
+    /run northstar install/,
+  );
+  assert.equal(named(checks, "node-pty")[0]?.status, "ok");
 
-  let body: unknown = {};
-  const server = createServer((_req, res) => {
-    res.setHeader("content-type", "application/json");
-    res.end(JSON.stringify(body));
+  installHost({ home: w.home, node: process.execPath, script, extensionIds: [] });
+  checks = await doctor(options);
+  assert.equal(named(checks, "chrome native host manifest")[0]?.status, "ok");
+  assert.equal(named(checks, "firefox native host manifest")[0]?.status, "ok");
+  assert.equal(named(checks, "native host launcher target")[0]?.status, "ok");
+
+  checks = await doctor({
+    ...options,
+    loadPty: async () => {
+      throw new Error("no prebuild for this platform");
+    },
   });
-  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
-  t.after(() => server.close());
-  const port = (server.address() as { port: number }).port;
-  const health = {
-    ok: true,
-    service: "northstar",
-    version: "x",
-    root: "/r",
-    startedAt: "now",
-    paired: false,
-  };
-
-  body = { ...health, protocol: 3 };
-  checks = await doctor(doctorOptions(w, [port]));
-  assert.ok(
-    names(checks, "ingest").some((c) => c.status === "ok" && c.detail.includes(String(port))),
-  );
-
-  body = { ...health, protocol: 2 };
-  checks = await doctor(doctorOptions(w, [port]));
-  assert.ok(
-    names(checks, "ingest").some((c) => c.status === "warn" && /protocol 2/.test(c.detail)),
-  );
-
-  body = { ok: true, service: "other" };
-  checks = await doctor(doctorOptions(w, [port]));
-  assert.ok(
-    names(checks, "ingest").some((c) => c.status === "warn" && /another service/.test(c.detail)),
-  );
+  assert.equal(named(checks, "node-pty")[0]?.status, "fail");
+  assert.match(named(checks, "node-pty")[0]?.detail ?? "", /no prebuild/);
 });
 
 test("doctor fails the hook check when the scan finds nothing in a fixture with a known error", async () => {

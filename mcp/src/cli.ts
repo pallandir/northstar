@@ -10,6 +10,13 @@ const commands: Record<string, () => Promise<Command>> = {
   install: async () => (await import("./cli/setup.js")).installCommand,
   uninstall: async () => (await import("./cli/setup.js")).uninstallCommand,
   doctor: async () => (await import("./cli/setup.js")).doctorCommand,
+  run: async () => (await import("./cli/run.js")).run,
+  daemon: async () => (await import("./cli/daemon.js")).daemonCommand,
+  "native-host": async () => (await import("./cli/native-host.js")).nativeHostCommand,
+  sessions: async () => (await import("./cli/bridge.js")).sessionsCommand,
+  agent: async () => (await import("./cli/bridge.js")).agentCommand,
+  shell: async () => (await import("./cli/bridge.js")).shellCommand,
+  config: async () => (await import("./cli/bridge.js")).configCommand,
 };
 
 const USAGE = `northstar ${VERSION}
@@ -22,9 +29,15 @@ Commands:
   detect      scan UI files for generic AI patterns, exits 1 on errors
   hook        agent hook entry point, never fails an edit
   conflicts   find overlapping design skills, --remove quarantines them
-  install     set Northstar up in Claude Code, Codex, Cursor, Gemini CLI and OpenCode
+  install     set Northstar up in Claude Code, Codex, Cursor, Gemini CLI and OpenCode, and register the browser helper
   uninstall   remove what install added
-  doctor      check the install, hooks, assets and conflicts
+  doctor      check the install, hooks, assets, browser helper and shell integration
+  run <agent> start an agent in a Northstar session so Send to AI can reach it
+  sessions    list the running agent sessions
+  agent       list the agents Northstar knows, or add your own
+  shell       install or uninstall shell functions so claude, codex and the rest start through run
+  config      show or change the preferred agent, the template and the project mappings
+  daemon      run the local daemon, or stop it or show its status
   --version   print the version`;
 
 async function run(argv: string[]): Promise<number> {

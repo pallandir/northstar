@@ -24,29 +24,23 @@ const COMMENTS_CLOSE_TIP = "Close the comments panel";
 const SEND_READY_TIP = "Send your comments to your AI assistant";
 const HANDOFF_TIP = "Download this page's unsent comments as a Markdown file";
 
-export function setTip(el: HTMLElement, tip: string): void {
+function setTip(el: HTMLElement, tip: string): void {
   el.dataset.tip = tip;
   if (el.classList.contains("ns-action--icon") || el.classList.contains("ns-grip")) {
     el.setAttribute("aria-label", tip);
   }
 }
 
-const AGENT_LABELS = {
-  "claude-code": "Claude",
-  codex: "Codex",
-  gemini: "Gemini",
-  other: "the agent",
-} as const;
-
 export interface ToolbarHandlers {
   onComments: () => void;
-  onSend: () => void;
+  onSend: (sessionId?: string) => void;
   onHandoff: () => void;
   onReset: () => void;
   onTogglePick: () => void;
   onDeactivate: () => void;
-  onConnect: () => void;
-  onChooseServer: (port: number) => void;
+  onChooseProject: (root: string) => void;
+  onQuickRun: (agent: string) => void;
+  onCopyLine: () => void;
 }
 
 export interface ToolbarState {
@@ -179,8 +173,9 @@ export class Toolbar {
   }
 
   private sendTip(): string {
-    if (this.sending) return "Waking your AI assistant";
-    if (!this.reachable) return "Not connected, start your AI agent in this project first";
+    if (this.sending) return "Sending to your AI assistant";
+    if (!this.reachable)
+      return "Not connected, start your AI agent in this project with northstar run";
     if (this.blocked !== null) return this.blocked;
     if (this.pending === 0) return "Nothing to send yet, add a comment first";
     return this.pending === 1
@@ -225,34 +220,31 @@ export class Toolbar {
     const reachable = Boolean(status?.serverReachable);
     this.reachable = reachable;
     this.pending = (status?.queued ?? 0) + (status?.open ?? 0);
-    this.blocked =
-      status?.agent && !status.agent.ready
-        ? `Send to AI is off, ${status.agent.reason ?? ""} ${status.agent.fix ?? ""}`.trim()
-        : null;
+    const readiness = status?.readiness;
+    this.blocked = !readiness
+      ? null
+      : readiness.needsPick
+        ? "Pick the session to send to below"
+        : !readiness.ready
+          ? `Send to AI is off, ${readiness.reason ?? ""} ${readiness.fix ?? ""}`.trim()
+          : null;
     this.syncSendButton();
     this.handoffBtn.classList.toggle("ns-action--primary", !reachable);
 
     const send = state.lastSend;
-    const agent = status?.agent;
     const connection = status?.connection ?? "offline";
+    const handoff = status?.handoff;
 
     if (state.problem) {
       this.showFailure(`problem:${state.problem.error}`, state.problem.error, state.problem.fix);
-    } else if (connection === "unpaired") {
-      this.showFailure(
-        "unpaired",
-        "Allow this browser to reach your project",
-        "One click, then you are connected.",
-        [{ label: "Connect", run: () => this.handlers.onConnect() }],
-      );
     } else if (connection === "choose") {
       this.showFailure(
-        `choose:${status?.servers.map((server) => server.port).join(",")}`,
+        `choose:${status?.projects.map((project) => project.root).join(",")}`,
         "More than one project is running",
         "Pick the project you are commenting on.",
-        (status?.servers ?? []).map((server) => ({
-          label: server.project,
-          run: () => this.handlers.onChooseServer(server.port),
+        (status?.projects ?? []).map((project) => ({
+          label: project.project,
+          run: () => this.handlers.onChooseProject(project.root),
         })),
       );
     } else if (connection === "mismatch" && status?.problem) {
@@ -261,29 +253,58 @@ export class Toolbar {
         status.problem.error,
         status.problem.fix,
       );
+    } else if (connection === "offline") {
+      this.showFailure(
+        `offline:${status?.problem?.error ?? ""}`,
+        status?.problem?.error ?? "Northstar's browser helper is not reachable",
+        status?.problem?.fix ?? "Run npx @pallandir/northstar install, then reload this page.",
+      );
+    } else if (connection === "noproject") {
+      this.showFailure(
+        "noproject",
+        "No project is running",
+        "Start your agent in the project you are commenting on with northstar run.",
+      );
     } else if (send && send.rejected > 0) {
       this.showFailure(
         `rejected:${send.rejected}:${send.reason ?? ""}`,
         send.rejected === 1 ? "1 comment was not sent" : `${send.rejected} comments were not sent`,
         send.reason ?? "Open Comments to see why and fix them.",
       );
-    } else if (status?.handoff && !status.handoff.delivered && status.handoff.reason) {
+    } else if (handoff && !handoff.delivered && handoff.reason) {
       this.showFailure(
-        `handoff:${status.handoff.at}`,
-        "Comments saved, the agent did not start",
-        `${status.handoff.reason} ${status.handoff.fix ?? ""}`.trim(),
+        `handoff:${handoff.at}`,
+        handoff.blocked
+          ? "Comments saved, the agent needs you first"
+          : "Comments saved, the agent did not start",
+        `${handoff.reason} ${handoff.fix ?? ""}`.trim(),
       );
-    } else if (!reachable) {
+    } else if (readiness?.needsPick && this.pending > 0) {
       this.showFailure(
-        "offline",
-        "No Northstar server on this machine",
-        "Start your AI agent in the project you are commenting on.",
+        `pick:${readiness.sessions.map((session) => session.id).join(",")}`,
+        "More than one agent session is running here",
+        "Pick the session that should get the comments.",
+        readiness.sessions.map((session) => ({
+          label: `${session.name}, ${session.cwd.split(/[\\/]/).filter(Boolean).pop() ?? session.cwd}`,
+          run: () => this.handlers.onSend(session.id),
+        })),
       );
-    } else if (agent && !agent.ready) {
+    } else if (readiness && !readiness.ready) {
+      const quick: StripAction[] =
+        this.pending > 0
+          ? [
+              { label: "Copy the line", run: () => this.handlers.onCopyLine() },
+              ...(status?.agents ?? []).map((agent) => ({
+                label: `Quick run with ${agent.name}`,
+                run: () => this.handlers.onQuickRun(agent.id),
+              })),
+            ]
+          : [];
       this.showFailure(
-        `agent:${agent.reason ?? ""}`,
-        "Send to AI is off",
-        `${agent.reason ?? ""} ${agent.fix ?? ""}`.trim(),
+        `no-session:${(status?.agents ?? []).map((agent) => agent.id).join(",")}:${this.pending > 0}`,
+        "No agent session in this project",
+        `${readiness.reason ?? ""} ${readiness.fix ?? ""}`.trim(),
+        quick,
       );
     } else {
       this.clearPanel();
@@ -303,7 +324,15 @@ export class Toolbar {
   flashSent(send: SendOutcome): void {
     if (!send.woke?.delivered) return;
     window.clearTimeout(this.sentTimer);
-    this.sendLabel.textContent = `Sent to ${AGENT_LABELS[send.woke.agent]}`;
+    this.sendLabel.textContent = `Sent to ${send.woke.session?.name ?? "the agent"}`;
+    this.sentTimer = window.setTimeout(() => {
+      this.sendLabel.textContent = "Send to AI";
+    }, 1600);
+  }
+
+  flashCopied(): void {
+    window.clearTimeout(this.sentTimer);
+    this.sendLabel.textContent = "Line copied";
     this.sentTimer = window.setTimeout(() => {
       this.sendLabel.textContent = "Send to AI";
     }, 1600);

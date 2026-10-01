@@ -1,4 +1,4 @@
-export const version = "2.4.1";
+export const version = "3.0.0";
 
 const LOOPBACK_HOSTS = ["http://localhost/*", "http://127.0.0.1/*", "http://*.localhost/*"];
 
@@ -19,7 +19,17 @@ export const base = {
   // Page access comes solely from activeTab, granted per tab when the user clicks the toolbar
   // action and gone on navigation. scripting lets the worker inject the overlay into that one tab,
   // and inject the main-world targeting probe alongside it.
-  permissions: ["activeTab", "scripting", "storage", "unlimitedStorage"],
+  // nativeMessaging reaches the local Northstar helper, which only answers this extension. The
+  // context menu and the shortcut send a selection to the agent, and activeTab covers the page
+  // they were used on.
+  permissions: [
+    "activeTab",
+    "scripting",
+    "storage",
+    "unlimitedStorage",
+    "nativeMessaging",
+    "contextMenus",
+  ],
   host_permissions: LOOPBACK_HOSTS,
   icons,
   // Declared as a service worker for both targets so CRXJS emits its loader chunk. Firefox MV3
@@ -29,4 +39,11 @@ export const base = {
     default_title: "Northstar",
     default_icon: icons,
   },
+  commands: {
+    "send-to-ai": {
+      suggested_key: { default: "Ctrl+Shift+A", mac: "Command+Shift+A" },
+      description: "Send the selection or your comments to your AI agent",
+    },
+  },
+  options_ui: { page: "src/options/options.html", open_in_tab: true },
 };

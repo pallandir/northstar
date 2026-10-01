@@ -4,6 +4,58 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [3.0.0] - 2026-10-02
+
+Send to AI no longer pushes into an agent or types into someone else's terminal.
+Northstar now starts the agent itself, in a pseudo terminal it owns, and that terminal
+is the only thing a send can write into. The browser reaches Northstar through Chrome
+and Firefox Native Messaging, so there is no local web server and no pairing.
+
+### Changed (breaking)
+
+- **Start your agent with `northstar run <agent>`**, or run `northstar shell install`
+  once so plain `claude`, `codex` and the rest do it for you. An agent started any other
+  way has no session, and Send to AI says so and how to fix it.
+- **Delivery is automatic.** Northstar waits until the agent is idle, writes one fixed
+  line and presses Enter. It stops and tells you in the toolbar, with the reason and the
+  fix, when the agent is waiting on a prompt, has text in its input, never goes quiet,
+  or did not read the comments in 20 seconds.
+- **Protocol 5.** The extension talks to `northstar native-host` over a single
+  Native Messaging port, the host talks to a new daemon over a Unix socket that only the
+  user can open, and every message is checked against a fixed list of actions.
+- The extension asks for two new permissions, `nativeMessaging` and `contextMenus`.
+  Chrome disables an installed extension on update until the user accepts the new
+  warning.
+- `northstar install` also registers the browser helper for Chrome and Firefox, so the
+  package should be installed globally. Pass `--no-host` to skip it and
+  `--allow-extension <id>` for an unpacked Chrome build.
+- Only Chrome and Firefox are supported. Edge, Brave and Arc are not registered.
+
+### Added
+
+- `northstar run`, `sessions`, `agent`, `shell`, `config` and `daemon`, and a
+  local daemon that keeps the sessions, routes a send and holds the broker state.
+- Any terminal program works as an agent. Claude Code, Codex, Gemini CLI, OpenCode,
+  Aider and Goose are built in, and `northstar agent add` registers your own.
+- Several sessions at once, with a picker in the toolbar, a preferred agent, and site to
+  project mappings set on the new extension options page.
+- A right click menu and a keyboard shortcut (`Ctrl+Shift+A`, `Command+Shift+A` on
+  macOS) that send selected text, stored as a comment, to the mapped project.
+- Six fixed templates (resolve, implement, explain, fix, review, add to task) that
+  change what the agent is asked to do. The line written is always one of them.
+- **Copy the line** and **Quick run**, offered, never automatic, when no session runs.
+- `northstar doctor` checks the browser helper, the pseudo terminal module, the daemon
+  and the shell integration.
+
+### Removed
+
+- The Claude Code channel and the `--dangerously-load-development-channels` flag.
+- The tmux, WezTerm, kitty, iTerm2 and Terminal.app drivers, and with them the
+  Accessibility and Automation permissions and `NORTHSTAR_TERMINAL` and
+  `NORTHSTAR_INJECT`.
+- The local HTTP server, the three ports, `NORTHSTAR_PORT`, the pairing page, the
+  pairing token and the **Connect** button.
+
 ## [2.4.1] - 2026-10-01
 
 ### Changed

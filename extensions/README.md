@@ -13,14 +13,20 @@ builds two targets, `chromium/` and `firefox/`.
 - Captures the element fingerprint (selector, text, computed styles, rect) and
   probes the page's own framework state, in the main world, for the component
   name, source location and route it belongs to.
-- On `localhost`, posts comments to the project's MCP server so they save into the repo as you go.
-  With several projects running, it binds the page to the one whose root contains the
-  page's source files, and only asks when none does. On a remote page it
-  keeps them in extension storage for **Handoff** export and never calls loopback.
-- Send to AI saves the batch, then asks the server to wake the assistant. The server
-  answers whether the assistant started on the comments, and the toolbar shows the
-  reason and the fix when it did not. The button is disabled when no assistant can be
-  woken.
+- On `localhost`, sends comments to the project through the local helper (Native
+  Messaging) so they save into the repo as you go. With several projects running, it
+  binds the page to the one a site mapping names, then the one whose root contains the
+  page's source files, and only asks when neither does. On a remote page it keeps them
+  in extension storage for **Handoff** export.
+- Send to AI saves the batch, then asks the daemon to write one fixed line into the
+  assistant session of that project. The daemon answers whether the assistant started
+  on the comments, and the toolbar shows the reason and the fix when it did not, when
+  the assistant is waiting on a prompt, or when more than one session needs a pick.
+  With no session it offers **Copy the line** and **Quick run**.
+- The right click menu (**Send selection to AI**, and a submenu of templates) and
+  `Ctrl+Shift+A` (`Command+Shift+A` on macOS) send the selected text, stored as a
+  comment, to the project that site is mapped to. The options page sets the preferred
+  agent, the default template and the site mappings.
 
 ## Source location (the gold path)
 

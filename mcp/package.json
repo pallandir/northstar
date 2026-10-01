@@ -1,6 +1,6 @@
 {
   "name": "@pallandir/northstar",
-  "version": "2.4.1",
+  "version": "3.0.0",
   "description": "UI design advisory framework for AI coding agents: MCP server, design canon, static detector and installer, plus the Northstar browser comment handoff.",
   "license": "MIT",
   "type": "module",
@@ -45,7 +45,9 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "@lydell/node-pty": "^1.1.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@xterm/headless": "^6.0.0",
     "yaml": "^2.8.0",
     "zod": "^3.24.1"
   },

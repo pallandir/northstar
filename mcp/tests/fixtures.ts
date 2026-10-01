@@ -1,5 +1,17 @@
 import { randomUUID } from "node:crypto";
+import type { Broker } from "../src/daemon/broker.js";
+import type { BrokerLink } from "../src/daemon/link.js";
 import type { Draft } from "../src/types.js";
+
+export const noopLink: BrokerLink = { polled() {}, bump() {}, notice() {} };
+
+export function linkFor(broker: Broker): BrokerLink {
+  return {
+    polled: () => broker.markPolled(),
+    bump: () => broker.bump(),
+    notice: (notice) => broker.pushNotice(notice),
+  };
+}
 
 export function draft(overrides: Partial<Draft> = {}): Draft {
   return {

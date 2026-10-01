@@ -59,8 +59,9 @@ so you can export them later, and nothing is ever sent to a remote server.
 Privacy first, by design
 
 Everything Northstar captures stays on your computer. There is no analytics, no
-tracking, and no third party service involved. The only network connection it makes
-is to a server running locally on your own machine at 127.0.0.1. Your comments,
+tracking, and no third party service involved. It makes no network connection at
+all. It talks to a small helper program on your own machine through the browser's
+native messaging, and that helper only answers this extension. Your comments,
 screenshots, and source references never leave your device, even when the page you
 are commenting on is hosted elsewhere.
 
@@ -84,12 +85,18 @@ it happen in the codebase, this is that.
   resolve precise targeting; that script writes nothing back to the page and has
   no extension API access from that world.
 - **Host access (`http://localhost/*`, `http://127.0.0.1/*`, `http://*.localhost/*`)**:
-  used only by the background service worker to reach the companion MCP server on
-  loopback. This is not web-page access and does not let the extension contact any
-  other site.
+  used only so the overlay can run again on a local dev server after a reload. The
+  extension makes no network request with it, and it does not let the extension
+  contact any other site.
+- **nativeMessaging**: the only way the extension reaches Northstar. It connects to a
+  helper program that the user installed with `northstar install`, which answers only
+  this extension and accepts a fixed list of actions. There is no web server and no
+  network request.
+- **contextMenus**: adds "Send selection to AI" to the right click menu and offers the
+  keyboard shortcut. They run under `activeTab` on the page the user used them on.
 - **storage / unlimitedStorage**: queues comments (which may include a screenshot
   when you ask for one) locally so commenting works even when the assistant's
-  server is not running. The queue is sent only when the user presses Send to AI,
+  helper is not running. The queue is sent only when the user presses Send to AI,
   never automatically. A rejected comment stays queued with the reason shown.
 
 ## Data use disclosures
@@ -98,7 +105,7 @@ it happen in the codebase, this is that.
 - No analytics, tracking, or third-party services.
 - All captured data (comment text, selector, target details, screenshot only when
   requested, URL, source location) stays on the user's machine and is sent only to
-  `127.0.0.1`.
+  the local helper on the user's own machine.
 
 ## Privacy policy URL
 

@@ -12,7 +12,7 @@ These must all equal it before a release:
 - every workspace `package.json`: `mcp`, `canon`, `packages/*` and `extensions/*`
 - `plugin/.claude-plugin/plugin.json`
 - `.claude-plugin/marketplace.json`, in both the metadata and the plugin entry
-- `mcp/src/config.ts` (`VERSION`, reported by the MCP server and `/health`) and
+- `mcp/src/config.ts` (`VERSION`, reported by the MCP server and the daemon) and
   `extensions/core/manifest.base.ts` (both browser targets read it), which either
   hold the same number or read it from `package.json`
 
@@ -151,6 +151,12 @@ Listing copy lives in [extensions/firefox/STORE.md](../extensions/firefox/STORE.
 ## Release checklist
 
 - [ ] Versions bumped, `npm run gen` run, and `node scripts/check-versions.mjs` passes.
+- [ ] A release that adds a permission (`nativeMessaging`, `contextMenus`) states the
+      reason in the store listing and in the notes for reviewers, and the release notes
+      warn that Chrome disables an installed extension until its users accept it.
+- [ ] `npm install -g` of the packed tarball on macOS and Linux loads `@lydell/node-pty`,
+      `northstar install --dry-run` lists the browser helper files, and `northstar doctor`
+      reports no failures.
 - [ ] `CHANGELOG.md` updated for the release.
 - [ ] `npm run lint`, `npm run typecheck`, `npm test` and `npm run gen:check` pass.
 - [ ] `npm run check:pack` passes.

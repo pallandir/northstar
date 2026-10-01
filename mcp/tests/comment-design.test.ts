@@ -10,6 +10,7 @@ import { designContext, groupFor, relevantRules } from "../src/design-context.js
 import { createMcpServer } from "../src/server.js";
 import { CommentStore } from "../src/store.js";
 import type { Comment, Draft } from "../src/types.js";
+import { noopLink } from "./fixtures.js";
 
 const canon = loadCanon();
 let root: string;
@@ -66,7 +67,7 @@ const BAD_FILE =
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), "northstar-comment-design-"));
   store = new CommentStore(root);
-  const server = createMcpServer(store, undefined, undefined, { root });
+  const server = createMcpServer(store, noopLink, undefined, { root });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   client = new Client({ name: "test", version: "0.0.0" });
   await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);

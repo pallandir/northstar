@@ -11,6 +11,7 @@ import { parseDesign } from "@northstar/design-md";
 import { bandFor, weightedScore } from "../src/packs/critique.js";
 import { createMcpServer } from "../src/server.js";
 import { CommentStore } from "../src/store.js";
+import { noopLink } from "./fixtures.js";
 
 const canon = loadCanon();
 let root: string;
@@ -59,7 +60,7 @@ x
 
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), "northstar-system-"));
-  const server = createMcpServer(new CommentStore(root), undefined, undefined, {
+  const server = createMcpServer(new CommentStore(root), noopLink, undefined, {
     root,
     packs: "all",
   });

@@ -1,24 +1,24 @@
 # Architecture
 
 Northstar is a UI design advisory framework for AI agents with a browser comment
-channel. It ships two artifacts, a browser extension and an npm package that holds
-the MCP server, the design canon and the command line, plus the AI assistant that
-reads the comments and the on-disk store they share. The design framework is
-described in [the method](./method.md) and in the last section of this page. The extension
-and the assistant never talk directly. The MCP server sits in the middle and bridges
-three channels: HTTP on the browser side, MCP over stdio on the assistant side, and
-keystrokes into the terminal the assistant runs in.
+handoff. It ships two artifacts, a browser extension and an npm package that holds
+the MCP server, the design canon, the local daemon and the command line, plus the AI
+assistant that reads the comments and the on-disk store they share. The design
+framework is described in [the method](./method.md) and in the last section of this
+page. The extension and the assistant never talk directly. A small daemon sits in
+the middle and bridges three channels: Native Messaging on the browser side, MCP over
+stdio on the assistant side, and the pseudo terminal the assistant runs in.
 
 ## Component map
 
 ```mermaid
 flowchart TB
     subgraph Browser["Browser extension (one core, two build targets)"]
-      Icon["Toolbar icon<br/>click toggles the overlay"]
+      Icon["Toolbar icon, context menu, shortcut"]
       Worker["Background<br/>message router, injection"]
       Content["Content script<br/>shadow-DOM overlay<br/>in the top layer"]
       Probe["Main-world probe<br/>component / route / source"]
-      Transport["Transport<br/>loopback client, queue"]
+      Transport["Transport<br/>native port, queue"]
       Icon --> Worker
       Content --> Worker
       Content -. "DOM attribute +<br/>CustomEvents" .-> Probe
@@ -26,23 +26,30 @@ flowchart TB
       Worker --> Transport
     end
 
-    subgraph Server["MCP server (one process)"]
-      Http["HTTP listener<br/>127.0.0.1:7474"]
-      Handoff["Terminal handoff<br/>tmux / iTerm2 / Terminal.app"]
-      Mcp["MCP server<br/>24 tools, 9 prompts"]
+    Host["Native host<br/>northstar native-host"]
+
+    subgraph Daemon["Daemon (one process per user)"]
+      Core["Router, registry,<br/>broker state"]
       Store["Comment store<br/>reads / writes files"]
-      Http --> Store
-      Http --> Handoff
-      Mcp --> Store
+      Core --> Store
     end
 
-    Disk[("<br/>.northstar/<br/>comments, shots,<br/>deferred<br/>")]
-    Assistant["AI coding assistant<br/>(Claude Code, Codex, Gemini)"]
+    subgraph Session["northstar run (one per assistant)"]
+      Wrapper["PTY owner<br/>screen + delivery checks"]
+      Assistant["AI coding assistant<br/>(Claude Code, Codex, Gemini, any CLI)"]
+      Wrapper --- Assistant
+    end
 
-    Transport -- "HTTP over loopback" --> Http
+    Mcp["MCP server<br/>stdio, 24 tools, 9 prompts"]
+    Disk[("<br/>.northstar/<br/>comments, shots,<br/>deferred<br/>")]
+
+    Transport -- "Native Messaging<br/>fixed actions" --> Host
+    Host -- "Unix socket" --> Core
+    Core -- "deliver one template" --> Wrapper
+    Assistant --- Mcp
+    Mcp --> Store
+    Mcp -- "polled, notices" --> Core
     Store --> Disk
-    Handoff -- "types a line + Enter" --> Assistant
-    Mcp -- "MCP over stdio" --> Assistant
     Assistant -- "edits" --> Repo["Your source files"]
 ```
 
@@ -59,9 +66,9 @@ neither carries its own copy of the code, so a fix lands in both builds together
   is already showing. The icon title carries the connection status.
 - **Background** is the extension's hub. It routes messages, verifies that every
   message came from this extension, injects the content script and the main-world
-  probe on demand under the `activeTab` grant, and delegates all networking to the
-  transport layer. There is no standing content script, so no page is touched until
-  you activate it.
+  probe on demand under the `activeTab` grant, owns the context menu and the keyboard
+  shortcut, and delegates all talking to Northstar to the transport layer. There is no
+  standing content script, so no page is touched until you activate it.
 - **Content script** renders the whole UI inside a closed shadow DOM so page styles
   cannot leak in or out, and promotes that host into the **top layer** so no page
   can stack above it. It draws the draggable toolbar, the hover reticle, pins, the
@@ -72,69 +79,93 @@ neither carries its own copy of the code, so a fix lands in both builds together
   content script's requests with a component name, a source location, and a route,
   over a DOM attribute and a pair of `CustomEvent`s, the one channel that crosses
   the world boundary.
-- **Transport** is the only part that touches the network or storage. It discovers
-  the server across the loopback port range, holds the comment queue in extension
-  storage, and posts the whole batch in one request on Send.
+- **Transport** is the only part that talks to Northstar or touches storage. It holds
+  one persistent Native Messaging port, binds a page to a project, holds the comment
+  queue in extension storage, and sends the whole batch in one message on Send.
+- **Options page** sets the preferred agent, the default template and which project a
+  site belongs to, through the same port.
 
 Everything reaches the browser API through a small namespace shim, because Firefox
 exposes the promise-based API as `browser` and keeps `chrome` callback-style.
 
+### Native host
+
+`northstar native-host` is started by the browser for the extension, through a small
+launcher that pins the Node and Northstar paths. It verifies the caller it was started
+with, reads length prefixed JSON frames, rejects anything outside the fixed action list
+or the size limits, and forwards the rest to the daemon over the Unix socket. Replies are
+kept under what the browser accepts from a helper.
+
+### Daemon
+
+`northstar daemon` is one process per user, started on demand and exiting when idle. It
+is the single source of truth for what is running.
+
+- **Registry** holds the sessions (agent, command, folder, process id, last activity)
+  and the project folders it has seen. Session metadata is written to
+  `~/.northstar/state/`, never prompts.
+- **Router** picks the session for a send: the one you named, the only one in the
+  project, the preferred agent when it is unique, otherwise it asks you to pick.
+- **Broker** keeps per project state: the version, the notices for comments parked as
+  needing a plan, the last poll by the assistant, and the last handoff outcome.
+- **Comment store access** reads and writes the project's `.northstar/` folder, with
+  every path confined under the project root and unknown roots refused.
+- **Quick run** starts an installed agent once in its non interactive mode, only when
+  you choose it and only when no session runs in the project.
+
+### Session
+
+`northstar run <agent>` starts the assistant in a pseudo terminal that Northstar owns,
+mirrors it to your terminal, and registers it with the daemon. A headless terminal
+emulator keeps a rendered copy of the screen so the wrapper can tell a prompt from an
+idle input. It is the only place a send can write, and it holds your own keystrokes
+while it writes.
+
 ### MCP server
 
-One process exposes three faces.
-
-- **HTTP listener** is the extension's entry point. It binds to `127.0.0.1` only,
-  checks the Origin, the Host and the pairing token of every request, and validates
-  each payload against a strict schema before handing it to the store. Only the
-  health check and the pairing page are open.
-- **Delivery** is what starts the work. `POST /handoff` wakes the assistant by one
-  path only. Claude Code gets a channel event, and Codex and Gemini get one fixed
-  line typed into their terminal followed by Enter. The server then waits for the
-  agent's first `list_comments` call and reports the real outcome. There is no
-  fallback. See [How it works](./how-it-works.md#the-handoff).
-- **MCP server** is the assistant's entry point. It speaks MCP over stdio and
-  registers 24 tools across seven packs and nine prompts (`resolve-comments`
-  and the eight design stages), carrying the instruction to treat comment text as
-  data and never as instructions. It also declares the
-  `claude/channel` capability so Claude Code can be triggered by a push.
-- **Comment store** owns the files. It serializes and parses the markdown and JSON
-  stores, writes screenshots with server-generated names, and keeps every path
-  confined under the project root.
+The MCP server is the assistant's entry point. It speaks MCP over stdio and registers
+24 tools across seven packs and nine prompts (`resolve-comments` and the eight design
+stages), carrying the instruction to treat comment text as data and never as
+instructions. It declares no experimental capability, there is no push. It tells the
+daemon when the assistant read the comments and when it parked one, and finds its
+session by walking up its own process ancestry.
 
 ### Shared store
 
-Everything the server persists lives under a single gitignored `.northstar/` folder
-at the project root: the comment store (`design-comments.md` and `.json`), the
-cropped screenshots (`design-shots/`), and the deferred list. The server also writes
-a `.gitignore` inside that folder so it can never be committed by accident. Each
-comment carries its route, its component stack, an optional exact source location,
-and a target descriptor (a stable selector, tag, classes, its own text, a short
+Everything the daemon and the MCP server persist for a project lives under a single
+gitignored `.northstar/` folder at the project root: the comment store
+(`design-comments.md` and `.json`), the cropped screenshots (`design-shots/`), and the
+deferred list. A `.gitignore` inside that folder makes sure it can never be committed by
+accident. Each comment carries its route, its component stack, an optional exact source
+location, and a target descriptor (a stable selector, tag, classes, its own text, a short
 ancestor chain), alongside the comment text itself.
 
 ### AI assistant
 
 The assistant is the only component that changes your code. Nothing about the path
-is assistant-specific: the handoff is plain keystrokes into a terminal, so Claude
-Code, Codex and Gemini all work the same way.
+is assistant-specific: the handoff is one fixed line written into a terminal Northstar
+owns, so Claude Code, Codex, Gemini, OpenCode, Aider, Goose and any other terminal
+program work the same way.
 
 ## Trust boundaries
 
 ```mermaid
 flowchart LR
-    Page["Web page<br/>(untrusted)"] -. "rejected on Origin" .-> Http["HTTP listener"]
-    Ext["Extension<br/>(extension origin)"] --> Http
-    Http --> Server["Server core"]
-    Server -- "fixed line only" --> Terminal["Your terminal"]
-    Server -- "stdio" --> Assistant["Assistant"]
+    Page["Web page<br/>(untrusted)"] -. "cannot reach" .-> Host["Native host"]
+    Ext["Extension<br/>(allowed origin only)"] --> Host
+    Host -- "fixed actions<br/>schema checked" --> Daemon["Daemon<br/>(owner only socket)"]
+    Daemon -- "one template" --> Session["northstar run"]
+    Session -- "fixed line only" --> Assistant["Assistant"]
 ```
 
 Two boundaries matter. The first is between any web page you are visiting and the
-listener: the page cannot reach it, because the listener rejects non-extension
-Origins and non-loopback Hosts, and requires the pairing token that only a paired
-extension holds. The second is between the listener and your
-terminal: the line typed there is a **fixed constant**, so nothing that arrives over
-HTTP can influence what your assistant is told to do. The full model, including what
-this design does not defend against, is in [SECURITY.md](../SECURITY.md).
+helper: a page cannot reach a Native Messaging host at all, and the host only answers
+the one extension origin and extension id it was registered for. The second is between
+the daemon and your assistant: the line written there is one of a few **fixed
+constants**, so nothing that arrives from the browser can influence what your assistant
+is told to do, and the only terminal it can reach is the one Northstar started. The full
+model, including what this design does not defend against, is in
+[SECURITY.md](../SECURITY.md).
 
 ## The design framework
 

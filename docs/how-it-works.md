@@ -2,7 +2,7 @@
 
 Northstar connects three things that normally cannot talk to each other: a web page
 in your browser, a comment store on your disk, and an AI coding assistant running in
-your terminal. You mark up the running UI, and the assistant closes the marks in the
+a terminal Northstar started for it. You mark up the running UI, and the assistant closes the marks in the
 real source files.
 
 ## The short version
@@ -12,13 +12,12 @@ toolbar appears. You point at an element and one popover opens: a Comment tab, a
 Text tab, and a Colour tab, so there is one surface for everything you might do to
 that element, not three separate menus. Text and colour edits preview live against
 the page as you type, and the note is pinned to the element once you save. When you
-are ready, you click **Send to AI**. Northstar writes the batch to disk and wakes the
-assistant already running in your project, through a channel for Claude Code or one
-typed line for Codex and Gemini.
+are ready, you click **Send to AI**. Northstar writes the batch to disk and writes one
+fixed line into the assistant already running in your project, which you started with
+`northstar run`, and presses Enter for you.
 
-There is no code to copy: the first time, you click **Connect** in the toolbar and
-**Allow** on a page your own server shows. Nothing leaves your machine either: the browser and the server meet on
-`127.0.0.1`.
+There is nothing to copy and nothing to pair. Nothing leaves your machine either: the
+browser talks to a local helper through Native Messaging, and there is no web server.
 
 ## The comment lifecycle
 
@@ -29,8 +28,8 @@ flowchart TD
     C --> D{"Is the page on<br/>localhost?"}
     D -- "Yes" --> E["Click Send to AI"]
     D -- "No (remote preview)" --> F["Use Handoff to export<br/>a Markdown report"]
-    E --> G["Server writes the batch<br/>into .northstar/"]
-    G --> H["One line typed into<br/>your terminal"]
+    E --> G["Daemon writes the batch<br/>into .northstar/"]
+    G --> H["One fixed line written into<br/>the session, then Enter"]
     H --> I["Assistant reads the batch<br/>and edits your source"]
     I --> J{"Clear enough<br/>to implement?"}
     J -- "Yes" --> K["Mark resolved"]
@@ -70,57 +69,63 @@ own shape, numeric and UUID-looking segments become `:id`, and marks it
 ## The handoff
 
 The assistant never polls and never runs a watch mode. It sits idle until you press
-**Send to AI**, and then Northstar wakes it by exactly one path, chosen by which
-assistant runs the MCP server. There is no second path behind the first.
+**Send to AI**, and then Northstar writes to it by exactly one path: the pseudo
+terminal of the session it started. There is no push, no channel, no development flag
+and no second path behind the first.
 
-- **Claude Code** is woken by a channel. The server pushes a
-  `notifications/claude/channel` event carrying the resolve directive. Claude Code
-  only accepts it when it was started with the channel for the `northstar` server,
-  so the toolbar disables **Send to AI** until it sees
-  `claude --dangerously-load-development-channels server:northstar` in the Claude
-  Code command line.
-- **Codex and Gemini CLI** have no push API, so Northstar types one fixed line into
-  the terminal they run in, then presses Enter. This works in tmux, WezTerm, kitty,
-  iTerm2 and Terminal.app, on macOS and Linux.
+You start the assistant with `northstar run <agent>`, or with plain `claude` and
+`codex` after `northstar shell install`. The wrapper puts the assistant in a pseudo
+terminal it owns, passes your keystrokes and the output through unchanged, and
+registers the session with the daemon. Because Northstar owns that terminal, it is the
+only thing a send can write into. It cannot type into another window, and it needs no
+accessibility permission, AppleScript or terminal setting.
 
-Every send is confirmed. After the push or the typing, the server waits up to 20
-seconds for the assistant to call `list_comments`. If it does, the toolbar flashes
-**Sent to Claude** (or Codex, or Gemini). If it does not, the toolbar says so with
-the reason and a fix, and nothing is retried or sent a second way.
+Every send is confirmed. After the write, the daemon waits up to 20 seconds for the
+assistant to call `list_comments`. If it does, the toolbar flashes **Sent to Claude
+Code** (or whichever assistant). If it does not, the toolbar says so with the reason and
+a fix, and nothing is retried or sent a second way.
 
-The extension picks the server for a page by asking each running server whether its
-project root contains the source files the page was built from. A project that owns
-them wins, the deepest root wins a tie, and the toolbar only asks you to choose when
-none does.
+The extension picks the project for a page by asking the daemon which project folder
+contains the source files the page was built from. A mapping you set in the options
+wins, then a project that owns the files, the deepest folder wins a tie, and the
+toolbar only asks you to choose when none decides. With two sessions in one project the
+daemon uses the one you name, then your preferred agent when it is unique, and
+otherwise the toolbar lists the sessions.
 
-The MCP server is launched by your assistant, which means it inherits the assistant's
-environment and can find the agent and the terminal underneath it. Three details make the typed path reliable.
+Three details make the write reliable.
 
-**Finding the terminal.** The server is spawned detached, so its own controlling
-terminal reads as none. It walks up the process ancestry until it finds one that has
-a real terminal device, which is the assistant's. The terminal flavour comes from
-environment variables that survive the detach: `TMUX_PANE` for tmux, `TERM_PROGRAM`
-for iTerm2 and Terminal.app.
+**Reading the screen.** The wrapper feeds the assistant's output into a headless
+terminal emulator, so it knows what the screen looks like, not only the raw bytes. A
+numbered choice or a yes or no question means the assistant is mid-question, text after
+the prompt mark means something is half typed. In either case Northstar refuses, because
+an Enter there would answer a question you never saw or send half a sentence. Your
+comments are stored either way and the toolbar tells you why they were not announced.
 
-**Waiting for a safe moment.** Before typing anything it reads the visible pane
-twice, a quarter second apart, and only proceeds once the two look identical. If it
-sees a numbered choice or a yes/no question it refuses outright, because an Enter at
-a permission prompt would answer a question you never saw. Your comments are stored
-either way and the toolbar tells you they were not announced.
+**Waiting for a safe moment.** It waits until the output has been quiet for half a
+second and you have not typed for a moment, up to ten seconds, and only then writes.
+Your own keystrokes are held while the line is written and released right after, so
+they cannot land inside it.
 
 **Pressing Enter separately.** An assistant TUI treats a fast burst of input as a
 paste and folds a trailing Enter into the text instead of submitting it. The Enter
-goes in as its own write, a fifth of a second later.
+goes in as its own write, after the output has gone quiet again.
 
-Nothing in that path is specific to one assistant. Claude Code, Codex and Gemini all
-receive the same keystrokes.
+Nothing in that path is specific to one assistant. Claude Code, Codex, Gemini, OpenCode,
+Aider, Goose and any other terminal program receive the same bytes.
 
-## What gets typed
+When no session runs in the project, the toolbar offers **Copy the line** and **Quick
+run**. Quick run starts an installed agent once in its non interactive mode with the
+same fixed line, through an argument array and never a shell. Neither happens unless you
+click it.
 
-Always the same fixed line, telling the assistant to read the open comments through
-the Northstar MCP tools. Your comment text never goes through the terminal. It is
-read from the store by the assistant, and the server instructs it to treat that text
-as data describing a UI change rather than as instructions to follow.
+## What gets written
+
+Always one of six fixed lines (resolve, implement, explain, fix, review, add to task),
+telling the assistant to read the open comments through the Northstar MCP tools. Your
+comment text, the text you selected on a page, the page URL and the page title never go
+through the terminal. They are stored as comment data and read by the assistant, and the
+server instructs it to treat that text as data describing a UI change rather than as
+instructions to follow.
 
 ## Local pages versus remote previews
 
@@ -130,7 +135,7 @@ ever edits a local repository.
 ```mermaid
 flowchart LR
     subgraph Local["Page on localhost"]
-      L1["Comment"] --> L2["Send to AI"] --> L3["MCP server"] --> L4["Assistant edits<br/>your repo"]
+      L1["Comment"] --> L2["Send to AI"] --> L3["Daemon"] --> L4["Assistant edits<br/>your repo"]
     end
     subgraph Remote["Page on a remote preview"]
       R1["Comment"] --> R2["Stays in the browser"] --> R3["Handoff export<br/>(Markdown file)"]
@@ -138,7 +143,8 @@ flowchart LR
 ```
 
 On a `localhost` dev server the assistant has a real repo to change, so comments flow
-straight to the server. On a remote preview there is no local project to edit, so
+straight to the project. The context menu and the shortcut also work on a remote page
+when you map that site to a project in the options. On a remote preview there is no local project to edit, so
 Northstar keeps the comments in the browser and hands them off as a Markdown file you
 can give to any assistant.
 

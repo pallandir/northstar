@@ -13,6 +13,7 @@ import { registerCore } from "../src/packs/core.js";
 import { PackRegistry, parsePacks } from "../src/packs/registry.js";
 import { createMcpServer } from "../src/server.js";
 import { CommentStore } from "../src/store.js";
+import { noopLink } from "./fixtures.js";
 
 let root: string;
 let client: Client;
@@ -58,7 +59,7 @@ afterEach(async () => {
 
 test("only core and comments tools are visible by default", async () => {
   await connect(
-    createMcpServer(new CommentStore(root), undefined, undefined, { root, packs: "dynamic" }),
+    createMcpServer(new CommentStore(root), noopLink, undefined, { root, packs: "dynamic" }),
   );
   const names = (await client.listTools()).tools.map((t) => t.name).sort();
   assert.deepEqual(

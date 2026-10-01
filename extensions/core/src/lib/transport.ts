@@ -1,11 +1,13 @@
-import { type AgentReadiness, samePage } from "@northstar/protocol";
-import type {
-  DeferralNotice,
-  HandoffNote,
-  ProblemNote,
-  QueueStatus,
-  SendOutcome,
-} from "../messages.js";
+import {
+  type AgentInfo,
+  type HandoffOutcome,
+  type PostCommentsResponse,
+  type Readiness,
+  type TemplateId,
+  type UserConfig,
+  samePage,
+} from "@northstar/protocol";
+import type { DeferralNotice, ProblemNote, QueueStatus, SendOutcome } from "../messages.js";
 import type {
   CommentMetadata,
   ComponentInfo,
@@ -17,7 +19,9 @@ import type {
   SourceLocation,
   Target,
 } from "../types.js";
+import { type Link, callProject, requireConnected, resolveLink, toChoices } from "./bridge.js";
 import { UserError } from "./errors.js";
+import { BridgeError, request } from "./native.js";
 import { isLocalUrl, originOf } from "./origins.js";
 import {
   beginSend,
@@ -32,15 +36,6 @@ import {
   updateItem,
   withScreenshots,
 } from "./queue.js";
-import {
-  ApiFailure,
-  type Link,
-  callServer,
-  requireConnected,
-  resolveLink,
-  toChoices,
-} from "./server.js";
-
 export type ServerStatus = "open" | "in_progress" | "resolved" | "wontfix";
 
 export interface ServerComment {
@@ -97,44 +92,30 @@ function parseServerComment(value: unknown): ServerComment {
 
 interface StatusBody {
   notices: DeferralNotice[];
-  agent: AgentReadiness;
+  readiness: Readiness;
   open: number;
   lastPolledAt: string | null;
-  handoff: HandoffNote | null;
+  handoff: HandoffOutcome | null;
 }
 
-const AGENTS: readonly string[] = ["claude-code", "codex", "gemini", "other"];
-
-function parseAgent(value: unknown): AgentReadiness {
+function parseReadiness(value: unknown): Readiness {
   if (
     !isRecord(value) ||
     typeof value.ready !== "boolean" ||
-    typeof value.agent !== "string" ||
-    !AGENTS.includes(value.agent)
+    !Array.isArray(value.sessions) ||
+    typeof value.needsPick !== "boolean"
   ) {
     throw unreadable("status");
   }
-  return value as unknown as AgentReadiness;
+  return value as unknown as Readiness;
 }
 
-function parseHandoff(value: unknown): HandoffNote | null {
+function parseHandoff(value: unknown): HandoffOutcome | null {
   if (value === null || value === undefined) return null;
-  if (
-    !isRecord(value) ||
-    typeof value.delivered !== "boolean" ||
-    typeof value.at !== "string" ||
-    typeof value.agent !== "string" ||
-    !AGENTS.includes(value.agent)
-  ) {
+  if (!isRecord(value) || typeof value.delivered !== "boolean" || typeof value.at !== "string") {
     throw unreadable("status");
   }
-  return {
-    delivered: value.delivered,
-    agent: value.agent as HandoffNote["agent"],
-    reason: typeof value.reason === "string" ? value.reason : undefined,
-    fix: typeof value.fix === "string" ? value.fix : undefined,
-    at: value.at,
-  };
+  return value as unknown as HandoffOutcome;
 }
 
 function parseStatusBody(value: unknown): StatusBody {
@@ -144,30 +125,33 @@ function parseStatusBody(value: unknown): StatusBody {
   const polled = value.lastPolledAt;
   return {
     notices: value.notices as DeferralNotice[],
-    agent: parseAgent(value.agent),
+    readiness: parseReadiness(value.readiness),
     open: value.open,
     lastPolledAt: typeof polled === "string" ? polled : null,
     handoff: parseHandoff(value.handoff),
   };
 }
 
-function problemOf(err: ApiFailure): ProblemNote {
+function problemOf(err: BridgeError): ProblemNote {
   return { error: err.message, fix: err.fix };
 }
+
+const DEFAULT_TEMPLATE: TemplateId = "resolve";
 
 function baseStatus(counts: { queued: number; failed: number }): QueueStatus {
   return {
     ...counts,
     connection: "offline",
     serverReachable: false,
-    port: null,
     root: null,
     notices: [],
-    agent: null,
+    readiness: null,
     open: 0,
     lastPolledAt: null,
     handoff: null,
-    servers: [],
+    projects: [],
+    agents: [],
+    template: DEFAULT_TEMPLATE,
     problem: null,
   };
 }
@@ -176,27 +160,15 @@ function statusFromLink(link: Link, counts: { queued: number; failed: number }):
   const base = baseStatus(counts);
   switch (link.kind) {
     case "offline":
-      return base;
+      return { ...base, problem: link.problem };
+    case "noproject":
+      return { ...base, connection: "noproject" };
     case "choose":
-      return { ...base, connection: "choose", servers: toChoices(link.servers) };
+      return { ...base, connection: "choose", projects: toChoices(link.projects) };
     case "mismatch":
-      return {
-        ...base,
-        connection: "mismatch",
-        port: link.server.port,
-        root: link.server.root,
-        problem: link.problem,
-      };
-    case "unpaired":
-      return { ...base, connection: "unpaired", port: link.server.port, root: link.server.root };
+      return { ...base, connection: "mismatch", problem: link.problem };
     case "connected":
-      return {
-        ...base,
-        connection: "connected",
-        serverReachable: true,
-        port: link.server.port,
-        root: link.server.root,
-      };
+      return { ...base, connection: "connected", serverReachable: true, root: link.root };
   }
 }
 
@@ -209,15 +181,21 @@ export async function status(origin: string): Promise<QueueStatus> {
   if (link.kind !== "connected") return base;
 
   try {
-    const body = parseStatusBody(await callServer(link, "GET", "/status"));
-    return { ...base, ...body };
+    const body = parseStatusBody(await callProject(link, "status.get"));
+    const config = await request<UserConfig>("config.get");
+    const agents = body.readiness.sessions.length === 0 ? await installedAgents() : [];
+    return { ...base, ...body, agents, template: config.template };
   } catch (err) {
-    if (err instanceof ApiFailure) return { ...base, problem: problemOf(err) };
-    if (err instanceof UserError && (err.kind === "unpaired" || err.kind === "offline")) {
-      return statusFromLink(await resolveLink(origin), counts);
-    }
+    if (err instanceof BridgeError && err.kind === "api")
+      return { ...base, problem: problemOf(err) };
+    if (err instanceof BridgeError) return statusFromLink(await resolveLink(origin), counts);
     throw err;
   }
+}
+
+async function installedAgents(): Promise<AgentInfo[]> {
+  const agents = await request<AgentInfo[]>("agent.list");
+  return agents.filter((a) => a.installed && a.quickRun);
 }
 
 export function saveDraft(origin: string, draft: DraftRequest): Promise<QueuedRequest> {
@@ -245,18 +223,18 @@ export async function fetchServerComments(
   page: string,
 ): Promise<{ comments: ServerComment[]; problem: ProblemNote | null }> {
   if (!isLocalUrl(origin)) return { comments: [], problem: null };
-  const link = await resolveLink(origin);
+  const link = await resolveLink(origin, page);
   if (link.kind !== "connected") return { comments: [], problem: null };
   try {
-    const body = await callServer(link, "GET", `/comments?page=${encodeURIComponent(page)}`);
+    const body = await callProject(link, "comments.list", { page });
     if (!Array.isArray(body)) throw unreadable("comment list");
     const comments = body.map(parseServerComment).filter((c) => samePage(c.url, page));
     return { comments, problem: null };
   } catch (err) {
-    if (err instanceof ApiFailure) return { comments: [], problem: problemOf(err) };
-    if (err instanceof UserError && (err.kind === "unpaired" || err.kind === "offline")) {
-      return { comments: [], problem: null };
+    if (err instanceof BridgeError && err.kind === "api") {
+      return { comments: [], problem: problemOf(err) };
     }
+    if (err instanceof BridgeError) return { comments: [], problem: null };
     throw err;
   }
 }
@@ -277,35 +255,33 @@ export function updateComment(
 export async function clearAll(origin: string): Promise<void> {
   if (isLocalUrl(origin)) {
     const link = await resolveLink(origin);
-    if (link.kind !== "offline") {
-      await callServer(requireConnected(link), "DELETE", "/comments?all=true");
-    }
+    if (link.kind === "connected") await callProject(link, "comments.clear", { all: true });
+    else if (link.kind !== "offline" && link.kind !== "noproject") requireConnected(link);
   }
   await removeOrigin(origin);
 }
 
 export async function dismissNotice(origin: string, commentId: string): Promise<void> {
   const link = requireConnected(await resolveLink(origin));
-  await callServer(link, "POST", "/notices/dismiss", { commentId });
+  await callProject(link, "notices.dismiss", { commentId });
 }
 
 export async function reopenComment(origin: string, id: string, note?: string): Promise<void> {
   const link = requireConnected(await resolveLink(origin));
-  await callServer(link, "POST", "/comments/reopen", { id, note });
+  await callProject(link, "comments.reopen", { id, note });
 }
 
-interface SendBody {
-  accepted: string[];
-  rejections: Record<string, Rejection>;
-  reason?: string;
-  fallback?: Rejection;
-}
+const unconfirmed: Rejection = {
+  field: null,
+  error: "The server did not confirm this comment.",
+  fix: "Send it again.",
+};
 
-function parseRejected(value: unknown): Record<string, Rejection> {
-  if (!Array.isArray(value)) return {};
+function parseRejections(body: PostCommentsResponse): Record<string, Rejection> {
   const out: Record<string, Rejection> = {};
-  for (const entry of value) {
-    if (!isRecord(entry) || typeof entry.cid !== "string") throw unreadable("rejection");
+  for (const entry of body.rejected) {
+    if (!isRecord(entry)) throw unreadable("rejection");
+    if (typeof entry.cid !== "string") continue;
     out[entry.cid] = {
       field: typeof entry.field === "string" ? entry.field : null,
       error: typeof entry.error === "string" ? entry.error : "The server rejected this comment.",
@@ -315,23 +291,15 @@ function parseRejected(value: unknown): Record<string, Rejection> {
   return out;
 }
 
-function parseSendBody(value: unknown): SendBody {
-  if (!isRecord(value) || !Array.isArray(value.accepted)) throw unreadable("answer");
-  const accepted = value.accepted.map((entry) => {
+function parsePostBody(value: unknown): PostCommentsResponse {
+  if (!isRecord(value) || !Array.isArray(value.accepted) || !Array.isArray(value.rejected)) {
+    throw unreadable("answer");
+  }
+  for (const entry of value.accepted) {
     if (!isRecord(entry) || typeof entry.cid !== "string") throw unreadable("answer");
-    return entry.cid;
-  });
-  return {
-    accepted,
-    rejections: parseRejected(value.rejected),
-  };
+  }
+  return value as unknown as PostCommentsResponse;
 }
-
-const unconfirmed: Rejection = {
-  field: null,
-  error: "The server did not confirm this comment.",
-  fix: "Send it again.",
-};
 
 const flushing = new Map<string, Promise<FlushResult>>();
 
@@ -351,52 +319,72 @@ async function flushQueue(origin: string): Promise<FlushResult> {
     return { status: await status(origin), send: { sent: 0, rejected: 0 } };
   }
   const cids = batch.map((item) => item.cid);
-  const payload = batch.map(
+  const drafts = batch.map(
     ({ queuedAt: _queuedAt, sendingAt: _sendingAt, rejection: _rejection, ...draft }) => draft,
   );
 
-  let body: SendBody;
-  let failure: UserError | null = null;
+  let body: PostCommentsResponse;
   try {
-    body = parseSendBody(await callServer(link, "POST", "/comments", payload));
+    body = parsePostBody(await callProject(link, "comments.add", { drafts }));
   } catch (err) {
-    if (err instanceof ApiFailure && err.status === 400 && isRecord(err.body)) {
-      body = {
-        accepted: [],
-        rejections: parseRejected(err.body.rejected),
-        reason: err.message,
-        fallback: { field: null, error: err.message, fix: err.fix },
-      };
-      failure = err;
-    } else {
-      await releaseSending(cids);
-      throw err;
-    }
+    await releaseSending(cids);
+    throw err;
   }
 
+  const accepted = body.accepted.map((entry) => entry.cid);
+  const known = parseRejections(body);
+  const fallback = body.rejected[0];
   const rejections: Record<string, Rejection> = {};
   for (const cid of cids) {
-    if (body.accepted.includes(cid)) continue;
-    rejections[cid] = body.rejections[cid] ?? body.fallback ?? unconfirmed;
+    if (accepted.includes(cid)) continue;
+    rejections[cid] = known[cid] ?? unconfirmed;
   }
-  await finishSend(cids, body.accepted, rejections);
+  await finishSend(cids, accepted, rejections);
 
   const send: FlushCounts = {
-    sent: body.accepted.length,
+    sent: accepted.length,
     rejected: Object.keys(rejections).length,
-    reason: failure ? failure.message : undefined,
+    reason: accepted.length === 0 && fallback ? fallback.error : undefined,
   };
   return { status: await status(origin), send };
 }
 
+export interface SendOptions {
+  sessionId?: string;
+  template?: TemplateId;
+}
+
+async function templateFor(options: SendOptions): Promise<TemplateId> {
+  if (options.template) return options.template;
+  return (await request<UserConfig>("config.get")).template;
+}
+
 export async function sendToAgent(
   origin: string,
+  options: SendOptions = {},
 ): Promise<{ status: QueueStatus; send: SendOutcome }> {
   const flushed = await flush(origin);
   if (flushed.status.open === 0) {
     return { status: flushed.status, send: { ...flushed.send, woke: null } };
   }
   const link = requireConnected(await resolveLink(origin));
-  const woke = parseHandoff(await callServer(link, "POST", "/handoff"));
+  const template = await templateFor(options);
+  const woke = parseHandoff(
+    await callProject(link, "session.send", { template, sessionId: options.sessionId }),
+  );
+  return { status: await status(origin), send: { ...flushed.send, woke } };
+}
+
+export async function quickRun(
+  origin: string,
+  agent: string,
+): Promise<{ status: QueueStatus; send: SendOutcome }> {
+  const flushed = await flush(origin);
+  if (flushed.status.open === 0) {
+    return { status: flushed.status, send: { ...flushed.send, woke: null } };
+  }
+  const link = requireConnected(await resolveLink(origin));
+  const template = await templateFor({});
+  const woke = parseHandoff(await callProject(link, "quickrun.execute", { agent, template }));
   return { status: await status(origin), send: { ...flushed.send, woke } };
 }

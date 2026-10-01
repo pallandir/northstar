@@ -1,13 +1,15 @@
 import { isOn, logFailure, refreshTitle, turnOff } from "./activation.js";
+import { chooseProject, reportSources } from "./lib/bridge.js";
 import { captureRegion } from "./lib/capture.js";
 import { UserError, toFailure } from "./lib/errors.js";
 import { isLocalUrl, originOf } from "./lib/origins.js";
 import { pagePins } from "./lib/pins.js";
-import { chooseServer, reportSources } from "./lib/server.js";
+
 import {
   clearAll,
   commentsForPage,
   dismissNotice,
+  quickRun,
   removeComment,
   reopenComment,
   saveDraft,
@@ -16,7 +18,6 @@ import {
   updateComment,
 } from "./lib/transport.js";
 import { type Message, type Response, parseMessage } from "./messages.js";
-import { acceptPairToken, startPairing } from "./pairing.js";
 
 interface SenderTab {
   id: number;
@@ -74,9 +75,6 @@ async function dispatch(message: Message, sender: chrome.runtime.MessageSender):
         "Reload the page.",
         "input",
       );
-    case "pair-token":
-      await acceptPairToken(message, sender);
-      return { ok: true };
     case "sync-active": {
       const tab = senderTab(sender);
       return { ok: true, active: await isOn(tab.id) };
@@ -84,15 +82,9 @@ async function dispatch(message: Message, sender: chrome.runtime.MessageSender):
     case "deactivate":
       await turnOff(senderTab(sender).id);
       return { ok: true };
-    case "connect": {
+    case "choose-project": {
       const tab = senderTab(sender);
-      requireLocal(tab, "Connect");
-      await startPairing(tab.id, tab.origin);
-      return { ok: true };
-    }
-    case "choose-server": {
-      const tab = senderTab(sender);
-      await chooseServer(tab.origin, message.port);
+      await chooseProject(tab.origin, message.root);
       return { ok: true, status: await status(tab.origin) };
     }
     case "capture-region": {
@@ -145,7 +137,13 @@ async function dispatch(message: Message, sender: chrome.runtime.MessageSender):
     case "flush": {
       const tab = senderTab(sender);
       requireLocal(tab, "Send to AI");
-      const { status: st, send } = await sendToAgent(tab.origin);
+      const { status: st, send } = await sendToAgent(tab.origin, { sessionId: message.sessionId });
+      return { ok: true, status: st, send };
+    }
+    case "quick-run": {
+      const tab = senderTab(sender);
+      requireLocal(tab, "Quick run");
+      const { status: st, send } = await quickRun(tab.origin, message.agent);
       return { ok: true, status: st, send };
     }
     case "report-sources": {
