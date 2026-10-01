@@ -208,3 +208,48 @@ test("the hook command prefers a global install, falls back to a pinned npx and 
   assert.match(command, /npx -y @pallandir\/northstar@2\.2\.0 hook post-edit --agent gemini/);
   assert.match(command, /\|\| true'$/);
 });
+
+test("hooks that merely mention northstar in a path survive install and uninstall", () => {
+  const op = merges(planAgent(ctx("claude")).ops).find((o) =>
+    o.path.endsWith("settings.json"),
+  ) as Extract<Op, { kind: "merge" }>;
+  const foreign = {
+    matcher: "Edit",
+    hooks: [{ type: "command", command: "bash /Users/x/projects/northstar/scripts/lint.sh" }],
+  };
+  const sharing = {
+    matcher: "Write",
+    hooks: [
+      { type: "command", command: "echo mine" },
+      { type: "command", command: "northstar hook post-edit --agent claude" },
+    ],
+  };
+  const existing = JSON.stringify({ hooks: { PostToolUse: [foreign, sharing] } });
+  const installed = JSON.parse(op.apply(existing)).hooks.PostToolUse;
+  assert.deepEqual(installed[0], foreign);
+  assert.deepEqual(installed[1].hooks, [{ type: "command", command: "echo mine" }]);
+  assert.equal(installed.length, 3);
+  const removed = JSON.parse(op.remove(op.apply(existing))).hooks.PostToolUse;
+  assert.deepEqual(removed[0], foreign);
+  assert.deepEqual(removed[1].hooks, [{ type: "command", command: "echo mine" }]);
+  assert.equal(removed.length, 2);
+});
+
+test("both the global and the pinned npx form of the command are recognised as ours", () => {
+  const op = merges(planAgent(ctx("codex")).ops).find((o) =>
+    o.path.endsWith("hooks.json"),
+  ) as Extract<Op, { kind: "merge" }>;
+  const old = {
+    matcher: "x",
+    hooks: [
+      {
+        type: "command",
+        command: "npx -y @pallandir/northstar@2.0.0 hook post-edit --agent codex",
+      },
+    ],
+  };
+  const out = JSON.parse(op.apply(JSON.stringify({ hooks: { PostToolUse: [old] } }))).hooks
+    .PostToolUse;
+  assert.equal(out.length, 1);
+  assert.match(out[0].hooks[0].command, /northstar@2\.2\.0/);
+});

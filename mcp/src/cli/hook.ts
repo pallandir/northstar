@@ -1,5 +1,5 @@
-import { existsSync } from "node:fs";
-import { isAbsolute, join, relative, resolve } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { hookFeedback, kindOf } from "@northstar/detector";
 import { runScan } from "../detect.js";
 
@@ -41,6 +41,37 @@ export function filesFor(agent: HookAgent, input: HookInput): string[] {
   return [...direct, ...patched];
 }
 
+const UI_DEPENDENCY =
+  /^(react|react-dom|next|preact|vue|nuxt|svelte|@sveltejs\/kit|@angular\/core|solid-js|astro|@remix-run\/react|lit|@builder\.io\/qwik)$/;
+const NOT_UI_SOURCE = /(^|\/)(tests?|__tests__|__mocks__|fixtures|e2e)\/|\.(test|spec)\.[^/]+$/;
+
+function hasUiDependency(dir: string): boolean {
+  try {
+    const pkg = JSON.parse(readFileSync(join(dir, "package.json"), "utf8")) as Record<
+      string,
+      unknown
+    >;
+    return ["dependencies", "devDependencies", "peerDependencies"].some((key) =>
+      Object.keys((pkg[key] as Record<string, unknown> | undefined) ?? {}).some((name) =>
+        UI_DEPENDENCY.test(name),
+      ),
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function optedIn(root: string, path: string): boolean {
+  if (existsSync(join(root, "DESIGN.md"))) return true;
+  let dir = resolve(root, dirname(path));
+  for (let depth = 0; depth < 8; depth++) {
+    if (hasUiDependency(dir)) return true;
+    if (dir === root || !dir.startsWith(root)) break;
+    dir = dirname(dir);
+  }
+  return false;
+}
+
 export function feedbackText(
   agent: HookAgent,
   input: HookInput,
@@ -52,7 +83,14 @@ export function feedbackText(
   const root = resolve(input.cwd ?? fallbackRoot);
   const paths = [...new Set(filesFor(agent, input))]
     .map((target) => relative(root, isAbsolute(target) ? target : join(root, target)))
-    .filter((path) => !path.startsWith("..") && kindOf(path) && existsSync(join(root, path)));
+    .filter(
+      (path) =>
+        !path.startsWith("..") &&
+        kindOf(path) &&
+        !NOT_UI_SOURCE.test(path) &&
+        existsSync(join(root, path)) &&
+        optedIn(root, path),
+    );
   if (!paths.length) return undefined;
 
   const { findings } = runScan({ root, paths });

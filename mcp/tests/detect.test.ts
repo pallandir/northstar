@@ -27,6 +27,10 @@ function text(result: CallResult): string {
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), "northstar-detect-"));
   await mkdir(join(root, "src"), { recursive: true });
+  await writeFile(
+    join(root, "package.json"),
+    JSON.stringify({ dependencies: { react: "19.0.0" } }),
+  );
   await writeFile(join(root, "src/Hero.tsx"), BAD);
   await writeFile(join(root, "src/Clean.tsx"), '<h1 className="text-4xl">x</h1>');
   const server = createMcpServer(new CommentStore(root), undefined, undefined, {
@@ -205,4 +209,74 @@ test("the hook command accepts every agent name and ignores an unknown one", () 
     assert.equal(result.status, 0, agent);
     assert.equal(result.stdout, "", agent);
   }
+});
+
+import { optedIn } from "../src/cli/hook.js";
+
+async function project(files: Record<string, string>): Promise<string> {
+  const dir = await mkdtemp(join(tmpdir(), "northstar-optin-"));
+  for (const [path, content] of Object.entries(files)) {
+    await mkdir(join(dir, path, ".."), { recursive: true });
+    await writeFile(join(dir, path), content);
+  }
+  return dir;
+}
+
+const edit = (dir: string, file: string) =>
+  feedbackText(
+    "claude",
+    { tool_name: "Edit", tool_input: { file_path: join(dir, file) }, cwd: dir },
+    dir,
+  );
+
+test("the hook stays silent in a project that is not a UI project", async () => {
+  const backend = await project({
+    "package.json": JSON.stringify({ dependencies: { express: "5" } }),
+    "src/Page.tsx": BAD,
+  });
+  assert.equal(edit(backend, "src/Page.tsx"), undefined);
+  assert.equal(optedIn(backend, "src/Page.tsx"), false);
+  const bare = await project({ "src/Page.tsx": BAD });
+  assert.equal(edit(bare, "src/Page.tsx"), undefined);
+  await rm(backend, { recursive: true, force: true });
+  await rm(bare, { recursive: true, force: true });
+});
+
+test("a DESIGN.md or a UI dependency anywhere up the tree opts a project in", async () => {
+  const designed = await project({ "DESIGN.md": "---\nname: X\n---\n", "src/Page.tsx": BAD });
+  assert.match(edit(designed, "src/Page.tsx") ?? "", /NS-SLOP-GRADIENT-TEXT/);
+  const mono = await project({
+    "package.json": JSON.stringify({ workspaces: ["apps/*"] }),
+    "apps/web/package.json": JSON.stringify({ dependencies: { next: "15" } }),
+    "apps/web/app/page.tsx": BAD,
+    "apps/api/package.json": JSON.stringify({ dependencies: { express: "5" } }),
+    "apps/api/src/mail.tsx": BAD,
+  });
+  assert.match(edit(mono, "apps/web/app/page.tsx") ?? "", /NS-SLOP-GRADIENT-TEXT/);
+  assert.equal(edit(mono, "apps/api/src/mail.tsx"), undefined);
+  await rm(designed, { recursive: true, force: true });
+  await rm(mono, { recursive: true, force: true });
+});
+
+test("tests, fixtures and specs are never scanned by the hook", async () => {
+  const dir = await project({
+    "package.json": JSON.stringify({ dependencies: { react: "19" } }),
+    "src/Hero.test.tsx": BAD,
+    "src/Hero.spec.tsx": BAD,
+    "tests/render.tsx": BAD,
+    "fixtures/fail/Landing.tsx": BAD,
+    "src/__tests__/a.tsx": BAD,
+    "src/Hero.tsx": BAD,
+  });
+  for (const file of [
+    "src/Hero.test.tsx",
+    "src/Hero.spec.tsx",
+    "tests/render.tsx",
+    "fixtures/fail/Landing.tsx",
+    "src/__tests__/a.tsx",
+  ]) {
+    assert.equal(edit(dir, file), undefined, file);
+  }
+  assert.match(edit(dir, "src/Hero.tsx") ?? "", /NS-SLOP-GRADIENT-TEXT/);
+  await rm(dir, { recursive: true, force: true });
 });

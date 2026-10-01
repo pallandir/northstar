@@ -54,20 +54,31 @@ export interface HookEntry {
   hooks: HookCommand[];
 }
 
-export function isNorthstarHook(entry: HookEntry): boolean {
-  return entry.hooks?.some((h) => /northstar/.test(`${h.command ?? ""} ${h.name ?? ""}`)) ?? false;
+const OWN_COMMAND = /\bnorthstar(@[\w.-]+)?\s+hook\s+post-edit\b/;
+const OWN_NAME = "northstar-scan";
+
+export function isOwnHook(hook: HookCommand): boolean {
+  return hook.name === OWN_NAME || OWN_COMMAND.test(hook.command ?? "");
+}
+
+function withoutOwn(list: HookEntry[]): HookEntry[] {
+  return list.flatMap((entry) => {
+    const hooks = (entry.hooks ?? []).filter((hook) => !isOwnHook(hook));
+    if (hooks.length === (entry.hooks ?? []).length) return [entry];
+    return hooks.length ? [{ ...entry, hooks }] : [];
+  });
 }
 
 export function upsertHook(root: Json, event: string, entry: HookEntry): void {
   const hooks = child(root, "hooks");
   const list = Array.isArray(hooks[event]) ? (hooks[event] as HookEntry[]) : [];
-  hooks[event] = [...list.filter((e) => !isNorthstarHook(e)), entry];
+  hooks[event] = [...withoutOwn(list), entry];
 }
 
 export function removeHook(root: Json, event: string): void {
   const hooks = root.hooks as Json | undefined;
   if (!hooks || !Array.isArray(hooks[event])) return;
-  hooks[event] = (hooks[event] as HookEntry[]).filter((e) => !isNorthstarHook(e));
+  hooks[event] = withoutOwn(hooks[event] as HookEntry[]);
   prune(hooks, event);
   prune(root, "hooks");
 }

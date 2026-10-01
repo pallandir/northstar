@@ -48,4 +48,6 @@ Accessibility rules cannot be allowed. An allow entry for one is reported as an 
 
 For Claude Code, Codex and Gemini CLI, `northstar install` adds a hook that scans each file the agent edits and sends back up to five errors as feedback, so the agent fixes them in the same turn. OpenCode gets a small plugin that does the same. Cursor has no hook that can return feedback to the model, so there the agent calls `slop_scan` itself, guided by an always on rule. See [agents](./agents.md).
 
+The hook only scans projects that opt in, meaning a `DESIGN.md` at the project root or a UI framework dependency (React, Next.js, Vue, Svelte, Angular, Solid, Astro and similar) in a `package.json` at or above the edited file. It skips test, spec, fixture and end to end paths. That keeps a user level install quiet in backend repositories. `northstar detect` and `slop_scan` are explicit calls and scan whatever you point them at.
+
 The hook never fails an edit. On any error or unrecognised input it exits quietly.
