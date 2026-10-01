@@ -107,6 +107,104 @@ describe("buildInspector", () => {
     });
   });
 
+  describe("saving with the keyboard", () => {
+    function press(target: Element, init: KeyboardEventInit): KeyboardEvent {
+      const event = new KeyboardEvent("keydown", {
+        key: "Enter",
+        bubbles: true,
+        cancelable: true,
+        ...init,
+      });
+      target.dispatchEvent(event);
+      return event;
+    }
+
+    it("saves the comment on a plain Enter in the comment box", () => {
+      const el = mount(document.createElement("div"));
+      const onSubmit = vi.fn<(r: InspectorSubmission) => void>();
+      const { panel } = buildInspector(el, onSubmit, vi.fn());
+      const textarea = must(panel.querySelector("textarea"));
+      textarea.value = "Make this calmer";
+      const event = press(textarea, {});
+      expect(onSubmit).toHaveBeenCalledOnce();
+      expect(onSubmit.mock.calls[0][0].comment).toBe("Make this calmer");
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    it("keeps Shift+Enter for a new line and does not save", () => {
+      const el = mount(document.createElement("div"));
+      const onSubmit = vi.fn();
+      const { panel } = buildInspector(el, onSubmit, vi.fn());
+      const textarea = must(panel.querySelector("textarea"));
+      textarea.value = "line one";
+      const event = press(textarea, { shiftKey: true });
+      expect(onSubmit).not.toHaveBeenCalled();
+      expect(event.defaultPrevented).toBe(false);
+    });
+
+    it("still saves on Cmd+Enter and Ctrl+Enter", () => {
+      for (const init of [{ metaKey: true }, { ctrlKey: true }]) {
+        const el = mount(document.createElement("div"));
+        const onSubmit = vi.fn();
+        const { panel } = buildInspector(el, onSubmit, vi.fn());
+        const textarea = must(panel.querySelector("textarea"));
+        textarea.value = "hi";
+        press(textarea, init);
+        expect(onSubmit).toHaveBeenCalledOnce();
+      }
+    });
+
+    it("does not save while an input method is composing", () => {
+      const el = mount(document.createElement("div"));
+      const onSubmit = vi.fn();
+      const { panel } = buildInspector(el, onSubmit, vi.fn());
+      const textarea = must(panel.querySelector("textarea"));
+      textarea.value = "ni";
+      press(textarea, { isComposing: true });
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it("leaves an empty comment open instead of closing the popover", () => {
+      const el = mount(document.createElement("div"));
+      const onSubmit = vi.fn();
+      const onCancel = vi.fn();
+      const { panel } = buildInspector(el, onSubmit, onCancel);
+      press(must(panel.querySelector("textarea")), {});
+      expect(onSubmit).not.toHaveBeenCalled();
+      expect(onCancel).not.toHaveBeenCalled();
+    });
+
+    it("does not hijack Enter on a button, so Cancel and the toggles keep working", () => {
+      const el = mount(document.createElement("div"));
+      const onSubmit = vi.fn();
+      const { panel } = buildInspector(el, onSubmit, vi.fn());
+      must(panel.querySelector("textarea")).value = "hi";
+      const event = press(saveButton(panel), {});
+      expect(onSubmit).not.toHaveBeenCalled();
+      expect(event.defaultPrevented).toBe(false);
+    });
+
+    it("saves a text change from the text field on Enter", () => {
+      const el = mount(document.createElement("button"));
+      el.textContent = "New report";
+      const onSubmit = vi.fn<(r: InspectorSubmission) => void>();
+      const { panel } = buildInspector(el, onSubmit, vi.fn());
+      tabButton(panel, "Text").click();
+      const input = must(panel.querySelector<HTMLInputElement>('input[type="text"].ns-field'));
+      input.value = "Create report";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      press(input, {});
+      expect(onSubmit).toHaveBeenCalledOnce();
+      expect(onSubmit.mock.calls[0][0].operation.type).toBe("text");
+    });
+
+    it("tells the user how to save", () => {
+      const el = mount(document.createElement("div"));
+      const { panel } = buildInspector(el, vi.fn(), vi.fn());
+      expect(must(panel.querySelector(".ns-hint")).textContent).toBe("Enter saves, Esc cancels");
+    });
+  });
+
   describe("text tab", () => {
     it("live-applies to a leaf element as you type", () => {
       const el = mount(document.createElement("span"));

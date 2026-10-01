@@ -201,7 +201,9 @@
 }
 
 .ns-inspector {
+  box-sizing: border-box;
   width: 380px;
+  max-width: calc(100vw - 16px);
   padding: var(--ns-s4);
 }
 

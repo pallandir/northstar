@@ -365,7 +365,8 @@ export class Surface {
         this.inspector.panel.offsetHeight || 320,
         window.innerHeight - OVERLAY_MARGIN * 2,
       );
-      const maxLeft = window.innerWidth - INSPECTOR_WIDTH - OVERLAY_MARGIN;
+      const panelW = this.inspector.panel.offsetWidth || INSPECTOR_WIDTH;
+      const maxLeft = window.innerWidth - panelW - OVERLAY_MARGIN;
       const left = Math.max(OVERLAY_MARGIN, Math.min(rect.left, maxLeft));
       const fitsBelow = rect.bottom + panelH + OVERLAY_MARGIN <= window.innerHeight;
       const maxTop = window.innerHeight - panelH - OVERLAY_MARGIN;

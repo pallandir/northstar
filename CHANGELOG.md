@@ -49,6 +49,12 @@ unchanged.
 
 ### Fixed
 
+- **Pressing Enter in the comment box now saves the comment.** It used to do nothing
+  unless Cmd or Ctrl was held, so a typed comment was lost when the popover closed.
+  Shift+Enter adds a new line, and the popover hint now says how to save.
+- **The comment popover no longer runs off the right edge of the window.** Its padding
+  was not counted in its width, so it overflowed by 32 pixels and could hide the Save
+  button and the Colour tab near the edge.
 - The server no longer exits when all of ports 7474 to 7476 are busy. It keeps
   serving MCP and logs that ingest is disabled.
 

@@ -132,7 +132,8 @@ export function buildInspector(
   actions.className = "ns-actions";
   const hint = document.createElement("div");
   hint.className = "ns-hint";
-  hint.textContent = "Esc to cancel";
+  hint.textContent = "Enter saves, Esc cancels";
+  hint.title = "Shift+Enter adds a new line";
   actions.append(hint);
 
   let cancelled = false;
@@ -182,10 +183,11 @@ export function buildInspector(
     if (event.key === "Escape") {
       event.preventDefault();
       cancel();
-    } else if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
-      event.preventDefault();
-      submit();
+      return;
     }
+    if (event.key !== "Enter" || event.isComposing || !savesOnEnter(event)) return;
+    event.preventDefault();
+    if (active.collect()) submit();
   });
 
   return {
@@ -193,6 +195,14 @@ export function buildInspector(
     focus: () => active.activate(),
     cancel,
   };
+}
+
+function savesOnEnter(event: KeyboardEvent): boolean {
+  if (event.metaKey || event.ctrlKey) return true;
+  if (event.shiftKey || event.altKey) return false;
+  const target = event.target;
+  if (target instanceof HTMLTextAreaElement) return true;
+  return target instanceof HTMLInputElement && ["text", "number", "search"].includes(target.type);
 }
 
 function buildCommentTab(initialText?: string): TabController {
