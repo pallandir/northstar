@@ -1,5 +1,6 @@
 import { type IncomingMessage, type ServerResponse, createServer } from "node:http";
 import type { Broker } from "./broker.js";
+import { VERSION } from "./config.js";
 import type { CommentStore } from "./store.js";
 import type { Handoff } from "./terminal/index.js";
 import { parseBatchItems } from "./validate.js";
@@ -106,6 +107,7 @@ async function handle(
       startedAt: broker.startedAt,
       pid: broker.pid,
       version: broker.currentVersion,
+      serverVersion: VERSION,
       lastPolledAt: broker.lastPolledAt,
       notices: broker.pendingNotices,
       terminal: await handoff.describe(),

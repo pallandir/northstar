@@ -50,6 +50,7 @@ interface Health {
   root?: string;
   startedAt?: string;
   version?: number;
+  serverVersion?: string;
   notices?: DeferralNotice[];
   terminal?: TerminalStatus;
 }
@@ -60,6 +61,7 @@ interface ServerInfo {
   startedAt: string;
   notices: DeferralNotice[];
   version: number | null;
+  acceptsCid: boolean;
   terminal: TerminalStatus;
 }
 
@@ -156,6 +158,7 @@ async function probe(port: number): Promise<ServerInfo | null> {
       startedAt: body.startedAt,
       notices: body.notices ?? [],
       version: body.version ?? null,
+      acceptsCid: body.serverVersion !== undefined,
       terminal: body.terminal ?? { available: false },
     };
   } catch {
@@ -245,7 +248,16 @@ export interface FlushResult {
   send: SendOutcome;
 }
 
-export async function flush(): Promise<FlushResult> {
+let flushing: Promise<FlushResult> | null = null;
+
+export function flush(): Promise<FlushResult> {
+  flushing ??= flushQueue().finally(() => {
+    flushing = null;
+  });
+  return flushing;
+}
+
+async function flushQueue(): Promise<FlushResult> {
   const server = await findServer();
   const items = await getQueue();
   if (!server) {
@@ -258,21 +270,40 @@ export async function flush(): Promise<FlushResult> {
     return { status: statusFrom(server, 0), send: { sent: 0, typed: false } };
   }
 
-  const batch = items.map(({ cid: _cid, queuedAt: _queuedAt, ...draft }) => draft);
+  const batch = items.map(({ cid, queuedAt: _queuedAt, ...draft }) =>
+    server.acceptsCid ? { ...draft, cid } : draft,
+  );
   let send: SendOutcome;
+  let rejectedCids = new Set<string>();
   try {
     const res = await request("POST", server.port, "/comments", batch);
-    if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as {
+      ids?: string[];
+      typed?: boolean;
+      channel?: boolean;
+      reason?: string;
+      rejected?: { cid?: string | null; index?: number; reason?: string }[];
+    };
+    const rejected = body.rejected ?? [];
+    rejectedCids = new Set(
+      rejected.flatMap((r) => {
+        const cid = r.cid ?? (r.index === undefined ? undefined : items[r.index]?.cid);
+        return cid ? [cid] : [];
+      }),
+    );
+    if (!res.ok && rejectedCids.size === 0) {
       return {
         status: statusFrom(server, items.length),
         send: { sent: 0, typed: false, reason: `the server rejected the batch (${res.status})` },
       };
     }
-    const body = (await res.json()) as { ids?: string[]; typed?: boolean; reason?: string };
+    const sent = body.ids?.length ?? items.length - rejectedCids.size;
     send = {
-      sent: body.ids?.length ?? items.length,
-      typed: body.typed ?? false,
-      reason: body.reason,
+      sent,
+      typed: (body.typed ?? false) || body.channel === true,
+      reason:
+        body.reason ??
+        (rejectedCids.size > 0 ? `${rejectedCids.size} comment(s) could not be sent` : undefined),
     };
   } catch (err) {
     serverCache = null;
@@ -282,8 +313,6 @@ export async function flush(): Promise<FlushResult> {
     };
   }
 
-  // Re-read the queue rather than emptying it: anything enqueued while the batch was in flight
-  // must survive, so only drop what this flush actually carried.
   const delivered = new Set(items.map((item) => item.cid));
   await setQueue((await getQueue()).filter((item) => !delivered.has(item.cid)));
 

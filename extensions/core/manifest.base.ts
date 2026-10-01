@@ -1,4 +1,4 @@
-export const version = "2.0.0";
+export const version = "2.1.0";
 
 // The only hosts the extension may talk to over the network: the loopback listener owned by the
 // local MCP server. Nothing here grants access to any web page.

@@ -1,6 +1,6 @@
 {
   "name": "northstar",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "type": "module",
   "description": "Leave real-time comments on any interface and let your local AI coding assistant act on them.",
