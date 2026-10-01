@@ -1,0 +1,512 @@
+[
+  {
+    "id": "landing:hero-features-cta",
+    "domain": "landing",
+    "name": "Hero + Features + CTA",
+    "keywords": "hero, hero-centric, hero-centric design, features, feature-rich, feature-rich showcase, cta, call-to-action Hero + Features + CTA",
+    "summary": "1. Hero with headline/image, 2. Value prop, 3. Key features (3-5), 4. CTA section, 5. Footer",
+    "modes": [],
+    "fields": {
+      "sections": "1. Hero with headline/image, 2. Value prop, 3. Key features (3-5), 4. CTA section, 5. Footer",
+      "cta": "Hero (sticky) + Bottom",
+      "colorStrategy": "Hero: Brand primary or vibrant. Features: Card bg #FAFAFA. CTA: Contrasting accent color",
+      "effects": "Hero parallax, feature card hover lift, CTA glow on hover",
+      "conversion": "Deep CTA placement. Use contrasting color (at least 7:1 contrast ratio). Sticky navbar CTA."
+    }
+  },
+  {
+    "id": "landing:hero-testimonials-cta",
+    "domain": "landing",
+    "name": "Hero + Testimonials + CTA",
+    "keywords": "hero, testimonials, social-proof, social-proof-focused, social proof focused, trust, reviews, cta Hero + Testimonials + CTA",
+    "summary": "1. Hero, 2. Problem statement, 3. Solution overview, 4. Testimonials carousel, 5. CTA",
+    "modes": [],
+    "fields": {
+      "sections": "1. Hero, 2. Problem statement, 3. Solution overview, 4. Testimonials carousel, 5. CTA",
+      "cta": "Hero (sticky) + Post-testimonials",
+      "colorStrategy": "Hero: Brand color. Testimonials: Light bg #F5F5F5. Quotes: Italic, muted color #666. CTA: Vibrant",
+      "effects": "Testimonial carousel slide animations, quote marks animations, avatar fade-in",
+      "conversion": "Social proof before CTA. Use 3-5 testimonials. Include photo + name + role. CTA after social proof."
+    }
+  },
+  {
+    "id": "landing:product-demo-features",
+    "domain": "landing",
+    "name": "Product Demo + Features",
+    "keywords": "demo, product-demo, features, showcase, interactive, interactive-product-demo, interactive product demo Product Demo + Features",
+    "summary": "1. Hero, 2. Product video/mockup (center), 3. Feature breakdown per section, 4. Comparison (optional), 5. CTA",
+    "modes": [],
+    "fields": {
+      "sections": "1. Hero, 2. Product video/mockup (center), 3. Feature breakdown per section, 4. Comparison (optional), 5. CTA",
+      "cta": "Video center + CTA right/bottom",
+      "colorStrategy": "Video surround: Brand color overlay. Features: Icon color #0080FF. Text: Dark #222",
+      "effects": "Video play button pulse, feature scroll reveals, demo interaction highlights",
+      "conversion": "Embedded product demo increases engagement. Use interactive mockup if possible. Auto-play video muted."
+    }
+  },
+  {
+    "id": "landing:minimal-single-column",
+    "domain": "landing",
+    "name": "Minimal Single Column",
+    "keywords": "minimal, simple, direct, minimal & direct, minimal-direct, single-column, clean Minimal Single Column",
+    "summary": "1. Hero headline, 2. Short description, 3. Benefit bullets (3 max), 4. CTA, 5. Footer",
+    "modes": [],
+    "fields": {
+      "sections": "1. Hero headline, 2. Short description, 3. Benefit bullets (3 max), 4. CTA, 5. Footer",
+      "cta": "Center, large CTA button",
+      "colorStrategy": "Minimalist: Brand + white #FFFFFF + accent. Buttons: High contrast 7:1+. Text: Black/Dark grey",
+      "effects": "Minimal hover effects. Smooth scroll. CTA scale on hover (subtle)",
+      "conversion": "Single CTA focus. Large typography. Lots of whitespace. No nav clutter. Mobile-first."
+    }
+  },
+  {
+    "id": "landing:funnel-3-step-conversion",
+    "domain": "landing",
+    "name": "Funnel (3-Step Conversion)",
+    "keywords": "funnel, conversion, conversion-optimized, conversion optimized, steps, wizard, onboarding Funnel (3-Step Conversion)",
+    "summary": "1. Hero, 2. Step 1 (problem), 3. Step 2 (solution), 4. Step 3 (action), 5. CTA progression",
+    "modes": ["persuade"],
+    "fields": {
+      "sections": "1. Hero, 2. Step 1 (problem), 3. Step 2 (solution), 4. Step 3 (action), 5. CTA progression",
+      "cta": "Each step: mini-CTA. Final: main CTA",
+      "colorStrategy": "Step colors: 1 (Red/Problem), 2 (Orange/Process), 3 (Green/Solution). CTA: Brand color",
+      "effects": "Step number animations, progress bar fill, step transitions smooth scroll",
+      "conversion": "Progressive disclosure. Show only essential info per step. Use progress indicators. Multiple CTAs."
+    }
+  },
+  {
+    "id": "landing:comparison-table-cta",
+    "domain": "landing",
+    "name": "Comparison Table + CTA",
+    "keywords": "comparison, table, compare, versus, cta Comparison Table + CTA",
+    "summary": "1. Hero, 2. Problem intro, 3. Comparison table (product vs competitors), 4. Pricing (optional), 5. CTA",
+    "modes": ["persuade"],
+    "fields": {
+      "sections": "1. Hero, 2. Problem intro, 3. Comparison table (product vs competitors), 4. Pricing (optional), 5. CTA",
+      "cta": "Table: Right column. CTA: Below table",
+      "colorStrategy": "Table: Alternating rows (white/light grey). Your product: Highlight #FFFACD (light yellow) or green. Text: Dark",
+      "effects": "Table row hover highlight, price toggle animations, feature checkmark animations",
+      "conversion": "Use comparison to show unique value. Highlight your product row. Include 'free trial' in pricing row."
+    }
+  },
+  {
+    "id": "landing:lead-magnet-form",
+    "domain": "landing",
+    "name": "Lead Magnet + Form",
+    "keywords": "lead, form, signup, capture, email, magnet Lead Magnet + Form",
+    "summary": "1. Hero (benefit headline), 2. Lead magnet preview (ebook cover, checklist, etc), 3. Form (minimal fields), 4. CTA submit",
+    "modes": [],
+    "fields": {
+      "sections": "1. Hero (benefit headline), 2. Lead magnet preview (ebook cover, checklist, etc), 3. Form (minimal fields), 4. CTA submit",
+      "cta": "Form CTA: Submit button",
+      "colorStrategy": "Lead magnet: Professional design. Form: Clean white bg. Inputs: Light border #CCCCCC. CTA: Brand color",
+      "effects": "Form focus state animations, input validation animations, success confirmation animation",
+      "conversion": "Form fields ≤ 3 for best conversion. Offer valuable lead magnet preview. Show form submission progress."
+    }
+  },
+  {
+    "id": "landing:pricing-page-cta",
+    "domain": "landing",
+    "name": "Pricing Page + CTA",
+    "keywords": "pricing, plans, tiers, comparison, cta Pricing Page + CTA",
+    "summary": "1. Hero (pricing headline), 2. Price comparison cards, 3. Feature comparison table, 4. FAQ section, 5. Final CTA",
+    "modes": ["persuade"],
+    "fields": {
+      "sections": "1. Hero (pricing headline), 2. Price comparison cards, 3. Feature comparison table, 4. FAQ section, 5. Final CTA",
+      "cta": "Each card: CTA button. Sticky CTA in nav",
+      "colorStrategy": "Free: Grey, Starter: Blue, Pro: Green/Gold, Enterprise: Dark. Cards: 1px border, shadow",
+      "effects": "Price toggle animation (monthly/yearly), card comparison highlight, FAQ accordion open/close",
+      "conversion": "Recommend starter plan (pre-select/highlight). Show annual discount (20-30%). Use FAQs to address concerns."
+    }
+  },
+  {
+    "id": "landing:video-first-hero",
+    "domain": "landing",
+    "name": "Video-First Hero",
+    "keywords": "video, hero, media, visual, engaging Video-First Hero",
+    "summary": "1. Hero with video background, 2. Key features overlay, 3. Benefits section, 4. CTA",
+    "modes": [],
+    "fields": {
+      "sections": "1. Hero with video background, 2. Key features overlay, 3. Benefits section, 4. CTA",
+      "cta": "Overlay on video (center/bottom) + Bottom section",
+      "colorStrategy": "Dark overlay 60% on video. Brand accent for CTA. White text on dark.",
+      "effects": "Video autoplay muted, parallax scroll, text fade-in on scroll",
+      "conversion": "86% higher engagement with video. Add captions for accessibility. Compress video for performance."
+    }
+  },
+  {
+    "id": "landing:scroll-triggered-storytelling",
+    "domain": "landing",
+    "name": "Scroll-Triggered Storytelling",
+    "keywords": "storytelling, scroll, narrative, story, immersive Scroll-Triggered Storytelling",
+    "summary": "1. Intro hook, 2. Chapter 1 (problem), 3. Chapter 2 (journey), 4. Chapter 3 (solution), 5. Climax CTA",
+    "modes": [],
+    "fields": {
+      "sections": "1. Intro hook, 2. Chapter 1 (problem), 3. Chapter 2 (journey), 4. Chapter 3 (solution), 5. Climax CTA",
+      "cta": "End of each chapter (mini) + Final climax CTA",
+      "colorStrategy": "Progressive reveal. Each chapter has distinct color. Building intensity.",
+      "effects": "ScrollTrigger animations, parallax layers, progressive disclosure, chapter transitions",
+      "conversion": "Narrative increases time-on-page 3x. Use progress indicator. Mobile: simplify animations."
+    }
+  },
+  {
+    "id": "landing:ai-personalization-landing",
+    "domain": "landing",
+    "name": "AI Personalization Landing",
+    "keywords": "ai, personalization, smart, recommendation, dynamic AI Personalization Landing",
+    "summary": "1. Dynamic hero (personalized), 2. Relevant features, 3. Tailored testimonials, 4. Smart CTA",
+    "modes": ["persuade", "experience"],
+    "fields": {
+      "sections": "1. Dynamic hero (personalized), 2. Relevant features, 3. Tailored testimonials, 4. Smart CTA",
+      "cta": "Context-aware placement based on user segment",
+      "colorStrategy": "Adaptive based on user data. A/B test color variations per segment.",
+      "effects": "Dynamic content swap, fade transitions, personalized product recommendations",
+      "conversion": "20%+ conversion with personalization. Requires analytics integration. Fallback for new users."
+    }
+  },
+  {
+    "id": "landing:waitlist-coming-soon",
+    "domain": "landing",
+    "name": "Waitlist/Coming Soon",
+    "keywords": "waitlist, coming-soon, launch, early-access, notify Waitlist/Coming Soon",
+    "summary": "1. Hero with countdown, 2. Product teaser/preview, 3. Email capture form, 4. Social proof (waitlist count)",
+    "modes": ["persuade"],
+    "fields": {
+      "sections": "1. Hero with countdown, 2. Product teaser/preview, 3. Email capture form, 4. Social proof (waitlist count)",
+      "cta": "Email form prominent (above fold) + Sticky form on scroll",
+      "colorStrategy": "Anticipation: Dark + accent highlights. Countdown in brand color. Urgency indicators.",
+      "effects": "Countdown timer animation, email validation feedback, success confetti, social share buttons",
+      "conversion": "Scarcity + exclusivity. Show waitlist count. Early access benefits. Referral program."
+    }
+  },
+  {
+    "id": "landing:comparison-table-focus",
+    "domain": "landing",
+    "name": "Comparison Table Focus",
+    "keywords": "comparison, table, versus, compare, features Comparison Table Focus",
+    "summary": "1. Hero (problem statement), 2. Comparison matrix (you vs competitors), 3. Feature deep-dive, 4. Winner CTA",
+    "modes": [],
+    "fields": {
+      "sections": "1. Hero (problem statement), 2. Comparison matrix (you vs competitors), 3. Feature deep-dive, 4. Winner CTA",
+      "cta": "After comparison table (highlighted row) + Bottom",
+      "colorStrategy": "Your product column highlighted (accent bg or green). Competitors neutral. Checkmarks green.",
+      "effects": "Table row hover highlight, feature checkmark animations, sticky comparison header",
+      "conversion": "Show value vs competitors. 35% higher conversion. Be factual. Include pricing if favorable."
+    }
+  },
+  {
+    "id": "landing:pricing-focused-landing",
+    "domain": "landing",
+    "name": "Pricing-Focused Landing",
+    "keywords": "pricing, price, cost, plans, subscription Pricing-Focused Landing",
+    "summary": "1. Hero (value proposition), 2. Pricing cards (3 tiers), 3. Feature comparison, 4. FAQ, 5. Final CTA",
+    "modes": ["persuade"],
+    "fields": {
+      "sections": "1. Hero (value proposition), 2. Pricing cards (3 tiers), 3. Feature comparison, 4. FAQ, 5. Final CTA",
+      "cta": "Each pricing card + Sticky CTA in nav + Bottom",
+      "colorStrategy": "Popular plan highlighted (brand color border/bg). Free: grey. Enterprise: dark/premium.",
+      "effects": "Price toggle monthly/annual animation, card hover lift, FAQ accordion smooth open",
+      "conversion": "Annual discount 20-30%. Recommend mid-tier (most popular badge). Address objections in FAQ."
+    }
+  },
+  {
+    "id": "landing:app-store-style-landing",
+    "domain": "landing",
+    "name": "App Store Style Landing",
+    "keywords": "app, mobile, download, store, install App Store Style Landing",
+    "summary": "1. Hero with device mockup, 2. Screenshots carousel, 3. Features with icons, 4. Reviews/ratings, 5. Download CTAs",
+    "modes": ["persuade"],
+    "fields": {
+      "sections": "1. Hero with device mockup, 2. Screenshots carousel, 3. Features with icons, 4. Reviews/ratings, 5. Download CTAs",
+      "cta": "Download buttons prominent (App Store + Play Store) throughout",
+      "colorStrategy": "Dark/light matching app store feel. Star ratings in gold. Screenshots with device frames.",
+      "effects": "Device mockup rotations, screenshot slider, star rating animations, download button pulse",
+      "conversion": "Show real screenshots. Include ratings (4.5+ stars). QR code for mobile. Platform-specific CTAs."
+    }
+  },
+  {
+    "id": "landing:faq-documentation-landing",
+    "domain": "landing",
+    "name": "FAQ/Documentation Landing",
+    "keywords": "faq, documentation, help, support, questions, faq/documentation, knowledge base FAQ/Documentation Landing",
+    "summary": "1. Hero with search bar, 2. Popular categories, 3. FAQ accordion, 4. Contact/support CTA",
+    "modes": ["read", "persuade"],
+    "fields": {
+      "sections": "1. Hero with search bar, 2. Popular categories, 3. FAQ accordion, 4. Contact/support CTA",
+      "cta": "Search bar prominent + Contact CTA for unresolved questions",
+      "colorStrategy": "Clean, high readability. Minimal color. Category icons in brand color. Success green for resolved.",
+      "effects": "Search autocomplete, smooth accordion open/close, category hover, helpful feedback buttons",
+      "conversion": "Reduce support tickets. Track search analytics. Show related articles. Contact escalation path."
+    }
+  },
+  {
+    "id": "landing:immersive-interactive-experience",
+    "domain": "landing",
+    "name": "Immersive/Interactive Experience",
+    "keywords": "immersive, interactive, experience, 3d, animation, immersive/interactive experience Immersive/Interactive Experience",
+    "summary": "1. Full-screen interactive element, 2. Guided product tour, 3. Key benefits revealed, 4. CTA after completion",
+    "modes": ["experience"],
+    "fields": {
+      "sections": "1. Full-screen interactive element, 2. Guided product tour, 3. Key benefits revealed, 4. CTA after completion",
+      "cta": "After interaction complete + Skip option for impatient users",
+      "colorStrategy": "Immersive experience colors. Dark background for focus. Highlight interactive elements.",
+      "effects": "WebGL, 3D interactions, gamification elements, progress indicators, reward animations",
+      "conversion": "40% higher engagement. Performance trade-off. Provide skip option. Mobile fallback essential."
+    }
+  },
+  {
+    "id": "landing:event-conference-landing",
+    "domain": "landing",
+    "name": "Event/Conference Landing",
+    "keywords": "event, conference, meetup, registration, schedule, hero-centric design, hero-centric Event/Conference Landing",
+    "summary": "1. Hero (date/location/countdown), 2. Speakers grid, 3. Agenda/schedule, 4. Sponsors, 5. Register CTA",
+    "modes": ["persuade"],
+    "fields": {
+      "sections": "1. Hero (date/location/countdown), 2. Speakers grid, 3. Agenda/schedule, 4. Sponsors, 5. Register CTA",
+      "cta": "Register CTA sticky + After speakers + Bottom",
+      "colorStrategy": "Urgency colors (countdown). Event branding. Speaker cards professional. Sponsor logos neutral.",
+      "effects": "Countdown timer, speaker hover cards with bio, agenda tabs, early bird countdown",
+      "conversion": "Early bird pricing with deadline. Social proof (past attendees). Speaker credibility. Multi-ticket discounts."
+    }
+  },
+  {
+    "id": "landing:product-review-ratings-focused",
+    "domain": "landing",
+    "name": "Product Review/Ratings Focused",
+    "keywords": "reviews, ratings, testimonials, social-proof, social-proof-focused, stars Product Review/Ratings Focused",
+    "summary": "1. Hero (product + aggregate rating), 2. Rating breakdown, 3. Individual reviews, 4. Buy/CTA",
+    "modes": [],
+    "fields": {
+      "sections": "1. Hero (product + aggregate rating), 2. Rating breakdown, 3. Individual reviews, 4. Buy/CTA",
+      "cta": "After reviews summary + Buy button alongside reviews",
+      "colorStrategy": "Trust colors. Star ratings gold. Verified badge green. Review sentiment colors.",
+      "effects": "Star fill animations, review filtering, helpful vote interactions, photo lightbox",
+      "conversion": "User-generated content builds trust. Show verified purchases. Filter by rating. Respond to negative reviews."
+    }
+  },
+  {
+    "id": "landing:community-forum-landing",
+    "domain": "landing",
+    "name": "Community/Forum Landing",
+    "keywords": "community, forum, social, members, discussion Community/Forum Landing",
+    "summary": "1. Hero (community value prop), 2. Popular topics/categories, 3. Active members showcase, 4. Join CTA",
+    "modes": ["persuade"],
+    "fields": {
+      "sections": "1. Hero (community value prop), 2. Popular topics/categories, 3. Active members showcase, 4. Join CTA",
+      "cta": "Join button prominent + After member showcase",
+      "colorStrategy": "Warm, welcoming. Member photos add humanity. Topic badges in brand colors. Activity indicators green.",
+      "effects": "Member avatars animation, activity feed live updates, topic hover previews, join success celebration",
+      "conversion": "Show active community (member count, posts today). Highlight benefits. Preview content. Easy onboarding."
+    }
+  },
+  {
+    "id": "landing:before-after-transformation",
+    "domain": "landing",
+    "name": "Before-After Transformation",
+    "keywords": "before-after, transformation, results, comparison Before-After Transformation",
+    "summary": "1. Hero (problem state), 2. Transformation slider/comparison, 3. How it works, 4. Results CTA",
+    "modes": [],
+    "fields": {
+      "sections": "1. Hero (problem state), 2. Transformation slider/comparison, 3. How it works, 4. Results CTA",
+      "cta": "After transformation reveal + Bottom",
+      "colorStrategy": "Contrast: muted/grey (before) vs vibrant/colorful (after). Success green for results.",
+      "effects": "Slider comparison interaction, before/after reveal animations, result counters, testimonial videos",
+      "conversion": "Visual proof of value. 45% higher conversion. Real results. Specific metrics. Guarantee offer."
+    }
+  },
+  {
+    "id": "landing:marketplace-directory",
+    "domain": "landing",
+    "name": "Marketplace / Directory",
+    "keywords": "marketplace, directory, search, listing Marketplace / Directory",
+    "summary": "1. Hero (Search focused), 2. Categories, 3. Featured Listings, 4. Trust/Safety, 5. CTA (Become a host/seller)",
+    "modes": [],
+    "fields": {
+      "sections": "1. Hero (Search focused), 2. Categories, 3. Featured Listings, 4. Trust/Safety, 5. CTA (Become a host/seller)",
+      "cta": "Hero Search Bar + Navbar 'List your item'",
+      "colorStrategy": "Search: High contrast. Categories: Visual icons. Trust: Blue/Green.",
+      "effects": "Search autocomplete animation, map hover pins, card carousel",
+      "conversion": "Search bar is the CTA. Reduce friction to search. Popular searches suggestions."
+    }
+  },
+  {
+    "id": "landing:newsletter-content-first",
+    "domain": "landing",
+    "name": "Newsletter / Content First",
+    "keywords": "newsletter, content, writer, blog, subscribe, minimal & direct, minimal-direct Newsletter / Content First",
+    "summary": "1. Hero (Value Prop + Form), 2. Recent Issues/Archives, 3. Social Proof (Subscriber count), 4. About Author",
+    "modes": ["read"],
+    "fields": {
+      "sections": "1. Hero (Value Prop + Form), 2. Recent Issues/Archives, 3. Social Proof (Subscriber count), 4. About Author",
+      "cta": "Hero inline form + Sticky header form",
+      "colorStrategy": "Minimalist. Paper-like background. Text focus. Accent color for Subscribe.",
+      "effects": "Text highlight animations, typewriter effect, subtle fade-in",
+      "conversion": "Single field form (Email only). Show 'Join X, 000 readers'. Read sample link."
+    }
+  },
+  {
+    "id": "landing:webinar-registration",
+    "domain": "landing",
+    "name": "Webinar Registration",
+    "keywords": "webinar, registration, event, training, live Webinar Registration",
+    "summary": "1. Hero (Topic + Timer + Form), 2. What you'll learn, 3. Speaker Bio, 4. Urgency/Bonuses, 5. Form (again)",
+    "modes": [],
+    "fields": {
+      "sections": "1. Hero (Topic + Timer + Form), 2. What you'll learn, 3. Speaker Bio, 4. Urgency/Bonuses, 5. Form (again)",
+      "cta": "Hero (Right side form) + Bottom anchor",
+      "colorStrategy": "Urgency: Red/Orange. Professional: Blue/Navy. Form: High contrast white.",
+      "effects": "Countdown timer, speaker avatar float, urgent ticker",
+      "conversion": "Limited seats logic. 'Live' indicator. Auto-fill timezone."
+    }
+  },
+  {
+    "id": "landing:enterprise-gateway",
+    "domain": "landing",
+    "name": "Enterprise Gateway",
+    "keywords": "enterprise, corporate, gateway, solutions, portal, trust, authority, trust & authority Enterprise Gateway",
+    "summary": "1. Hero (Video/Mission), 2. Solutions by Industry, 3. Solutions by Role, 4. Client Logos, 5. Contact Sales",
+    "modes": ["operate", "persuade"],
+    "fields": {
+      "sections": "1. Hero (Video/Mission), 2. Solutions by Industry, 3. Solutions by Role, 4. Client Logos, 5. Contact Sales",
+      "cta": "Contact Sales (Primary) + Login (Secondary)",
+      "colorStrategy": "Corporate: Navy/Grey. High integrity. Conservative accents.",
+      "effects": "Slow video background, logo carousel, tab switching for industries",
+      "conversion": "Path selection (I am a...). Mega menu navigation. Trust signals prominent."
+    }
+  },
+  {
+    "id": "landing:portfolio-grid",
+    "domain": "landing",
+    "name": "Portfolio Grid",
+    "keywords": "portfolio, grid, showcase, gallery, masonry, portfolio grid + visuals Portfolio Grid",
+    "summary": "1. Hero (Name/Role), 2. Project Grid (Masonry), 3. About/Philosophy, 4. Contact",
+    "modes": ["experience"],
+    "fields": {
+      "sections": "1. Hero (Name/Role), 2. Project Grid (Masonry), 3. About/Philosophy, 4. Contact",
+      "cta": "Project Card Hover + Footer Contact",
+      "colorStrategy": "Neutral background (let work shine). Text: Black/White. Accent: Minimal.",
+      "effects": "Image lazy load reveal, hover overlay info, lightbox view",
+      "conversion": "Visuals first. Filter by category. Fast loading essential."
+    }
+  },
+  {
+    "id": "landing:horizontal-scroll-journey",
+    "domain": "landing",
+    "name": "Horizontal Scroll Journey",
+    "keywords": "horizontal, scroll, journey, gallery, storytelling, panoramic, storytelling-driven Horizontal Scroll Journey",
+    "summary": "1. Intro (Vertical), 2. The Journey (Horizontal Track), 3. Detail Reveal, 4. Vertical Footer",
+    "modes": [],
+    "fields": {
+      "sections": "1. Intro (Vertical), 2. The Journey (Horizontal Track), 3. Detail Reveal, 4. Vertical Footer",
+      "cta": "Floating Sticky CTA or End of Horizontal Track",
+      "colorStrategy": "Continuous palette transition. Chapter colors. Progress bar #000000.",
+      "effects": "Scroll-jacking (careful), parallax layers, horizontal slide, progress indicator",
+      "conversion": "Immersive product discovery. High engagement. Keep navigation visible."
+    }
+  },
+  {
+    "id": "landing:bento-grid-showcase",
+    "domain": "landing",
+    "name": "Bento Grid Showcase",
+    "keywords": "bento, grid, features, modular, apple-style, showcase, feature-rich showcase Bento Grid Showcase",
+    "summary": "1. Hero, 2. Bento Grid (Key Features), 3. Detail Cards, 4. Tech Specs, 5. CTA",
+    "modes": [],
+    "fields": {
+      "sections": "1. Hero, 2. Bento Grid (Key Features), 3. Detail Cards, 4. Tech Specs, 5. CTA",
+      "cta": "Floating Action Button or Bottom of Grid",
+      "colorStrategy": "Card backgrounds: #F5F5F7 or Glass. Icons: Vibrant brand colors. Text: Dark.",
+      "effects": "Hover card scale (1.02), video inside cards, tilt effect, staggered reveal",
+      "conversion": "Scannable value props. High information density without clutter. Mobile stack."
+    }
+  },
+  {
+    "id": "landing:interactive-3d-configurator",
+    "domain": "landing",
+    "name": "Interactive 3D Configurator",
+    "keywords": "3d, configurator, customizer, interactive, product, interactive product demo Interactive 3D Configurator",
+    "summary": "1. Hero (Configurator), 2. Feature Highlight (synced), 3. Price/Specs, 4. Purchase",
+    "modes": [],
+    "fields": {
+      "sections": "1. Hero (Configurator), 2. Feature Highlight (synced), 3. Price/Specs, 4. Purchase",
+      "cta": "Inside Configurator UI + Sticky Bottom Bar",
+      "colorStrategy": "Neutral studio background. Product: Realistic materials. UI: Minimal overlay.",
+      "effects": "Real-time rendering, material swap animation, camera rotate/zoom, light reflection",
+      "conversion": "Increases ownership feeling. 360 view reduces return rates. Direct add-to-cart."
+    }
+  },
+  {
+    "id": "landing:ai-driven-dynamic-landing",
+    "domain": "landing",
+    "name": "AI-Driven Dynamic Landing",
+    "keywords": "ai, dynamic, personalized, adaptive, generative AI-Driven Dynamic Landing",
+    "summary": "1. Prompt/Input Hero, 2. Generated Result Preview, 3. How it Works, 4. Value Prop",
+    "modes": ["persuade"],
+    "fields": {
+      "sections": "1. Prompt/Input Hero, 2. Generated Result Preview, 3. How it Works, 4. Value Prop",
+      "cta": "Input Field (Hero) + 'Try it' Buttons",
+      "colorStrategy": "Adaptive to user input. Dark mode for compute feel. Neon accents.",
+      "effects": "Typing text effects, shimmering generation loaders, morphing layouts",
+      "conversion": "Immediate value demonstration. 'Show, don't tell'. Low friction start."
+    }
+  },
+  {
+    "id": "landing:feature-rich-showcase",
+    "domain": "landing",
+    "name": "Feature-Rich Showcase",
+    "keywords": "feature-rich, feature-rich showcase, features, showcase, product showcase Feature-Rich Showcase",
+    "summary": "1. Hero (value prop), 2. Feature grid/cards (4-6), 3. Use cases or benefits, 4. Social proof or logos, 5. CTA",
+    "modes": [],
+    "fields": {
+      "sections": "1. Hero (value prop), 2. Feature grid/cards (4-6), 3. Use cases or benefits, 4. Social proof or logos, 5. CTA",
+      "cta": "Hero (sticky) + After features + Bottom",
+      "colorStrategy": "Brand primary + card bg #FAFAFA. Feature icons accent. CTA contrasting.",
+      "effects": "Feature card hover lift, scroll reveal, icon micro-interactions",
+      "conversion": "Clear feature hierarchy. One key message per card. Strong CTA repetition."
+    }
+  },
+  {
+    "id": "landing:hero-centric-design",
+    "domain": "landing",
+    "name": "Hero-Centric Design",
+    "keywords": "hero-centric, hero-centric design, hero-first, hero above fold Hero-Centric Design",
+    "summary": "1. Full-bleed Hero (headline + visual), 2. Single value prop strip, 3. Key benefit or proof, 4. Primary CTA",
+    "modes": [],
+    "fields": {
+      "sections": "1. Full-bleed Hero (headline + visual), 2. Single value prop strip, 3. Key benefit or proof, 4. Primary CTA",
+      "cta": "Hero dominant (center/bottom) + Sticky nav CTA",
+      "colorStrategy": "Hero: High-impact visual. Minimal text. CTA 7:1 contrast.",
+      "effects": "Hero parallax or video, CTA pulse on scroll, minimal chrome",
+      "conversion": "One primary CTA. Hero is 60-80% above fold. Mobile: same hierarchy."
+    }
+  },
+  {
+    "id": "landing:trust-authority-conversion",
+    "domain": "landing",
+    "name": "Trust & Authority + Conversion",
+    "keywords": "trust & authority, trust, authority, conversion, credibility, enterprise Trust & Authority + Conversion",
+    "summary": "1. Hero (mission/credibility), 2. Proof (logos, certs, stats), 3. Solution overview, 4. Clear CTA path",
+    "modes": ["persuade"],
+    "fields": {
+      "sections": "1. Hero (mission/credibility), 2. Proof (logos, certs, stats), 3. Solution overview, 4. Clear CTA path",
+      "cta": "Contact Sales / Get Quote (primary) + Nav",
+      "colorStrategy": "Navy/Grey corporate. Trust blue. Accent for CTA only.",
+      "effects": "Logo carousel, stat counters, testimonial strip",
+      "conversion": "Security badges. Case studies. Transparent pricing. Low-friction form."
+    }
+  },
+  {
+    "id": "landing:real-time-operations-landing",
+    "domain": "landing",
+    "name": "Real-Time / Operations Landing",
+    "keywords": "real-time, real-time monitor, operations, dashboard, telemetry, live data Real-Time / Operations Landing",
+    "summary": "1. Hero (product + live preview or status), 2. Key metrics/indicators, 3. How it works, 4. CTA (Start trial / Contact)",
+    "modes": ["persuade", "experience"],
+    "fields": {
+      "sections": "1. Hero (product + live preview or status), 2. Key metrics/indicators, 3. How it works, 4. CTA (Start trial / Contact)",
+      "cta": "Primary CTA in nav + After metrics",
+      "colorStrategy": "Dark or neutral. Status colors (green/amber/red). Data-dense but scannable.",
+      "effects": "Live data ticker, status pulse, minimal decoration",
+      "conversion": "For ops/security/iot products. Demo or sandbox link. Trust signals."
+    }
+  }
+]

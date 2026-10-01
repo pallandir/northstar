@@ -1,0 +1,1231 @@
+[
+  {
+    "id": "typography:classic-elegant",
+    "domain": "typography",
+    "name": "Classic Elegant",
+    "keywords": "elegant, luxury, sophisticated, timeless, premium, editorial Serif + Sans Luxury brands, fashion, spa, beauty, editorial, magazines, high-end e-commerce",
+    "summary": "Playfair Display with Inter. Luxury brands, fashion, spa, beauty, editorial, magazines, high-end e-commerce",
+    "modes": ["read", "persuade", "experience"],
+    "fields": {
+      "heading": "Playfair Display",
+      "body": "Inter",
+      "category": "Serif + Sans",
+      "mood": "elegant, luxury, sophisticated, timeless, premium, editorial",
+      "bestFor": "Luxury brands, fashion, spa, beauty, editorial, magazines, high-end e-commerce",
+      "url": "https://fonts.google.com/share?selection.family=Inter:wght@300;400;500;600;700|Playfair+Display:wght@400;500;600;700",
+      "notes": "High contrast between elegant heading and clean body. Perfect for luxury/premium."
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY)"
+  },
+  {
+    "id": "typography:modern-professional",
+    "domain": "typography",
+    "name": "Modern Professional",
+    "keywords": "modern, professional, clean, corporate, friendly, approachable Sans + Sans SaaS, corporate sites, business apps, startups, professional services",
+    "summary": "Poppins with Open Sans. SaaS, corporate sites, business apps, startups, professional services",
+    "modes": ["operate", "persuade"],
+    "fields": {
+      "heading": "Poppins",
+      "body": "Open Sans",
+      "category": "Sans + Sans",
+      "mood": "modern, professional, clean, corporate, friendly, approachable",
+      "bestFor": "SaaS, corporate sites, business apps, startups, professional services",
+      "url": "https://fonts.google.com/share?selection.family=Open+Sans:wght@300;400;500;600;700|Poppins:wght@400;500;600;700",
+      "notes": "Geometric Poppins for headings, humanist Open Sans for readability."
+    }
+  },
+  {
+    "id": "typography:tech-startup",
+    "domain": "typography",
+    "name": "Tech Startup",
+    "keywords": "tech, startup, modern, innovative, bold, futuristic Sans + Sans Tech companies, startups, SaaS, developer tools, AI products",
+    "summary": "Space Grotesk with DM Sans. Tech companies, startups, SaaS, developer tools, AI products",
+    "modes": ["operate", "persuade"],
+    "fields": {
+      "heading": "Space Grotesk",
+      "body": "DM Sans",
+      "category": "Sans + Sans",
+      "mood": "tech, startup, modern, innovative, bold, futuristic",
+      "bestFor": "Tech companies, startups, SaaS, developer tools, AI products",
+      "url": "https://fonts.google.com/share?selection.family=DM+Sans:wght@400;500;700|Space+Grotesk:wght@400;500;600;700",
+      "notes": "Space Grotesk has unique character, DM Sans is highly readable."
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY)"
+  },
+  {
+    "id": "typography:editorial-classic",
+    "domain": "typography",
+    "name": "Editorial Classic",
+    "keywords": "editorial, classic, literary, traditional, refined, bookish Serif + Serif Publishing, blogs, news sites, literary magazines, book covers",
+    "summary": "Cormorant Garamond with Libre Baskerville. Publishing, blogs, news sites, literary magazines, book covers",
+    "modes": ["read"],
+    "fields": {
+      "heading": "Cormorant Garamond",
+      "body": "Libre Baskerville",
+      "category": "Serif + Serif",
+      "mood": "editorial, classic, literary, traditional, refined, bookish",
+      "bestFor": "Publishing, blogs, news sites, literary magazines, book covers",
+      "url": "https://fonts.google.com/share?selection.family=Cormorant+Garamond:wght@400;500;600;700|Libre+Baskerville:wght@400;700",
+      "notes": "All-serif pairing for traditional editorial feel."
+    }
+  },
+  {
+    "id": "typography:minimal-swiss",
+    "domain": "typography",
+    "name": "Minimal Swiss",
+    "keywords": "minimal, clean, swiss, functional, neutral, professional Sans + Sans Dashboards, admin panels, documentation, enterprise apps, design systems",
+    "summary": "Inter with Inter. Dashboards, admin panels, documentation, enterprise apps, design systems",
+    "modes": ["operate", "read"],
+    "fields": {
+      "heading": "Inter",
+      "body": "Inter",
+      "category": "Sans + Sans",
+      "mood": "minimal, clean, swiss, functional, neutral, professional",
+      "bestFor": "Dashboards, admin panels, documentation, enterprise apps, design systems",
+      "url": "https://fonts.google.com/share?selection.family=Inter:wght@300;400;500;600;700",
+      "notes": "Single font family with weight variations. Ultimate simplicity."
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY)"
+  },
+  {
+    "id": "typography:playful-creative",
+    "domain": "typography",
+    "name": "Playful Creative",
+    "keywords": "playful, friendly, fun, creative, warm, approachable Display + Sans Children's apps, educational, gaming, creative tools, entertainment",
+    "summary": "Fredoka with Nunito. Children's apps, educational, gaming, creative tools, entertainment",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Fredoka",
+      "body": "Nunito",
+      "category": "Display + Sans",
+      "mood": "playful, friendly, fun, creative, warm, approachable",
+      "bestFor": "Children's apps, educational, gaming, creative tools, entertainment",
+      "url": "https://fonts.google.com/share?selection.family=Fredoka:wght@400;500;600;700|Nunito:wght@300;400;500;600;700",
+      "notes": "Rounded, friendly fonts perfect for playful UIs."
+    }
+  },
+  {
+    "id": "typography:bold-statement",
+    "domain": "typography",
+    "name": "Bold Statement",
+    "keywords": "bold, impactful, strong, dramatic, modern, headlines Display + Sans Marketing sites, portfolios, agencies, event pages, sports",
+    "summary": "Bebas Neue with Source Sans 3. Marketing sites, portfolios, agencies, event pages, sports",
+    "modes": ["persuade", "experience"],
+    "fields": {
+      "heading": "Bebas Neue",
+      "body": "Source Sans 3",
+      "category": "Display + Sans",
+      "mood": "bold, impactful, strong, dramatic, modern, headlines",
+      "bestFor": "Marketing sites, portfolios, agencies, event pages, sports",
+      "url": "https://fonts.google.com/share?selection.family=Bebas+Neue|Source+Sans+3:wght@300;400;500;600;700",
+      "notes": "Bebas Neue for large headlines only. All-caps display font."
+    }
+  },
+  {
+    "id": "typography:wellness-calm",
+    "domain": "typography",
+    "name": "Wellness Calm",
+    "keywords": "calm, wellness, health, relaxing, natural, organic Serif + Sans Health apps, wellness, spa, meditation, yoga, organic brands",
+    "summary": "Lora with Raleway. Health apps, wellness, spa, meditation, yoga, organic brands",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Lora",
+      "body": "Raleway",
+      "category": "Serif + Sans",
+      "mood": "calm, wellness, health, relaxing, natural, organic",
+      "bestFor": "Health apps, wellness, spa, meditation, yoga, organic brands",
+      "url": "https://fonts.google.com/share?selection.family=Lora:wght@400;500;600;700|Raleway:wght@300;400;500;600;700",
+      "notes": "Lora's organic curves with Raleway's elegant simplicity."
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY)"
+  },
+  {
+    "id": "typography:developer-mono",
+    "domain": "typography",
+    "name": "Developer Mono",
+    "keywords": "code, developer, technical, precise, functional, hacker Mono + Sans Developer tools, documentation, code editors, tech blogs, CLI apps",
+    "summary": "JetBrains Mono with IBM Plex Sans. Developer tools, documentation, code editors, tech blogs, CLI apps",
+    "modes": ["read"],
+    "fields": {
+      "heading": "JetBrains Mono",
+      "body": "IBM Plex Sans",
+      "category": "Mono + Sans",
+      "mood": "code, developer, technical, precise, functional, hacker",
+      "bestFor": "Developer tools, documentation, code editors, tech blogs, CLI apps",
+      "url": "https://fonts.google.com/share?selection.family=IBM+Plex+Sans:wght@300;400;500;600;700|JetBrains+Mono:wght@400;500;600;700",
+      "notes": "JetBrains for code, IBM Plex for UI. Developer-focused."
+    }
+  },
+  {
+    "id": "typography:retro-vintage",
+    "domain": "typography",
+    "name": "Retro Vintage",
+    "keywords": "retro, vintage, nostalgic, dramatic, decorative, bold Display + Serif Vintage brands, breweries, restaurants, creative portfolios, posters",
+    "summary": "Abril Fatface with Merriweather. Vintage brands, breweries, restaurants, creative portfolios, posters",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Abril Fatface",
+      "body": "Merriweather",
+      "category": "Display + Serif",
+      "mood": "retro, vintage, nostalgic, dramatic, decorative, bold",
+      "bestFor": "Vintage brands, breweries, restaurants, creative portfolios, posters",
+      "url": "https://fonts.google.com/share?selection.family=Abril+Fatface|Merriweather:wght@300;400;700",
+      "notes": "Abril Fatface for hero headlines only. High-impact vintage feel."
+    }
+  },
+  {
+    "id": "typography:geometric-modern",
+    "domain": "typography",
+    "name": "Geometric Modern",
+    "keywords": "geometric, modern, clean, balanced, contemporary, versatile Sans + Sans General purpose, portfolios, agencies, modern brands, landing pages",
+    "summary": "Outfit with Work Sans. General purpose, portfolios, agencies, modern brands, landing pages",
+    "modes": ["persuade", "experience"],
+    "fields": {
+      "heading": "Outfit",
+      "body": "Work Sans",
+      "category": "Sans + Sans",
+      "mood": "geometric, modern, clean, balanced, contemporary, versatile",
+      "bestFor": "General purpose, portfolios, agencies, modern brands, landing pages",
+      "url": "https://fonts.google.com/share?selection.family=Outfit:wght@300;400;500;600;700|Work+Sans:wght@300;400;500;600;700",
+      "notes": "Both geometric but Outfit more distinctive for headings."
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY)"
+  },
+  {
+    "id": "typography:luxury-serif",
+    "domain": "typography",
+    "name": "Luxury Serif",
+    "keywords": "luxury, high-end, fashion, elegant, refined, premium Serif + Sans Fashion brands, luxury e-commerce, jewelry, high-end services",
+    "summary": "Cormorant with Montserrat. Fashion brands, luxury e-commerce, jewelry, high-end services",
+    "modes": ["persuade", "experience"],
+    "fields": {
+      "heading": "Cormorant",
+      "body": "Montserrat",
+      "category": "Serif + Sans",
+      "mood": "luxury, high-end, fashion, elegant, refined, premium",
+      "bestFor": "Fashion brands, luxury e-commerce, jewelry, high-end services",
+      "url": "https://fonts.google.com/share?selection.family=Cormorant:wght@400;500;600;700|Montserrat:wght@300;400;500;600;700",
+      "notes": "Cormorant's elegance with Montserrat's geometric precision."
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY)"
+  },
+  {
+    "id": "typography:friendly-saas",
+    "domain": "typography",
+    "name": "Friendly SaaS",
+    "keywords": "friendly, modern, saas, clean, approachable, professional Sans + Sans SaaS products, web apps, dashboards, B2B, productivity tools",
+    "summary": "Plus Jakarta Sans with Plus Jakarta Sans. SaaS products, web apps, dashboards, B2B, productivity tools",
+    "modes": ["operate"],
+    "fields": {
+      "heading": "Plus Jakarta Sans",
+      "body": "Plus Jakarta Sans",
+      "category": "Sans + Sans",
+      "mood": "friendly, modern, saas, clean, approachable, professional",
+      "bestFor": "SaaS products, web apps, dashboards, B2B, productivity tools",
+      "url": "https://fonts.google.com/share?selection.family=Plus+Jakarta+Sans:wght@300;400;500;600;700",
+      "notes": "Single versatile font. Modern alternative to Inter."
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY)"
+  },
+  {
+    "id": "typography:news-editorial",
+    "domain": "typography",
+    "name": "News Editorial",
+    "keywords": "news, editorial, journalism, trustworthy, readable, informative Serif + Sans News sites, blogs, magazines, journalism, content-heavy sites",
+    "summary": "Newsreader with Roboto. News sites, blogs, magazines, journalism, content-heavy sites",
+    "modes": ["read"],
+    "fields": {
+      "heading": "Newsreader",
+      "body": "Roboto",
+      "category": "Serif + Sans",
+      "mood": "news, editorial, journalism, trustworthy, readable, informative",
+      "bestFor": "News sites, blogs, magazines, journalism, content-heavy sites",
+      "url": "https://fonts.google.com/share?selection.family=Newsreader:wght@400;500;600;700|Roboto:wght@300;400;500;700",
+      "notes": "Newsreader designed for long-form reading. Roboto for UI."
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY)"
+  },
+  {
+    "id": "typography:handwritten-charm",
+    "domain": "typography",
+    "name": "Handwritten Charm",
+    "keywords": "handwritten, personal, friendly, casual, warm, charming Script + Sans Personal blogs, invitations, creative portfolios, lifestyle brands",
+    "summary": "Caveat with Quicksand. Personal blogs, invitations, creative portfolios, lifestyle brands",
+    "modes": ["read", "experience"],
+    "fields": {
+      "heading": "Caveat",
+      "body": "Quicksand",
+      "category": "Script + Sans",
+      "mood": "handwritten, personal, friendly, casual, warm, charming",
+      "bestFor": "Personal blogs, invitations, creative portfolios, lifestyle brands",
+      "url": "https://fonts.google.com/share?selection.family=Caveat:wght@400;500;600;700|Quicksand:wght@300;400;500;600;700",
+      "notes": "Use Caveat sparingly for accents. Quicksand for body."
+    }
+  },
+  {
+    "id": "typography:corporate-trust",
+    "domain": "typography",
+    "name": "Corporate Trust",
+    "keywords": "corporate, trustworthy, accessible, readable, professional, clean Sans + Sans Enterprise, government, healthcare, finance, accessibility-focused",
+    "summary": "Lexend with Source Sans 3. Enterprise, government, healthcare, finance, accessibility-focused",
+    "modes": ["operate"],
+    "fields": {
+      "heading": "Lexend",
+      "body": "Source Sans 3",
+      "category": "Sans + Sans",
+      "mood": "corporate, trustworthy, accessible, readable, professional, clean",
+      "bestFor": "Enterprise, government, healthcare, finance, accessibility-focused",
+      "url": "https://fonts.google.com/share?selection.family=Lexend:wght@300;400;500;600;700|Source+Sans+3:wght@300;400;500;600;700",
+      "notes": "Lexend designed for readability. Excellent accessibility."
+    }
+  },
+  {
+    "id": "typography:brutalist-raw",
+    "domain": "typography",
+    "name": "Brutalist Raw",
+    "keywords": "brutalist, raw, technical, monospace, minimal, stark Mono + Mono Brutalist designs, developer portfolios, experimental, tech art",
+    "summary": "Space Mono with Space Mono. Brutalist designs, developer portfolios, experimental, tech art",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Space Mono",
+      "body": "Space Mono",
+      "category": "Mono + Mono",
+      "mood": "brutalist, raw, technical, monospace, minimal, stark",
+      "bestFor": "Brutalist designs, developer portfolios, experimental, tech art",
+      "url": "https://fonts.google.com/share?selection.family=Space+Mono:wght@400;700",
+      "notes": "All-mono for raw brutalist aesthetic. Limited weights."
+    }
+  },
+  {
+    "id": "typography:fashion-forward",
+    "domain": "typography",
+    "name": "Fashion Forward",
+    "keywords": "fashion, avant-garde, creative, bold, artistic, edgy Sans + Sans Fashion brands, creative agencies, art galleries, design studios",
+    "summary": "Syne with Manrope. Fashion brands, creative agencies, art galleries, design studios",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Syne",
+      "body": "Manrope",
+      "category": "Sans + Sans",
+      "mood": "fashion, avant-garde, creative, bold, artistic, edgy",
+      "bestFor": "Fashion brands, creative agencies, art galleries, design studios",
+      "url": "https://fonts.google.com/share?selection.family=Manrope:wght@300;400;500;600;700|Syne:wght@400;500;600;700",
+      "notes": "Syne's unique character for headlines. Manrope for readability."
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY)"
+  },
+  {
+    "id": "typography:soft-rounded",
+    "domain": "typography",
+    "name": "Soft Rounded",
+    "keywords": "soft, rounded, friendly, approachable, warm, gentle Sans + Sans Children's products, pet apps, friendly brands, wellness, soft UI",
+    "summary": "Varela Round with Nunito Sans. Children's products, pet apps, friendly brands, wellness, soft UI",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Varela Round",
+      "body": "Nunito Sans",
+      "category": "Sans + Sans",
+      "mood": "soft, rounded, friendly, approachable, warm, gentle",
+      "bestFor": "Children's products, pet apps, friendly brands, wellness, soft UI",
+      "url": "https://fonts.google.com/share?selection.family=Nunito+Sans:wght@300;400;500;600;700|Varela+Round",
+      "notes": "Both rounded and friendly. Perfect for soft UI designs."
+    }
+  },
+  {
+    "id": "typography:premium-sans",
+    "domain": "typography",
+    "name": "Premium Sans",
+    "keywords": "premium, modern, clean, sophisticated, versatile, balanced Sans + Sans Premium brands, modern agencies, SaaS, portfolios, startups",
+    "summary": "Satoshi with General Sans. Premium brands, modern agencies, SaaS, portfolios, startups",
+    "modes": ["operate", "persuade", "experience"],
+    "fields": {
+      "heading": "Satoshi",
+      "body": "General Sans",
+      "category": "Sans + Sans",
+      "mood": "premium, modern, clean, sophisticated, versatile, balanced",
+      "bestFor": "Premium brands, modern agencies, SaaS, portfolios, startups",
+      "url": "https://fonts.google.com/share?selection.family=DM+Sans:wght@400;500;700",
+      "notes": "Note: Satoshi/General Sans on Fontshare. DM Sans as Google alternative."
+    }
+  },
+  {
+    "id": "typography:vietnamese-friendly",
+    "domain": "typography",
+    "name": "Vietnamese Friendly",
+    "keywords": "vietnamese, international, readable, clean, multilingual, accessible Sans + Sans Vietnamese sites, multilingual apps, international products",
+    "summary": "Be Vietnam Pro with Noto Sans. Vietnamese sites, multilingual apps, international products",
+    "modes": [],
+    "fields": {
+      "heading": "Be Vietnam Pro",
+      "body": "Noto Sans",
+      "category": "Sans + Sans",
+      "mood": "vietnamese, international, readable, clean, multilingual, accessible",
+      "bestFor": "Vietnamese sites, multilingual apps, international products",
+      "url": "https://fonts.google.com/share?selection.family=Be+Vietnam+Pro:wght@300;400;500;600;700|Noto+Sans:wght@300;400;500;600;700",
+      "notes": "Be Vietnam Pro excellent Vietnamese support. Noto as fallback."
+    }
+  },
+  {
+    "id": "typography:japanese-elegant",
+    "domain": "typography",
+    "name": "Japanese Elegant",
+    "keywords": "japanese, elegant, traditional, modern, multilingual, readable Serif + Sans Japanese sites, Japanese restaurants, cultural sites, anime/manga",
+    "summary": "Noto Serif JP with Noto Sans JP. Japanese sites, Japanese restaurants, cultural sites, anime/manga",
+    "modes": [],
+    "fields": {
+      "heading": "Noto Serif JP",
+      "body": "Noto Sans JP",
+      "category": "Serif + Sans",
+      "mood": "japanese, elegant, traditional, modern, multilingual, readable",
+      "bestFor": "Japanese sites, Japanese restaurants, cultural sites, anime/manga",
+      "url": "https://fonts.google.com/share?selection.family=Noto+Sans+JP:wght@300;400;500;700|Noto+Serif+JP:wght@400;500;600;700",
+      "notes": "Noto fonts excellent Japanese support. Traditional + modern feel."
+    }
+  },
+  {
+    "id": "typography:korean-modern",
+    "domain": "typography",
+    "name": "Korean Modern",
+    "keywords": "korean, modern, clean, professional, multilingual, readable Sans + Sans Korean sites, K-beauty, K-pop, Korean businesses, multilingual",
+    "summary": "Noto Sans KR with Noto Sans KR. Korean sites, K-beauty, K-pop, Korean businesses, multilingual",
+    "modes": [],
+    "fields": {
+      "heading": "Noto Sans KR",
+      "body": "Noto Sans KR",
+      "category": "Sans + Sans",
+      "mood": "korean, modern, clean, professional, multilingual, readable",
+      "bestFor": "Korean sites, K-beauty, K-pop, Korean businesses, multilingual",
+      "url": "https://fonts.google.com/share?selection.family=Noto+Sans+KR:wght@300;400;500;700",
+      "notes": "Clean Korean typography. Single font with weight variations."
+    }
+  },
+  {
+    "id": "typography:chinese-traditional",
+    "domain": "typography",
+    "name": "Chinese Traditional",
+    "keywords": "chinese, traditional, elegant, cultural, multilingual, readable Serif + Sans Traditional Chinese sites, cultural content, Taiwan/Hong Kong markets",
+    "summary": "Noto Serif TC with Noto Sans TC. Traditional Chinese sites, cultural content, Taiwan/Hong Kong markets",
+    "modes": [],
+    "fields": {
+      "heading": "Noto Serif TC",
+      "body": "Noto Sans TC",
+      "category": "Serif + Sans",
+      "mood": "chinese, traditional, elegant, cultural, multilingual, readable",
+      "bestFor": "Traditional Chinese sites, cultural content, Taiwan/Hong Kong markets",
+      "url": "https://fonts.google.com/share?selection.family=Noto+Sans+TC:wght@300;400;500;700|Noto+Serif+TC:wght@400;500;600;700",
+      "notes": "Traditional Chinese character support. Elegant pairing."
+    }
+  },
+  {
+    "id": "typography:chinese-simplified",
+    "domain": "typography",
+    "name": "Chinese Simplified",
+    "keywords": "chinese, simplified, modern, professional, multilingual, readable Sans + Sans Simplified Chinese sites, mainland China market, business apps",
+    "summary": "Noto Sans SC with Noto Sans SC. Simplified Chinese sites, mainland China market, business apps",
+    "modes": [],
+    "fields": {
+      "heading": "Noto Sans SC",
+      "body": "Noto Sans SC",
+      "category": "Sans + Sans",
+      "mood": "chinese, simplified, modern, professional, multilingual, readable",
+      "bestFor": "Simplified Chinese sites, mainland China market, business apps",
+      "url": "https://fonts.google.com/share?selection.family=Noto+Sans+SC:wght@300;400;500;700",
+      "notes": "Simplified Chinese support. Clean modern look."
+    }
+  },
+  {
+    "id": "typography:arabic-elegant",
+    "domain": "typography",
+    "name": "Arabic Elegant",
+    "keywords": "arabic, elegant, traditional, cultural, RTL, readable Serif + Sans Arabic sites, Middle East market, Islamic content, bilingual sites",
+    "summary": "Noto Naskh Arabic with Noto Sans Arabic. Arabic sites, Middle East market, Islamic content, bilingual sites",
+    "modes": [],
+    "fields": {
+      "heading": "Noto Naskh Arabic",
+      "body": "Noto Sans Arabic",
+      "category": "Serif + Sans",
+      "mood": "arabic, elegant, traditional, cultural, RTL, readable",
+      "bestFor": "Arabic sites, Middle East market, Islamic content, bilingual sites",
+      "url": "https://fonts.google.com/share?selection.family=Noto+Naskh+Arabic:wght@400;500;600;700|Noto+Sans+Arabic:wght@300;400;500;700",
+      "notes": "RTL support. Naskh for traditional, Sans for modern Arabic."
+    }
+  },
+  {
+    "id": "typography:thai-modern",
+    "domain": "typography",
+    "name": "Thai Modern",
+    "keywords": "thai, modern, readable, clean, multilingual, accessible Sans + Sans Thai sites, Southeast Asia, tourism, Thai restaurants",
+    "summary": "Noto Sans Thai with Noto Sans Thai. Thai sites, Southeast Asia, tourism, Thai restaurants",
+    "modes": [],
+    "fields": {
+      "heading": "Noto Sans Thai",
+      "body": "Noto Sans Thai",
+      "category": "Sans + Sans",
+      "mood": "thai, modern, readable, clean, multilingual, accessible",
+      "bestFor": "Thai sites, Southeast Asia, tourism, Thai restaurants",
+      "url": "https://fonts.google.com/share?selection.family=Noto+Sans+Thai:wght@300;400;500;700",
+      "notes": "Clean Thai typography. Excellent readability."
+    }
+  },
+  {
+    "id": "typography:hebrew-modern",
+    "domain": "typography",
+    "name": "Hebrew Modern",
+    "keywords": "hebrew, modern, RTL, clean, professional, readable Sans + Sans Hebrew sites, Israeli market, Jewish content, bilingual sites",
+    "summary": "Noto Sans Hebrew with Noto Sans Hebrew. Hebrew sites, Israeli market, Jewish content, bilingual sites",
+    "modes": [],
+    "fields": {
+      "heading": "Noto Sans Hebrew",
+      "body": "Noto Sans Hebrew",
+      "category": "Sans + Sans",
+      "mood": "hebrew, modern, RTL, clean, professional, readable",
+      "bestFor": "Hebrew sites, Israeli market, Jewish content, bilingual sites",
+      "url": "https://fonts.google.com/share?selection.family=Noto+Sans+Hebrew:wght@300;400;500;700",
+      "notes": "RTL support. Clean modern Hebrew typography."
+    }
+  },
+  {
+    "id": "typography:legal-professional",
+    "domain": "typography",
+    "name": "Legal Professional",
+    "keywords": "legal, professional, traditional, trustworthy, formal, authoritative Serif + Sans Law firms, legal services, contracts, formal documents, government",
+    "summary": "EB Garamond with Lato. Law firms, legal services, contracts, formal documents, government",
+    "modes": [],
+    "fields": {
+      "heading": "EB Garamond",
+      "body": "Lato",
+      "category": "Serif + Sans",
+      "mood": "legal, professional, traditional, trustworthy, formal, authoritative",
+      "bestFor": "Law firms, legal services, contracts, formal documents, government",
+      "url": "https://fonts.google.com/share?selection.family=EB+Garamond:wght@400;500;600;700|Lato:wght@300;400;700",
+      "notes": "EB Garamond for authority. Lato for clean body text."
+    }
+  },
+  {
+    "id": "typography:medical-clean",
+    "domain": "typography",
+    "name": "Medical Clean",
+    "keywords": "medical, clean, accessible, professional, healthcare, trustworthy Sans + Sans Healthcare, medical clinics, pharma, health apps, accessibility",
+    "summary": "Figtree with Noto Sans. Healthcare, medical clinics, pharma, health apps, accessibility",
+    "modes": [],
+    "fields": {
+      "heading": "Figtree",
+      "body": "Noto Sans",
+      "category": "Sans + Sans",
+      "mood": "medical, clean, accessible, professional, healthcare, trustworthy",
+      "bestFor": "Healthcare, medical clinics, pharma, health apps, accessibility",
+      "url": "https://fonts.google.com/share?selection.family=Figtree:wght@300;400;500;600;700|Noto+Sans:wght@300;400;500;700",
+      "notes": "Clean, accessible fonts for medical contexts."
+    }
+  },
+  {
+    "id": "typography:financial-trust",
+    "domain": "typography",
+    "name": "Financial Trust",
+    "keywords": "financial, trustworthy, professional, corporate, banking, serious Sans + Sans Banks, finance, insurance, investment, fintech, enterprise",
+    "summary": "IBM Plex Sans with IBM Plex Sans. Banks, finance, insurance, investment, fintech, enterprise",
+    "modes": ["operate"],
+    "fields": {
+      "heading": "IBM Plex Sans",
+      "body": "IBM Plex Sans",
+      "category": "Sans + Sans",
+      "mood": "financial, trustworthy, professional, corporate, banking, serious",
+      "bestFor": "Banks, finance, insurance, investment, fintech, enterprise",
+      "url": "https://fonts.google.com/share?selection.family=IBM+Plex+Sans:wght@300;400;500;600;700",
+      "notes": "IBM Plex conveys trust and professionalism. Excellent for data."
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY)"
+  },
+  {
+    "id": "typography:real-estate-luxury",
+    "domain": "typography",
+    "name": "Real Estate Luxury",
+    "keywords": "real estate, luxury, elegant, sophisticated, property, premium Serif + Sans Real estate, luxury properties, architecture, interior design",
+    "summary": "Cinzel with Josefin Sans. Real estate, luxury properties, architecture, interior design",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Cinzel",
+      "body": "Josefin Sans",
+      "category": "Serif + Sans",
+      "mood": "real estate, luxury, elegant, sophisticated, property, premium",
+      "bestFor": "Real estate, luxury properties, architecture, interior design",
+      "url": "https://fonts.google.com/share?selection.family=Cinzel:wght@400;500;600;700|Josefin+Sans:wght@300;400;500;600;700",
+      "notes": "Cinzel's elegance for headlines. Josefin for modern body."
+    }
+  },
+  {
+    "id": "typography:restaurant-menu",
+    "domain": "typography",
+    "name": "Restaurant Menu",
+    "keywords": "restaurant, menu, culinary, elegant, foodie, hospitality Serif + Sans Restaurants, cafes, food blogs, culinary, hospitality",
+    "summary": "Playfair Display SC with Karla. Restaurants, cafes, food blogs, culinary, hospitality",
+    "modes": ["read"],
+    "fields": {
+      "heading": "Playfair Display SC",
+      "body": "Karla",
+      "category": "Serif + Sans",
+      "mood": "restaurant, menu, culinary, elegant, foodie, hospitality",
+      "bestFor": "Restaurants, cafes, food blogs, culinary, hospitality",
+      "url": "https://fonts.google.com/share?selection.family=Karla:wght@300;400;500;600;700|Playfair+Display+SC:wght@400;700",
+      "notes": "Small caps Playfair for menu headers. Karla for descriptions."
+    },
+    "caution": "Tracked uppercase labels are a default, use sparingly and mainly for dense data. (NS-SLOP-CAPS-LABELS)"
+  },
+  {
+    "id": "typography:art-deco",
+    "domain": "typography",
+    "name": "Art Deco",
+    "keywords": "art deco, vintage, 1920s, elegant, decorative, gatsby Display + Sans Vintage events, art deco themes, luxury hotels, classic cocktails",
+    "summary": "Poiret One with Didact Gothic. Vintage events, art deco themes, luxury hotels, classic cocktails",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Poiret One",
+      "body": "Didact Gothic",
+      "category": "Display + Sans",
+      "mood": "art deco, vintage, 1920s, elegant, decorative, gatsby",
+      "bestFor": "Vintage events, art deco themes, luxury hotels, classic cocktails",
+      "url": "https://fonts.google.com/share?selection.family=Didact+Gothic|Poiret+One",
+      "notes": "Poiret One for art deco headlines only. Didact for body."
+    }
+  },
+  {
+    "id": "typography:magazine-style",
+    "domain": "typography",
+    "name": "Magazine Style",
+    "keywords": "magazine, editorial, publishing, refined, journalism, print Serif + Sans Magazines, online publications, editorial content, journalism",
+    "summary": "Libre Bodoni with Public Sans. Magazines, online publications, editorial content, journalism",
+    "modes": ["read"],
+    "fields": {
+      "heading": "Libre Bodoni",
+      "body": "Public Sans",
+      "category": "Serif + Sans",
+      "mood": "magazine, editorial, publishing, refined, journalism, print",
+      "bestFor": "Magazines, online publications, editorial content, journalism",
+      "url": "https://fonts.google.com/share?selection.family=Libre+Bodoni:wght@400;500;600;700|Public+Sans:wght@300;400;500;600;700",
+      "notes": "Bodoni's editorial elegance. Public Sans for clean UI."
+    }
+  },
+  {
+    "id": "typography:crypto-web3",
+    "domain": "typography",
+    "name": "Crypto/Web3",
+    "keywords": "crypto, web3, futuristic, tech, blockchain, digital Sans + Sans Crypto platforms, NFT, blockchain, web3, futuristic tech",
+    "summary": "Orbitron with Exo 2. Crypto platforms, NFT, blockchain, web3, futuristic tech",
+    "modes": [],
+    "fields": {
+      "heading": "Orbitron",
+      "body": "Exo 2",
+      "category": "Sans + Sans",
+      "mood": "crypto, web3, futuristic, tech, blockchain, digital",
+      "bestFor": "Crypto platforms, NFT, blockchain, web3, futuristic tech",
+      "url": "https://fonts.google.com/share?selection.family=Exo+2:wght@300;400;500;600;700|Orbitron:wght@400;500;600;700",
+      "notes": "Orbitron for futuristic headers. Exo 2 for readable body."
+    }
+  },
+  {
+    "id": "typography:gaming-bold",
+    "domain": "typography",
+    "name": "Gaming Bold",
+    "keywords": "gaming, bold, action, esports, competitive, energetic Display + Sans Gaming, esports, action games, competitive sports, entertainment",
+    "summary": "Russo One with Chakra Petch. Gaming, esports, action games, competitive sports, entertainment",
+    "modes": [],
+    "fields": {
+      "heading": "Russo One",
+      "body": "Chakra Petch",
+      "category": "Display + Sans",
+      "mood": "gaming, bold, action, esports, competitive, energetic",
+      "bestFor": "Gaming, esports, action games, competitive sports, entertainment",
+      "url": "https://fonts.google.com/share?selection.family=Chakra+Petch:wght@300;400;500;600;700|Russo+One",
+      "notes": "Russo One for impact. Chakra Petch for techy body text."
+    }
+  },
+  {
+    "id": "typography:indie-craft",
+    "domain": "typography",
+    "name": "Indie/Craft",
+    "keywords": "indie, craft, handmade, artisan, organic, creative Display + Sans Craft brands, indie products, artisan, handmade, organic products",
+    "summary": "Amatic SC with Cabin. Craft brands, indie products, artisan, handmade, organic products",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Amatic SC",
+      "body": "Cabin",
+      "category": "Display + Sans",
+      "mood": "indie, craft, handmade, artisan, organic, creative",
+      "bestFor": "Craft brands, indie products, artisan, handmade, organic products",
+      "url": "https://fonts.google.com/share?selection.family=Amatic+SC:wght@400;700|Cabin:wght@400;500;600;700",
+      "notes": "Amatic for handwritten feel. Cabin for readable body."
+    }
+  },
+  {
+    "id": "typography:startup-bold",
+    "domain": "typography",
+    "name": "Startup Bold",
+    "keywords": "startup, bold, modern, innovative, confident, dynamic Sans + Sans Startups, pitch decks, product launches, bold brands",
+    "summary": "Clash Display with Satoshi. Startups, pitch decks, product launches, bold brands",
+    "modes": ["persuade", "experience"],
+    "fields": {
+      "heading": "Clash Display",
+      "body": "Satoshi",
+      "category": "Sans + Sans",
+      "mood": "startup, bold, modern, innovative, confident, dynamic",
+      "bestFor": "Startups, pitch decks, product launches, bold brands",
+      "url": "https://fonts.google.com/share?selection.family=Outfit:wght@400;500;600;700|Rubik:wght@300;400;500;600;700",
+      "notes": "Note: Clash Display on Fontshare. Outfit as Google alternative."
+    }
+  },
+  {
+    "id": "typography:e-commerce-clean",
+    "domain": "typography",
+    "name": "E-commerce Clean",
+    "keywords": "ecommerce, clean, shopping, product, retail, conversion Sans + Sans E-commerce, online stores, product pages, retail, shopping",
+    "summary": "Rubik with Nunito Sans. E-commerce, online stores, product pages, retail, shopping",
+    "modes": ["persuade"],
+    "fields": {
+      "heading": "Rubik",
+      "body": "Nunito Sans",
+      "category": "Sans + Sans",
+      "mood": "ecommerce, clean, shopping, product, retail, conversion",
+      "bestFor": "E-commerce, online stores, product pages, retail, shopping",
+      "url": "https://fonts.google.com/share?selection.family=Nunito+Sans:wght@300;400;500;600;700|Rubik:wght@300;400;500;600;700",
+      "notes": "Clean readable fonts perfect for product descriptions."
+    }
+  },
+  {
+    "id": "typography:academic-research",
+    "domain": "typography",
+    "name": "Academic/Research",
+    "keywords": "academic, research, scholarly, accessible, readable, educational Serif + Sans Universities, research papers, academic journals, educational",
+    "summary": "Crimson Pro with Atkinson Hyperlegible. Universities, research papers, academic journals, educational",
+    "modes": [],
+    "fields": {
+      "heading": "Crimson Pro",
+      "body": "Atkinson Hyperlegible",
+      "category": "Serif + Sans",
+      "mood": "academic, research, scholarly, accessible, readable, educational",
+      "bestFor": "Universities, research papers, academic journals, educational",
+      "url": "https://fonts.google.com/share?selection.family=Atkinson+Hyperlegible:wght@400;700|Crimson+Pro:wght@400;500;600;700",
+      "notes": "Crimson for scholarly headlines. Atkinson for accessibility."
+    }
+  },
+  {
+    "id": "typography:dashboard-data",
+    "domain": "typography",
+    "name": "Dashboard Data",
+    "keywords": "dashboard, data, analytics, code, technical, precise Mono + Sans Dashboards, analytics, data visualization, admin panels",
+    "summary": "Fira Code with Fira Sans. Dashboards, analytics, data visualization, admin panels",
+    "modes": ["operate"],
+    "fields": {
+      "heading": "Fira Code",
+      "body": "Fira Sans",
+      "category": "Mono + Sans",
+      "mood": "dashboard, data, analytics, code, technical, precise",
+      "bestFor": "Dashboards, analytics, data visualization, admin panels",
+      "url": "https://fonts.google.com/share?selection.family=Fira+Code:wght@400;500;600;700|Fira+Sans:wght@300;400;500;600;700",
+      "notes": "Fira family cohesion. Code for data, Sans for labels."
+    }
+  },
+  {
+    "id": "typography:music-entertainment",
+    "domain": "typography",
+    "name": "Music/Entertainment",
+    "keywords": "music, entertainment, fun, energetic, bold, performance Display + Sans Music platforms, entertainment, events, festivals, performers",
+    "summary": "Righteous with Poppins. Music platforms, entertainment, events, festivals, performers",
+    "modes": [],
+    "fields": {
+      "heading": "Righteous",
+      "body": "Poppins",
+      "category": "Display + Sans",
+      "mood": "music, entertainment, fun, energetic, bold, performance",
+      "bestFor": "Music platforms, entertainment, events, festivals, performers",
+      "url": "https://fonts.google.com/share?selection.family=Poppins:wght@300;400;500;600;700|Righteous",
+      "notes": "Righteous for bold entertainment headers. Poppins for body."
+    }
+  },
+  {
+    "id": "typography:minimalist-portfolio",
+    "domain": "typography",
+    "name": "Minimalist Portfolio",
+    "keywords": "minimal, portfolio, designer, creative, clean, artistic Sans + Sans Design portfolios, creative professionals, minimalist brands",
+    "summary": "Archivo with Space Grotesk. Design portfolios, creative professionals, minimalist brands",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Archivo",
+      "body": "Space Grotesk",
+      "category": "Sans + Sans",
+      "mood": "minimal, portfolio, designer, creative, clean, artistic",
+      "bestFor": "Design portfolios, creative professionals, minimalist brands",
+      "url": "https://fonts.google.com/share?selection.family=Archivo:wght@300;400;500;600;700|Space+Grotesk:wght@300;400;500;600;700",
+      "notes": "Space Grotesk for distinctive headers. Archivo for clean body."
+    }
+  },
+  {
+    "id": "typography:kids-education",
+    "domain": "typography",
+    "name": "Kids/Education",
+    "keywords": "kids, education, playful, friendly, colorful, learning Display + Sans Children's apps, educational games, kid-friendly content",
+    "summary": "Baloo 2 with Comic Neue. Children's apps, educational games, kid-friendly content",
+    "modes": [],
+    "fields": {
+      "heading": "Baloo 2",
+      "body": "Comic Neue",
+      "category": "Display + Sans",
+      "mood": "kids, education, playful, friendly, colorful, learning",
+      "bestFor": "Children's apps, educational games, kid-friendly content",
+      "url": "https://fonts.google.com/share?selection.family=Baloo+2:wght@400;500;600;700|Comic+Neue:wght@300;400;700",
+      "notes": "Fun, playful fonts for children. Comic Neue is readable comic style."
+    }
+  },
+  {
+    "id": "typography:wedding-romance",
+    "domain": "typography",
+    "name": "Wedding/Romance",
+    "keywords": "wedding, romance, elegant, script, invitation, feminine Script + Serif Wedding sites, invitations, romantic brands, bridal",
+    "summary": "Great Vibes with Cormorant Infant. Wedding sites, invitations, romantic brands, bridal",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Great Vibes",
+      "body": "Cormorant Infant",
+      "category": "Script + Serif",
+      "mood": "wedding, romance, elegant, script, invitation, feminine",
+      "bestFor": "Wedding sites, invitations, romantic brands, bridal",
+      "url": "https://fonts.google.com/share?selection.family=Cormorant+Infant:wght@300;400;500;600;700|Great+Vibes",
+      "notes": "Great Vibes for elegant accents. Cormorant for readable text."
+    }
+  },
+  {
+    "id": "typography:science-tech",
+    "domain": "typography",
+    "name": "Science/Tech",
+    "keywords": "science, technology, research, data, futuristic, precise Sans + Sans Science, research, tech documentation, data-heavy sites",
+    "summary": "Exo with Roboto Mono. Science, research, tech documentation, data-heavy sites",
+    "modes": ["operate", "read"],
+    "fields": {
+      "heading": "Exo",
+      "body": "Roboto Mono",
+      "category": "Sans + Sans",
+      "mood": "science, technology, research, data, futuristic, precise",
+      "bestFor": "Science, research, tech documentation, data-heavy sites",
+      "url": "https://fonts.google.com/share?selection.family=Exo:wght@300;400;500;600;700|Roboto+Mono:wght@300;400;500;700",
+      "notes": "Exo for modern tech feel. Roboto Mono for code/data."
+    }
+  },
+  {
+    "id": "typography:accessibility-first",
+    "domain": "typography",
+    "name": "Accessibility First",
+    "keywords": "accessible, readable, inclusive, WCAG, dyslexia-friendly, clear Sans + Sans Accessibility-critical sites, government, healthcare, inclusive design",
+    "summary": "Atkinson Hyperlegible with Atkinson Hyperlegible. Accessibility-critical sites, government, healthcare, inclusive design",
+    "modes": [],
+    "fields": {
+      "heading": "Atkinson Hyperlegible",
+      "body": "Atkinson Hyperlegible",
+      "category": "Sans + Sans",
+      "mood": "accessible, readable, inclusive, WCAG, dyslexia-friendly, clear",
+      "bestFor": "Accessibility-critical sites, government, healthcare, inclusive design",
+      "url": "https://fonts.google.com/share?selection.family=Atkinson+Hyperlegible:wght@400;700",
+      "notes": "Designed for maximum legibility. Excellent for accessibility."
+    }
+  },
+  {
+    "id": "typography:sports-fitness",
+    "domain": "typography",
+    "name": "Sports/Fitness",
+    "keywords": "sports, fitness, athletic, energetic, condensed, action Sans + Sans Sports, fitness, gyms, athletic brands, competition",
+    "summary": "Barlow Condensed with Barlow. Sports, fitness, gyms, athletic brands, competition",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Barlow Condensed",
+      "body": "Barlow",
+      "category": "Sans + Sans",
+      "mood": "sports, fitness, athletic, energetic, condensed, action",
+      "bestFor": "Sports, fitness, gyms, athletic brands, competition",
+      "url": "https://fonts.google.com/share?selection.family=Barlow+Condensed:wght@400;500;600;700|Barlow:wght@300;400;500;600;700",
+      "notes": "Condensed for impact headlines. Regular Barlow for body."
+    }
+  },
+  {
+    "id": "typography:luxury-minimalist",
+    "domain": "typography",
+    "name": "Luxury Minimalist",
+    "keywords": "luxury, minimalist, high-end, sophisticated, refined, premium Serif + Sans Luxury minimalist brands, high-end fashion, premium products",
+    "summary": "Bodoni Moda with Jost. Luxury minimalist brands, high-end fashion, premium products",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Bodoni Moda",
+      "body": "Jost",
+      "category": "Serif + Sans",
+      "mood": "luxury, minimalist, high-end, sophisticated, refined, premium",
+      "bestFor": "Luxury minimalist brands, high-end fashion, premium products",
+      "url": "https://fonts.google.com/share?selection.family=Bodoni+Moda:wght@400;500;600;700|Jost:wght@300;400;500;600;700",
+      "notes": "Bodoni's high contrast elegance. Jost for geometric body."
+    }
+  },
+  {
+    "id": "typography:tech-hud-mono",
+    "domain": "typography",
+    "name": "Tech/HUD Mono",
+    "keywords": "tech, futuristic, hud, sci-fi, data, monospaced, precise Mono + Mono Sci-fi interfaces, developer tools, cybersecurity, dashboards",
+    "summary": "Share Tech Mono with Fira Code. Sci-fi interfaces, developer tools, cybersecurity, dashboards",
+    "modes": ["operate"],
+    "fields": {
+      "heading": "Share Tech Mono",
+      "body": "Fira Code",
+      "category": "Mono + Mono",
+      "mood": "tech, futuristic, hud, sci-fi, data, monospaced, precise",
+      "bestFor": "Sci-fi interfaces, developer tools, cybersecurity, dashboards",
+      "url": "https://fonts.google.com/share?selection.family=Fira+Code:wght@300;400;500;600;700|Share+Tech+Mono",
+      "notes": "Share Tech Mono has that classic sci-fi look."
+    }
+  },
+  {
+    "id": "typography:pixel-retro",
+    "domain": "typography",
+    "name": "Pixel Retro",
+    "keywords": "pixel, retro, gaming, 8-bit, nostalgic, arcade Display + Sans Pixel art games, retro websites, creative portfolios",
+    "summary": "Press Start 2P with VT323. Pixel art games, retro websites, creative portfolios",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Press Start 2P",
+      "body": "VT323",
+      "category": "Display + Sans",
+      "mood": "pixel, retro, gaming, 8-bit, nostalgic, arcade",
+      "bestFor": "Pixel art games, retro websites, creative portfolios",
+      "url": "https://fonts.google.com/share?selection.family=Press+Start+2P|VT323",
+      "notes": "Press Start 2P is very wide/large. VT323 is better for body text."
+    }
+  },
+  {
+    "id": "typography:neubrutalist-bold",
+    "domain": "typography",
+    "name": "Neubrutalist Bold",
+    "keywords": "bold, neubrutalist, loud, strong, geometric, quirky Display + Sans Neubrutalist designs, Gen Z brands, bold marketing",
+    "summary": "Lexend Mega with Public Sans. Neubrutalist designs, Gen Z brands, bold marketing",
+    "modes": ["persuade", "experience"],
+    "fields": {
+      "heading": "Lexend Mega",
+      "body": "Public Sans",
+      "category": "Display + Sans",
+      "mood": "bold, neubrutalist, loud, strong, geometric, quirky",
+      "bestFor": "Neubrutalist designs, Gen Z brands, bold marketing",
+      "url": "https://fonts.google.com/share?selection.family=Lexend+Mega:wght@100..900|Public+Sans:wght@100..900",
+      "notes": "Lexend Mega has distinct character and variable weight."
+    }
+  },
+  {
+    "id": "typography:academic-archival",
+    "domain": "typography",
+    "name": "Academic/Archival",
+    "keywords": "academic, old-school, university, research, serious, traditional Serif + Serif University sites, archives, research papers, history",
+    "summary": "EB Garamond with Crimson Text. University sites, archives, research papers, history",
+    "modes": [],
+    "fields": {
+      "heading": "EB Garamond",
+      "body": "Crimson Text",
+      "category": "Serif + Serif",
+      "mood": "academic, old-school, university, research, serious, traditional",
+      "bestFor": "University sites, archives, research papers, history",
+      "url": "https://fonts.google.com/share?selection.family=Crimson+Text:wght@400;600;700|EB+Garamond:wght@400;500;600;700;800",
+      "notes": "Classic academic aesthetic. Very legible."
+    }
+  },
+  {
+    "id": "typography:spatial-clear",
+    "domain": "typography",
+    "name": "Spatial Clear",
+    "keywords": "spatial, legible, glass, system, clean, neutral Sans + Sans Spatial computing, AR/VR, glassmorphism interfaces",
+    "summary": "Inter with Inter. Spatial computing, AR/VR, glassmorphism interfaces",
+    "modes": [],
+    "fields": {
+      "heading": "Inter",
+      "body": "Inter",
+      "category": "Sans + Sans",
+      "mood": "spatial, legible, glass, system, clean, neutral",
+      "bestFor": "Spatial computing, AR/VR, glassmorphism interfaces",
+      "url": "https://fonts.google.com/share?selection.family=Inter:wght@300;400;500;600",
+      "notes": "Optimized for readability on dynamic backgrounds."
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY)"
+  },
+  {
+    "id": "typography:kinetic-motion",
+    "domain": "typography",
+    "name": "Kinetic Motion",
+    "keywords": "kinetic, motion, futuristic, speed, wide, tech Display + Mono Music festivals, automotive, high-energy brands",
+    "summary": "Syncopate with Space Mono. Music festivals, automotive, high-energy brands",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Syncopate",
+      "body": "Space Mono",
+      "category": "Display + Mono",
+      "mood": "kinetic, motion, futuristic, speed, wide, tech",
+      "bestFor": "Music festivals, automotive, high-energy brands",
+      "url": "https://fonts.google.com/share?selection.family=Space+Mono:wght@400;700|Syncopate:wght@400;700",
+      "notes": "Syncopate's wide stance works well with motion effects."
+    }
+  },
+  {
+    "id": "typography:gen-z-brutal",
+    "domain": "typography",
+    "name": "Gen Z Brutal",
+    "keywords": "brutal, loud, shouty, meme, internet, bold Display + Sans Gen Z marketing, streetwear, viral campaigns",
+    "summary": "Anton with Epilogue. Gen Z marketing, streetwear, viral campaigns",
+    "modes": ["persuade"],
+    "fields": {
+      "heading": "Anton",
+      "body": "Epilogue",
+      "category": "Display + Sans",
+      "mood": "brutal, loud, shouty, meme, internet, bold",
+      "bestFor": "Gen Z marketing, streetwear, viral campaigns",
+      "url": "https://fonts.google.com/share?selection.family=Anton|Epilogue:wght@400;500;600;700",
+      "notes": "Anton is impactful and condensed. Good for stickers/badges.57"
+    }
+  },
+  {
+    "id": "typography:minimalist-monochrome-editorial",
+    "domain": "typography",
+    "name": "Minimalist Monochrome Editorial",
+    "keywords": "monochrome, editorial, austere, typographic, pocket manifesto, luxury, high contrast, brutalist mobile Serif + Serif + Mono (Triple Stack) Luxury fashion mobile apps, editorial publications, digital exhibitions, portfolio apps, high-contrast e-reader aesthetics",
+    "summary": "Playfair Display with Source Serif 4. Luxury fashion mobile apps, editorial publications, digital exhibitions, portfolio apps, high-contrast e-reader aesthetics",
+    "modes": ["read", "experience"],
+    "fields": {
+      "heading": "Playfair Display",
+      "body": "Source Serif 4",
+      "category": "Serif + Serif + Mono (Triple Stack)",
+      "mood": "monochrome, editorial, austere, typographic, pocket manifesto, luxury, high contrast, brutalist mobile",
+      "bestFor": "Luxury fashion mobile apps, editorial publications, digital exhibitions, portfolio apps, high-contrast e-reader aesthetics",
+      "url": "https://fonts.google.com/share?selection.family=JetBrains+Mono:wght@400;500|Playfair+Display:ital,wght@0,400;0,700;0,900;1,400|Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300",
+      "notes": "Triple stack: Playfair Display 900 tracking-tighter leading-[0.9] for heroes (text-5xl–text-6xl breaks words graphically). Source Serif 4 300–600 for body legibility. JetBrains Mono 400–500 uppercase tracking-widest for tags/dates/labels. NO UI sans-serif — 100% serif/mono."
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY) Tracked uppercase labels are a default, use sparingly and mainly for dense data. (NS-SLOP-CAPS-LABELS)"
+  },
+  {
+    "id": "typography:saas-mobile-boutique-calistoga-inter",
+    "domain": "typography",
+    "name": "SaaS Mobile Boutique (Calistoga + Inter)",
+    "keywords": "saas, boutique, electric, warm, editorial, bold, premium, fintech, business, dual font, human warmth Display Serif + Sans + Mono B2B SaaS mobile, fintech apps, analytics dashboards, marketing tools, operations platforms",
+    "summary": "Calistoga with Inter. B2B SaaS mobile, fintech apps, analytics dashboards, marketing tools, operations platforms",
+    "modes": ["operate", "persuade"],
+    "fields": {
+      "heading": "Calistoga",
+      "body": "Inter",
+      "category": "Display Serif + Sans + Mono",
+      "mood": "saas, boutique, electric, warm, editorial, bold, premium, fintech, business, dual font, human warmth",
+      "bestFor": "B2B SaaS mobile, fintech apps, analytics dashboards, marketing tools, operations platforms",
+      "url": "https://fonts.google.com/share?selection.family=Calistoga:ital@0;1|Inter:wght@300;400;500;600;700|JetBrains+Mono:wght@400;500",
+      "notes": "Tri-stack: Calistoga (adds human warmth) for heroes 36–42pt leading-1.1; Inter 400–600 for body/UI 16–18pt; JetBrains Mono 12pt uppercase tracking-[1.5] for data labels and section badges. Scale: Hero 36–42pt, Section H2 28–32pt, Body 16–18pt, Label 12pt. Avoid italic Calistoga except editorial callouts."
+    },
+    "caution": "Tracked uppercase labels are a default, use sparingly and mainly for dense data. (NS-SLOP-CAPS-LABELS)"
+  },
+  {
+    "id": "typography:terminal-cli-monospace",
+    "domain": "typography",
+    "name": "Terminal CLI Monospace",
+    "keywords": "terminal, cli, hacker, monospace, matrix, developer, retro-future, command line, precision, OLED Mono + Mono (Single Family) Developer tools, Web3/blockchain apps, hacker aesthetic, sci-fi games, ARG, security tools, geek-culture portfolios",
+    "summary": "JetBrains Mono with JetBrains Mono. Developer tools, Web3/blockchain apps, hacker aesthetic, sci-fi games, ARG, security tools, geek-culture portfolios",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "JetBrains Mono",
+      "body": "JetBrains Mono",
+      "category": "Mono + Mono (Single Family)",
+      "mood": "terminal, cli, hacker, monospace, matrix, developer, retro-future, command line, precision, OLED",
+      "bestFor": "Developer tools, Web3/blockchain apps, hacker aesthetic, sci-fi games, ARG, security tools, geek-culture portfolios",
+      "url": "https://fonts.google.com/share?selection.family=JetBrains+Mono:ital,wght@0,400;0,500;1,400",
+      "notes": "Single monospace system: use ONLY JetBrains Mono (or SpaceMono-Regular as system fallback). Strict sizes: 12pt / 14pt / 16pt only — no in-between. Weight: 400 normal (bold ruins mono character). Line height: 1.2x font size for information density. Letter spacing: normal (monospaced auto-spacing). All UI labels uppercase. ASCII borders and text-based progres…"
+    },
+    "caution": "Tracked uppercase labels are a default, use sparingly and mainly for dense data. (NS-SLOP-CAPS-LABELS)"
+  },
+  {
+    "id": "typography:kinetic-brutalism-space-grotesk",
+    "domain": "typography",
+    "name": "Kinetic Brutalism (Space Grotesk)",
+    "keywords": "kinetic, brutalist, aggressive, uppercase, oversized, display, motion, street, bold, high-energy, zine Geometric Sans (Single Dominant) Music/culture apps, sports platforms, brand flagship mobile, performance dashboards, underground product drops",
+    "summary": "Space Grotesk with Space Grotesk. Music/culture apps, sports platforms, brand flagship mobile, performance dashboards, underground product drops",
+    "modes": ["operate", "experience"],
+    "fields": {
+      "heading": "Space Grotesk",
+      "body": "Space Grotesk",
+      "category": "Geometric Sans (Single Dominant)",
+      "mood": "kinetic, brutalist, aggressive, uppercase, oversized, display, motion, street, bold, high-energy, zine",
+      "bestFor": "Music/culture apps, sports platforms, brand flagship mobile, performance dashboards, underground product drops",
+      "url": "https://fonts.google.com/share?selection.family=Space+Grotesk:wght@400;500;600;700",
+      "notes": "Dominant single-family system: Space Grotesk 700–900 for ALL display. Scale: Hero 60–120pt (windowWidth/375*size), Section 40–50pt, Card titles 28–32pt, Body 18–20pt, Labels 12pt. ALL display/buttons/nav: UPPERCASE, letterSpacing -1 (large) / +2 (labels), lineHeight 0.9–1.1x. Use Inter as fallback. Font scale must use PixelRatio helper for responsive sizing."
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY) Tracked uppercase labels are a default, use sparingly and mainly for dense data. (NS-SLOP-CAPS-LABELS)"
+  },
+  {
+    "id": "typography:flat-design-mobile-system-bold",
+    "domain": "typography",
+    "name": "Flat Design Mobile (System Bold)",
+    "keywords": "flat, clean, system, bold, geometric, cross-platform, icon, poster, minimal, functional, responsive Sans + Sans Cross-platform apps, dashboards, system UI, onboarding, marketing pages, informational apps, icon-heavy interfaces",
+    "summary": "Inter with Inter. Cross-platform apps, dashboards, system UI, onboarding, marketing pages, informational apps, icon-heavy interfaces",
+    "modes": ["operate", "persuade"],
+    "fields": {
+      "heading": "Inter",
+      "body": "Inter",
+      "category": "Sans + Sans",
+      "mood": "flat, clean, system, bold, geometric, cross-platform, icon, poster, minimal, functional, responsive",
+      "bestFor": "Cross-platform apps, dashboards, system UI, onboarding, marketing pages, informational apps, icon-heavy interfaces",
+      "url": "https://fonts.google.com/share?selection.family=Inter:wght@400;600;700;800",
+      "notes": "System-first strategy: Inter as primary, falls back to system SF/Roboto on iOS/Android. Scale: Headlines fontWeight 800 letterSpacing -0.5; Subheadings fontWeight 600 fontSize 18; Body fontWeight 400 lineHeight 24; Labels fontWeight 700 uppercase letterSpacing 1. Thick weights carry all hierarchy since there are no shadows. Use aggressive size contrast (pos…"
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY) Tracked uppercase labels are a default, use sparingly and mainly for dense data. (NS-SLOP-CAPS-LABELS)"
+  },
+  {
+    "id": "typography:material-you-md3-roboto-system",
+    "domain": "typography",
+    "name": "Material You MD3 (Roboto System)",
+    "keywords": "material design 3, md3, android, google, tonal, friendly, rounded, accessible, adaptive Sans (System Default) Android apps, cross-platform tools, productivity software, data-heavy B2B dashboards, enterprise mobile",
+    "summary": "Roboto with Roboto. Android apps, cross-platform tools, productivity software, data-heavy B2B dashboards, enterprise mobile",
+    "modes": ["operate"],
+    "fields": {
+      "heading": "Roboto",
+      "body": "Roboto",
+      "category": "Sans (System Default)",
+      "mood": "material design 3, md3, android, google, tonal, friendly, rounded, accessible, adaptive",
+      "bestFor": "Android apps, cross-platform tools, productivity software, data-heavy B2B dashboards, enterprise mobile",
+      "url": "https://fonts.google.com/share?selection.family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400",
+      "notes": "MD3 type scale: Display Large 56px/400/64px. Headline Large 32px/500/40px. Title Large 22px/500/28px. Body Large 16px/400/24px. Label Medium 12px/500/16px. Buttons and Labels: letterSpacing 0.1px. Use system Roboto on Android; load from Google Fonts for iOS parity. Never use custom weights beyond 300–700."
+    }
+  },
+  {
+    "id": "typography:neo-brutalism-mobile-space-grotesk-heavy",
+    "domain": "typography",
+    "name": "Neo Brutalism Mobile (Space Grotesk Heavy)",
+    "keywords": "neo brutalism, pop art, loud, bold, heavy, stickers, mechanical, high contrast, cream, gen-z Geometric Sans (Bold-Only) Creative tools, Gen-Z marketing, e-commerce for youth culture, content portfolios, collage-style apps",
+    "summary": "Space Grotesk with Space Grotesk. Creative tools, Gen-Z marketing, e-commerce for youth culture, content portfolios, collage-style apps",
+    "modes": ["persuade", "experience"],
+    "fields": {
+      "heading": "Space Grotesk",
+      "body": "Space Grotesk",
+      "category": "Geometric Sans (Bold-Only)",
+      "mood": "neo brutalism, pop art, loud, bold, heavy, stickers, mechanical, high contrast, cream, gen-z",
+      "bestFor": "Creative tools, Gen-Z marketing, e-commerce for youth culture, content portfolios, collage-style apps",
+      "url": "https://fonts.google.com/share?selection.family=Space+Grotesk:wght@700",
+      "notes": "Strictly 700 (Bold) and 900 (Black/Heavy) ONLY — never Regular or Light. Display: 48–64px. Heading: 24–32px. Body: 18–20px (stays heavy for brutalist density). Labels: 14px ALL CAPS letterSpacing 2. All buttons and navigation: uppercase. System bold as fallback. No italic, no thin weights."
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY) Tracked uppercase labels are a default, use sparingly and mainly for dense data. (NS-SLOP-CAPS-LABELS)"
+  },
+  {
+    "id": "typography:bold-typography-mobile-inter-tight-poster",
+    "domain": "typography",
+    "name": "Bold Typography Mobile (Inter-Tight Poster)",
+    "keywords": "bold typography, editorial, poster, near-black, vermillion, luxury, type-as-hero, manifesto, high-contrast Sans + Serif (Display) + Mono Creative brand flagships, reading platforms, event apps, flash pages, luxury mobile experiences",
+    "summary": "Inter with Playfair Display. Creative brand flagships, reading platforms, event apps, flash pages, luxury mobile experiences",
+    "modes": ["read", "experience"],
+    "fields": {
+      "heading": "Inter",
+      "body": "Playfair Display",
+      "category": "Sans + Serif (Display) + Mono",
+      "mood": "bold typography, editorial, poster, near-black, vermillion, luxury, type-as-hero, manifesto, high-contrast",
+      "bestFor": "Creative brand flagships, reading platforms, event apps, flash pages, luxury mobile experiences",
+      "url": "https://fonts.google.com/share?selection.family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400|JetBrains+Mono:wght@400|Playfair+Display:ital@1",
+      "notes": "Tri-stack: Inter 600–800 for all UI (letterSpacing -1.5px heroes, -0.5px subheads). Playfair Display Italic ONLY for pull quotes. JetBrains Mono for labels and stats. Scale: 12px labels, 16px body, 22px sub, 32px section, 40px H2, 56px H1, 72px Hero Statement. 5:1 ratio H1:Body is mandatory. lineHeight 1.1 headlines, 1.6 body. Underlines (2–3pt accent) repl…"
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY)"
+  },
+  {
+    "id": "typography:academia-mobile-cormorant-crimson-cinzel",
+    "domain": "typography",
+    "name": "Academia Mobile (Cormorant + Crimson + Cinzel)",
+    "keywords": "academia, library, mahogany, parchment, brass, scholarly, prestige, antique, victorian, leather Serif + Book Serif + Engraved (Triple Stack) Knowledge management apps, scholarly reading tools, personal brand portfolios, RPG games, cultural community platforms",
+    "summary": "Cormorant Garamond with Crimson Pro. Knowledge management apps, scholarly reading tools, personal brand portfolios, RPG games, cultural community platforms",
+    "modes": ["read", "experience"],
+    "fields": {
+      "heading": "Cormorant Garamond",
+      "body": "Crimson Pro",
+      "category": "Serif + Book Serif + Engraved (Triple Stack)",
+      "mood": "academia, library, mahogany, parchment, brass, scholarly, prestige, antique, victorian, leather",
+      "bestFor": "Knowledge management apps, scholarly reading tools, personal brand portfolios, RPG games, cultural community platforms",
+      "url": "https://fonts.google.com/share?selection.family=Cinzel:wght@400;500;600|Cormorant+Garamond:ital,wght@0,300;0,500;0,700;1,300;1,500|Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400",
+      "notes": "Triple-stack: Cormorant Garamond Medium for all headings (32–40px tight leading). Crimson Pro Regular for body reading text (16–18px, lineHeight 24–26px). Cinzel SemiBold for ALL-CAPS labels, overlines, section prefixes (10–12px, letterSpacing 2–3px). Drop caps: first letter 60px Cinzel in Brass #C9A962. Section prefix: VOLUME I/II/III in Cinzel 10px. NO sa…"
+    }
+  },
+  {
+    "id": "typography:cyberpunk-mobile-orbitron-jetbrains-mono",
+    "domain": "typography",
+    "name": "Cyberpunk Mobile (Orbitron + JetBrains Mono)",
+    "keywords": "cyberpunk, neon, glitch, hud, sci-fi, dark, matrix green, magenta, chamfered, tactical Tech Display + Mono Gaming companion apps, fintech/crypto, data visualization, dark brand apps, cyberpunk narrative games",
+    "summary": "Orbitron with JetBrains Mono. Gaming companion apps, fintech/crypto, data visualization, dark brand apps, cyberpunk narrative games",
+    "modes": ["operate", "experience"],
+    "fields": {
+      "heading": "Orbitron",
+      "body": "JetBrains Mono",
+      "category": "Tech Display + Mono",
+      "mood": "cyberpunk, neon, glitch, hud, sci-fi, dark, matrix green, magenta, chamfered, tactical",
+      "bestFor": "Gaming companion apps, fintech/crypto, data visualization, dark brand apps, cyberpunk narrative games",
+      "url": "https://fonts.google.com/share?selection.family=JetBrains+Mono:wght@400;500|Orbitron:wght@700;900",
+      "notes": "Dual-stack: Orbitron 700–900 for H1 (42px uppercase letterSpacing 4, fontWeight 900). JetBrains Mono 400–500 for all body/data text (14px letterSpacing 1). Labels: 10px uppercase opacity 0.7. Heading scale aggressive: H1 42px, H2 28px, Section 20px. Body 14px monospace only. NO mixed sans-serif. Fallback: monospace system font. Orbitron requires loading — u…"
+    },
+    "caution": "Tracked uppercase labels are a default, use sparingly and mainly for dense data. (NS-SLOP-CAPS-LABELS)"
+  },
+  {
+    "id": "typography:claymorphism-mobile-nunito-dm-sans",
+    "domain": "typography",
+    "name": "Claymorphism Mobile (Nunito + DM Sans)",
+    "keywords": "claymorphism, clay, rounded, playful, candy, bubbly, soft, 3d, children, education, tactile, spring, nunito, dm sans Display Rounded + Geometric Sans Children education apps, teen social, brand mascot apps, creative tools, fintech gamification",
+    "summary": "Nunito with DM Sans. Children education apps, teen social, brand mascot apps, creative tools, fintech gamification",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Nunito",
+      "body": "DM Sans",
+      "category": "Display Rounded + Geometric Sans",
+      "mood": "claymorphism, clay, rounded, playful, candy, bubbly, soft, 3d, children, education, tactile, spring, nunito, dm sans",
+      "bestFor": "Children education apps, teen social, brand mascot apps, creative tools, fintech gamification",
+      "url": "https://fonts.google.com/share?selection.family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400|Nunito:ital,wght@0,700;0,800;0,900;1,700",
+      "notes": "Dual-stack: Nunito Black (900) or ExtraBold (800) for ALL headings — rounded terminals are mandatory. DM Sans Medium (500) for body text — clean and geometric. Scale: Hero 48px lineHeight 52 letterSpacing -1. Section Title 32px lineHeight 38. Card Title 22px lineHeight 28. Body 16px lineHeight 24. Never use Nunito for body text (too decorative at small size…"
+    }
+  },
+  {
+    "id": "typography:enterprise-saas-mobile-plus-jakarta-sans",
+    "domain": "typography",
+    "name": "Enterprise SaaS Mobile (Plus Jakarta Sans)",
+    "keywords": "enterprise, saas, b2b, professional, indigo, modern, approachable, legible, ios dynamic type, android scaling Geometric Sans (Single Family) B2B SaaS apps, productivity tools, government and finance mobile apps, admin dashboards, enterprise onboarding",
+    "summary": "Plus Jakarta Sans with Plus Jakarta Sans. B2B SaaS apps, productivity tools, government and finance mobile apps, admin dashboards, enterprise onboarding",
+    "modes": ["operate"],
+    "fields": {
+      "heading": "Plus Jakarta Sans",
+      "body": "Plus Jakarta Sans",
+      "category": "Geometric Sans (Single Family)",
+      "mood": "enterprise, saas, b2b, professional, indigo, modern, approachable, legible, ios dynamic type, android scaling",
+      "bestFor": "B2B SaaS apps, productivity tools, government and finance mobile apps, admin dashboards, enterprise onboarding",
+      "url": "https://fonts.google.com/share?selection.family=Plus+Jakarta+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400",
+      "notes": "Single-family system: Plus Jakarta Sans balances professional authority with mobile approachability. Weight scale: ExtraBold 800 for screen titles/hero (line height 1.1–1.2). Bold 700 for section headers. SemiBold 600 for card titles and buttons. Regular 400 for body text (line height 1.4–1.5). Must support iOS Dynamic Type and Android font scaling — never …"
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY)"
+  },
+  {
+    "id": "typography:sketch-hand-drawn-mobile-kalam-patrick-hand",
+    "domain": "typography",
+    "name": "Sketch Hand-Drawn Mobile (Kalam + Patrick Hand)",
+    "keywords": "sketch, hand-drawn, handwriting, human, imperfect, organic, paper, kalam, patrick hand, education, journal, creative Handwritten + Handwritten (Dual) Journaling apps, prototype tools, children's picturebook apps, creative platforms, gamified puzzle apps",
+    "summary": "Kalam with Patrick Hand. Journaling apps, prototype tools, children's picturebook apps, creative platforms, gamified puzzle apps",
+    "modes": ["experience"],
+    "fields": {
+      "heading": "Kalam",
+      "body": "Patrick Hand",
+      "category": "Handwritten + Handwritten (Dual)",
+      "mood": "sketch, hand-drawn, handwriting, human, imperfect, organic, paper, kalam, patrick hand, education, journal, creative",
+      "bestFor": "Journaling apps, prototype tools, children's picturebook apps, creative platforms, gamified puzzle apps",
+      "url": "https://fonts.google.com/share?selection.family=Kalam:wght@400;700|Patrick+Hand",
+      "notes": "Dual handwritten stack: Kalam Bold (700) for all headings — high visual weight, felt-tip marker aesthetic, conveys intentional messiness. Patrick Hand Regular for all body text — highly legible at mobile sizes while remaining distinctly human. Scale: Heading 28–36px with lineHeight adjusted for descenders. Body 16–18px lineHeight 1.5. Labels 14px. Vary font…"
+    }
+  },
+  {
+    "id": "typography:neumorphism-mobile-plus-jakarta-sans-system",
+    "domain": "typography",
+    "name": "Neumorphism Mobile (Plus Jakarta Sans + System)",
+    "keywords": "neumorphism, soft ui, monochromatic, cool grey, minimal, physical, depth, ceramic, system font, utility Geometric Sans (System Fallback) Smart home controls, minimal tools, aesthetic dashboards, health monitors, brand showcase pages",
+    "summary": "Plus Jakarta Sans with Plus Jakarta Sans. Smart home controls, minimal tools, aesthetic dashboards, health monitors, brand showcase pages",
+    "modes": ["operate", "experience"],
+    "fields": {
+      "heading": "Plus Jakarta Sans",
+      "body": "Plus Jakarta Sans",
+      "category": "Geometric Sans (System Fallback)",
+      "mood": "neumorphism, soft ui, monochromatic, cool grey, minimal, physical, depth, ceramic, system font, utility",
+      "bestFor": "Smart home controls, minimal tools, aesthetic dashboards, health monitors, brand showcase pages",
+      "url": "https://fonts.google.com/share?selection.family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,700;1,400",
+      "notes": "Single-family or System fallback: Plus Jakarta Sans Bold/Medium pairs beautifully with the monochromatic #E0E5EC surface — subtle geometry without competing with the depth effect. Heading: 24–32px Bold (700), letterSpacing -0.5 for modern premium feel. Body: 16px Medium (500), lineHeight 1.4. Caption: 12px Regular (400). Use Text Primary #3D4852 (7.5:1 cont…"
+    },
+    "caution": "Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver. (NS-TYPE-DEFAULT-DISPLAY)"
+  }
+]

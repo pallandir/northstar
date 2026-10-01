@@ -1,0 +1,42 @@
+{
+  "source": "ui-ux-pro-max (nextlevelbuilder, MIT)",
+  "sourceVersion": "2.5.0",
+  "license": "MIT",
+  "portedOn": "2026-10-01",
+  "counts": {
+    "styles": 75,
+    "palettes": 161,
+    "typography": 71,
+    "products": 161,
+    "reasoning": 161,
+    "ux": 99,
+    "charts": 25,
+    "landing": 34,
+    "icons": 105,
+    "fonts": 1923
+  },
+  "dropped": {
+    "styles": 1,
+    "palettes": 0,
+    "typography": 2,
+    "products": 0,
+    "reasoning": 0,
+    "ux": 0,
+    "charts": 0,
+    "landing": 0,
+    "icons": 0,
+    "fonts": 0
+  },
+  "cautioned": {
+    "styles": 11,
+    "palettes": 3,
+    "typography": 22,
+    "products": 3,
+    "reasoning": 3,
+    "ux": 0,
+    "charts": 0,
+    "landing": 0,
+    "icons": 0,
+    "fonts": 0
+  }
+}

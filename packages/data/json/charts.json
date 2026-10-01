@@ -1,0 +1,452 @@
+[
+  {
+    "id": "charts:trend-over-time",
+    "domain": "charts",
+    "name": "Trend Over Time",
+    "keywords": "trend, time-series, line, growth, timeline, progress Line Chart",
+    "summary": "Line Chart. Data has a time axis; user needs to observe rise/fall trends or rate of change over a continuous period",
+    "modes": ["operate", "experience"],
+    "fields": {
+      "best": "Line Chart",
+      "secondary": "Area Chart, Smooth Area",
+      "whenToUse": "Data has a time axis; user needs to observe rise/fall trends or rate of change over a continuous period",
+      "whenNot": "Fewer than 4 data points (use stat card); more than 6 series (visual noise); no time dimension exists",
+      "colors": "Primary: #0080FF. Multiple series: distinct colors + distinct line styles. Fill: 20% opacity",
+      "accessibility": "Differentiate series by line style (solid/dashed/dotted) not color alone. Add pattern overlays for colorblind users.",
+      "fallback": "Dashed/dotted lines per series; togglable data table with timestamps and values",
+      "library": "Chart.js, Recharts, ApexCharts"
+    }
+  },
+  {
+    "id": "charts:compare-categories",
+    "domain": "charts",
+    "name": "Compare Categories",
+    "keywords": "compare, categories, bar, comparison, ranking Bar Chart (Horizontal or Vertical)",
+    "summary": "Bar Chart (Horizontal or Vertical). Comparing discrete categories by magnitude; ranking or ordering is the core insight; categories ≤ 15",
+    "modes": ["experience"],
+    "fields": {
+      "best": "Bar Chart (Horizontal or Vertical)",
+      "secondary": "Column Chart, Grouped Bar",
+      "whenToUse": "Comparing discrete categories by magnitude; ranking or ordering is the core insight; categories ≤ 15",
+      "whenNot": "Categories > 15 (use table or search); data has time dimension (use line); showing proportions (use waffle/stacked)",
+      "colors": "Each bar: distinct color. Grouped: same hue family. Always sort descending by value",
+      "accessibility": "Value labels on each bar by default. Sort control for user reordering.",
+      "fallback": "Value labels always visible; provide CSV export",
+      "library": "Chart.js, Recharts, D3.js"
+    }
+  },
+  {
+    "id": "charts:part-to-whole",
+    "domain": "charts",
+    "name": "Part-to-Whole",
+    "keywords": "part-to-whole, pie, donut, percentage, proportion, share Pie Chart or Donut",
+    "summary": "Pie Chart or Donut. ≤5 categories; one dominant segment vs rest; emphasis on visual proportion over exact values",
+    "modes": ["experience"],
+    "fields": {
+      "best": "Pie Chart or Donut",
+      "secondary": "Stacked Bar, Waffle Chart",
+      "whenToUse": "≤5 categories; one dominant segment vs rest; emphasis on visual proportion over exact values",
+      "whenNot": "Categories > 5; slice differences < 5% (visually indistinguishable); user needs precise values; accessibility-first context",
+      "colors": "5–6 max colors. Contrasting palette. Largest slice at 12 o'clock. Always label slices with %",
+      "accessibility": "Pie charts fail WCAG for colorblind users. Slices rely on color alone. Avoid as primary chart in a11y contexts.",
+      "fallback": "Must provide stacked bar alternative + percentage data table as mandatory fallback",
+      "library": "Chart.js, Recharts, D3.js"
+    }
+  },
+  {
+    "id": "charts:correlation-distribution",
+    "domain": "charts",
+    "name": "Correlation / Distribution",
+    "keywords": "correlation, distribution, scatter, relationship, pattern, cluster Scatter Plot or Bubble Chart",
+    "summary": "Scatter Plot or Bubble Chart. Exploring relationship between two continuous variables; identifying clusters or outliers in a dataset",
+    "modes": ["operate", "experience"],
+    "fields": {
+      "best": "Scatter Plot or Bubble Chart",
+      "secondary": "Heat Map, Matrix",
+      "whenToUse": "Exploring relationship between two continuous variables; identifying clusters or outliers in a dataset",
+      "whenNot": "Variables are categorical (use grouped bar); fewer than 20 points (patterns aren't meaningful); mobile-primary context",
+      "colors": "Color axis: gradient (blue → red). Bubble size: relative to 3rd variable. Opacity: 0.6–0.8 to show density",
+      "accessibility": "Provide data table alternative. Combine color + shape distinction for colorblind users.",
+      "fallback": "Data table with correlation coefficient annotation; shape markers (circle/square/triangle) per group",
+      "library": "D3.js, Plotly, Recharts"
+    }
+  },
+  {
+    "id": "charts:heatmap-intensity",
+    "domain": "charts",
+    "name": "Heatmap / Intensity",
+    "keywords": "heatmap, heat-map, intensity, density, matrix, calendar Heat Map or Choropleth",
+    "summary": "Heat Map or Choropleth. Showing intensity/density across a 2D grid; time-based patterns (e.g., activity by hour × day)",
+    "modes": [],
+    "fields": {
+      "best": "Heat Map or Choropleth",
+      "secondary": "Grid Heat Map, Bubble Heat",
+      "whenToUse": "Showing intensity/density across a 2D grid; time-based patterns (e.g., activity by hour × day)",
+      "whenNot": "Fewer than 20 cells (use bar); user needs to read exact values; colorblind users without pattern fallback",
+      "colors": "Gradient: Cool (blue) to Hot (red). Divergent scale for ±data. Always include numeric color legend",
+      "accessibility": "Pattern overlay for colorblind users. Numerical value on hover. Legend must include scale ticks.",
+      "fallback": "Numerical overlay on hover; downloadable grid table with row/column labels",
+      "library": "D3.js, Plotly, ApexCharts"
+    }
+  },
+  {
+    "id": "charts:geographic-data",
+    "domain": "charts",
+    "name": "Geographic Data",
+    "keywords": "geographic, map, location, region, geo, spatial, choropleth Choropleth Map or Bubble Map",
+    "summary": "Choropleth Map or Bubble Map. Data has a regional/location dimension; spatial distribution is the core insight for the user",
+    "modes": ["operate"],
+    "fields": {
+      "best": "Choropleth Map or Bubble Map",
+      "secondary": "Geographic Heat Map",
+      "whenToUse": "Data has a regional/location dimension; spatial distribution is the core insight for the user",
+      "whenNot": "Regions have very different sizes making visual comparison misleading (use bar); mobile-primary context",
+      "colors": "Single color gradient per region group. Categorized colors for discrete types. Legend with clear scale breaks",
+      "accessibility": "Include text labels for major regions. Provide keyboard navigation between regions.",
+      "fallback": "Region text labels; sortable data table by region name and value; keyboard-navigable regions",
+      "library": "D3.js, Mapbox, Leaflet"
+    }
+  },
+  {
+    "id": "charts:funnel-flow",
+    "domain": "charts",
+    "name": "Funnel / Flow",
+    "keywords": "funnel, flow, conversion, drop-off, pipeline, stages Funnel Chart or Sankey",
+    "summary": "Funnel Chart or Sankey. Sequential multi-stage process; showing conversion or drop-off rates between defined stages",
+    "modes": ["persuade", "experience"],
+    "fields": {
+      "best": "Funnel Chart or Sankey",
+      "secondary": "Waterfall (for flows)",
+      "whenToUse": "Sequential multi-stage process; showing conversion or drop-off rates between defined stages",
+      "whenNot": "Stages aren't sequential; values don't decrease monotonically (use bar); fewer than 3 stages",
+      "colors": "Stages: single color gradient (start → end). Show conversion % between each stage. Highlight biggest drop",
+      "accessibility": "Explicit conversion % as text per stage. Stage labels always visible. Linear list view as fallback.",
+      "fallback": "Provide linear list view with stage name + count + drop-off %; keyboard traversal",
+      "library": "D3.js, Recharts, Custom SVG"
+    }
+  },
+  {
+    "id": "charts:performance-vs-target",
+    "domain": "charts",
+    "name": "Performance vs Target",
+    "keywords": "performance, target, kpi, gauge, goal, threshold, progress Gauge Chart or Bullet Chart",
+    "summary": "Gauge Chart or Bullet Chart. Single KPI measured against a defined target or threshold; dashboard summary context",
+    "modes": ["operate", "experience"],
+    "fields": {
+      "best": "Gauge Chart or Bullet Chart",
+      "secondary": "Dial, Thermometer",
+      "whenToUse": "Single KPI measured against a defined target or threshold; dashboard summary context",
+      "whenNot": "No target or benchmark exists; comparing multiple KPIs at once (use bullet chart grid)",
+      "colors": "Performance: Red → Yellow → Green gradient. Target: marker line. Threshold zones clearly differentiated",
+      "accessibility": "Always show numerical value + % of target as text beside chart. Never rely on color position alone.",
+      "fallback": "Numerical value + % of target shown as visible text; ARIA live region for real-time updates",
+      "library": "D3.js, ApexCharts, Custom SVG"
+    }
+  },
+  {
+    "id": "charts:time-series-forecast",
+    "domain": "charts",
+    "name": "Time-Series Forecast",
+    "keywords": "forecast, prediction, confidence, band, projection, estimate Line with Confidence Band",
+    "summary": "Line with Confidence Band. Historical data + model predictions; communicating uncertainty range to non-technical stakeholders",
+    "modes": ["operate"],
+    "fields": {
+      "best": "Line with Confidence Band",
+      "secondary": "Ribbon Chart",
+      "whenToUse": "Historical data + model predictions; communicating uncertainty range to non-technical stakeholders",
+      "whenNot": "No historical baseline; prediction confidence is too low to be useful; audience is not data-literate",
+      "colors": "Actual: solid line #0080FF. Forecast: dashed #FF9500. Confidence band: 15% opacity fill same hue",
+      "accessibility": "Toggle between actual-only and forecast views. Legend must distinguish lines beyond color (solid vs dashed).",
+      "fallback": "Toggle actual/forecast independently; legend labels must include line-style description",
+      "library": "Chart.js, ApexCharts, Plotly"
+    }
+  },
+  {
+    "id": "charts:anomaly-detection",
+    "domain": "charts",
+    "name": "Anomaly Detection",
+    "keywords": "anomaly, outlier, spike, alert, detection, monitoring, deviation Line Chart with Highlights",
+    "summary": "Line Chart with Highlights. Monitoring a time-series for outliers; alerting users to unexpected spikes or dips in operational data",
+    "modes": ["operate", "experience"],
+    "fields": {
+      "best": "Line Chart with Highlights",
+      "secondary": "Scatter with Alert",
+      "whenToUse": "Monitoring a time-series for outliers; alerting users to unexpected spikes or dips in operational data",
+      "whenNot": "Anomalies are predefined categories (use bar with highlight); real-time context without a pause control",
+      "colors": "Normal: #0080FF solid line. Anomaly marker: #FF0000 circle + filled. Alert band: #FFF3CD background zone",
+      "accessibility": "Use shape marker (not color only) for anomaly points. Add text annotation per anomaly event.",
+      "fallback": "Text alert annotation per anomaly; anomaly summary list panel alongside chart",
+      "library": "D3.js, Plotly, ApexCharts"
+    }
+  },
+  {
+    "id": "charts:hierarchical-nested-data",
+    "domain": "charts",
+    "name": "Hierarchical / Nested Data",
+    "keywords": "hierarchy, nested, treemap, parent, children, breakdown, drill Treemap",
+    "summary": "Treemap. Showing size relationships within a hierarchy; overview of proportional structure (e.g., budget breakdown)",
+    "modes": ["operate"],
+    "fields": {
+      "best": "Treemap",
+      "secondary": "Sunburst, Nested Donut, Icicle",
+      "whenToUse": "Showing size relationships within a hierarchy; overview of proportional structure (e.g., budget breakdown)",
+      "whenNot": "Hierarchy depth > 3 levels (too complex to read); user needs to compare sibling values precisely",
+      "colors": "Parent nodes: distinct hues. Children: lighter shades of same hue. White separator borders: 2–3px",
+      "accessibility": "Poor baseline accessibility. Always provide table alternative as primary view. Label all large areas.",
+      "fallback": "Collapsible tree table as primary view; treemap as supplementary visual only",
+      "library": "D3.js, Recharts, ApexCharts"
+    }
+  },
+  {
+    "id": "charts:flow-process-data",
+    "domain": "charts",
+    "name": "Flow / Process Data",
+    "keywords": "flow, process, sankey, distribution, source, target, transfer Sankey Diagram",
+    "summary": "Sankey Diagram. Showing how quantities flow between nodes; multi-source multi-target distribution",
+    "modes": ["operate"],
+    "fields": {
+      "best": "Sankey Diagram",
+      "secondary": "Alluvial, Chord Diagram",
+      "whenToUse": "Showing how quantities flow between nodes; multi-source multi-target distribution",
+      "whenNot": "Flow directions form loops (use network graph); fewer than 3 source-target pairs; mobile-primary context",
+      "colors": "Gradient from source to target color. Flow opacity: 0.4–0.6. Node labels always visible",
+      "accessibility": "Structural flow charts cannot be conveyed by color alone. Provide flow table. Avoid on mobile.",
+      "fallback": "Flow table (Source → Target → Value); keyboard-traversable node list with tab stops",
+      "library": "D3.js (d3-sankey), Plotly"
+    }
+  },
+  {
+    "id": "charts:cumulative-changes",
+    "domain": "charts",
+    "name": "Cumulative Changes",
+    "keywords": "waterfall, cumulative, variance, incremental, bridge, delta Waterfall Chart",
+    "summary": "Waterfall Chart. Showing how individual positive/negative components add up to a final total (e.g., P&L, budget variance)",
+    "modes": ["experience"],
+    "fields": {
+      "best": "Waterfall Chart",
+      "secondary": "Stacked Bar, Cascade",
+      "whenToUse": "Showing how individual positive/negative components add up to a final total (e.g., P&L, budget variance)",
+      "whenNot": "Changes are not additive; more than 12 bars (readability breaks); audience expects a simple total",
+      "colors": "Increases: #4CAF50. Decreases: #F44336. Start total: #2196F3. End total: #0D47A1. Running total line: dashed",
+      "accessibility": "Color + directional arrow icon per bar (not color alone). Labels on every bar.",
+      "fallback": "Table with running total column; directional arrow icons per row",
+      "library": "ApexCharts, Highcharts, Plotly"
+    }
+  },
+  {
+    "id": "charts:multi-variable-comparison",
+    "domain": "charts",
+    "name": "Multi-Variable Comparison",
+    "keywords": "radar, spider, multi-variable, attributes, dimensions, comparison Radar / Spider Chart",
+    "summary": "Radar / Spider Chart. Comparing multiple entities across the same fixed set of attributes (e.g., product feature comparison)",
+    "modes": ["experience"],
+    "fields": {
+      "best": "Radar / Spider Chart",
+      "secondary": "Parallel Coordinates, Grouped Bar",
+      "whenToUse": "Comparing multiple entities across the same fixed set of attributes (e.g., product feature comparison)",
+      "whenNot": "Axes > 8 (unreadable); values need precise comparison (use grouped bar); audience unfamiliar with radar charts",
+      "colors": "Single dataset: #0080FF at 20% fill. Multiple: distinct hues with 30% fill. Border: full opacity",
+      "accessibility": "Limit axes to 5–8. Always provide grouped bar chart alternative for precise reading.",
+      "fallback": "Grouped bar chart as mandatory alternative; include raw data table",
+      "library": "Chart.js, Recharts, ApexCharts"
+    }
+  },
+  {
+    "id": "charts:stock-trading-ohlc",
+    "domain": "charts",
+    "name": "Stock / Trading OHLC",
+    "keywords": "stock, trading, ohlc, candlestick, finance, price, volume Candlestick Chart",
+    "summary": "Candlestick Chart. Financial time-series with Open/High/Low/Close data; trading or investment product context only",
+    "modes": ["operate", "experience"],
+    "fields": {
+      "best": "Candlestick Chart",
+      "secondary": "OHLC Bar, Heikin-Ashi",
+      "whenToUse": "Financial time-series with Open/High/Low/Close data; trading or investment product context only",
+      "whenNot": "Non-financial audience; no OHLC data available (use line chart); accessibility-first context",
+      "colors": "Bullish: #26A69A. Bearish: #EF5350. Volume bars: 40% opacity below. Body fill vs hollow for OHLC style",
+      "accessibility": "Provide OHLC data table. Colorblind: use fill vs outline pattern (bullish = filled, bearish = hollow).",
+      "fallback": "OHLC data table with sortable columns; numeric summary panel (daily change %)",
+      "library": "Lightweight Charts (TradingView), ApexCharts"
+    }
+  },
+  {
+    "id": "charts:relationship-connection-data",
+    "domain": "charts",
+    "name": "Relationship / Connection Data",
+    "keywords": "network, graph, nodes, edges, connections, relationships, force Network Graph",
+    "summary": "Network Graph. Mapping connections between entities; network topology or social graph exploration context",
+    "modes": ["operate"],
+    "fields": {
+      "best": "Network Graph",
+      "secondary": "Hierarchical Tree, Adjacency Matrix",
+      "whenToUse": "Mapping connections between entities; network topology or social graph exploration context",
+      "whenNot": "Node count > 500 without clustering pre-applied; user needs precise connection counts; mobile context",
+      "colors": "Node types: categorical colors. Edges: #90A4AE at 60% opacity. Highlight path: #F59E0B",
+      "accessibility": "Fundamentally inaccessible without alternative. Never use as sole representation. Always provide list alternative.",
+      "fallback": "Adjacency list table (Node A → Node B → Weight); hierarchical tree view when structure allows",
+      "library": "D3.js (d3-force), Vis.js, Cytoscape.js"
+    }
+  },
+  {
+    "id": "charts:distribution-statistical",
+    "domain": "charts",
+    "name": "Distribution / Statistical",
+    "keywords": "distribution, statistical, spread, median, outlier, quartile, boxplot Box Plot",
+    "summary": "Box Plot. Showing spread, median, and outliers of a dataset; comparing distributions across multiple groups",
+    "modes": ["operate"],
+    "fields": {
+      "best": "Box Plot",
+      "secondary": "Violin Plot, Beeswarm",
+      "whenToUse": "Showing spread, median, and outliers of a dataset; comparing distributions across multiple groups",
+      "whenNot": "Fewer than 20 data points per group (distribution is not meaningful); audience unfamiliar with statistical charts",
+      "colors": "Box fill: #BBDEFB. Border: #1976D2. Median line: #D32F2F bold. Outlier dots: #F44336",
+      "accessibility": "Include stats summary table. Annotate outlier count in chart subtitle.",
+      "fallback": "Stats summary table (min / Q1 / median / Q3 / max / mean); outlier count annotation",
+      "library": "Plotly, D3.js, Chart.js (plugin)"
+    }
+  },
+  {
+    "id": "charts:performance-vs-target-compact",
+    "domain": "charts",
+    "name": "Performance vs Target (Compact)",
+    "keywords": "bullet, compact, kpi, dashboard, target, benchmark, range Bullet Chart",
+    "summary": "Bullet Chart. Dashboard with multiple KPIs side by side; space-constrained contexts where a gauge is too large",
+    "modes": ["operate", "experience"],
+    "fields": {
+      "best": "Bullet Chart",
+      "secondary": "Gauge, Progress Bar",
+      "whenToUse": "Dashboard with multiple KPIs side by side; space-constrained contexts where a gauge is too large",
+      "whenNot": "Single KPI with emphasis (use gauge); data has no defined target range; fewer than 3 KPIs",
+      "colors": "Qualitative ranges: #FFCDD2 / #FFF9C4 / #C8E6C9 (bad/ok/good). Performance bar: #1976D2. Target: black 3px marker",
+      "accessibility": "All values always visible as text. Color ranges are labeled with text thresholds not color alone.",
+      "fallback": "Numerical values always visible (not hover-only); color ranges labeled with threshold text",
+      "library": "D3.js, Plotly, Custom SVG"
+    }
+  },
+  {
+    "id": "charts:proportional-percentage",
+    "domain": "charts",
+    "name": "Proportional / Percentage",
+    "keywords": "waffle, percentage, proportion, progress, filled, grid Waffle Chart",
+    "summary": "Waffle Chart. Showing what fraction of a whole is filled; percentage progress in a visually engaging and accessible format",
+    "modes": ["experience"],
+    "fields": {
+      "best": "Waffle Chart",
+      "secondary": "Pictogram, Stacked Bar 100%",
+      "whenToUse": "Showing what fraction of a whole is filled; percentage progress in a visually engaging and accessible format",
+      "whenNot": "More than 5 categories (use stacked bar); exact values matter over visual proportion; very tight space",
+      "colors": "3–5 categories max. 2–3px gap between cells. Each category a distinct accessible color pair",
+      "accessibility": "Better than pie for accessibility. Percentage text label always visible. Each cell has aria-label.",
+      "fallback": "Percentage text always visible; grid cells labeled with aria-label value; provide legend",
+      "library": "D3.js, React-Waffle, Custom CSS Grid"
+    }
+  },
+  {
+    "id": "charts:hierarchical-proportional",
+    "domain": "charts",
+    "name": "Hierarchical Proportional",
+    "keywords": "sunburst, hierarchy, nested, proportion, radial, circle Sunburst Chart",
+    "summary": "Sunburst Chart. Exploring nested proportions where both hierarchy and relative size matter (e.g., org spend breakdown)",
+    "modes": ["experience"],
+    "fields": {
+      "best": "Sunburst Chart",
+      "secondary": "Treemap, Icicle, Circle Packing",
+      "whenToUse": "Exploring nested proportions where both hierarchy and relative size matter (e.g., org spend breakdown)",
+      "whenNot": "More than 3 hierarchy levels (outer rings become unreadable); precision matters over overview; mobile",
+      "colors": "Center to outer: darker to lighter hue. Each level 15–20% lighter. Contrasting border between sectors",
+      "accessibility": "Poor accessibility beyond 2 levels. Mandatory table alternative required for any production use.",
+      "fallback": "Collapsible indented list with percentages; breadcrumb trail for current drill-down state",
+      "library": "D3.js (d3-hierarchy), Recharts, ApexCharts"
+    }
+  },
+  {
+    "id": "charts:root-cause-analysis",
+    "domain": "charts",
+    "name": "Root Cause Analysis",
+    "keywords": "root cause, decomposition, tree, hierarchy, drill-down, ai-split, attribution Decomposition Tree",
+    "summary": "Decomposition Tree. Decomposing a metric into contributing factors; AI-assisted analysis or BI drill-down scenarios",
+    "modes": [],
+    "fields": {
+      "best": "Decomposition Tree",
+      "secondary": "Decision Tree, Flow Chart",
+      "whenToUse": "Decomposing a metric into contributing factors; AI-assisted analysis or BI drill-down scenarios",
+      "whenNot": "No clear parent-child causal relationship; audience expects a summary rather than exploration",
+      "colors": "Positive impact nodes: #2563EB. Negative impact nodes: #EF4444. Neutral connectors: #94A3B8",
+      "accessibility": "Keyboard-navigable expand/collapse. Screen reader announces node value and % contribution.",
+      "fallback": "Keyboard expand/collapse tree; screen reader announces node label + value + % impact",
+      "library": "Power BI (native), React-Flow, Custom D3.js"
+    }
+  },
+  {
+    "id": "charts:3d-spatial-data",
+    "domain": "charts",
+    "name": "3D Spatial Data",
+    "keywords": "3d, spatial, immersive, terrain, molecular, volumetric, point-cloud 3D Scatter / Surface Plot",
+    "summary": "3D Scatter / Surface Plot. Scientific/engineering context where Z-axis carries essential info not expressible in 2D",
+    "modes": ["operate"],
+    "fields": {
+      "best": "3D Scatter / Surface Plot",
+      "secondary": "Volumetric Rendering, Point Cloud",
+      "whenToUse": "Scientific/engineering context where Z-axis carries essential info not expressible in 2D",
+      "whenNot": "2D projection conveys the same insight; mobile context; accessibility-required environments; standard business dashboards",
+      "colors": "Depth cues: lighting and shading. Z-axis: color gradient (cool → warm). Transparent overlapping: opacity 0.4",
+      "accessibility": "3D spatial charts are fundamentally inaccessible. Must not be used as primary chart type in any product UI.",
+      "fallback": "Mandatory 2D projection view + data table; do not use as primary chart type in product UI",
+      "library": "Three.js, Deck.gl, Plotly 3D"
+    }
+  },
+  {
+    "id": "charts:real-time-streaming",
+    "domain": "charts",
+    "name": "Real-Time Streaming",
+    "keywords": "streaming, real-time, ticker, live, velocity, pulse, monitoring Streaming Area Chart",
+    "summary": "Streaming Area Chart. Live monitoring dashboards; IoT/ops data updating at ≥1 Hz; user needs current value at a glance",
+    "modes": ["operate", "experience"],
+    "fields": {
+      "best": "Streaming Area Chart",
+      "secondary": "Ticker Tape, Moving Gauge",
+      "whenToUse": "Live monitoring dashboards; IoT/ops data updating at ≥1 Hz; user needs current value at a glance",
+      "whenNot": "Update frequency < 1/min (use periodic-refresh line chart); flashing content without reduced-motion support",
+      "colors": "Current pulse: #00FF00 (dark theme) or #0080FF (light theme). History: fading opacity. Grid: dark background",
+      "accessibility": "Pause/resume control required. Current value as large visible text KPI. Respect prefers-reduced-motion.",
+      "fallback": "Pause/resume button required; current value shown as large text KPI; prefers-reduced-motion: freeze animation",
+      "library": "Smoothed D3.js, CanvasJS"
+    }
+  },
+  {
+    "id": "charts:sentiment-emotion",
+    "domain": "charts",
+    "name": "Sentiment / Emotion",
+    "keywords": "sentiment, emotion, nlp, opinion, feeling, text-analysis Word Cloud with Sentiment",
+    "summary": "Word Cloud with Sentiment. NLP output visualization; exploratory analysis of text corpus sentiment; frequency-weighted keyword overview",
+    "modes": [],
+    "fields": {
+      "best": "Word Cloud with Sentiment",
+      "secondary": "Sentiment Arc, Radar Chart",
+      "whenToUse": "NLP output visualization; exploratory analysis of text corpus sentiment; frequency-weighted keyword overview",
+      "whenNot": "Precise values matter (word size is inherently imprecise); screen-reader context; corpus < 50 items",
+      "colors": "Positive: #22C55E. Negative: #EF4444. Neutral: #94A3B8. Word size maps to frequency",
+      "accessibility": "Word clouds fail screen readers. Never use as sole output of NLP analysis. Always pair with list view.",
+      "fallback": "Sortable list view by frequency with sentiment label column; word cloud as supplementary only",
+      "library": "D3-cloud, Highcharts, Nivo"
+    }
+  },
+  {
+    "id": "charts:process-mining",
+    "domain": "charts",
+    "name": "Process Mining",
+    "keywords": "process, mining, variants, path, bottleneck, log, event Process Map / Graph",
+    "summary": "Process Map / Graph. Analyzing event logs to visualize actual process flows; identifying bottlenecks and deviations in ops/product funnels",
+    "modes": [],
+    "fields": {
+      "best": "Process Map / Graph",
+      "secondary": "Directed Acyclic Graph (DAG), Petri Net",
+      "whenToUse": "Analyzing event logs to visualize actual process flows; identifying bottlenecks and deviations in ops/product funnels",
+      "whenNot": "No event log data available; audience expects a static flowchart (use diagram tool); node count > 100 without pre-filtering",
+      "colors": "Happy path: #10B981 thick line. Deviations: #F59E0B thin line. Bottleneck nodes: #EF4444 fill",
+      "accessibility": "Complex graphs are hard to navigate. Provide path summary text. Highlight top 3 bottlenecks as annotations.",
+      "fallback": "Path summary table (variant → frequency → avg duration); top 3 bottlenecks as text annotation panel",
+      "library": "React-Flow, Cytoscape.js, Recharts"
+    }
+  }
+]
