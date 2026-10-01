@@ -1,9 +1,11 @@
 import { Link, Route, Routes } from "react-router-dom";
 import { DashboardPage } from "./pages/DashboardPage.jsx";
+import { PricingPage } from "./pages/PricingPage.jsx";
 import { UserPage } from "./pages/UserPage.jsx";
 
 const nav = [
   { label: "Dashboard", to: "/" },
+  { label: "Plans", to: "/pricing" },
   { label: "Jamie Lee", to: "/users/8123" },
 ];
 
@@ -31,6 +33,7 @@ export function App() {
       <main className="main">
         <Routes>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
           <Route path="/users/:id" element={<UserPage />} />
         </Routes>
       </main>
@@ -100,6 +103,15 @@ export function App() {
         .badge--paid { background: #e6f7ee; color: #14ae5c; }
         .badge--pending { background: #fff4e5; color: #b8730b; }
         .badge--refunded { background: #fdeaea; color: #e5484d; }
+
+        .main { min-width: 0; }
+        @media (max-width: 760px) {
+          .app { grid-template-columns: minmax(0, 1fr); }
+          .sidebar { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 16px; border-right: 0; border-bottom: 1px solid #e6e6e6; }
+          .nav { flex-direction: row; flex-wrap: wrap; }
+          .sidebar-user { margin: 0 0 0 auto; padding-top: 0; border-top: 0; }
+          .main { padding: 20px 16px; }
+        }
       `}</style>
     </div>
   );
