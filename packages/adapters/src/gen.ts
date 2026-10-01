@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { loadCanon } from "@northstar/canon";
-import { marketplaceManifest, pluginManifest } from "./claude.js";
+import { hooksManifest, marketplaceManifest, pluginManifest } from "./claude.js";
 import { renderRuleIndex, renderSkill } from "./render.js";
 
 export const SKILL_DIR = "plugin/skills/northstar";
@@ -37,6 +37,7 @@ export function generate(repoRoot: string): Outputs {
   }
 
   outputs.set("plugin/.claude-plugin/plugin.json", pluginManifest(version));
+  outputs.set("plugin/hooks/hooks.json", hooksManifest(version));
   outputs.set(".claude-plugin/marketplace.json", marketplaceManifest(version));
   outputs.set("docs/canon.md", renderRuleIndex(canon));
   return outputs;

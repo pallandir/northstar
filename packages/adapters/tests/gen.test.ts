@@ -65,3 +65,13 @@ test("the plugin manifest carries the root package version", () => {
   assert.equal(manifest.version, version);
   assert.equal(manifest.name, "northstar");
 });
+
+test("the plugin hook scans edits and can never break them", () => {
+  const hooks = JSON.parse(generate(repoRoot).get("plugin/hooks/hooks.json") ?? "{}");
+  const entry = hooks.hooks.PostToolUse[0];
+  assert.equal(entry.matcher, "Edit|Write|MultiEdit");
+  const command: string = entry.hooks[0].command;
+  assert.match(command, /northstar hook post-edit --agent claude/);
+  assert.match(command, /npx -y @pallandir\/northstar@\d+\.\d+\.\d+/);
+  assert.match(command, /\|\| true'$/);
+});

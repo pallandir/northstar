@@ -8,6 +8,7 @@ import { CHANNEL_CAPABILITY } from "./channel.js";
 import { VERSION } from "./config.js";
 import { RESOLVE_DIRECTIVE } from "./directive.js";
 import { registerCore } from "./packs/core.js";
+import { registerDetect } from "./packs/detect.js";
 import { PackRegistry, parsePacks } from "./packs/registry.js";
 import { registerResearch } from "./packs/research.js";
 import { registerResolve } from "./packs/resolve.js";
@@ -63,6 +64,7 @@ export function createMcpServer(
   registerCore(packs, root);
   registerResearch(packs, data);
   registerResolve(packs, canon, data, root);
+  registerDetect(packs, canon, root);
 
   packs.register(
     "comments",
