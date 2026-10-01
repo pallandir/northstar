@@ -2,7 +2,7 @@
   "name": "@northstar/core",
   "version": "2.1.0",
   "description": "Shared source and tests for the Northstar browser extension.",
-  "license": "PolyForm-Noncommercial-1.0.0",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {

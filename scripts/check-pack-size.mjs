@@ -6,6 +6,10 @@ const REQUIRED = [
   "dist/index.js",
   "dist/assets/canon/framework.md",
   "dist/assets/skill/SKILL.md",
+  "dist/assets/data/LICENSE-ui-ux-pro-max.txt",
+  "NOTICE",
+  "THIRD_PARTY_LICENSES.md",
+  "LICENSE.md",
 ];
 
 const output = execFileSync(

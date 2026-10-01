@@ -82,7 +82,5 @@ pull requests move faster than large ones.
 
 ## A note on the license
 
-Northstar is released under the PolyForm Noncommercial License 1.0.0. By
-contributing, you agree that your contribution is offered under the same terms.
-If you have a commercial use case, the contact for a commercial license is in
-[LICENSE.md](./LICENSE.md).
+Northstar is released under the MIT License. By contributing, you agree that your
+contribution is offered under the same terms, see [LICENSE.md](./LICENSE.md).

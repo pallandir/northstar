@@ -2,7 +2,7 @@ import { formatJson } from "./json.js";
 
 export const AUTHOR = { name: "pallandir", url: "https://github.com/pallandir" };
 export const HOMEPAGE = "https://github.com/pallandir/northstar";
-export const LICENSE = "PolyForm-Noncommercial-1.0.0";
+export const LICENSE = "MIT";
 
 const DESCRIPTION =
   "A UI design advisory framework for AI agents: brief, direction, system, compose, critique and polish, library first and free of generic AI defaults.";

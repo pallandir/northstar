@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Static scanner for generic AI interface patterns, driven by the Northstar canon.",
-  "license": "PolyForm-Noncommercial-1.0.0",
+  "license": "MIT",
   "exports": {
     ".": "./src/index.ts"
   },

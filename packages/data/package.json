@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Curated design data ported from ui-ux-pro-max, with BM25 search.",
-  "license": "PolyForm-Noncommercial-1.0.0",
+  "license": "MIT",
   "exports": {
     ".": "./src/index.ts"
   },

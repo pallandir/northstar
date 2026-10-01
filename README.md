@@ -18,7 +18,7 @@
 
   <p align="center">
     <a href="./LICENSE.md">
-      <img src="https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue" alt="License: PolyForm Noncommercial">
+      <img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT">
     </a>
     <a href="https://www.npmjs.com/package/@pallandir/northstar">
       <img src="https://img.shields.io/npm/v/@pallandir/northstar" alt="npm version">
@@ -457,9 +457,8 @@ Removing Northstar is three independent steps; do the ones that apply to you.
 
 ## License
 
-This repository is under the **PolyForm Noncommercial License 1.0.0**. You may
-use, modify, and share it for noncommercial purposes. All commercial rights are
-reserved by the copyright holder. See [LICENSE.md](./LICENSE.md) for the full
-terms and commercial licensing contact.
+Northstar is released under the **MIT License**. See [LICENSE.md](./LICENSE.md) for
+the full text and [NOTICE](./NOTICE) for the attribution of the design sources the
+canon and data were distilled from.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

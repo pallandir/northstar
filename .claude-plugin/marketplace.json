@@ -19,7 +19,7 @@
         "url": "https://github.com/pallandir"
       },
       "homepage": "https://github.com/pallandir/northstar",
-      "license": "PolyForm-Noncommercial-1.0.0",
+      "license": "MIT",
       "keywords": ["ui", "design", "design-system", "frontend", "anti-slop"],
       "category": "design"
     }

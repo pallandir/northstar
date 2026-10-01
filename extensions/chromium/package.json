@@ -2,7 +2,7 @@
   "name": "@northstar/chromium",
   "version": "2.1.0",
   "description": "Chromium MV3 build target for the Northstar extension.",
-  "license": "PolyForm-Noncommercial-1.0.0",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "description": "The Northstar design canon: method, rules, libraries, rubric and references.",
-  "license": "PolyForm-Noncommercial-1.0.0",
+  "license": "MIT",
   "exports": {
     ".": "./src/index.ts"
   },

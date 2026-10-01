@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Leave real-time comments on any interface and let your local AI coding assistant act on them.",
-  "license": "PolyForm-Noncommercial-1.0.0",
+  "license": "MIT",
   "workspaces": [
     "canon",
     "packages/*",

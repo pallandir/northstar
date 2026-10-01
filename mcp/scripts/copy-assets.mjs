@@ -19,3 +19,7 @@ cpSync(join(repoRoot, "plugin", "skills", "northstar"), join(assets, "skill"), {
   recursive: true,
 });
 cpSync(join(repoRoot, "packages", "data", "json"), join(assets, "data"), { recursive: true });
+cpSync(
+  join(repoRoot, "packages", "data", "LICENSE-ui-ux-pro-max.txt"),
+  join(assets, "data", "LICENSE-ui-ux-pro-max.txt"),
+);

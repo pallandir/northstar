@@ -1,0 +1,14 @@
+# Canon sources
+
+Every rule in `canon/rules` lists the works it draws on in its `sources` field, using these names.
+
+| Name | Work | License |
+|---|---|---|
+| `impeccable` | impeccable by Paul Bakaus | Apache-2.0 |
+| `frontend-design` | frontend-design in Anthropic skills | Apache-2.0 |
+| `ui-ux-pro-max` | ui-ux-pro-max by Next Level Builder | MIT |
+| `top-design` | top-design in wondelai skills | MIT |
+| `shadcn-lint` | the shadcn lint rules for agent first Tailwind projects | MIT |
+| `northstar` | original to this project | MIT |
+
+The canon is distilled, not copied. Where sources disagree, `arbitration.yaml` records the position of each and the resolution. See the root `NOTICE` for attribution and the statement of changes.
