@@ -82,3 +82,26 @@ test("the critic agent ships read only", () => {
   assert.match(agent, /^disallowedTools: Edit, Write, MultiEdit, NotebookEdit$/m);
   assert.doesNotMatch(agent, /[\u2013\u2014]/);
 });
+
+test("reference integrations exist for every agent and map to real destinations", () => {
+  const outputs = generate(repoRoot);
+  for (const path of [
+    "integrations/claude/settings.json",
+    "integrations/codex/config.toml",
+    "integrations/cursor/northstar.mdc",
+    "integrations/gemini/settings.json",
+    "integrations/opencode/northstar.ts",
+  ]) {
+    assert.ok(outputs.has(path), path);
+  }
+  const readme = outputs.get("integrations/README.md") ?? "";
+  assert.match(
+    readme,
+    /\| codex \| `codex\/config\.toml` \| `\.codex\/config\.toml` \| `~\/\.codex\/config\.toml` \|/,
+  );
+  assert.match(
+    readme,
+    /\| cursor \| `cursor\/northstar\.mdc` \|[^|]*\| `not used at user scope` \|/,
+  );
+  assert.doesNotMatch([...outputs.values()].join("\n"), /\/Users\//);
+});

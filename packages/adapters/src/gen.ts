@@ -1,10 +1,12 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { loadCanon } from "@northstar/canon";
+import { AGENT_NAMES, type Op, type PlanContext, planAgent } from "./agents/index.js";
 import { hooksManifest, marketplaceManifest, pluginManifest } from "./claude.js";
 import { renderRuleIndex, renderSkill } from "./render.js";
 
 export const SKILL_DIR = "plugin/skills/northstar";
+export const INTEGRATIONS_DIR = "integrations";
 
 export type Outputs = Map<string, string>;
 
@@ -44,6 +46,72 @@ export function generate(repoRoot: string): Outputs {
   );
   outputs.set(".claude-plugin/marketplace.json", marketplaceManifest(version));
   outputs.set("docs/canon.md", renderRuleIndex(canon));
+  for (const [path, content] of renderIntegrations(canonRoot, version)) outputs.set(path, content);
+  return outputs;
+}
+
+const HOME = "~";
+const PROJECT = ".";
+
+function referenceName(path: string, op: Op): string {
+  if (op.kind === "merge" && /(^|\/)(AGENTS|CLAUDE|GEMINI)\.md$/.test(path)) return "context.md";
+  return path.split("/").pop()?.replace(/^\./, "") ?? path;
+}
+
+function renderIntegrations(canonRoot: string, version: string): Outputs {
+  const outputs: Outputs = new Map();
+  const snippet = readFileSync(join(canonRoot, "snippets", "agents-md.md"), "utf8");
+  const critic = readFileSync(join(canonRoot, "agents", "critic.md"), "utf8");
+  const rows: string[] = [];
+  for (const agent of AGENT_NAMES) {
+    const context = (scope: PlanContext["scope"]): PlanContext => ({
+      agent,
+      scope,
+      home: HOME,
+      project: PROJECT,
+      version,
+      packs: "all",
+      snippet,
+      critic,
+    });
+    const project = planAgent(context("project"));
+    const user = planAgent(context("user"));
+    const userPaths = new Map<string, string>();
+    for (const op of user.ops) {
+      if (op.kind === "merge" || op.kind === "file")
+        userPaths.set(referenceName(op.path, op), op.path);
+    }
+    for (const op of project.ops) {
+      if (op.kind === "skill" || op.kind === "command") continue;
+      const name = referenceName(op.path, op);
+      const content = op.kind === "merge" ? op.apply(undefined) : op.content;
+      outputs.set(`${INTEGRATIONS_DIR}/${agent}/${name}`, content);
+      const userPath = userPaths.get(name) ?? "not used at user scope";
+      rows.push(`| ${agent} | \`${agent}/${name}\` | \`${op.path}\` | \`${userPath}\` |`);
+    }
+    const skill = project.ops.find((op) => op.kind === "skill");
+    const userSkill = user.ops.find((op) => op.kind === "skill");
+    if (skill?.kind === "skill" && userSkill?.kind === "skill") {
+      rows.push(`| ${agent} | skill folder | \`${skill.path}\` | \`${userSkill.path}\` |`);
+    }
+  }
+  outputs.set(
+    `${INTEGRATIONS_DIR}/README.md`,
+    [
+      "# Integrations",
+      "",
+      "Generated from the same plans that `northstar install` uses. Use these when you prefer to configure an agent by hand. Merge the content into the destination rather than replacing a file that already exists.",
+      "",
+      "| Agent | File here | Project destination | User destination |",
+      "|---|---|---|---|",
+      ...rows,
+      "",
+      "Claude Code registers the server with its own cli at user scope: `claude mcp add --env NORTHSTAR_PACKS=all --transport stdio --scope user northstar -- npx -y @pallandir/northstar`.",
+      "",
+      "The skill folder is `plugin/skills/northstar` in this repository, copy it to the destination shown.",
+      "",
+    ].join("\n"),
+  );
   return outputs;
 }
 
@@ -54,15 +122,18 @@ export function drift(repoRoot: string, outputs: Outputs): string[] {
     if (!existsSync(full)) problems.push(`missing ${path}`);
     else if (readFileSync(full, "utf8") !== content) problems.push(`stale ${path}`);
   }
-  for (const file of listFiles(join(repoRoot, SKILL_DIR))) {
-    const path = relative(repoRoot, file);
-    if (!outputs.has(path)) problems.push(`unexpected ${path}`);
+  for (const dir of [SKILL_DIR, INTEGRATIONS_DIR]) {
+    for (const file of listFiles(join(repoRoot, dir))) {
+      const path = relative(repoRoot, file);
+      if (!outputs.has(path)) problems.push(`unexpected ${path}`);
+    }
   }
   return problems;
 }
 
 export function write(repoRoot: string, outputs: Outputs): void {
   rmSync(join(repoRoot, SKILL_DIR), { recursive: true, force: true });
+  rmSync(join(repoRoot, INTEGRATIONS_DIR), { recursive: true, force: true });
   for (const [path, content] of outputs) {
     const full = join(repoRoot, path);
     mkdirSync(dirname(full), { recursive: true });
