@@ -4,6 +4,56 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.1.0] - 2026-10-01
+
+A new overlay and a tighter agent loop. **Send to AI** still starts all work, and
+the assistant still sits idle until then: no watch mode and no polling.
+
+### Added
+
+- **A `resolve-comments` MCP prompt.** In Claude Code, `/mcp__northstar__resolve-comments`
+  lists the open comments, fetches each one, implements it at the located place and
+  resolves it with a note and the files it changed. The typed fallback now sends
+  exactly that line to Claude Code. The server must be registered as `northstar`.
+- **A `get_comment` tool that claims a comment.** An open comment becomes
+  `in_progress` when fetched, so a repeated trigger finds nothing open and says so.
+- **Optional Claude Code channel push.** The server declares the `claude/channel`
+  capability and pushes the resolve request when the client supports it. If no
+  `list_comments` or `get_comment` call follows within 8 seconds, the terminal
+  handoff runs instead.
+- **A "Where to look" list per comment.** Each comment now lists its locations in
+  order of reliability, with suggested `rg` searches, and its text is fenced and
+  labelled as data. The ingest schema accepts optional v2 fields: `schemaVersion`,
+  `intent`, `locate`, `page` and `element`.
+- **Per item results from `POST /comments`.** The reply carries `accepted`,
+  `rejected` and `typed`, an optional per item `cid` makes retries idempotent, and
+  the legacy `ids` field is still returned so a 2.0 extension keeps working.
+- **Resolution records.** `resolve_comment` and `resolve_comments` accept a `note`
+  and `files`, stored with the time of resolution.
+
+### Changed
+
+- **`list_comments` is compact by default.** It returns one line per open comment
+  unless a status is given. Use `get_comment` for full detail.
+- **Clicking the toolbar icon toggles the overlay.** The popup is gone.
+- **Origin checks are stricter.** A `null` Origin is rejected, a missing Origin is
+  allowed only for `GET /health`, and Chrome extension origins must be the published
+  extension id or listed in `NORTHSTAR_EXTRA_ORIGINS`, comma separated. Any
+  `moz-extension://` origin is still allowed.
+- **Oversized or malformed values are trimmed instead of rejected.** Long text is
+  truncated, array route params are joined and non finite numbers are dropped.
+- **The release guide lists all seven version sites** and documents that pushing a
+  `v*` tag submits to AMO and publishes to npm.
+
+### Fixed
+
+- **The AMO workflow never ran.** `publish-firefox.yml` had invalid indentation.
+- **A corrupt `design-comments.json` was silently wiped.** It is now backed up to
+  `design-comments.json.bak-<timestamp>`.
+- **Screenshots were left behind** when comments were cleared. They are now deleted.
+- **A stray backup file leaked into the AMO source archive.** It is untracked and
+  ignored.
+
 ## [2.0.0] - 2026-09-15
 
 A rework around a single idea: **Send to AI** is the only thing that starts work.

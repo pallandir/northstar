@@ -69,3 +69,5 @@ AGENTS.md
 DESIGN.md
 .playwright-mcp/
 examples/
+
+.codex/hooks.json.jensen.*.bak

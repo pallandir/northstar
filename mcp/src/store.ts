@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { access, mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import type {
   Comment,
@@ -8,6 +8,7 @@ import type {
   IncomingComment,
   Operation,
   OperationType,
+  Resolution,
 } from "./types.js";
 
 // Confine a source location's path to the project root so a crafted page cannot
@@ -78,45 +79,88 @@ export class CommentStore {
   }
 
   async add(incoming: IncomingComment, projectRoot?: string): Promise<Comment> {
-    const id = `c-${randomUUID().slice(0, 8)}`;
-    const screenshot = incoming.screenshotDataUrl
-      ? await this.saveShot(id, incoming.screenshotDataUrl)
-      : null;
+    return (await this.ingest(incoming, projectRoot)).comment;
+  }
+
+  async ingest(
+    incoming: IncomingComment,
+    projectRoot?: string,
+  ): Promise<{ comment: Comment; duplicate: boolean }> {
     const root = projectRoot ?? this.storeRoot;
-    const safeSource = confineSourcePath(incoming.source ?? null, root);
-    const comment: Comment = {
-      id,
-      createdAt: new Date().toISOString(),
-      comment: incoming.comment,
-      operation: incoming.operation,
-      operator: incoming.operator,
-      url: incoming.url,
-      metadata: incoming.metadata,
-      status: "open",
-      source: safeSource,
-      component: incoming.component ?? null,
-      route: incoming.route ?? null,
-      target: incoming.target ?? null,
-      screenshot,
-      attachScreenshot: incoming.attachScreenshot ?? false,
-      planFirst: incoming.planFirst ?? false,
-    };
     return this.enqueue(async () => {
       const comments = await this.read();
+      if (incoming.cid) {
+        const existing = comments.find((c) => c.cid === incoming.cid);
+        if (existing) return { comment: existing, duplicate: true };
+      }
+      const id = `c-${randomUUID().slice(0, 8)}`;
+      const screenshot = incoming.screenshotDataUrl
+        ? await this.saveShot(id, incoming.screenshotDataUrl)
+        : null;
+      const comment: Comment = {
+        id,
+        createdAt: new Date().toISOString(),
+        comment: incoming.comment,
+        operation: incoming.operation,
+        operator: incoming.operator,
+        url: incoming.url,
+        metadata: incoming.metadata,
+        status: "open",
+        source: confineSourcePath(incoming.source ?? null, root),
+        component: incoming.component ?? null,
+        route: incoming.route ?? null,
+        target: incoming.target ?? null,
+        screenshot,
+        attachScreenshot: incoming.attachScreenshot ?? false,
+        planFirst: incoming.planFirst ?? false,
+      };
+      if (incoming.cid) comment.cid = incoming.cid;
+      if (incoming.schemaVersion) comment.schemaVersion = incoming.schemaVersion;
+      if (incoming.intent) comment.intent = incoming.intent;
+      if (incoming.locate) comment.locate = incoming.locate;
+      if (incoming.page) comment.page = incoming.page;
+      if (incoming.element) comment.element = incoming.element;
       comments.push(comment);
       await this.write(comments);
-      return comment;
+      return { comment, duplicate: false };
     });
   }
 
-  async setStatus(id: string, status: CommentStatus): Promise<Comment | undefined> {
+  async setStatus(
+    id: string,
+    status: CommentStatus,
+    resolution?: { note?: string; files?: string[] },
+  ): Promise<Comment | undefined> {
     return this.enqueue(async () => {
       const comments = await this.read();
       const comment = comments.find((c) => c.id === id);
       if (!comment) return undefined;
       comment.status = status;
+      if (status === "resolved" || status === "wontfix") {
+        const entry: Resolution = {
+          by: "agent",
+          note: resolution?.note ?? null,
+          files: resolution?.files ?? [],
+          at: new Date().toISOString(),
+        };
+        comment.resolution = entry;
+      } else {
+        comment.resolution = undefined;
+      }
       await this.write(comments);
       return comment;
+    });
+  }
+
+  async claim(id: string): Promise<{ comment: Comment; claimed: boolean } | undefined> {
+    return this.enqueue(async () => {
+      const comments = await this.read();
+      const comment = comments.find((c) => c.id === id);
+      if (!comment) return undefined;
+      if (comment.status !== "open") return { comment, claimed: false };
+      comment.status = "in_progress";
+      await this.write(comments);
+      return { comment, claimed: true };
     });
   }
 
@@ -126,6 +170,7 @@ export class CommentStore {
       const comment = comments.find((c) => c.id === id);
       if (!comment) return undefined;
       comment.status = "open";
+      comment.resolution = undefined;
       if (note) comment.comment = `${comment.comment}\n\n${note}`;
       await this.write(comments);
       return comment;
@@ -135,8 +180,9 @@ export class CommentStore {
   async clearResolved(): Promise<number> {
     return this.enqueue(async () => {
       const comments = await this.read();
-      const kept = comments.filter((c) => c.status === "open");
+      const kept = comments.filter((c) => c.status === "open" || c.status === "in_progress");
       await this.write(kept);
+      await this.removeShots(comments.filter((c) => !kept.includes(c)));
       return comments.length - kept.length;
     });
   }
@@ -146,6 +192,7 @@ export class CommentStore {
       const comments = await this.read();
       const kept = url ? comments.filter((c) => c.url !== url) : [];
       await this.write(kept);
+      await this.removeShots(comments.filter((c) => !kept.includes(c)));
       return comments.length - kept.length;
     });
   }
@@ -199,14 +246,25 @@ export class CommentStore {
     return relative(this.root, file);
   }
 
+  private async removeShots(removed: Comment[]): Promise<void> {
+    for (const comment of removed) {
+      if (!comment.screenshot) continue;
+      const file = resolve(this.storeRoot, comment.screenshot);
+      if (!file.startsWith(this.shotsPath + sep)) continue;
+      await unlink(file).catch(() => undefined);
+    }
+  }
+
   private async read(): Promise<Comment[]> {
     const jsonRaw = await readTextFile(this.storeJsonPath);
     if (jsonRaw !== null) {
       try {
-        return JSON.parse(jsonRaw) as Comment[];
-      } catch {
-        return [];
-      }
+        const parsed: unknown = JSON.parse(jsonRaw);
+        if (Array.isArray(parsed)) return parsed as Comment[];
+      } catch {}
+      await rename(this.storeJsonPath, `${this.storeJsonPath}.bak-${Date.now()}`).catch(
+        () => undefined,
+      );
     }
     const mdRaw = await readTextFile(this.storePath);
     return mdRaw === null ? [] : parse(mdRaw);
@@ -272,7 +330,7 @@ function serialize(comments: Comment[]): string {
   return `# Design comments\n\n${blocks.join("\n\n")}\n`;
 }
 
-const HEADING = /^## \[(open|resolved|wontfix)\] (\S+) · (.+?) · (comment|style|text)$/;
+const HEADING = /^## \[(open|in_progress|resolved|wontfix)\] (\S+) · (.+?) · (comment|style|text)$/;
 const KV = /^- (\w+): (.+)$/;
 const SOURCE = /^(.+):(\d+):(\d+) \((.+)\)$/;
 

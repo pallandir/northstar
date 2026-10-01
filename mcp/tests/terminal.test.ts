@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { findControllingTty } from "../src/terminal/discover.js";
 import { TerminalHandoff } from "../src/terminal/inject.js";
-import { HANDOFF_LINE } from "../src/terminal/payload.js";
+import { type AgentKind, CLAUDE_CODE_LINE, HANDOFF_LINE } from "../src/terminal/payload.js";
 import type { DriverName, TerminalDriver } from "../src/terminal/types.js";
 
 class FakeDriver implements TerminalDriver {
@@ -27,9 +27,16 @@ class FakeDriver implements TerminalDriver {
   }
 }
 
-function handoffWith(driver: TerminalDriver | null, reason?: string): TerminalHandoff {
+function handoffWith(
+  driver: TerminalDriver | null,
+  reason?: string,
+  agent: AgentKind = "other",
+): TerminalHandoff {
   const handoff = new TerminalHandoff(() => {}, 1200);
-  Object.assign(handoff, { detection: Promise.resolve({ driver, reason }) });
+  Object.assign(handoff, {
+    detection: Promise.resolve({ driver, reason }),
+    agent: Promise.resolve(agent),
+  });
   return handoff;
 }
 
@@ -57,9 +64,19 @@ test("a settled screen gets the line and a separate Enter", async () => {
   assert.equal(driver.enters, 1);
 });
 
+test("a Claude Code agent gets the resolve-comments slash command", async () => {
+  const driver = new FakeDriver([IDLE]);
+  const result = await handoffWith(driver, undefined, "claude-code").send();
+  assert.equal(result.typed, true);
+  assert.deepEqual(driver.writes, [CLAUDE_CODE_LINE]);
+  assert.equal(CLAUDE_CODE_LINE, "/mcp__northstar__resolve-comments");
+});
+
 test("the typed line carries no caller-controlled text", () => {
   assert.ok(!/\n|\r/.test(HANDOFF_LINE));
   assert.ok(HANDOFF_LINE.includes("list_comments"));
+  assert.ok(HANDOFF_LINE.includes("get_comment"));
+  assert.ok(HANDOFF_LINE.includes("resolve_comment"));
 });
 
 test("a pending choice prompt is never answered", async () => {

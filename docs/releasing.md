@@ -6,14 +6,18 @@ the checklist for cutting a release of all three.
 
 ## Versions
 
-The version lives in three hand-edited places and they must match before a
+The version lives in seven hand-edited places and they must all match before a
 release:
 
 - root `package.json`
 - `mcp/package.json` for the npm package
+- `mcp/src/config.ts` (`VERSION`, reported by the MCP server and `/health`)
+- `extensions/core/package.json`
+- `extensions/chromium/package.json`
+- `extensions/firefox/package.json`
 - `extensions/core/manifest.base.ts` (both browser targets read it)
 
-There is no automatic sync, so bump all three when you cut a release.
+There is no automatic sync, so bump all seven when you cut a release.
 
 ## Publishing the MCP server to npm
 
@@ -31,16 +35,15 @@ this repository's `release` environment. Nothing further to set up per release.
 
 ### Cutting a release
 
-1. Bump the version in `mcp/package.json`, root `package.json`, and
-   `extensions/core/manifest.base.ts` (see above).
+1. Bump the version in all seven places listed above.
 2. Update `CHANGELOG.md`.
 3. Commit the bump.
-4. Tag the release and push the tag. The npm and Firefox workflows both trigger
-   on any `v*` tag:
+4. Tag the release and push the tag. Pushing any `v*` tag automatically submits
+   the Firefox build to AMO and publishes the npm package, with no further step:
 
    ```sh
-   git tag v2.0.0
-   git push origin v2.0.0
+   git tag v2.1.0
+   git push origin v2.1.0
    ```
 
 `publish-npm.yml` checks out the repo, builds the server, copies the root
@@ -84,7 +87,7 @@ own `browser_specific_settings`. Each is a zip with the manifest at the zip root
    ```
 
    Confirm it contains `manifest.json` at the root, all four icons, the
-   background loader, the popup html and its js and css, the content-script
+   background loader, the content-script
    chunk, and that the asset hashes referenced in the manifest match files
    actually in the zip. Always re-run the package step after any code change so
    the zip and the manifest come from the same build.
@@ -99,8 +102,8 @@ own `browser_specific_settings`. Each is a zip with the manifest at the zip root
 
 Firefox publishing is a `v*`-tagged GitHub Actions job
 (`.github/workflows/publish-firefox.yml`), reading `WEB_EXT_API_KEY` and
-`WEB_EXT_API_SECRET` from the `release` environment. It is inert until those
-secrets are added, so tagging never submits to AMO by accident.
+`WEB_EXT_API_SECRET` from the `release` environment. Tagging submits to AMO
+automatically, so those secrets must be present before you push a `v*` tag.
 
 1. **First submission only.** A brand new add-on's first listed version has to go
    through the [AMO developer hub](https://addons.mozilla.org/developers/) web UI
@@ -118,8 +121,7 @@ secrets are added, so tagging never submits to AMO by accident.
    npm run lint:amo
    ```
 
-   It must report zero errors. One `UNSAFE_VAR_ASSIGNMENT` warning is expected:
-   the Handoff export writes DOMPurify-sanitized HTML.
+   It must report zero errors.
 
 4. Build the reviewer source archive (AMO requires it, because the shipped code
    is minified):
@@ -139,8 +141,7 @@ Listing copy lives in [extensions/firefox/STORE.md](../extensions/firefox/STORE.
 
 ## Release checklist
 
-- [ ] Versions bumped and matching across root `package.json`, `mcp/package.json`
-      and `extensions/core/manifest.base.ts`.
+- [ ] Versions bumped and matching across the seven sites listed under Versions.
 - [ ] `CHANGELOG.md` updated for the release.
 - [ ] `npm run lint`, `npm run typecheck`, and `npm test` pass.
 - [ ] `npm pack --dry-run` tarball looks right.
@@ -149,5 +150,5 @@ Listing copy lives in [extensions/firefox/STORE.md](../extensions/firefox/STORE.
 - [ ] `WEB_EXT_API_KEY` / `WEB_EXT_API_SECRET` present on `release` if this is a
       Firefox submission (first submission additionally needs the AMO web UI step
       above).
-- [ ] Tag pushed. Confirm the npm publish workflow and, if configured, the
-      Firefox submission both succeed in the Actions tab.
+- [ ] Tag pushed. Confirm the npm publish workflow and the Firefox submission
+      both succeed in the Actions tab.

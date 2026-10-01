@@ -44,7 +44,7 @@ jobs:
         run: npm run source --workspace @northstar/firefox
 
       - name: Submit listed version to AMO
-          working-directory: extensions/firefox
+        working-directory: extensions/firefox
         env:
           WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
           WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}

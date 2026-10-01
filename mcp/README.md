@@ -26,20 +26,26 @@ claude mcp add northstar -- npx -y @pallandir/northstar
 
 ## Tools
 
-The server exposes 6 tools. `list_comments` returns full per-comment detail, so
-there is no separate per-comment fetch.
+The server exposes 7 tools and one prompt. The server must be registered under the
+name `northstar`.
 
 | Tool | Purpose |
 | --- | --- |
-| `list_comments(status?)` | List comments with full detail, optionally filtered by `open` / `resolved` / `wontfix`. |
-| `resolve_comment(id, status)` | Set a single comment to `open` / `resolved` / `wontfix`. |
+| `list_comments(status?)` | Compact summaries, open comments only unless a status is given. |
+| `get_comment(id)` | Claim a comment (`open` becomes `in_progress`) and return full detail with an ordered "Where to look" list. |
+| `resolve_comment(id, status, note?, files?)` | Set a single comment to `open` / `resolved` / `wontfix`, recording a note and the files changed. |
 | `resolve_comments(resolutions[])` | Resolve or wontfix many comments in one call. |
 | `defer_comment(id, reason, ...)` | Park a comment (`needs-plan` or `feedback`) and notify the toolbar. |
 | `list_deferred()` | List deferred comments with their category and reason. |
-| `clear_resolved()` | Remove every comment that is not open. |
+| `clear_resolved()` | Remove every resolved and wontfix comment. |
 
-There is no tool to start the work. When the developer clicks **Send to AI**, the
-server types a one-line request into the terminal this process was launched from.
+The `resolve-comments` prompt (`/mcp__northstar__resolve-comments` in Claude Code)
+runs the whole list, get and resolve flow.
+
+There is no tool to start the work and no watch mode. When the developer clicks
+**Send to AI**, the server types the prompt into the terminal this process was
+launched from. With `claude --channels` it pushes a channel event first and types
+only if no agent call follows within 8 seconds.
 
 ## HTTP endpoints (for the extension)
 

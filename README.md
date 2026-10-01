@@ -49,9 +49,10 @@
 
 **Northstar** is a browser extension paired with an MCP server. Click any element
 on a running frontend, local or a remote preview, leave a structured comment
-anchored to it, then click **Send to AI**. Northstar types one line into the
-terminal your coding assistant is already running in and presses Enter, and the
-assistant implements the changes against your real source files.
+anchored to it, then click **Send to AI**. Northstar triggers the coding assistant
+already running in your project, and the assistant implements the changes against
+your real source files. The assistant sits idle until then: no watch mode, no
+polling, no tokens spent while you work.
 
 There is nothing to pair and no command to paste. Nothing is sent to a remote
 backend either: every comment travels over loopback between the browser and a
@@ -92,6 +93,10 @@ runs on demand via `npx`, no global install needed.
 codex mcp add northstar -- npx -y @pallandir/northstar
 ```
 
+The MCP server must be registered under the name `northstar`. The extension's
+trigger line, `/mcp__northstar__resolve-comments`, and the tool names all depend
+on it.
+
 **Any other MCP client**, add the same command to your MCP configuration:
 
 ```json
@@ -109,7 +114,8 @@ codex mcp add northstar -- npx -y @pallandir/northstar
 
 ### Step 2 · Install the browser extension
 
-Install Northstar and pin it to your toolbar.
+Install Northstar and pin it to your toolbar. Clicking the toolbar icon toggles
+the overlay on and off for the current tab.
 
 [**Add to Chrome →**](https://chromewebstore.google.com/detail/northstar/mmpgoabhnlkcgboiiaebeahcbbeeaggb)
 
@@ -129,11 +135,46 @@ access to `localhost`. Grant it, or the extension cannot reach the server.
 ### Step 3 · Start commenting
 
 Open your frontend on a `localhost` dev server, with your assistant running in
-the same repo **from a terminal**, and click the Northstar toolbar icon. Mark up
-the page, then click **Send to AI**.
+the same repo **from a terminal**, and click the Northstar toolbar icon to turn the
+overlay on. Click the icon again to turn it off. Mark up the page, then click
+**Send to AI**.
 
-That is the whole setup. Northstar finds the terminal your assistant runs in,
-waits for it to be idle, and types a one-line request followed by Enter.
+That is the whole setup. You do not start a watch loop or a polling command. By
+default Northstar finds the terminal your assistant runs in, waits for it to be
+idle, and types `/mcp__northstar__resolve-comments` for Claude Code, or a short
+sentence for other assistants, followed by Enter.
+
+### Optional: push with Claude Code channels
+
+Claude Code can also receive the trigger as a channel event, with nothing typed
+into the terminal. Channels are a Claude Code research preview, enabled per session
+with `--channels`. Northstar is not on the approved channel allowlist yet, so while
+the preview lasts start Claude Code with the development flag for the `northstar`
+server:
+
+```sh
+claude --dangerously-load-development-channels server:northstar
+```
+
+Northstar declares the `claude/channel` capability and pushes the same resolve
+request when you press **Send to AI**. If the agent has not called `list_comments` or `get_comment`
+within 8 seconds, for example because channels are not enabled, Northstar falls
+back to typing into the terminal. Both paths are safe to fire together: a comment
+is claimed as `in_progress` the first time the agent fetches it, so a second
+trigger finds nothing open and says so.
+
+### The resolve-comments prompt
+
+The server also registers an MCP prompt named `resolve-comments`. In Claude Code
+you can run it yourself at any time:
+
+```text
+/mcp__northstar__resolve-comments
+```
+
+It tells the agent to list the open comments, fetch each one with `get_comment`,
+implement it at the location the comment names, and resolve it with a note and the
+files it changed.
 
 ## Try the local demo
 
@@ -170,7 +211,7 @@ flowchart TD
     B -- "writes" --> C
     B -- "types one line + Enter" --> D
     D --> E
-    C -- "list_comments" --> E
+    C -- "list_comments, get_comment" --> E
     E -- "resolve / defer" --> C
 ```
 
@@ -284,16 +325,18 @@ Set `NORTHSTAR_TERMINAL` to force a driver (`tmux`, `iterm`, `terminal-app`, or
 
 ### MCP tools
 
-The server exposes 6 tools that any MCP client can call directly:
+The server exposes 7 tools that any MCP client can call directly, plus the
+`resolve-comments` prompt:
 
 | Tool | Purpose |
 |---|---|
-| `list_comments` | List comments, optionally filtered by status (`open`, `resolved`, `wontfix`) |
-| `resolve_comment` | Set the status of a single comment |
-| `resolve_comments` | Resolve or wontfix multiple comments in one call |
+| `list_comments` | Compact summaries of open comments by default, or of a given status (`open`, `in_progress`, `resolved`, `wontfix`) |
+| `get_comment` | Claim a comment (`open` becomes `in_progress`) and return full detail with an ordered "Where to look" list |
+| `resolve_comment` | Set the status of a single comment, with an optional `note` and `files` |
+| `resolve_comments` | Resolve or wontfix multiple comments in one call, with optional `note` and `files` each |
 | `defer_comment` | Park a comment for planning and notify the browser toolbar |
 | `list_deferred` | List comments that were deferred with their reasons |
-| `clear_resolved` | Remove all non-open comments from the store |
+| `clear_resolved` | Remove all resolved and wontfix comments from the store |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

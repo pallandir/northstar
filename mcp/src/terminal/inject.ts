@@ -1,6 +1,7 @@
 import { COALESCE_MS, READY_POLL_MS, READY_TIMEOUT_MS, SUBMIT_DELAY_MS } from "../config.js";
 import { detectTerminal } from "./detect.js";
-import { HANDOFF_LINE } from "./payload.js";
+import { findAgentKind } from "./discover.js";
+import { type AgentKind, handoffLine } from "./payload.js";
 import type { Handoff, HandoffResult, TerminalDriver, TerminalStatus } from "./types.js";
 
 const TAIL_LINES = 20;
@@ -47,6 +48,7 @@ async function waitForIdle(driver: TerminalDriver, timeoutMs: number): Promise<s
 export class TerminalHandoff implements Handoff {
   private detection: ReturnType<typeof detectTerminal> | null = null;
   private chain: Promise<unknown> = Promise.resolve();
+  private agent: Promise<AgentKind> | null = null;
   private lastTyped = 0;
 
   constructor(
@@ -86,7 +88,8 @@ export class TerminalHandoff implements Handoff {
         this.log(`handoff skipped: ${blocked}`);
         return { typed: false, driver: driver.name, reason: blocked };
       }
-      await driver.sendText(HANDOFF_LINE);
+      this.agent ??= findAgentKind();
+      await driver.sendText(handoffLine(await this.agent));
       // The Enter has to be its own write: an agent TUI folds a return that arrives inside the
       // same burst into the pasted text instead of submitting it.
       await sleep(SUBMIT_DELAY_MS);

@@ -68,8 +68,23 @@ own shape, numeric and UUID-looking segments become `:id`, and marks it
 
 ## The handoff
 
-There is no supported API for pushing a prompt into a running coding assistant, so
-Northstar does what a person would do: it types.
+The assistant never polls and never runs a watch mode. It sits idle until you press
+**Send to AI**, and then Northstar triggers it in one of two ways.
+
+The default is the one every assistant supports, which has no API for pushing a
+prompt into a running session, so Northstar does what a person would do: it types.
+For Claude Code the typed line is `/mcp__northstar__resolve-comments`, which runs the
+server's `resolve-comments` prompt. This only works while the MCP server is
+registered under the name `northstar`. Other assistants get a short sentence that
+describes the same list, get and resolve flow.
+
+The optional path is a Claude Code channel. When you start Claude Code with channels
+enabled (`claude --channels`, or the development flag for the `northstar` server
+during the research preview), the server pushes a `notifications/claude/channel` event with
+the same directive instead of typing. If no `list_comments` or `get_comment` call
+follows within 8 seconds, the typed path runs as a fallback. A comment becomes
+`in_progress` the moment `get_comment` returns it, so when both paths fire the
+second one finds nothing open and says so.
 
 The MCP server is launched by your assistant, which means it inherits the assistant's
 environment and can find the terminal underneath it. Three details make this reliable.

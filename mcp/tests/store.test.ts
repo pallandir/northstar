@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm, unlink } from "node:fs/promises";
+import { access, mkdtemp, readFile, readdir, rm, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { afterEach, beforeEach, test } from "node:test";
 import { CommentStore } from "../src/store.js";
 import type { IncomingComment } from "../src/types.js";
@@ -189,3 +189,72 @@ test("style operation with arrow-sequence values round-trips intact", async () =
   assert.equal(got.operation.from, '"a -> b"');
   assert.equal(got.operation.to, '"c -> d"');
 });
+
+test("a corrupt comments file is backed up instead of wiped", async () => {
+  const store = new CommentStore(root);
+  await store.add(sample());
+  const { commentsPath } = store;
+  await writeFile(commentsPath, "{ not json", "utf8");
+
+  assert.equal((await store.list()).length, 1, "recovered from the markdown mirror");
+  const files = await readdir(dirname(commentsPath));
+  const backup = files.find((f) => f.startsWith("design-comments.json.bak-"));
+  assert.ok(backup, "a timestamped backup should exist");
+  assert.equal(await readFile(join(dirname(commentsPath), backup), "utf8"), "{ not json");
+});
+
+test("resolving stores by, note, files and a timestamp", async () => {
+  const store = new CommentStore(root);
+  const a = await store.add(sample());
+  await store.setStatus(a.id, "resolved", { note: "fixed", files: ["src/Card.tsx"] });
+  const got = await store.get(a.id);
+  assert.equal(got?.resolution?.by, "agent");
+  assert.equal(got?.resolution?.note, "fixed");
+  assert.deepEqual(got?.resolution?.files, ["src/Card.tsx"]);
+  assert.ok(got?.resolution?.at);
+
+  await store.reopenWithNote(a.id);
+  assert.equal((await store.get(a.id))?.resolution, undefined);
+});
+
+test("claim moves open to in_progress once and clearResolved keeps it", async () => {
+  const store = new CommentStore(root);
+  const a = await store.add(sample());
+  assert.equal((await store.claim(a.id))?.claimed, true);
+  assert.equal((await store.claim(a.id))?.claimed, false);
+  assert.equal(await store.clearResolved(), 0);
+  assert.equal((await store.get(a.id))?.status, "in_progress");
+});
+
+test("a repeated cid returns the stored comment without duplicating it", async () => {
+  const store = new CommentStore(root);
+  const first = await store.ingest(sample({ cid: "k1" }));
+  const second = await store.ingest(sample({ cid: "k1" }));
+  assert.equal(first.duplicate, false);
+  assert.equal(second.duplicate, true);
+  assert.equal(second.comment.id, first.comment.id);
+  assert.equal((await store.list()).length, 1);
+});
+
+const PNG = "data:image/png;base64,iVBORw0KGgo=";
+
+test("clearing comments deletes their screenshot files", async () => {
+  const store = new CommentStore(root);
+  const a = await store.add(sample({ screenshotDataUrl: PNG }));
+  const b = await store.add(sample({ screenshotDataUrl: PNG }));
+  assert.ok(a.screenshot && b.screenshot);
+  await store.setStatus(a.id, "resolved");
+  await store.clearResolved();
+  assert.equal(await exists(join(root, a.screenshot)), false);
+  assert.equal(await exists(join(root, b.screenshot)), true);
+
+  await store.clear();
+  assert.equal(await exists(join(root, b.screenshot)), false);
+});
+
+async function exists(path: string): Promise<boolean> {
+  return access(path).then(
+    () => true,
+    () => false,
+  );
+}

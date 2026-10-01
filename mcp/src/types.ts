@@ -1,4 +1,43 @@
-export type CommentStatus = "open" | "resolved" | "wontfix";
+export type CommentStatus = "open" | "in_progress" | "resolved" | "wontfix";
+
+export type Intent = "change" | "bug" | "copy" | "style" | "question";
+
+export type LocateKind =
+  | "source"
+  | "component"
+  | "routeFile"
+  | "testId"
+  | "aria"
+  | "text"
+  | "selector"
+  | "xpath";
+
+export type LocateConfidence = number | "high" | "medium" | "low";
+
+export interface LocateEntry {
+  kind: LocateKind;
+  value: string;
+  confidence: LocateConfidence;
+}
+
+export interface PageInfo {
+  title?: string | null;
+  colorScheme?: string | null;
+}
+
+export interface ElementInfo {
+  ariaRole?: string | null;
+  ariaName?: string | null;
+  landmark?: string | null;
+  heading?: string | null;
+}
+
+export interface Resolution {
+  by: string;
+  note: string | null;
+  files: string[];
+  at: string;
+}
 
 export type OperationType = "comment" | "style" | "text";
 
@@ -75,6 +114,13 @@ export interface Comment {
   screenshot: string | null;
   attachScreenshot: boolean;
   planFirst?: boolean;
+  cid?: string;
+  schemaVersion?: number;
+  intent?: Intent;
+  locate?: LocateEntry[];
+  page?: PageInfo;
+  element?: ElementInfo;
+  resolution?: Resolution;
 }
 
 export interface DeferredComment {
@@ -108,4 +154,10 @@ export interface IncomingComment {
   screenshotDataUrl?: string | null;
   attachScreenshot?: boolean;
   planFirst?: boolean;
+  cid?: string;
+  schemaVersion?: number;
+  intent?: Intent;
+  locate?: LocateEntry[];
+  page?: PageInfo;
+  element?: ElementInfo;
 }

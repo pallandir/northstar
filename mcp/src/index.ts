@@ -1,5 +1,6 @@
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { Broker } from "./broker.js";
+import { ChannelHandoff } from "./channel.js";
 import { startIngestServer } from "./http.js";
 import { createMcpServer } from "./server.js";
 import { CommentStore } from "./store.js";
@@ -20,19 +21,16 @@ async function main(): Promise<void> {
   const broker = new Broker();
 
   const log = (msg: string) => process.stderr.write(`[northstar] ${msg}\n`);
-  const handoff = new TerminalHandoff(log);
+  const terminal = new TerminalHandoff(log);
+  const server = createMcpServer(store, broker);
+  const handoff = new ChannelHandoff({ server: server.server, store, broker, terminal, log });
 
   const ingest = await startIngestServer(store, parsePorts(), log, broker, handoff);
   log(`ingest listening on http://127.0.0.1:${ingest.port}, store root ${root}`);
 
-  const terminal = await handoff.describe();
-  log(
-    terminal.available
-      ? `terminal handoff via ${terminal.driver}`
-      : `no handoff: ${terminal.reason}`,
-  );
+  const status = await handoff.describe();
+  log(status.available ? `terminal handoff via ${status.driver}` : `no handoff: ${status.reason}`);
 
-  const server = createMcpServer(store, broker);
   const transport = new StdioServerTransport();
 
   let closing = false;

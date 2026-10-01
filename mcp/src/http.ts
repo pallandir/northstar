@@ -2,10 +2,24 @@ import { type IncomingMessage, type ServerResponse, createServer } from "node:ht
 import type { Broker } from "./broker.js";
 import type { CommentStore } from "./store.js";
 import type { Handoff } from "./terminal/index.js";
-import { parseBatch } from "./validate.js";
+import { parseBatchItems } from "./validate.js";
 
 const MAX_BODY_BYTES = 12 * 1024 * 1024;
 const SERVICE = "northstar";
+const CHROME_EXTENSION_IDS = ["mmpgoabhnlkcgboiiaebeahcbbeeaggb"];
+
+function chromeExtensionIds(): Set<string> {
+  const extra = (process.env.NORTHSTAR_EXTRA_ORIGINS ?? "")
+    .split(",")
+    .map((entry) =>
+      entry
+        .trim()
+        .replace(/^chrome-extension:\/\//, "")
+        .replace(/\/$/, ""),
+    )
+    .filter(Boolean);
+  return new Set([...CHROME_EXTENSION_IDS, ...extra]);
+}
 
 export interface IngestServer {
   port: number;
@@ -34,9 +48,13 @@ export async function startIngestServer(
   };
 }
 
-export function originAllowed(origin: string | undefined): boolean {
-  if (!origin || origin === "null") return true;
-  return origin.startsWith("chrome-extension://") || origin.startsWith("moz-extension://");
+export function originAllowed(origin: string | undefined, healthProbe = false): boolean {
+  if (origin === undefined) return healthProbe;
+  if (origin.startsWith("moz-extension://")) return true;
+  if (origin.startsWith("chrome-extension://")) {
+    return chromeExtensionIds().has(origin.slice("chrome-extension://".length));
+  }
+  return false;
 }
 
 export function hostAllowed(host: string | undefined, port: number): boolean {
@@ -67,7 +85,10 @@ async function handle(
   const origin = req.headers.origin;
   setCors(res, origin);
 
-  if (!originAllowed(origin) || !hostAllowed(req.headers.host, port)) {
+  const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
+  const healthProbe = req.method === "GET" && pathname === "/health";
+
+  if (!originAllowed(origin, healthProbe) || !hostAllowed(req.headers.host, port)) {
     json(res, 403, { error: "forbidden" });
     return;
   }
@@ -76,8 +97,6 @@ async function handle(
     res.writeHead(204).end();
     return;
   }
-
-  const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
 
   if (req.method === "GET" && pathname === "/health") {
     json(res, 200, {
@@ -136,23 +155,44 @@ async function handle(
   }
 
   if (req.method === "POST" && pathname === "/comments") {
-    let ids: string[];
+    let results: ReturnType<typeof parseBatchItems>;
     try {
-      const incoming = parseBatch(await readBody(req));
-      ids = [];
-      for (const item of incoming) {
-        const comment = await store.add(item, store.root);
-        ids.push(comment.id);
-      }
+      results = parseBatchItems(await readBody(req));
     } catch (err) {
       log((err as Error).message);
       json(res, 400, { error: "bad request" });
       return;
     }
-    broker.bump();
-    log(`ingested ${ids.length} comment(s): ${ids.join(", ")}`);
-    const result = await handoff.send();
-    json(res, 201, { ids, ...result });
+
+    const accepted: { cid: string | null; index: number; id: string }[] = [];
+    const rejected: { cid: string | null; index: number; reason: string }[] = [];
+    let fresh = 0;
+    for (const { index, cid, value, reason } of results) {
+      if (!value) {
+        rejected.push({ cid, index, reason: reason ?? "invalid" });
+        continue;
+      }
+      try {
+        const { comment, duplicate } = await store.ingest(value, store.root);
+        accepted.push({ cid, index, id: comment.id });
+        if (!duplicate) fresh += 1;
+      } catch (err) {
+        log((err as Error).message);
+        rejected.push({ cid, index, reason: "storage failure" });
+      }
+    }
+
+    if (accepted.length === 0) {
+      log(`rejected ${rejected.length} comment(s)`);
+      json(res, 400, { error: "bad request", accepted, rejected, ids: [], typed: false });
+      return;
+    }
+
+    const ids = accepted.map((a) => a.id);
+    if (fresh > 0) broker.bump();
+    log(`ingested ${fresh} new comment(s): ${ids.join(", ")}`);
+    const result = fresh > 0 ? await handoff.send() : { typed: false, reason: "already received" };
+    json(res, 201, { ids, accepted, rejected, ...result });
     return;
   }
 

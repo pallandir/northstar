@@ -30,12 +30,14 @@ sequenceDiagram
     H->>S: validate, save screenshots, upsert
     H->>K: announce
     K->>K: wait for the pane to go quiet
-    K->>A: type one fixed line
+    K->>A: type /mcp__northstar__resolve-comments (or push a channel event)
     K->>A: Enter, as a separate write
     H-->>X: { ids, typed }
     X-->>T: flash "Sent 3"
     A->>S: list_comments("open")
-    A->>A: implement each comment
+    A->>S: get_comment(id), claims it as in_progress
+    A->>A: implement at the located place
+    A->>S: resolve_comment(id, note, files)
 ```
 
 Save enqueues, Send flushes. A comment that is only saved never reaches the

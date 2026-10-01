@@ -11,12 +11,12 @@ keystrokes into the terminal the assistant runs in.
 ```mermaid
 flowchart TB
     subgraph Browser["Browser extension (one core, two build targets)"]
-      Popup["Popup<br/>activate / deactivate"]
+      Icon["Toolbar icon<br/>click toggles the overlay"]
       Worker["Background<br/>message router, injection"]
       Content["Content script<br/>shadow-DOM overlay<br/>in the top layer"]
       Probe["Main-world probe<br/>component / route / source"]
       Transport["Transport<br/>loopback client, queue"]
-      Popup --> Worker
+      Icon --> Worker
       Content --> Worker
       Content -. "DOM attribute +<br/>CustomEvents" .-> Probe
       Worker -- "injects, once per tab" --> Probe
@@ -26,7 +26,7 @@ flowchart TB
     subgraph Server["MCP server (one process)"]
       Http["HTTP listener<br/>127.0.0.1:7474"]
       Handoff["Terminal handoff<br/>tmux / iTerm2 / Terminal.app"]
-      Mcp["MCP server<br/>six tools"]
+      Mcp["MCP server<br/>seven tools, one prompt"]
       Store["Comment store<br/>reads / writes files"]
       Http --> Store
       Http --> Handoff
@@ -51,9 +51,9 @@ The source lives once, in `extensions/core/`. `extensions/chromium/` and
 `extensions/firefox/` each hold only a manifest, a Vite config, and a store listing;
 neither carries its own copy of the code, so a fix lands in both builds together.
 
-- **Popup** is the on and off switch. It reads the active tab's state, asks the
-  background for the loopback host permission on Firefox, and asks it to inject or
-  tear down the overlay.
+- **Toolbar icon** is the on and off switch. There is no popup: clicking the icon
+  asks the background to inject the overlay into the tab, or to tear it down if it
+  is already showing. The icon title carries the connection status.
 - **Background** is the extension's hub. It routes messages, verifies that every
   message came from this extension, injects the content script and the main-world
   probe on demand under the `activeTab` grant, and delegates all networking to the
@@ -85,10 +85,14 @@ One process exposes three faces.
   strict schema before handing it to the store.
 - **Terminal handoff** is what starts the work. After a batch lands it finds the
   terminal the assistant is running in, waits for it to go quiet, and types one
-  fixed line followed by Enter. See [How it works](./how-it-works.md#the-handoff).
+  fixed line followed by Enter. For Claude Code that line is
+  `/mcp__northstar__resolve-comments`. When Claude Code advertises channels, the
+  server pushes a channel event first and types only if no agent call follows
+  within 8 seconds. See [How it works](./how-it-works.md#the-handoff).
 - **MCP server** is the assistant's entry point. It speaks MCP over stdio and
-  registers six tools, carrying the instruction to treat comment text as data and
-  never as instructions.
+  registers seven tools and the `resolve-comments` prompt, carrying the instruction to
+  treat comment text as data and never as instructions. It also declares the
+  `claude/channel` capability so Claude Code can be triggered by a push.
 - **Comment store** owns the files. It serializes and parses the markdown and JSON
   stores, writes screenshots with server-generated names, and keeps every path
   confined under the project root.

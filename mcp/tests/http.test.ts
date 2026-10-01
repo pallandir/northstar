@@ -69,7 +69,7 @@ function call(
   });
 }
 
-const ext = "chrome-extension://abc";
+const ext = "chrome-extension://mmpgoabhnlkcgboiiaebeahcbbeeaggb";
 function loopbackHost(): string {
   return `127.0.0.1:${server.port}`;
 }
@@ -231,19 +231,148 @@ test("OPTIONS preflight returns 204", async () => {
   assert.equal(res.status, 204);
 });
 
-test("null Origin (local file or same-origin fetch) is allowed", async () => {
+test("null Origin (sandboxed iframe or data: page) is rejected", async () => {
   const res = await call("GET", "/health", { Host: loopbackHost(), Origin: "null" });
-  assert.equal(res.status, 200);
+  assert.equal(res.status, 403);
 });
 
-test("absent Origin is allowed (same-origin background fetch)", async () => {
-  const res = await call("GET", "/health", { Host: loopbackHost() });
-  assert.equal(res.status, 200);
+test("absent Origin is allowed only for GET /health", async () => {
+  const health = await call("GET", "/health", { Host: loopbackHost() });
+  assert.equal(health.status, 200);
+  const state = await call("GET", "/state", { Host: loopbackHost() });
+  assert.equal(state.status, 403);
+  const post = await call(
+    "POST",
+    "/comments",
+    { Host: loopbackHost(), "Content-Type": "application/json" },
+    validBody,
+  );
+  assert.equal(post.status, 403);
 });
 
 test("a moz-extension origin is allowed so Firefox can reach the server", async () => {
-  const res = await call("GET", "/health", { Host: loopbackHost(), Origin: "moz-extension://abc" });
+  const res = await call("GET", "/state", { Host: loopbackHost(), Origin: "moz-extension://abc" });
   assert.equal(res.status, 200);
+});
+
+test("an unlisted chrome-extension origin is rejected", async () => {
+  const res = await call("GET", "/state", {
+    Host: loopbackHost(),
+    Origin: "chrome-extension://someotherextensionid",
+  });
+  assert.equal(res.status, 403);
+});
+
+test("NORTHSTAR_EXTRA_ORIGINS adds chrome extension ids", async () => {
+  const previous = process.env.NORTHSTAR_EXTRA_ORIGINS;
+  process.env.NORTHSTAR_EXTRA_ORIGINS = "devidone, devidtwo";
+  try {
+    const res = await call("GET", "/state", {
+      Host: loopbackHost(),
+      Origin: "chrome-extension://devidtwo",
+    });
+    assert.equal(res.status, 200);
+  } finally {
+    Reflect.deleteProperty(process.env, "NORTHSTAR_EXTRA_ORIGINS");
+    if (previous !== undefined) process.env.NORTHSTAR_EXTRA_ORIGINS = previous;
+  }
+});
+
+test("/health keeps reporting the server version", async () => {
+  const res = await call("GET", "/health", headers());
+  assert.equal(typeof JSON.parse(res.body).version, "number");
+});
+
+test("a batch is accepted or rejected per item", async () => {
+  const before = handoff.sends;
+  const res = await call(
+    "POST",
+    "/comments",
+    jsonHeaders(),
+    JSON.stringify([
+      comment({ cid: "good-1" }),
+      { cid: "bad-1", comment: "missing everything" },
+      comment({ cid: "good-2", comment: "second" }),
+    ]),
+  );
+  assert.equal(res.status, 201);
+  const body = JSON.parse(res.body);
+  assert.deepEqual(
+    body.accepted.map((a: { cid: string }) => a.cid),
+    ["good-1", "good-2"],
+  );
+  assert.equal(body.rejected.length, 1);
+  assert.equal(body.rejected[0].cid, "bad-1");
+  assert.equal(typeof body.rejected[0].reason, "string");
+  assert.equal(body.ids.length, 2);
+  assert.equal(body.typed, true);
+  assert.equal(handoff.sends, before + 1);
+});
+
+test("a batch where every item is bad is a 400 that still lists the reasons", async () => {
+  const res = await call("POST", "/comments", jsonHeaders(), JSON.stringify([{ cid: "x" }]));
+  assert.equal(res.status, 400);
+  assert.equal(JSON.parse(res.body).rejected[0].cid, "x");
+});
+
+test("a repeated cid is stored once and does not trigger another handoff", async () => {
+  const payload = JSON.stringify([comment({ cid: "dup-1" })]);
+  const first = JSON.parse((await call("POST", "/comments", jsonHeaders(), payload)).body);
+  const sends = handoff.sends;
+  const second = JSON.parse((await call("POST", "/comments", jsonHeaders(), payload)).body);
+  assert.equal(second.accepted[0].id, first.accepted[0].id);
+  assert.equal(handoff.sends, sends);
+
+  const state = JSON.parse((await call("GET", "/state", headers())).body);
+  const matches = state.comments.filter((c: { cid?: string }) => c.cid === "dup-1");
+  assert.equal(matches.length, 1);
+});
+
+test("a v1 payload and a v2 payload both ingest", async () => {
+  const v2 = comment({
+    cid: "v2-1",
+    schemaVersion: 2,
+    intent: "copy",
+    locate: [
+      { kind: "testId", value: "hero", confidence: 0.9 },
+      { kind: "text", value: "Buy now", confidence: "medium" },
+    ],
+    page: { title: "Home", colorScheme: "dark" },
+    element: { ariaRole: "button", ariaName: "Buy now", landmark: "main", heading: "Pricing" },
+  });
+  const res = await call("POST", "/comments", jsonHeaders(), JSON.stringify([comment(), v2]));
+  assert.equal(res.status, 201);
+  const body = JSON.parse(res.body);
+  assert.equal(body.accepted.length, 2);
+  const state = JSON.parse((await call("GET", "/state", headers())).body);
+  const stored = state.comments.find((c: { cid?: string }) => c.cid === "v2-1");
+  assert.equal(stored.intent, "copy");
+  assert.equal(stored.locate[0].value, "hero");
+  assert.equal(stored.page.colorScheme, "dark");
+  assert.equal(stored.element.heading, "Pricing");
+});
+
+test("oversized or malformed values are coerced instead of rejected", async () => {
+  const item = comment({
+    comment: "x".repeat(20_000),
+    metadata: { page: "/", viewport: { w: Number.NaN, h: 600 }, elementText: "hi" },
+    route: {
+      pattern: "/a",
+      params: { id: ["1", "2"] },
+      router: "next",
+      routeFile: null,
+      confidence: "exact",
+    },
+  });
+  const res = await call("POST", "/comments", jsonHeaders(), JSON.stringify([item]));
+  assert.equal(res.status, 201);
+  const state = JSON.parse((await call("GET", "/state", headers())).body);
+  const stored = state.comments.find(
+    (c: { id: string }) => c.id === JSON.parse(res.body).accepted[0].id,
+  );
+  assert.equal(stored.comment.length, 8000);
+  assert.equal(stored.route.params.id, "1,2");
+  assert.equal(stored.metadata.viewport.w, 0);
 });
 
 test("GET /state returns version, comments, notices and terminal status", async () => {

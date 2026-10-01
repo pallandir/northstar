@@ -1,4 +1,5 @@
 import { exec } from "./exec.js";
+import type { AgentKind } from "./payload.js";
 
 const MAX_DEPTH = 8;
 
@@ -30,4 +31,22 @@ export async function findControllingTty(startPid: number = process.pid): Promis
     pid = info.ppid;
   }
   return null;
+}
+
+const CLAUDE_PROCESS = /(^|[\\/\s])claude(\s|$)|@anthropic-ai[\\/]claude-code/;
+
+export async function findAgentKind(startPid: number = process.pid): Promise<AgentKind> {
+  let pid = startPid;
+  for (let depth = 0; depth < MAX_DEPTH && pid > 1; depth += 1) {
+    try {
+      const out = await exec("ps", ["-o", "ppid=,command=", "-p", String(pid)]);
+      const match = out.trim().match(/^(\d+)\s+(.*)$/s);
+      if (!match) return "other";
+      if (depth > 0 && CLAUDE_PROCESS.test(match[2])) return "claude-code";
+      pid = Number(match[1]);
+    } catch {
+      return "other";
+    }
+  }
+  return "other";
 }

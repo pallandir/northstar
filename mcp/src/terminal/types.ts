@@ -15,6 +15,7 @@ export interface TerminalStatus {
 
 export interface HandoffResult {
   typed: boolean;
+  channel?: boolean;
   driver?: DriverName;
   reason?: string;
 }

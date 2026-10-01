@@ -8,6 +8,7 @@ export class Broker {
 
   private version = 1;
   private lastPolled: string | null = null;
+  private lastPolledTime = 0;
   private notices: DeferralNotice[] = [];
 
   get currentVersion(): number {
@@ -18,12 +19,17 @@ export class Broker {
     return this.lastPolled;
   }
 
+  get lastPolledMs(): number {
+    return this.lastPolledTime;
+  }
+
   get pendingNotices(): DeferralNotice[] {
     return [...this.notices];
   }
 
   markPolled(): void {
-    this.lastPolled = new Date().toISOString();
+    this.lastPolledTime = Date.now();
+    this.lastPolled = new Date(this.lastPolledTime).toISOString();
   }
 
   bump(): void {
