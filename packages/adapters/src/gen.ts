@@ -38,6 +38,10 @@ export function generate(repoRoot: string): Outputs {
 
   outputs.set("plugin/.claude-plugin/plugin.json", pluginManifest(version));
   outputs.set("plugin/hooks/hooks.json", hooksManifest(version));
+  outputs.set(
+    "plugin/agents/northstar-critic.md",
+    readFileSync(join(canonRoot, "agents", "critic.md"), "utf8"),
+  );
   outputs.set(".claude-plugin/marketplace.json", marketplaceManifest(version));
   outputs.set("docs/canon.md", renderRuleIndex(canon));
   return outputs;

@@ -75,3 +75,10 @@ test("the plugin hook scans edits and can never break them", () => {
   assert.match(command, /npx -y @pallandir\/northstar@\d+\.\d+\.\d+/);
   assert.match(command, /\|\| true'$/);
 });
+
+test("the critic agent ships read only", () => {
+  const agent = generate(repoRoot).get("plugin/agents/northstar-critic.md") ?? "";
+  assert.match(agent, /^---\nname: northstar-critic$/m);
+  assert.match(agent, /^disallowedTools: Edit, Write, MultiEdit, NotebookEdit$/m);
+  assert.doesNotMatch(agent, /[\u2013\u2014]/);
+});
