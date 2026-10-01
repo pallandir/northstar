@@ -1,0 +1,24 @@
+{
+  "name": "@northstar/detector",
+  "version": "2.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Static scanner for generic AI interface patterns, driven by the Northstar canon.",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@northstar/canon": "*",
+    "yaml": "^2.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

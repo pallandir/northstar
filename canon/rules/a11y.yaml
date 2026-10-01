@@ -3,7 +3,7 @@
   stage: [system, critique, polish]
   severity: error
   allowable: false
-  detect: static
+  detect: tokens
   rationale: Body text needs 4.5:1, large text 3:1, interface components and focus indicators 3:1. On a coloured surface, tint secondary text from that hue or the foreground, never plain grey.
   fix: Adjust the token pair in DESIGN.md until the ratio passes, then reuse the token everywhere.
   sources: [impeccable, ui-ux-pro-max, top-design]
@@ -24,7 +24,7 @@
   severity: warn
   modes: { operate: error }
   allowable: false
-  detect: static
+  detect: dom
   rationale: WCAG 2.2 AA requires at least 24 by 24 CSS pixels for pointer targets, and 44 by 44 is the practical floor for touch.
   fix: Grow the hit area with padding or a pseudo element instead of enlarging the visual.
   sources: [ui-ux-pro-max]

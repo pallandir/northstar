@@ -6,7 +6,13 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": ["dist", "node_modules", ".husky/_", "packages/data/json"]
+    "ignore": [
+      "dist",
+      "node_modules",
+      ".husky/_",
+      "packages/data/json",
+      "packages/detector/fixtures/fail"
+    ]
   },
   "formatter": {
     "enabled": true,

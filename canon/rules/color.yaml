@@ -13,7 +13,7 @@
   stage: [polish]
   severity: warn
   allowable: true
-  detect: static
+  detect: dom
   rationale: Neutral grey over a coloured background looks washed out and often fails contrast.
   fix: Tint the secondary text from the surface hue or the foreground colour.
   sources: [impeccable]

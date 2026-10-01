@@ -1,0 +1,17 @@
+h1 {
+  font-family: "Space Grotesk", sans-serif;
+  letter-spacing: -0.06em;
+}
+
+.card {
+  box-shadow: 6px 6px 0 #000;
+  transition: all 0.2s;
+}
+
+.pulse {
+  animation: bounce 1s infinite;
+}
+
+button:focus {
+  outline: none;
+}

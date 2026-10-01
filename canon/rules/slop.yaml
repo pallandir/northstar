@@ -66,7 +66,7 @@
   stage: [compose, polish]
   severity: error
   allowable: true
-  detect: static
+  detect: dom
   rationale: Nested containers flatten hierarchy and waste space. One surface level per region is enough.
   fix: Remove the inner container and separate with spacing, a divider or a background step.
   sources: [impeccable]

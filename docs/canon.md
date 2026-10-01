@@ -8,9 +8,9 @@ Generated from `canon/rules`. Do not edit by hand.
 
 | Rule | Title | Severity | Allowable | Detection |
 |---|---|---|---|---|
-| `NS-A11Y-CONTRAST` | Text and control contrast | error | no | static |
+| `NS-A11Y-CONTRAST` | Text and control contrast | error | no | tokens |
 | `NS-A11Y-FOCUS-VISIBLE` | Keyboard focus stays visible | error | no | static |
-| `NS-A11Y-TARGET-SIZE` | Touch and pointer target size | warn | no | static |
+| `NS-A11Y-TARGET-SIZE` | Touch and pointer target size | warn | no | dom |
 | `NS-A11Y-REDUCED-MOTION` | Reduced motion is honoured | error | no | static |
 | `NS-A11Y-SEMANTICS` | Real semantics for interactive elements | error | no | static |
 
@@ -19,7 +19,7 @@ Generated from `canon/rules`. Do not edit by hand.
 | Rule | Title | Severity | Allowable | Detection |
 |---|---|---|---|---|
 | `NS-COLOR-PURE-BLACK` | Pure black or white surfaces | warn | yes | static |
-| `NS-COLOR-GRAY-ON-COLOR` | Grey text on a coloured surface | warn | yes | static |
+| `NS-COLOR-GRAY-ON-COLOR` | Grey text on a coloured surface | warn | yes | dom |
 | `NS-COLOR-PALETTE-SIZE` | A small named palette with one accent | warn | yes | advisory |
 | `NS-COLOR-RAW-VALUES` | Raw colour values instead of tokens | warn | yes | static |
 | `NS-COLOR-THEME-CHOICE` | Light or dark chosen from the use scene | info | yes | advisory |
@@ -76,7 +76,7 @@ Generated from `canon/rules`. Do not edit by hand.
 | `NS-SLOP-EYEBROW` | Eyebrow label above a heading | error | yes | static |
 | `NS-SLOP-CAPS-LABELS` | Tracked all caps labels as a default | warn | yes | static |
 | `NS-SLOP-EMOJI-ICON` | Emoji or glyphs standing in for icons | error | yes | static |
-| `NS-SLOP-NESTED-CARD` | Card inside a card | error | yes | static |
+| `NS-SLOP-NESTED-CARD` | Card inside a card | error | yes | dom |
 | `NS-SLOP-CARD-GRID` | Identical icon, heading and text cards as page structure | warn | yes | dom |
 | `NS-SLOP-HERO-METRIC` | Big number with a small label as the hero | warn | yes | advisory |
 | `NS-SLOP-NUMBERED-SECTIONS` | Decorative section numbers | warn | yes | static |

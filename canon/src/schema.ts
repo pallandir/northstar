@@ -3,7 +3,7 @@ import { z } from "zod";
 export const MODES = ["operate", "read", "persuade", "experience"] as const;
 export const STAGES = ["brief", "direction", "system", "compose", "critique", "polish"] as const;
 export const SEVERITIES = ["off", "info", "warn", "error"] as const;
-export const DETECTION = ["static", "dom", "advisory"] as const;
+export const DETECTION = ["static", "tokens", "dom", "advisory"] as const;
 export const SOURCES = [
   "impeccable",
   "frontend-design",
