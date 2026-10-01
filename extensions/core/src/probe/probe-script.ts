@@ -1,14 +1,6 @@
-/**
- * Injected into the page's MAIN world with `chrome.scripting.executeScript({ func: installProbe,
- * world: "MAIN" })`. Chrome serializes only this function's own source text, so it cannot close
- * over anything from this module or any other: every constant and helper it needs is declared
- * inside the function body, duplicated by hand from protocol.ts where it names a shared constant.
- * probe-script.test.ts checks the two stay in sync.
- *
- * Reads only. Never assigns to anything on a page object's prototype, never calls back into the
- * page beyond dispatching its own events, and every reader is wrapped so a hostile or merely
- * unusual page can make it return null but never throw into that page's own execution.
- */
+// Injected into the MAIN world, which serializes only this function's own source text: every
+// constant and helper must live inside the body, with literals hand-copied from protocol.ts and
+// checked by probe-script.test.ts.
 export function installProbe(): void {
   const w = window as unknown as { __northstarProbeInstalled?: boolean };
   if (w.__northstarProbeInstalled) return;
@@ -32,17 +24,19 @@ export function installProbe(): void {
     component: { stack: Frame[] } | null;
     source: Source | null;
     route: Route | null;
+    failures: string[];
   };
+
+  let failures: string[] = [];
 
   function safe<T>(fn: () => T | null): T | null {
     try {
       return fn();
-    } catch {
+    } catch (err) {
+      failures.push(err instanceof Error ? err.message : String(err));
       return null;
     }
   }
-
-  // ---------- React ----------
 
   function reactFiberKey(el: Element): string | undefined {
     return Object.keys(el).find(
@@ -83,13 +77,10 @@ export function installProbe(): void {
       if (line.includes("node_modules") || line.includes("react-dom")) continue;
       const match = line.match(/(?:\()?((?:https?:|file:)?\/\/?[^\s()]+):(\d+):(\d+)\)?\s*$/);
       if (!match) continue;
-      let path = match[1];
-      try {
-        const url = new URL(path, location.href);
-        path = url.pathname.replace(/^\//, "");
-      } catch {
-        // already a bare path
-      }
+      const path = match[1]
+        .replace(/^(?:https?:|file:)?\/\/[^/]*/, "")
+        .replace(/^\//, "")
+        .replace(/[?#].*$/, "");
       if (!path || path.startsWith("node_modules")) continue;
       return { path, line: Number(match[2]), column: Number(match[3]), via: "react-fiber-stack" };
     }
@@ -139,8 +130,6 @@ export function installProbe(): void {
     if (stack.length === 0 && !source) return null;
     return { component: { stack }, source };
   }
-
-  // ---------- Vue ----------
 
   function readVue3(el: Element): { component: { stack: Frame[] }; source: Source | null } | null {
     const instance = (el as unknown as { __vueParentComponent?: unknown }).__vueParentComponent as
@@ -198,8 +187,6 @@ export function installProbe(): void {
     return { component: { stack }, source };
   }
 
-  // ---------- Svelte ----------
-
   function readSvelte(
     el: Element,
   ): { component: { stack: Frame[] }; source: Source | null } | null {
@@ -228,8 +215,6 @@ export function installProbe(): void {
     if (files.length === 0) return null;
     return { component: { stack: files.map((name) => ({ name })) }, source };
   }
-
-  // ---------- Angular ----------
 
   function readAngular(
     el: Element,
@@ -261,8 +246,6 @@ export function installProbe(): void {
       safe(() => readSvelte(el))
     );
   }
-
-  // ---------- Route ----------
 
   function inferPattern(pathname: string): string {
     const idish = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i; // uuid
@@ -345,10 +328,7 @@ export function installProbe(): void {
       guard++;
       const memoizedProps = fiber.memoizedProps as Record<string, unknown> | undefined;
 
-      // React Router v6's <Routes> never mounts <Route> itself: it reads the path/element pairs
-      // as configuration and renders the matched element inside a RouteContext.Provider whose
-      // value carries the match, path and bound params. That provider is what is actually in the
-      // fiber tree, so this is the signal to look for, checked on every fiber regardless of type.
+      // React Router v6 renders the match inside a RouteContext.Provider, not a mounted <Route>.
       const value = memoizedProps?.value as Record<string, unknown> | undefined;
       const matches = value?.matches as
         | Array<{ route?: { path?: string }; params?: Record<string, string> }>
@@ -366,7 +346,6 @@ export function installProbe(): void {
         }
       }
 
-      // Older usage (v5, or a <Route> rendered outside <Routes>) does mount it directly.
       const type = fiber.type as { displayName?: string; name?: string } | string | undefined;
       const name = typeof type === "object" ? (type?.displayName ?? type?.name) : undefined;
       if (
@@ -408,35 +387,40 @@ export function installProbe(): void {
     };
   }
 
-  // ---------- Wiring ----------
-
   function probe(el: Element | null): Result {
+    failures = [];
     const componentResult = el ? readComponent(el) : null;
+    const route = safe(() => readRoute(el));
     return {
       component: componentResult?.component ?? null,
       source: componentResult?.source ?? null,
-      route: safe(() => readRoute(el)),
+      route,
+      failures,
     };
   }
 
   window.addEventListener(REQUEST_EVENT, (event) => {
     const nonce = (event as CustomEvent).detail;
     if (typeof nonce !== "string" || !nonce) return;
-    let result: Result = { component: null, source: null, route: null };
+    let detail: { nonce: string; result?: Result; error?: string };
     try {
       const el = document.querySelector(`[${PROBE_ATTR}="${cssEscape(nonce)}"]`);
-      result = probe(el);
-    } catch {
-      // never throw into the page
+      detail = { nonce, result: probe(el) };
+    } catch (err) {
+      detail = { nonce, error: err instanceof Error ? err.message : String(err) };
     }
-    window.dispatchEvent(new CustomEvent(RESPONSE_EVENT, { detail: { nonce, result } }));
+    window.dispatchEvent(new CustomEvent(RESPONSE_EVENT, { detail }));
   });
 
   function cssEscape(value: string): string {
     return value.replace(/[^a-zA-Z0-9_-]/g, "");
   }
 
+  let lastHref = location.href;
+
   function emitNavigate(): void {
+    if (location.href === lastHref) return;
+    lastHref = location.href;
     window.dispatchEvent(new CustomEvent(NAVIGATE_EVENT));
   }
 

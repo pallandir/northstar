@@ -42,8 +42,27 @@ function implicitRole(el: Element): string | null {
   const tag = el.tagName.toLowerCase();
   if (tag === "button") return "button";
   if (tag === "a" && el.hasAttribute("href")) return "link";
-  if (tag === "input") return (el as HTMLInputElement).type === "checkbox" ? "checkbox" : "textbox";
+  if (tag === "input") return inputRole((el as HTMLInputElement).type);
+  if (tag === "select") return "combobox";
+  if (tag === "textarea") return "textbox";
   return null;
+}
+
+const INPUT_ROLES: Record<string, string | null> = {
+  checkbox: "checkbox",
+  radio: "radio",
+  range: "slider",
+  number: "spinbutton",
+  search: "searchbox",
+  button: "button",
+  submit: "button",
+  reset: "button",
+  image: "button",
+  hidden: null,
+};
+
+function inputRole(type: string): string | null {
+  return type in INPUT_ROLES ? INPUT_ROLES[type] : "textbox";
 }
 
 function collectAttributes(el: Element): Record<string, string> {
@@ -55,8 +74,6 @@ function collectAttributes(el: Element): Record<string, string> {
   return attrs;
 }
 
-// The element's own text, distinct from the concatenated text of every descendant, so a card with
-// one label and forty rows of data does not drown the label the user actually pointed at.
 function ownText(el: Element): string {
   let text = "";
   for (const node of el.childNodes) {
@@ -84,15 +101,32 @@ function outerHtmlExcerpt(el: Element): string {
   return html.length > MAX_OUTER_HTML ? `${html.slice(0, MAX_OUTER_HTML)}…` : html;
 }
 
+const HTML_NS = "http://www.w3.org/1999/xhtml";
+
+function xpathLiteral(value: string): string {
+  if (!value.includes('"')) return `"${value}"`;
+  if (!value.includes("'")) return `'${value}'`;
+  const pieces = value.split('"').map((piece) => `"${piece}"`);
+  return `concat(${pieces.join(`, '"', `)})`;
+}
+
+function xpathStep(el: Element): string {
+  const html = el.namespaceURI === HTML_NS;
+  const index = sameNameIndex(el, html);
+  return html
+    ? `${el.localName}[${index}]`
+    : `*[local-name()=${xpathLiteral(el.localName)}][${index}]`;
+}
+
 function buildXPath(el: Element): string {
   const parts: string[] = [];
   let node: Element | null = el;
   while (node && node !== document.documentElement) {
     if (node.id) {
-      parts.unshift(`//*[@id="${escapeId(node.id)}"]`);
+      parts.unshift(`//*[@id=${xpathLiteral(node.id)}]`);
       return parts.join("/");
     }
-    parts.unshift(`${node.tagName.toLowerCase()}[${sameTagIndex(node)}]`);
+    parts.unshift(xpathStep(node));
     node = node.parentElement;
   }
   if (node === document.documentElement) {
@@ -101,16 +135,12 @@ function buildXPath(el: Element): string {
   return `/${parts.join("/")}`;
 }
 
-function sameTagIndex(el: Element): number {
+function sameNameIndex(el: Element, html: boolean): number {
   let index = 1;
   let sibling = el.previousElementSibling;
   while (sibling) {
-    if (sibling.tagName === el.tagName) index++;
+    if (sibling.localName === el.localName && (sibling.namespaceURI === HTML_NS) === html) index++;
     sibling = sibling.previousElementSibling;
   }
   return index;
-}
-
-function escapeId(id: string): string {
-  return id.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }

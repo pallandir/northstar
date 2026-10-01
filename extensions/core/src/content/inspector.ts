@@ -1,4 +1,4 @@
-import { rgbToHex, samplePageColors, toHex } from "../lib/color.js";
+import { formatColor, sameColor, samplePageColors, toHex } from "../lib/color.js";
 import type { Operation } from "../types.js";
 import { buildColorPicker } from "./color-picker.js";
 
@@ -12,7 +12,6 @@ export interface InspectorSubmission {
 }
 
 export interface InspectorOptions {
-  title?: string;
   editOnly?: boolean;
   initialText?: string;
   initialPlanFirst?: boolean;
@@ -23,7 +22,6 @@ export interface InspectorOptions {
 export interface InspectorHandle {
   panel: HTMLElement;
   focus: () => void;
-  /** Reverts any live preview (a colour or text change applied to the element) and tears down. */
   cancel: () => void;
 }
 
@@ -31,15 +29,14 @@ interface TabController {
   id: InspectorTabId;
   label: string;
   body: HTMLElement;
-  /** Called whenever this tab becomes the active one, including the first time; focuses its
-   *  primary control. */
   activate: () => void;
   deactivate: () => void;
-  /** null means this tab has nothing to save. */
+  hasContent: () => boolean;
   collect: () => { comment: string; operation: Operation } | null;
 }
 
 const COMMENT_MAX_LENGTH = 4000;
+const DEFAULT_HINT = "Enter saves, Esc cancels";
 
 const COLOR_PROPERTIES = [
   { key: "color", label: "Text" },
@@ -49,7 +46,7 @@ const COLOR_PROPERTIES = [
 
 export function buildInspector(
   el: HTMLElement,
-  onSubmit: (result: InspectorSubmission) => void,
+  onSubmit: (result: InspectorSubmission) => void | Promise<void>,
   onCancel: () => void,
   opts: InspectorOptions = {},
 ): InspectorHandle {
@@ -58,6 +55,8 @@ export function buildInspector(
 
   const panel = document.createElement("div");
   panel.className = "ns-panel ns-inspector ns-enter";
+  panel.setAttribute("role", "dialog");
+  panel.setAttribute("aria-label", opts.editOnly ? "Edit comment" : "Comment on this element");
   panel.addEventListener("animationend", (event) => {
     if (event.target === panel) panel.classList.remove("ns-enter");
   });
@@ -83,7 +82,6 @@ export function buildInspector(
     for (const [id, btn] of tabButtons) {
       const isActive = id === next.id;
       btn.classList.toggle("ns-tab--active", isActive);
-      btn.classList.toggle("ns-inspector-tab--active", isActive);
       btn.setAttribute("aria-selected", String(isActive));
     }
     bodyHost.replaceChildren(next.body);
@@ -132,13 +130,26 @@ export function buildInspector(
   actions.className = "ns-actions";
   const hint = document.createElement("div");
   hint.className = "ns-hint";
-  hint.textContent = "Enter saves, Esc cancels";
+  hint.setAttribute("role", "status");
   hint.title = "Shift+Enter adds a new line";
+  const resetHint = () => {
+    hint.textContent = DEFAULT_HINT;
+    hint.classList.remove("ns-hint--error");
+  };
+  const showHint = (message: string) => {
+    hint.textContent = message;
+    hint.classList.add("ns-hint--error");
+  };
+  resetHint();
+  panel.addEventListener("input", () => {
+    if (!busy) resetHint();
+  });
   actions.append(hint);
 
   let cancelled = false;
+  let busy = false;
   const cancel = () => {
-    if (cancelled) return;
+    if (cancelled || busy) return;
     cancelled = true;
     for (const tab of tabs) tab.deactivate();
     onCancel();
@@ -167,13 +178,35 @@ export function buildInspector(
   saveBtn.type = "button";
   saveBtn.className = "ns-btn ns-btn--primary";
   saveBtn.textContent = "Save";
-  const submit = () => {
-    const collected = active.collect();
-    if (!collected) return cancel();
-    cancelled = true;
-    onSubmit({ ...collected, planFirst, attachScreenshot });
+  const submit = async () => {
+    if (busy || cancelled) return;
+    const target = active.hasContent() ? active : singleTabWithContent();
+    if (target === null) {
+      showHint(emptyHint(tabs, active));
+      return;
+    }
+    if (target !== active) selectTab(target);
+    const collected = target.collect();
+    if (!collected) {
+      showHint(emptyHint(tabs, active));
+      return;
+    }
+    busy = true;
+    saveBtn.disabled = true;
+    try {
+      await onSubmit({ ...collected, planFirst, attachScreenshot });
+      cancelled = true;
+    } catch (err) {
+      showHint(failureMessage(err));
+      busy = false;
+      saveBtn.disabled = false;
+    }
   };
-  saveBtn.addEventListener("click", submit);
+  const singleTabWithContent = (): TabController | null => {
+    const withContent = tabs.filter((tab) => tab.hasContent());
+    return withContent.length === 1 ? withContent[0] : null;
+  };
+  saveBtn.addEventListener("click", () => void submit());
 
   actions.append(cancelBtn, saveBtn);
   footer.append(toggleRow, actions);
@@ -187,7 +220,7 @@ export function buildInspector(
     }
     if (event.key !== "Enter" || event.isComposing || !savesOnEnter(event)) return;
     event.preventDefault();
-    if (active.collect()) submit();
+    void submit();
   });
 
   return {
@@ -221,6 +254,7 @@ function buildCommentTab(initialText?: string): TabController {
     body,
     activate: () => textarea.focus(),
     deactivate: () => {},
+    hasContent: () => textarea.value.trim().length > 0,
     collect: () => {
       const value = textarea.value.trim();
       if (!value) return null;
@@ -255,11 +289,12 @@ function buildTextTab(el: HTMLElement): TabController {
   }
 
   let applied = false;
-  input.addEventListener("input", () => {
+  const apply = () => {
     if (!isLeaf) return;
     el.textContent = input.value;
     applied = true;
-  });
+  };
+  input.addEventListener("input", apply);
 
   body.append(current, input);
 
@@ -269,19 +304,27 @@ function buildTextTab(el: HTMLElement): TabController {
     applied = false;
   };
 
+  const changedText = () => {
+    const to = input.value.trim();
+    return to && to !== from ? to : null;
+  };
+
   return {
     id: "text",
     label: "Text",
     body,
-    activate: () => input.focus(),
+    activate: () => {
+      if (changedText() !== null && !applied) apply();
+      input.focus();
+    },
     deactivate: revert,
+    hasContent: () => isLeaf && changedText() !== null,
     collect: () => {
-      const to = input.value.trim();
-      if (!to || to === from) {
+      const to = changedText();
+      if (to === null) {
         revert();
         return null;
       }
-      if (!isLeaf) revert(); // never leave a non-leaf element half-mutated
       return {
         comment: from ? `Change text from "${from}" to "${to}"` : `Set text to "${to}"`,
         operation: { type: "text", property: null, from, to },
@@ -303,7 +346,7 @@ function buildColorTab(el: HTMLElement): TabController {
   const from: Record<string, string> = {
     color: computed.color,
     "background-color": computed.backgroundColor,
-    "border-color": computed.borderColor,
+    "border-color": computed.borderTopColor,
   };
   const changed: Record<string, string> = {};
 
@@ -383,22 +426,31 @@ function buildColorTab(el: HTMLElement): TabController {
     }
   };
 
+  const touchedKeys = () =>
+    Object.keys(changed).filter((key) => !sameColor(changed[key], from[key]));
+
   return {
     id: "color",
     label: "Colour",
     body,
-    activate: () => {},
+    activate: () => {
+      for (const [key, value] of Object.entries(changed)) {
+        (el.style as unknown as Record<string, string>)[toCamel(key)] = value;
+      }
+    },
     deactivate: revert,
+    hasContent: () => touchedKeys().length > 0,
     collect: () => {
-      const touched = Object.keys(changed).filter(
-        (key) => toHex(changed[key]) !== toHex(from[key]),
-      );
+      const touched = touchedKeys();
       if (touched.length === 0) {
         revert();
         return null;
       }
       const summary = touched
-        .map((key) => `${propertyName(key)} from ${toHex(from[key])} to ${toHex(changed[key])}`)
+        .map(
+          (key) =>
+            `${propertyName(key)} from ${formatColor(from[key])} to ${formatColor(changed[key])}`,
+        )
         .join(" and ");
       const primary = touched[touched.length - 1];
       return {
@@ -406,12 +458,29 @@ function buildColorTab(el: HTMLElement): TabController {
         operation: {
           type: "style",
           property: primary,
-          from: rgbToHex(from[primary]),
-          to: toHex(changed[primary]),
+          from: formatColor(from[primary]),
+          to: formatColor(changed[primary]),
         },
       };
     },
   };
+}
+
+function emptyHint(tabs: TabController[], active: TabController): string {
+  if (tabs.filter((tab) => tab.hasContent()).length > 1) {
+    return "More than one tab has changes. Open the one you want to save.";
+  }
+  if (active.id === "text") return "Type the new text first.";
+  if (active.id === "color") return "Pick a colour first.";
+  return "Write a comment first.";
+}
+
+function failureMessage(err: unknown): string {
+  if (err instanceof Error) {
+    const fix = (err as { fix?: unknown }).fix;
+    return typeof fix === "string" ? `${err.message} ${fix}` : err.message;
+  }
+  return "Saving failed. Try again.";
 }
 
 function propertyName(key: string): string {
@@ -433,7 +502,7 @@ function buildToggle(
   btn.type = "button";
   btn.className = "ns-switch-row ns-toggle";
   btn.setAttribute("role", "switch");
-  btn.setAttribute("aria-pressed", String(value));
+  btn.setAttribute("aria-checked", String(value));
   const labelEl = document.createElement("span");
   labelEl.className = "ns-toggle-label";
   labelEl.textContent = label;
@@ -442,7 +511,7 @@ function buildToggle(
   btn.append(labelEl, track);
   btn.addEventListener("click", () => {
     value = !value;
-    btn.setAttribute("aria-pressed", String(value));
+    btn.setAttribute("aria-checked", String(value));
     onChange(value);
   });
   return btn;

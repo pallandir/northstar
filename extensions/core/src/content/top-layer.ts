@@ -91,11 +91,7 @@ export class TopLayer {
     this.frame = 0;
     const host = this.host;
     if (host && SUPPORTED) {
-      try {
-        host.hidePopover();
-      } catch {
-        // already hidden
-      }
+      if (host.matches(":popover-open")) host.hidePopover();
       host.removeAttribute("popover");
     }
     this.host = null;
@@ -122,16 +118,8 @@ export class TopLayer {
     if (host.parentNode !== parent) parent.append(host);
 
     if (SUPPORTED) {
-      try {
-        host.hidePopover();
-      } catch {
-        // not currently showing
-      }
-      try {
-        host.showPopover();
-      } catch {
-        // the host left the document between the check and the call
-      }
+      if (host.matches(":popover-open")) host.hidePopover();
+      if (host.isConnected) host.showPopover();
     }
     restore();
   }
@@ -146,13 +134,7 @@ export class TopLayer {
     return () => {
       if (!active.isConnected) return;
       active.focus({ preventScroll: true });
-      if (editable && start !== null && end !== null) {
-        try {
-          editable.setSelectionRange(start, end);
-        } catch {
-          // the field no longer supports a selection range
-        }
-      }
+      if (editable && start !== null && end !== null) editable.setSelectionRange(start, end);
     };
   }
 }

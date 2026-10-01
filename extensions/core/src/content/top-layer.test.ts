@@ -3,6 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const shown: string[] = [];
 
 function stubPopover(): void {
+  const real = Element.prototype.matches;
+  Element.prototype.matches = function (this: Element, selector: string) {
+    if (selector === ":popover-open") return (this as HTMLElement).dataset?.popoverOpen === "true";
+    return real.call(this, selector);
+  };
   Object.assign(HTMLElement.prototype, {
     showPopover(this: HTMLElement) {
       shown.push(`show:${this.id}`);

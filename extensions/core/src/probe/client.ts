@@ -1,45 +1,77 @@
 import {
+  PROBE_ANSWER_TIMEOUT_MS,
   PROBE_ATTR,
   PROBE_NAVIGATE_EVENT,
   PROBE_REQUEST_EVENT,
   PROBE_RESPONSE_EVENT,
-  PROBE_TIMEOUT_MS,
   type ProbeResult,
 } from "./protocol.js";
 
-let counter = 0;
+export type ProbeOutcome = { ok: true; result: ProbeResult } | { ok: false; error: Error };
 
-// Ask the main-world probe (installed once per tab by the background worker) about one element.
-// The isolated content script cannot read framework internals directly, so the round trip goes
-// through a DOM attribute and a pair of window CustomEvents, which cross the world boundary the
-// way extension messaging cannot. A timeout means the probe never answered (not installed, the
-// page has no matching framework state, or it is simply slow) and callers treat that as "unknown"
-// rather than blocking the UI on it.
-export function probeElement(el: Element): Promise<ProbeResult | null> {
-  const nonce = `${Date.now().toString(36)}-${(counter++).toString(36)}`;
+function newNonce(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isProbeResult(value: unknown): value is ProbeResult {
+  return (
+    isRecord(value) &&
+    "component" in value &&
+    "source" in value &&
+    "route" in value &&
+    Array.isArray(value.failures)
+  );
+}
+
+export function probeElement(
+  el: Element,
+  timeoutMs = PROBE_ANSWER_TIMEOUT_MS,
+): Promise<ProbeResult> {
+  const nonce = newNonce();
   el.setAttribute(PROBE_ATTR, nonce);
 
-  return new Promise<ProbeResult | null>((resolve) => {
-    let done = false;
-    const finish = (value: ProbeResult | null) => {
-      if (done) return;
-      done = true;
+  return new Promise<ProbeResult>((resolve, reject) => {
+    function cleanup(): void {
       window.removeEventListener(PROBE_RESPONSE_EVENT, onResponse);
       clearTimeout(timer);
       el.removeAttribute(PROBE_ATTR);
-      resolve(value);
-    };
-    const onResponse = (event: Event) => {
-      const detail = (event as CustomEvent).detail as
-        | { nonce?: string; result?: ProbeResult }
-        | undefined;
-      if (!detail || detail.nonce !== nonce) return;
-      finish(detail.result ?? null);
-    };
+    }
+
+    function onResponse(event: Event): void {
+      const detail: unknown = (event as CustomEvent).detail;
+      if (!isRecord(detail) || detail.nonce !== nonce) return;
+      cleanup();
+      if (typeof detail.error === "string") {
+        reject(new Error(`page probe failed: ${detail.error}`));
+      } else if (!isProbeResult(detail.result)) {
+        reject(new Error("page probe sent an invalid answer"));
+      } else {
+        resolve(detail.result);
+      }
+    }
+
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("page probe did not answer"));
+    }, timeoutMs);
     window.addEventListener(PROBE_RESPONSE_EVENT, onResponse);
     window.dispatchEvent(new CustomEvent(PROBE_REQUEST_EVENT, { detail: nonce }));
-    const timer = setTimeout(() => finish(null), PROBE_TIMEOUT_MS);
   });
+}
+
+export function settleProbe(promise: Promise<ProbeResult>): Promise<ProbeOutcome> {
+  return promise.then(
+    (result): ProbeOutcome => ({ ok: true, result }),
+    (error: unknown): ProbeOutcome => ({
+      ok: false,
+      error: error instanceof Error ? error : new Error(String(error)),
+    }),
+  );
 }
 
 export function onNavigate(callback: () => void): () => void {

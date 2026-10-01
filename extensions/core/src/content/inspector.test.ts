@@ -67,14 +67,15 @@ describe("buildInspector", () => {
   });
 
   describe("comment tab", () => {
-    it("does not submit an empty comment: Save behaves like Cancel", () => {
+    it("does not submit an empty comment and says what to do", () => {
       const el = mount(document.createElement("div"));
       const onSubmit = vi.fn();
       const onCancel = vi.fn();
       const { panel } = buildInspector(el, onSubmit, onCancel);
       saveButton(panel).click();
       expect(onSubmit).not.toHaveBeenCalled();
-      expect(onCancel).toHaveBeenCalledOnce();
+      expect(onCancel).not.toHaveBeenCalled();
+      expect(must(panel.querySelector(".ns-hint")).textContent).toBe("Write a comment first.");
     });
 
     it("submits the trimmed comment as a comment operation", () => {
@@ -258,7 +259,8 @@ describe("buildInspector", () => {
       tabButton(panel, "Text").click();
       saveButton(panel).click();
       expect(onSubmit).not.toHaveBeenCalled();
-      expect(onCancel).toHaveBeenCalledOnce();
+      expect(onCancel).not.toHaveBeenCalled();
+      expect(must(panel.querySelector(".ns-hint")).textContent).toBe("Type the new text first.");
     });
 
     it("submits a text operation with from/to when changed", () => {
@@ -297,14 +299,14 @@ describe("buildInspector", () => {
 
     it("reverts the live preview on cancel", () => {
       const el = mount(document.createElement("div"));
-      el.style.color = "blue";
+      el.style.color = "rgb(0, 0, 255)";
       const { panel } = buildInspector(el, vi.fn(), vi.fn());
       tabButton(panel, "Colour").click();
       const hexInput = must(panel.querySelector<HTMLInputElement>(".ns-inspector-hex"));
       hexInput.value = "#ff0000";
       hexInput.dispatchEvent(new Event("change"));
       panel.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-      expect(el.style.color).toBe("blue");
+      expect(el.style.color).toBe("rgb(0, 0, 255)");
     });
 
     it("submits nothing when no property was changed", () => {
@@ -315,7 +317,8 @@ describe("buildInspector", () => {
       tabButton(panel, "Colour").click();
       saveButton(panel).click();
       expect(onSubmit).not.toHaveBeenCalled();
-      expect(onCancel).toHaveBeenCalledOnce();
+      expect(onCancel).not.toHaveBeenCalled();
+      expect(must(panel.querySelector(".ns-hint")).textContent).toBe("Pick a colour first.");
     });
 
     it("switching to the background property and changing it submits a background-color operation", () => {

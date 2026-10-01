@@ -1,8 +1,3 @@
-// A CSS selector for the agent to jump to the same element in the source, chosen for stability
-// rather than uniqueness at any cost: prefer a hook the code deliberately exposes over one that
-// merely happens to be there today. A candidate is accepted only once it resolves to exactly this
-// element, because a selector that points at nothing, or at something else, is worse than none.
-
 const GENERATED_CLASS =
   /^(css-|sc-|emotion-|jsx-|_[a-zA-Z0-9]{5,8}$|[a-zA-Z0-9]{5,}_[a-zA-Z0-9]{5,}$)/;
 const HASH_LIKE_CLASS = /^[a-z]+-[0-9a-f]{5,}$/i;

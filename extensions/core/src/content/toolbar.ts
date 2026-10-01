@@ -1,5 +1,5 @@
 import { browser } from "../lib/browser.js";
-import type { QueueStatus, SendOutcome } from "../messages.js";
+import type { ProblemNote, QueueStatus, SendOutcome } from "../messages.js";
 import {
   ICON_CLOSE,
   ICON_COMMENT,
@@ -22,7 +22,7 @@ const PICK_OFF_TIP = "Picking is paused, click to pick elements to comment on";
 const COMMENTS_OPEN_TIP = "Open the comments panel";
 const COMMENTS_CLOSE_TIP = "Close the comments panel";
 const SEND_READY_TIP = "Send your comments to your AI assistant";
-const HANDOFF_TIP = "Download all comments as a Markdown file";
+const HANDOFF_TIP = "Download this page's unsent comments as a Markdown file";
 
 export function setTip(el: HTMLElement, tip: string): void {
   el.dataset.tip = tip;
@@ -38,6 +38,8 @@ export interface ToolbarHandlers {
   onReset: () => void;
   onTogglePick: () => void;
   onDeactivate: () => void;
+  onConnect: () => void;
+  onChooseServer: (port: number) => void;
 }
 
 export interface ToolbarState {
@@ -48,6 +50,12 @@ export interface ToolbarState {
   drawerOpen: boolean;
   lastSend: SendOutcome | null;
   picking: boolean;
+  problem: ProblemNote | null;
+}
+
+interface StripAction {
+  label: string;
+  run: () => void;
 }
 
 export class Toolbar {
@@ -63,13 +71,18 @@ export class Toolbar {
   private panelKey = "";
   private dismissedKey = "";
   private sentTimer = 0;
+  private savedTimer = 0;
+  private saved = false;
+  private lastState: ToolbarState | null = null;
   private sending = false;
   private reachable = false;
   private hasQueued = false;
   private queued = 0;
+  private readonly handlers: ToolbarHandlers;
   private readonly onResize = () => this.clampIntoViewport();
 
   constructor(surface: Surface, handlers: ToolbarHandlers) {
+    this.handlers = handlers;
     this.root = document.createElement("div");
     this.root.className = "ns-toolbar";
 
@@ -142,6 +155,7 @@ export class Toolbar {
 
   destroy(): void {
     window.clearTimeout(this.sentTimer);
+    window.clearTimeout(this.savedTimer);
     window.removeEventListener("resize", this.onResize);
     this.root.remove();
   }
@@ -165,20 +179,29 @@ export class Toolbar {
       : `Send ${this.queued} comments to your AI assistant`;
   }
 
+  flashSaved(): void {
+    window.clearTimeout(this.savedTimer);
+    this.saved = true;
+    this.savedTimer = window.setTimeout(() => {
+      this.saved = false;
+      if (this.lastState) this.render(this.lastState);
+    }, 1600);
+    if (this.lastState) this.render(this.lastState);
+  }
+
   render(state: ToolbarState): void {
+    this.lastState = state;
     this.targetBtn.classList.toggle("ns-action--active", state.picking);
     setTip(this.targetBtn, state.picking ? PICK_ON_TIP : PICK_OFF_TIP);
     setTip(this.commentsBtn, state.drawerOpen ? COMMENTS_CLOSE_TIP : COMMENTS_OPEN_TIP);
 
-    this.commentsLabel.textContent =
-      state.noticeCount > 0
+    this.commentsLabel.textContent = this.saved
+      ? "Saved"
+      : state.noticeCount > 0
         ? `Comments (${state.count}) · ${state.noticeCount} ${state.noticeCount === 1 ? "needs" : "need"} a plan`
         : `Comments (${state.count})`;
 
     if (state.mode === "remote") {
-      // A remote page never reaches the loopback server by design, so there is nothing to
-      // explain in a permanent card here: Handoff becomes the one thing to do, and its own
-      // tooltip says why.
       this.sendBtn.hidden = true;
       this.handoffBtn.classList.add("ns-action--primary");
       setTip(this.handoffBtn, "Comment freely, then export a handoff file for your developers");
@@ -199,12 +222,45 @@ export class Toolbar {
 
     const send = state.lastSend;
     const terminal = status?.terminal;
+    const connection = status?.connection ?? "offline";
 
-    // Only a real failure earns a strip, and only once per distinct problem: dismissing it
-    // keeps it dismissed while the same problem persists, rather than a poll cycle bringing
-    // it straight back.
-    if (send && !send.typed && send.reason) {
-      this.showFailure(`send:${send.reason}`, "Comments saved, not announced", send.reason);
+    if (state.problem) {
+      this.showFailure(`problem:${state.problem.error}`, state.problem.error, state.problem.fix);
+    } else if (connection === "unpaired") {
+      this.showFailure(
+        "unpaired",
+        "Allow this browser to reach your project",
+        "One click, then you are connected.",
+        [{ label: "Connect", run: () => this.handlers.onConnect() }],
+      );
+    } else if (connection === "choose") {
+      this.showFailure(
+        `choose:${status?.servers.map((server) => server.port).join(",")}`,
+        "More than one project is running",
+        "Pick the project you are commenting on.",
+        (status?.servers ?? []).map((server) => ({
+          label: server.project,
+          run: () => this.handlers.onChooseServer(server.port),
+        })),
+      );
+    } else if (connection === "mismatch" && status?.problem) {
+      this.showFailure(
+        `mismatch:${status.problem.error}`,
+        status.problem.error,
+        status.problem.fix,
+      );
+    } else if (send && send.rejected > 0) {
+      this.showFailure(
+        `rejected:${send.rejected}:${send.reason ?? ""}`,
+        send.rejected === 1 ? "1 comment was not sent" : `${send.rejected} comments were not sent`,
+        send.reason ?? "Open Comments to see why and fix them.",
+      );
+    } else if (status?.handoff && !status.handoff.delivered && status.handoff.reason) {
+      this.showFailure(
+        `handoff:${status.handoff.at}`,
+        "Comments saved, not announced",
+        status.handoff.reason,
+      );
     } else if (!reachable) {
       this.showFailure(
         "offline",
@@ -222,9 +278,9 @@ export class Toolbar {
     }
   }
 
-  private showFailure(key: string, title: string, body: string): void {
+  private showFailure(key: string, title: string, body: string, actions: StripAction[] = []): void {
     if (key === this.dismissedKey) return;
-    this.setPanel(key, () => hintStrip(title, body, () => this.dismiss(key)));
+    this.setPanel(key, () => hintStrip(title, body, () => this.dismiss(key), actions));
   }
 
   private dismiss(key: string): void {
@@ -233,7 +289,7 @@ export class Toolbar {
   }
 
   flashSent(send: SendOutcome): void {
-    if (!send.typed) return;
+    if (send.sent === 0) return;
     window.clearTimeout(this.sentTimer);
     this.sendLabel.textContent = send.sent === 1 ? "Sent 1" : `Sent ${send.sent}`;
     this.sentTimer = window.setTimeout(() => {
@@ -271,9 +327,7 @@ export class Toolbar {
       startY = event.clientY;
       originLeft = rect.left;
       originTop = rect.top;
-      try {
-        handle.setPointerCapture(event.pointerId);
-      } catch {}
+      handle.setPointerCapture(event.pointerId);
     });
     handle.addEventListener("pointermove", (event) => {
       if (!dragging) return;
@@ -338,11 +392,15 @@ function sep(): HTMLElement {
   return el;
 }
 
-// A one-line strip for a real, ongoing problem, never a permanent card: it carries its own
-// dismiss and only reappears if the underlying problem changes to something new.
-function hintStrip(title: string, body: string, onDismiss: () => void): HTMLElement {
+function hintStrip(
+  title: string,
+  body: string,
+  onDismiss: () => void,
+  actions: StripAction[],
+): HTMLElement {
   const wrap = document.createElement("div");
   wrap.className = "ns-setup";
+  wrap.setAttribute("role", "alert");
 
   const row = document.createElement("div");
   row.className = "ns-setup-row";
@@ -362,5 +420,18 @@ function hintStrip(title: string, body: string, onDismiss: () => void): HTMLElem
   sub.className = "ns-setup-hint";
   sub.textContent = body;
   wrap.append(row, sub);
+  if (actions.length > 0) {
+    const bar = document.createElement("div");
+    bar.className = "ns-setup-actions";
+    for (const action of actions) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "ns-btn ns-btn--primary";
+      btn.textContent = action.label;
+      btn.addEventListener("click", action.run);
+      bar.append(btn);
+    }
+    wrap.append(bar);
+  }
   return wrap;
 }

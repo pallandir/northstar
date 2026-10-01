@@ -49,8 +49,8 @@ Built for how developers actually work
 
 Northstar stays out of the way until you ask for it. It does not run on any website
 by default and has no standing access to the pages you visit. The moment you click
-its icon, it works only on that one tab, and that access ends as soon as you
-navigate away.
+its icon, it works only on that one tab. On a local dev server it comes back after
+a reload on its own, and on a remote page it waits for you to click again.
 
 It works on localhost and on remote preview URLs alike. On localhost your comments
 flow straight to your project. On a remote page they are kept safely on your device
@@ -76,7 +76,7 @@ it happen in the codebase, this is that.
 - **activeTab**: grants access to the current tab only when the user clicks the
   toolbar button, so Northstar can read the element being commented on and capture a
   cropped screenshot of it. The extension has no access to any page before that
-  click, and the access ends when the tab navigates.
+  click, and on remote pages the access ends when the tab navigates or reloads.
 - **scripting**: injects the commenting toolbar into that one active tab on demand,
   in place of a declared content script, so the extension does not run on pages
   automatically. Also injects a small read-only script into the page's own main
@@ -89,7 +89,8 @@ it happen in the codebase, this is that.
   other site.
 - **storage / unlimitedStorage**: queues comments (which may include a screenshot
   when you ask for one) locally so commenting works even when the assistant's
-  server is not running, and drains automatically when it is.
+  server is not running. The queue is sent only when the user presses Send to AI,
+  never automatically. A rejected comment stays queued with the reason shown.
 
 ## Data use disclosures
 

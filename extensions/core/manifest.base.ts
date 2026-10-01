@@ -1,7 +1,5 @@
-export const version = "2.1.0";
+export const version = "2.3.0";
 
-// The only hosts the extension may talk to over the network: the loopback listener owned by the
-// local MCP server. Nothing here grants access to any web page.
 const LOOPBACK_HOSTS = ["http://localhost/*", "http://127.0.0.1/*", "http://*.localhost/*"];
 
 export const icons = {

@@ -45,8 +45,8 @@ Built for how developers actually work
 
 Northstar stays out of the way until you ask for it. It does not run on any website
 by default and has no standing access to the pages you visit. The moment you click
-its icon, it works only on that one tab, and that access ends as soon as you
-navigate away.
+its icon, it works only on that one tab. On a local dev server it comes back after
+a reload on its own, and on a remote page it waits for you to click again.
 
 It works on localhost and on remote preview URLs alike. On localhost your comments
 flow straight to your project. On a remote page they are kept safely on your device
@@ -71,13 +71,15 @@ between spotting something on screen and getting it fixed in code.
   (`http://localhost`, `http://127.0.0.1`, `http://*.localhost`). It makes no other
   network requests and has no remote code.
 - `activeTab` and `scripting` grant access only to the tab the user actively clicks
-  the toolbar icon on; there is no standing content script and no automatic
-  injection on page load.
+  the toolbar icon on; there is no standing content script. Only after a reload of
+  a tab already turned on, and only on loopback pages that hold the localhost
+  permission, the overlay is injected again.
 - The main-world targeting probe (`scripting.executeScript({ world: "MAIN" })`)
   only reads DOM and framework debug state already present in the page; it writes
   nothing back to the page and has no extension API access from that world.
 - `storage` / `unlimitedStorage` queue comments locally so commenting still works
-  when the local server is not running.
+  when the local server is not running. The queue is sent only when the user presses
+  Send to AI.
 - See [`PRIVACY.md`](https://github.com/pallandir/northstar/blob/main/PRIVACY.md)
   for the full data-handling description.
 

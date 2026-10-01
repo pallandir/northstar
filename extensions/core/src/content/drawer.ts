@@ -48,7 +48,7 @@ export class Drawer {
     this.root.className = "ns-drawer";
 
     const card = document.createElement("div");
-    card.className = "ns-drawer-card ns-comments-card";
+    card.className = "ns-drawer-card";
 
     const head = document.createElement("div");
     head.className = "ns-drawer-head";
@@ -69,12 +69,9 @@ export class Drawer {
     this.listEl.className = "ns-drawer-list";
 
     card.append(head, this.noticesEl, this.listEl);
+    this.root.toggleAttribute("inert", true);
     this.root.append(card);
     surface.append(this.root);
-  }
-
-  isOpen(): boolean {
-    return this.open;
   }
 
   setOpen(
@@ -85,6 +82,7 @@ export class Drawer {
   ): void {
     this.open = open;
     this.root.classList.toggle("ns-drawer--open", open);
+    this.root.toggleAttribute("inert", !open);
     this.stopEditing();
     this.ctx = ctx;
     this.render(pins, ctx, notices);
@@ -111,9 +109,6 @@ export class Drawer {
     this.root.remove();
   }
 
-  // Comments the agent deferred as "needs a plan" surface here rather than as a floating
-  // toolbar card: they are still items in this list (their pin sits in History as wontfix),
-  // just ones asking for your attention before you discuss them further.
   private renderNotices(notices: DeferralNotice[]): void {
     this.noticesEl.replaceChildren();
     if (notices.length === 0 || this.activeTab !== "comments") return;
@@ -161,8 +156,11 @@ export class Drawer {
     const history = pins.filter((p) => p.status === "resolved");
 
     this.tabsEl.replaceChildren();
+    this.tabsEl.setAttribute("role", "tablist");
     const commentsTab = document.createElement("button");
     commentsTab.type = "button";
+    commentsTab.setAttribute("role", "tab");
+    commentsTab.setAttribute("aria-selected", String(this.activeTab === "comments"));
     commentsTab.className = `ns-drawer-tab${this.activeTab === "comments" ? " ns-drawer-tab--active" : ""}`;
     commentsTab.textContent = `Comments (${active.length})`;
     commentsTab.addEventListener("click", () => {
@@ -173,6 +171,8 @@ export class Drawer {
     });
     const historyTab = document.createElement("button");
     historyTab.type = "button";
+    historyTab.setAttribute("role", "tab");
+    historyTab.setAttribute("aria-selected", String(this.activeTab === "history"));
     historyTab.className = `ns-drawer-tab${this.activeTab === "history" ? " ns-drawer-tab--active" : ""}`;
     historyTab.textContent = `History (${history.length})`;
     historyTab.addEventListener("click", () => {
@@ -291,7 +291,7 @@ export class Drawer {
       screenshotRow.append(screenshotCheckbox, document.createTextNode(" Attach screenshot"));
 
       const actions = document.createElement("div");
-      actions.className = "ns-drawer-actions ns-drawer-edit-actions";
+      actions.className = "ns-drawer-actions";
       const save = document.createElement("button");
       save.type = "button";
       save.className = "ns-btn ns-btn--primary";
@@ -300,10 +300,6 @@ export class Drawer {
         const value = textarea.value.trim();
         this.stopEditing();
         if (value) {
-          // Only tell the caller to change the screenshot when the checkbox state actually
-          // differs from what is already stored: turning it off clears the shot, turning it on
-          // when there was none triggers a fresh capture, and leaving it as found is a no-op
-          // rather than a needless re-capture on every edit.
           const attachScreenshot =
             screenshotCheckbox.checked === pin.hasScreenshot
               ? undefined
@@ -331,6 +327,17 @@ export class Drawer {
     body.textContent = pin.text;
     row.append(body);
 
+    if (pin.rejection) {
+      row.append(problemNote(pin.rejection.error, pin.rejection.fix));
+    } else if (pin.missing) {
+      row.append(
+        problemNote(
+          "This element was not found on this page.",
+          "Open the page where you left it, or delete the comment.",
+        ),
+      );
+    }
+
     if (pin.removable) {
       const actions = document.createElement("div");
       actions.className = "ns-drawer-actions";
@@ -354,6 +361,20 @@ export class Drawer {
     }
     return row;
   }
+}
+
+function problemNote(error: string, fix: string): HTMLElement {
+  const note = document.createElement("div");
+  note.className = "ns-drawer-problem";
+  note.setAttribute("role", "alert");
+  const title = document.createElement("div");
+  title.className = "ns-drawer-problem-title";
+  title.textContent = error;
+  const hint = document.createElement("div");
+  hint.className = "ns-drawer-problem-hint";
+  hint.textContent = fix;
+  note.append(title, hint);
+  return note;
 }
 
 function kindLabel(pin: PinModel): string {

@@ -30,6 +30,8 @@ function handlers(overrides: Partial<ToolbarHandlers> = {}): ToolbarHandlers {
     onReset: vi.fn(),
     onTogglePick: vi.fn(),
     onDeactivate: vi.fn(),
+    onConnect: vi.fn(),
+    onChooseServer: vi.fn(),
     ...overrides,
   };
 }
@@ -43,6 +45,7 @@ function state(overrides: Partial<ToolbarState> = {}): ToolbarState {
     drawerOpen: false,
     lastSend: null,
     picking: true,
+    problem: null,
     ...overrides,
   };
 }
@@ -50,12 +53,17 @@ function state(overrides: Partial<ToolbarState> = {}): ToolbarState {
 function reachableStatus(overrides: Partial<QueueStatus> = {}): QueueStatus {
   return {
     queued: 1,
+    failed: 0,
+    connection: "connected",
     serverReachable: true,
     port: 7474,
     root: "/repo",
     notices: [],
-    version: 1,
     terminal: { available: true, driver: "tmux" },
+    lastPolledAt: null,
+    handoff: null,
+    servers: [],
+    problem: null,
     ...overrides,
   };
 }
@@ -118,6 +126,111 @@ describe("Toolbar failure strip", () => {
     expect(document.querySelector(".ns-setup-title")?.textContent).toBe(
       "Comments will not reach your agent",
     );
+  });
+});
+
+describe("Toolbar connection strips", () => {
+  it("offers one Connect button when the browser is not paired", () => {
+    const onConnect = vi.fn();
+    const toolbar = new Toolbar(fakeSurface(), handlers({ onConnect }));
+    toolbar.render(
+      state({
+        status: reachableStatus({ connection: "unpaired", serverReachable: false }),
+      }),
+    );
+    const buttons = document.querySelectorAll<HTMLButtonElement>(".ns-setup-actions button");
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0].textContent).toBe("Connect");
+    buttons[0].click();
+    expect(onConnect).toHaveBeenCalledOnce();
+  });
+
+  it("lists every running project and reports the one picked", () => {
+    const onChooseServer = vi.fn();
+    const toolbar = new Toolbar(fakeSurface(), handlers({ onChooseServer }));
+    toolbar.render(
+      state({
+        status: reachableStatus({
+          connection: "choose",
+          serverReachable: false,
+          servers: [
+            { port: 7474, project: "shop" },
+            { port: 7475, project: "blog" },
+          ],
+        }),
+      }),
+    );
+    const buttons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(".ns-setup-actions button"),
+    );
+    expect(buttons.map((b) => b.textContent)).toEqual(["shop", "blog"]);
+    buttons[1].click();
+    expect(onChooseServer).toHaveBeenCalledWith(7475);
+  });
+
+  it("names the side to update on a version mismatch", () => {
+    const toolbar = new Toolbar(fakeSurface(), handlers());
+    toolbar.render(
+      state({
+        status: reachableStatus({
+          connection: "mismatch",
+          serverReachable: false,
+          problem: {
+            error: "Update Northstar: the extension and the server versions differ.",
+            fix: "Update the Northstar server, then restart your AI agent.",
+          },
+        }),
+      }),
+    );
+    expect(document.querySelector(".ns-setup-hint")?.textContent).toBe(
+      "Update the Northstar server, then restart your AI agent.",
+    );
+  });
+
+  it("shows an error and its fix for a failed action", () => {
+    const toolbar = new Toolbar(fakeSurface(), handlers());
+    toolbar.render(
+      state({
+        status: reachableStatus(),
+        problem: {
+          error: "The page changed before the comment was saved.",
+          fix: "Pick the element again.",
+        },
+      }),
+    );
+    expect(document.querySelector(".ns-setup-title")?.textContent).toBe(
+      "The page changed before the comment was saved.",
+    );
+    expect(document.querySelector(".ns-setup-hint")?.textContent).toBe("Pick the element again.");
+  });
+
+  it("reports a handoff the agent never received", () => {
+    const toolbar = new Toolbar(fakeSurface(), handlers());
+    toolbar.render(
+      state({
+        status: reachableStatus({
+          handoff: {
+            delivered: false,
+            reason: "the agent did not settle",
+            at: "2026-01-01T00:00:00Z",
+          },
+        }),
+      }),
+    );
+    expect(document.querySelector(".ns-setup-title")?.textContent).toBe(
+      "Comments saved, not announced",
+    );
+  });
+
+  it("flashes Saved on the comments button, then restores the count", () => {
+    vi.useFakeTimers();
+    const toolbar = new Toolbar(fakeSurface(), handlers());
+    toolbar.render(state({ count: 3 }));
+    toolbar.flashSaved();
+    expect(document.body.textContent).toContain("Saved");
+    vi.advanceTimersByTime(2000);
+    expect(document.body.textContent).toContain("Comments (3)");
+    vi.useRealTimers();
   });
 });
 
@@ -201,7 +314,7 @@ describe("Toolbar tooltips", () => {
     expect(tipOf(".ns-grip")).toBe("Drag to move the toolbar");
     expect(buttonByTip("Delete all comments").dataset.tip).toBe("Delete all comments");
     expect(buttonByTip("Markdown file").dataset.tip).toBe(
-      "Download all comments as a Markdown file",
+      "Download this page's unsent comments as a Markdown file",
     );
   });
 

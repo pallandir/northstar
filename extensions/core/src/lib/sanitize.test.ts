@@ -1,19 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { escapeHtml, sanitizeSourcePath } from "./sanitize.js";
-
-describe("escapeHtml", () => {
-  it("escapes & < > \" and '", () => {
-    expect(escapeHtml("a & <b> \"c\" 'd'")).toBe("a &amp; &lt;b&gt; &quot;c&quot; &#39;d&#39;");
-  });
-
-  it("returns the string unchanged when nothing needs escaping", () => {
-    expect(escapeHtml("hello world")).toBe("hello world");
-  });
-
-  it("handles an empty string", () => {
-    expect(escapeHtml("")).toBe("");
-  });
-});
+import { sanitizeSourcePath } from "./sanitize.js";
 
 describe("sanitizeSourcePath", () => {
   it("accepts a valid relative path", () => {

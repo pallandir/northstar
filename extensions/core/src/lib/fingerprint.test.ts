@@ -70,6 +70,13 @@ describe("captureElement", () => {
     const el = mount(document.createElement("div"));
     el.id = 'say "hello"';
     const { operator } = captureElement(el);
-    expect(operator).toBe('//*[@id="say \\"hello\\""]');
+    expect(operator).toBe(`//*[@id='say "hello"']`);
+  });
+
+  it("builds a concat literal for ids holding both quote kinds", () => {
+    const el = mount(document.createElement("div"));
+    el.id = `it's "x"`;
+    const { operator } = captureElement(el);
+    expect(operator).toMatch(/^\/\/\*\[@id=concat\(/);
   });
 });

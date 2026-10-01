@@ -1,16 +1,24 @@
+import { pageKey } from "@northstar/protocol";
 import { browser } from "../lib/browser.js";
-import { captureElement, captureTarget } from "../lib/fingerprint.js";
-import { buildLocate, capturePage, captureSemantics, deriveIntent } from "../lib/locate.js";
-import { resolveSource } from "../lib/source-map.js";
-import { isLocalUrl } from "../lib/transport.js";
+import { UserError } from "../lib/errors.js";
+import { isLocalUrl } from "../lib/origins.js";
 import { resolveXPath } from "../lib/xpath.js";
-import type { Message, PinModel, QueueStatus, Response, SendOutcome } from "../messages.js";
-import { onNavigate, probeElement } from "../probe/client.js";
-import type { ProbeResult } from "../probe/protocol.js";
-import type { DraftRequest, Rect } from "../types.js";
+import type {
+  Message,
+  PinModel,
+  ProblemNote,
+  QueueStatus,
+  Response,
+  SendOutcome,
+} from "../messages.js";
+import { probeElement, settleProbe } from "../probe/client.js";
+import type { ProbeOutcome } from "../probe/client.js";
+import type { Rect } from "../types.js";
+import { buildDraft } from "./draft.js";
 import { Drawer, type DrawerContext } from "./drawer.js";
 import { downloadHandoff } from "./handoff.js";
 import type { InspectorSubmission } from "./inspector.js";
+import { createPageTracker } from "./page-tracker.js";
 import { installPicker } from "./picker.js";
 import { Surface } from "./surface.js";
 import { type Mode, Toolbar } from "./toolbar.js";
@@ -26,7 +34,9 @@ interface Instance {
   teardown: () => void;
 }
 
-const STATUS_POLL_MS = 5000;
+type Answer = Extract<Response, { ok: true }>;
+
+const REFRESH_POLL_MS = 5000;
 const STYLE_ALLOWLIST = new Set(["color", "background-color", "border-color"]);
 
 function pageMode(): Mode {
@@ -43,8 +53,25 @@ interface ContentState {
   lastPins: PinModel[];
   lastStatus: QueueStatus | null;
   lastSend: SendOutcome | null;
+  problem: ProblemNote | null;
+  missing: Set<string>;
   pollTimer: number | null;
-  stopNavigateListener: (() => void) | null;
+}
+
+function problemOf(err: unknown): ProblemNote {
+  if (err instanceof UserError) return { error: err.message, fix: err.fix };
+  console.error("[northstar]", err);
+  return {
+    error: "Something went wrong inside Northstar.",
+    fix: "Reload the page and try again. Details are in the console.",
+  };
+}
+
+function field<T>(value: T | undefined): T {
+  if (value === undefined) {
+    throw new UserError("Northstar sent an incomplete answer.", "Reload the page and try again.");
+  }
+  return value;
 }
 
 function init(): Instance {
@@ -58,8 +85,9 @@ function init(): Instance {
     lastPins: [],
     lastStatus: null,
     lastSend: null,
+    problem: null,
+    missing: new Set(),
     pollTimer: null,
-    stopNavigateListener: null,
   };
   const mode = pageMode();
 
@@ -67,42 +95,105 @@ function init(): Instance {
   let toolbar: Toolbar | null = null;
   let drawer: Drawer | null = null;
   let disposed = false;
+  let orphaned = false;
 
   const alive = () => !disposed && Boolean(browser.runtime?.id);
+
+  const tracker = createPageTracker((key) => {
+    st.gen++;
+    st.lastPins = [];
+    surface.setPins([], pinHandlers, key);
+    render();
+    void run(refresh);
+  });
 
   function teardown(): void {
     if (disposed) return;
     setActive(false);
     disposed = true;
+    tracker.stop();
     removePicker();
-    try {
-      browser.runtime.onMessage.removeListener(onMessage);
-    } catch {}
+    browser.runtime.onMessage.removeListener(onMessage);
+    window.removeEventListener("pageshow", onPageShow);
   }
 
-  function usable(): boolean {
-    if (alive()) return true;
-    teardown();
-    return false;
+  function orphan(): void {
+    if (orphaned) return;
+    orphaned = true;
+    stopPolling();
+    removePicker();
+    tracker.stop();
+    document.documentElement.style.cursor = "";
+    surface.showModal({
+      title: "Northstar was updated",
+      body: "This page is still running the old version. Reload it to keep commenting.",
+      actions: [{ label: "Reload page", onClick: () => location.reload() }],
+      onDismiss: () => {},
+    });
   }
 
-  async function send(message: Message): Promise<Response> {
-    if (!usable()) return { ok: false, error: "extension context invalidated" };
+  async function call(message: Message): Promise<Answer> {
+    if (!alive()) {
+      orphan();
+      throw new UserError("Northstar was updated or reloaded.", "Reload this page.");
+    }
+    let res: Response;
     try {
-      return await browser.runtime.sendMessage(message);
+      res = (await browser.runtime.sendMessage(message)) as Response;
     } catch (err) {
-      usable();
-      return { ok: false, error: (err as Error).message };
+      console.error("[northstar] background unreachable", err);
+      throw new UserError(
+        "Northstar could not reach its background service.",
+        "Reload this page. If it keeps happening, reload the extension.",
+      );
+    }
+    if (!res.ok) {
+      throw new UserError(res.error, res.fix ?? "Reload the page and try again.");
+    }
+    return res;
+  }
+
+  async function run(task: () => Promise<void>): Promise<void> {
+    try {
+      await task();
+    } catch (err) {
+      st.problem = problemOf(err);
+      render();
     }
   }
 
   const onMessage = (message: Message) => {
     if (message.type === "set-active") setActive(message.on);
+    if (message.type === "refresh") void run(refresh);
   };
   browser.runtime.onMessage.addListener(onMessage);
 
-  void send({ type: "sync-active" }).then((res) => {
-    if (res.ok && res.active) setActive(true);
+  async function syncActive(): Promise<void> {
+    const res = await call({ type: "sync-active" });
+    setActive(res.active === true);
+  }
+
+  const onPageShow = (event: PageTransitionEvent) => {
+    if (event.persisted) void run(syncActive);
+  };
+  window.addEventListener("pageshow", onPageShow);
+
+  syncActive().catch((err: unknown) =>
+    console.error("[northstar] could not read the tab state", err),
+  );
+
+  const pinHandlers = {
+    onRemove: (key: string) => void run(() => removePin(key)),
+    onEdit: (
+      key: string,
+      text: string,
+      opts?: { planFirst?: boolean; attachScreenshot?: boolean },
+    ) => run(() => editComment(key, text, opts)),
+  };
+
+  surface.watchMissing((keys) => {
+    st.missing = keys;
+    render();
   });
 
   function setActive(on: boolean): void {
@@ -111,37 +202,38 @@ function init(): Instance {
     st.active = on;
     if (on) {
       st.picking = true;
+      st.problem = null;
       toolbar = new Toolbar(surface, {
         onComments: toggleDrawer,
-        onSend: () => void handleSend(),
-        onHandoff: handleHandoff,
+        onSend: () => void run(handleSend),
+        onHandoff: () => void run(handleHandoff),
         onReset: handleReset,
         onTogglePick: () => setPicking(!st.picking),
-        onDeactivate: () => void send({ type: "deactivate" }),
+        onDeactivate: () => void run(() => call({ type: "deactivate" }).then(() => undefined)),
+        onConnect: () => void run(() => call({ type: "connect" }).then(() => undefined)),
+        onChooseServer: (port) =>
+          void run(async () => {
+            await call({ type: "choose-server", port });
+            await refresh();
+          }),
       });
       drawer = new Drawer(surface, {
-        onEdit: (cid, text, opts) => void editComment(cid, text, opts),
-        onRemove: (key) => void removePin(key),
+        onEdit: (cid, text, opts) => void run(() => editComment(cid, text, opts)),
+        onRemove: (key) => void run(() => removePin(key)),
         onClose: toggleDrawer,
-        onRevert: (key) => void handleRevert(key),
+        onRevert: (key) => void run(() => handleRevert(key)),
         onHoverComment: (key) => surface.focusPin(key),
-        onDismissNotice: (id) => void handleDismissNotice(id),
+        onDismissNotice: (id) => void run(() => handleDismissNotice(id)),
       });
-      void refresh();
+      tracker.check();
+      void run(refresh);
       startPolling();
-      st.stopNavigateListener = onNavigate(() => void refresh());
     } else {
       stopPolling();
-      st.stopNavigateListener?.();
-      st.stopNavigateListener = null;
       surface.closeInspector();
       surface.setSelection(null);
       surface.highlightHover(null);
-      surface.setPins(
-        [],
-        () => {},
-        () => {},
-      );
+      surface.setPins([], pinHandlers, tracker.key());
       toolbar?.destroy();
       drawer?.destroy();
       toolbar = null;
@@ -152,6 +244,9 @@ function init(): Instance {
       st.drawerOpen = false;
       st.lastPins = [];
       st.lastStatus = null;
+      st.lastSend = null;
+      st.problem = null;
+      st.missing = new Set();
       surface.unmount();
     }
     updateCursor();
@@ -170,8 +265,8 @@ function init(): Instance {
   }
 
   const removePicker = installPicker({
-    isActive: () => usable() && st.active,
-    isPicking: () => usable() && st.active && st.picking && !st.modalOpen,
+    isActive: () => alive() && st.active,
+    isPicking: () => alive() && st.active && st.picking && !st.modalOpen,
     isModalOpen: () => st.modalOpen,
     ownsEvent: (event) => surface.ownsEvent(event),
     hasInspector: () => surface.hasInspector(),
@@ -184,19 +279,20 @@ function init(): Instance {
 
   function pick(el: Element): void {
     if (!st.active) return;
+    const href = location.href;
     surface.setSelection(el);
     render();
 
-    const probe = probeElement(el);
+    const probe = settleProbe(probeElement(el));
     const release = () => {
       if (surface.selected() === el) surface.setSelection(null);
     };
 
     surface.showInspector(
       el,
-      (result) => {
+      async (result) => {
+        await saveComment(el, result, probe, href);
         release();
-        void record(el, result, probe);
       },
       release,
     );
@@ -204,7 +300,7 @@ function init(): Instance {
 
   function toggleDrawer(): void {
     st.drawerOpen = !st.drawerOpen;
-    drawer?.setOpen(st.drawerOpen, st.lastPins, drawerCtx(), st.lastStatus?.notices ?? []);
+    drawer?.setOpen(st.drawerOpen, pinsForView(), drawerCtx(), st.lastStatus?.notices ?? []);
     render();
   }
 
@@ -212,78 +308,62 @@ function init(): Instance {
     return { mode, connected: Boolean(st.lastStatus?.serverReachable) };
   }
 
-  async function record(
+  function pinsForView(): PinModel[] {
+    return st.lastPins.map((pin) => ({ ...pin, missing: st.missing.has(pin.key) }));
+  }
+
+  async function saveComment(
     el: Element,
     payload: InspectorSubmission,
-    probe: Promise<ProbeResult | null>,
+    probe: Promise<ProbeOutcome>,
+    href: string,
   ): Promise<void> {
-    const { operator, elementText } = captureElement(el);
-
-    const r = el.getBoundingClientRect();
-    const rect: Rect = { x: r.x, y: r.y, w: r.width, h: r.height };
-
-    const attachScreenshot = payload.attachScreenshot === true;
-    let screenshot: string | null = null;
-    if (attachScreenshot) {
-      screenshot = await captureHidden(rect);
+    if (pageKey(location.href) !== pageKey(href)) {
+      throw new UserError(
+        "The page changed before the comment was saved.",
+        "Pick the element again.",
+      );
     }
+    const outcome = await probe;
+    if (!outcome.ok) {
+      console.error("[northstar] probe failed", outcome.error);
+      throw new UserError(
+        "Northstar could not read this element.",
+        "Reload the page and try again.",
+      );
+    }
+    for (const failure of outcome.result.failures) console.warn("[northstar] probe", failure);
 
-    const probeResult = await probe;
-
-    const source = resolveSource(el) ?? probeResult?.source ?? null;
-    const component = probeResult?.component ?? null;
-    const route = probeResult?.route ?? null;
-    const target = captureTarget(el, rect);
-    const element = captureSemantics(el, target);
-
-    const draft: DraftRequest = {
-      comment: payload.comment,
-      operation: payload.operation,
-      operator,
-      url: location.href,
-      metadata: {
-        page: location.pathname,
-        viewport: { w: window.innerWidth, h: window.innerHeight },
-        elementText,
-      },
-      source,
-      component,
-      route,
-      target,
-      screenshotDataUrl: screenshot,
-      attachScreenshot,
-      planFirst: payload.planFirst ?? false,
-      schemaVersion: 2,
-      intent: deriveIntent(payload.operation),
-      locate: buildLocate({ source, component, route, target, semantics: element, elementText }),
-      page: capturePage(),
-      element,
-    };
-    await send({ type: "save-request", draft });
+    let screenshot: string | null = null;
+    if (payload.attachScreenshot) {
+      const r = el.getBoundingClientRect();
+      screenshot = await captureHidden({ x: r.x, y: r.y, w: r.width, h: r.height });
+    }
+    const draft = buildDraft(el, payload, href, outcome.result, screenshot);
+    await call({ type: "save-request", draft });
+    toolbar?.flashSaved();
     await refresh();
   }
 
-  async function captureRegion(rect: Rect): Promise<string | null> {
-    const res = await send({ type: "capture-region", rect, dpr: window.devicePixelRatio });
-    return res.ok && res.dataUrl ? res.dataUrl : null;
-  }
-
-  async function captureHidden(rect: Rect): Promise<string | null> {
+  async function captureHidden(rect: Rect): Promise<string> {
     surface.setHidden(true);
-    await nextPaint();
-    const shot = await captureRegion(rect);
-    surface.setHidden(false);
-    return shot;
+    try {
+      await nextPaint();
+      const res = await call({ type: "capture-region", rect, dpr: window.devicePixelRatio });
+      return field(res.dataUrl);
+    } finally {
+      surface.setHidden(false);
+    }
   }
 
   async function handleDismissNotice(commentId: string): Promise<void> {
-    await send({ type: "dismiss-notice", commentId });
+    await call({ type: "dismiss-notice", commentId });
     await refresh();
   }
 
   function startPolling(): void {
     if (st.pollTimer !== null) return;
-    st.pollTimer = window.setInterval(() => void pollStatus(), STATUS_POLL_MS);
+    st.pollTimer = window.setInterval(() => void run(pollRefresh), REFRESH_POLL_MS);
   }
 
   function stopPolling(): void {
@@ -292,24 +372,20 @@ function init(): Instance {
     st.pollTimer = null;
   }
 
-  async function pollStatus(): Promise<void> {
-    if (!usable() || !st.active) return;
-    const gen = st.gen;
-    const res = await send({ type: "queue-status" });
-    if (!st.active || gen !== st.gen) return;
-    const next = res.ok ? (res.status ?? null) : null;
-    if (!statusChanged(st.lastStatus, next)) return;
+  async function pollRefresh(): Promise<void> {
+    if (!alive() || !st.active || document.hidden) return;
+    if (tracker.check()) return;
     await refresh();
   }
 
   async function handleSend(): Promise<void> {
-    if (st.sending || !st.lastStatus?.serverReachable) return;
+    if (st.sending) return;
     st.sending = true;
     toolbar?.setSending(true);
     try {
-      const res = await send({ type: "flush" });
-      st.lastSend = res.ok ? (res.send ?? null) : null;
-      if (st.lastSend) toolbar?.flashSent(st.lastSend);
+      const res = await call({ type: "flush" });
+      st.lastSend = field(res.send);
+      if (st.lastSend.sent > 0) toolbar?.flashSent(st.lastSend);
       await refresh();
     } finally {
       st.sending = false;
@@ -318,8 +394,15 @@ function init(): Instance {
   }
 
   async function handleHandoff(): Promise<void> {
-    const res = await send({ type: "get-comments", url: location.href });
-    if (res.ok && res.comments && res.comments.length > 0) downloadHandoff(res.comments);
+    const res = await call({ type: "get-comments", page: location.href });
+    const comments = field(res.comments);
+    if (comments.length === 0) {
+      throw new UserError(
+        "There are no unsent comments on this page to export.",
+        "Add a comment first.",
+      );
+    }
+    downloadHandoff(comments);
   }
 
   async function editComment(
@@ -331,14 +414,18 @@ function init(): Instance {
     if (opts?.attachScreenshot === true) {
       const pin = st.lastPins.find((p) => p.key === cid);
       const el = pin ? resolveXPath(pin.operator) : null;
-      if (el instanceof Element) {
-        const r = el.getBoundingClientRect();
-        screenshotDataUrl = await captureHidden({ x: r.x, y: r.y, w: r.width, h: r.height });
+      if (!(el instanceof Element)) {
+        throw new UserError(
+          "This element was not found on this page.",
+          "Open the page where you left the comment.",
+        );
       }
+      const r = el.getBoundingClientRect();
+      screenshotDataUrl = await captureHidden({ x: r.x, y: r.y, w: r.width, h: r.height });
     } else if (opts?.attachScreenshot === false) {
       screenshotDataUrl = null;
     }
-    await send({
+    await call({
       type: "update-comment",
       cid,
       text,
@@ -348,21 +435,18 @@ function init(): Instance {
     await refresh();
   }
 
-  async function handleReset(): Promise<void> {
-    const total = st.lastPins.length;
-    if (total === 0) return;
-
+  function handleReset(): void {
     st.modalOpen = true;
     updateCursor();
     surface.showModal({
       title: "Delete all comments?",
-      body: "This permanently removes all comments and their screenshots from every page. This cannot be undone.",
+      body: "This permanently removes every comment saved for this project, with its screenshots, and the unsent comments on this site. This cannot be undone.",
       actions: [
         { label: "Cancel", variant: "ghost", onClick: () => {} },
         {
           label: "Delete all comments",
           variant: "danger",
-          onClick: () => void clearEverything(),
+          onClick: () => void run(clearEverything),
         },
       ],
       onDismiss: () => {
@@ -373,24 +457,23 @@ function init(): Instance {
   }
 
   async function clearEverything(): Promise<void> {
-    await send({ type: "clear-all" });
+    await call({ type: "clear-all" });
     await refresh();
   }
 
   async function refresh(): Promise<void> {
     const gen = st.gen;
+    const href = location.href;
+    const key = pageKey(href);
     const [pinsRes, statusRes] = await Promise.all([
-      send({ type: "page-comments", url: location.href }),
-      send({ type: "queue-status" }),
+      call({ type: "page-comments", page: href }),
+      call({ type: "queue-status" }),
     ]);
-    if (!st.active || gen !== st.gen) return;
-    st.lastPins = pinsRes.ok && pinsRes.pins ? pinsRes.pins : [];
-    st.lastStatus = statusRes.ok ? (statusRes.status ?? null) : null;
-    surface.setPins(
-      st.lastPins,
-      (key) => void removePin(key),
-      (key, text, opts) => void editComment(key, text, opts),
-    );
+    if (!st.active || gen !== st.gen || pageKey(location.href) !== key) return;
+    st.lastPins = field(pinsRes.pins);
+    st.lastStatus = field(statusRes.status);
+    st.problem = pinsRes.problem ?? null;
+    surface.setPins(st.lastPins, pinHandlers, key);
     render();
   }
 
@@ -410,18 +493,19 @@ function init(): Instance {
         }
       }
     }
-    await send({ type: "remove-comment", cid });
+    await call({ type: "remove-comment", cid });
     await refresh();
   }
 
   async function handleRevert(key: string): Promise<void> {
     const note = "Revert the previous change you made for this comment.";
-    await send({ type: "reopen-comment", id: key, note });
+    await call({ type: "reopen-comment", id: key, note });
     await refresh();
   }
 
   function render(): void {
-    const activeCount = st.lastPins.filter((p) => p.status !== "resolved").length;
+    const pins = pinsForView();
+    const activeCount = pins.filter((p) => p.status !== "resolved").length;
     const notices = st.lastStatus?.notices ?? [];
     toolbar?.render({
       mode,
@@ -431,8 +515,9 @@ function init(): Instance {
       drawerOpen: st.drawerOpen,
       lastSend: st.lastSend,
       picking: st.picking,
+      problem: st.problem,
     });
-    drawer?.render(st.lastPins, drawerCtx(), notices);
+    drawer?.render(pins, drawerCtx(), notices);
   }
 
   function updateCursor(): void {
@@ -449,32 +534,8 @@ function init(): Instance {
   return { alive, teardown };
 }
 
-function statusChanged(a: QueueStatus | null, b: QueueStatus | null): boolean {
-  if (a === b) return false;
-  if (!a || !b) return true;
-  return (
-    a.serverReachable !== b.serverReachable ||
-    a.port !== b.port ||
-    a.queued !== b.queued ||
-    a.root !== b.root ||
-    a.version !== b.version ||
-    a.terminal?.available !== b.terminal?.available ||
-    noticesKey(a.notices) !== noticesKey(b.notices)
-  );
-}
-
-function noticesKey(notices: QueueStatus["notices"]): string {
-  return notices?.map((n) => n.commentId).join(",") ?? "";
-}
-
 const existing = window.__northstar;
-let running = false;
-try {
-  running = Boolean(existing?.alive());
-} catch {}
-if (!running) {
-  try {
-    existing?.teardown();
-  } catch {}
+if (!existing?.alive()) {
+  existing?.teardown();
   window.__northstar = init();
 }

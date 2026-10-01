@@ -32,7 +32,6 @@ export interface ComponentFrame {
 }
 
 export interface ComponentInfo {
-  // Innermost first: the component that rendered the element, then its ancestors.
   stack: ComponentFrame[];
 }
 
@@ -41,8 +40,6 @@ export interface RouteInfo {
   params: Record<string, string> | null;
   router: string;
   routeFile: string | null;
-  // "exact" came from the page's own router state; "inferred" is a guess from the URL shape and
-  // must be presented to the agent as a guess, never as fact.
   confidence: "exact" | "inferred";
 }
 
@@ -107,7 +104,15 @@ export interface DraftRequest {
   element?: SemanticInfo;
 }
 
+export interface Rejection {
+  field: string | null;
+  error: string;
+  fix: string;
+}
+
 export interface QueuedRequest extends DraftRequest {
   cid: string;
   queuedAt: number;
+  sendingAt?: number;
+  rejection?: Rejection;
 }

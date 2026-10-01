@@ -1,6 +1,8 @@
+import { samePage } from "@northstar/protocol";
 import type {
   DeferralNotice,
-  PinStatus,
+  HandoffNote,
+  ProblemNote,
   QueueStatus,
   SendOutcome,
   TerminalStatus,
@@ -11,23 +13,36 @@ import type {
   DraftRequest,
   Operation,
   QueuedRequest,
+  Rejection,
   RouteInfo,
   SourceLocation,
   Target,
 } from "../types.js";
-import { browser } from "./browser.js";
+import { UserError } from "./errors.js";
+import { isLocalUrl, originOf } from "./origins.js";
+import {
+  beginSend,
+  countFor,
+  enqueue,
+  finishSend,
+  listForOrigin,
+  listQueue,
+  releaseSending,
+  removeItem,
+  removeOrigin,
+  updateItem,
+  withScreenshots,
+} from "./queue.js";
+import {
+  ApiFailure,
+  type Link,
+  callServer,
+  requireConnected,
+  resolveLink,
+  toChoices,
+} from "./server.js";
 
-const QUEUE_KEY = "northstar-queue";
-const PORTS = [7474, 7475, 7476];
-const PROBE_TIMEOUT_MS = 400;
-const SERVER_CACHE_TTL_MS = 30_000;
-
-interface CachedServer {
-  info: ServerInfo;
-  cachedAt: number;
-}
-
-let serverCache: CachedServer | null = null;
+export type ServerStatus = "open" | "in_progress" | "resolved" | "wontfix";
 
 export interface ServerComment {
   id: string;
@@ -36,7 +51,7 @@ export interface ServerComment {
   operation: Operation;
   operator: string;
   metadata: CommentMetadata;
-  status: PinStatus;
+  status: ServerStatus;
   source?: SourceLocation | null;
   component?: ComponentInfo | null;
   route?: RouteInfo | null;
@@ -44,313 +59,311 @@ export interface ServerComment {
   screenshot?: string | null;
 }
 
-interface Health {
-  ok?: boolean;
-  service?: string;
-  root?: string;
-  startedAt?: string;
-  version?: number;
-  serverVersion?: string;
-  notices?: DeferralNotice[];
-  terminal?: TerminalStatus;
-}
-
-interface ServerInfo {
-  port: number;
-  root: string;
-  startedAt: string;
-  notices: DeferralNotice[];
-  version: number | null;
-  acceptsCid: boolean;
-  terminal: TerminalStatus;
-}
-
-export function isLocalUrl(url: string): boolean {
-  try {
-    const host = new URL(url).hostname;
-    return (
-      host === "localhost" ||
-      host === "127.0.0.1" ||
-      host === "[::1]" ||
-      host.endsWith(".localhost")
-    );
-  } catch {
-    return false;
-  }
-}
-
-function api(port: number, path: string): string {
-  return `http://127.0.0.1:${port}${path}`;
-}
-
-function request(method: string, port: number, path: string, body?: unknown): Promise<Response> {
-  const headers: Record<string, string> = {};
-  if (body !== undefined) headers["Content-Type"] = "application/json";
-  return fetch(api(port, path), {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
-}
-
-async function getQueue(): Promise<QueuedRequest[]> {
-  const stored = await browser.storage.local.get(QUEUE_KEY);
-  return (stored[QUEUE_KEY] as QueuedRequest[] | undefined) ?? [];
-}
-
-async function setQueue(queue: QueuedRequest[]): Promise<void> {
-  await browser.storage.local.set({ [QUEUE_KEY]: queue });
-}
-
-export async function enqueue(draft: DraftRequest): Promise<QueuedRequest> {
-  const queue = await getQueue();
-  const item: QueuedRequest = { ...draft, cid: crypto.randomUUID(), queuedAt: Date.now() };
-  queue.push(item);
-  await setQueue(queue);
-  return item;
-}
-
-export async function listForUrl(url: string): Promise<QueuedRequest[]> {
-  return (await getQueue()).filter((c) => c.url === url);
-}
-
-export async function remove(cid: string): Promise<void> {
-  await setQueue((await getQueue()).filter((c) => c.cid !== cid));
-}
-
-export async function clearAll(): Promise<void> {
-  await setQueue([]);
-  const server = await findServer();
-  if (!server) return;
-  try {
-    await request("DELETE", server.port, "/comments?all=true");
-  } catch {
-    serverCache = null;
-  }
-}
-
-export async function update(
-  cid: string,
-  text: string,
-  opts?: { planFirst?: boolean; screenshotDataUrl?: string | null },
-): Promise<void> {
-  const queue = await getQueue();
-  const item = queue.find((c) => c.cid === cid);
-  if (item) {
-    item.comment = text;
-    if (opts?.planFirst !== undefined) item.planFirst = opts.planFirst;
-    if (opts?.screenshotDataUrl !== undefined) item.screenshotDataUrl = opts.screenshotDataUrl;
-    await setQueue(queue);
-  }
-}
-
-async function probe(port: number): Promise<ServerInfo | null> {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), PROBE_TIMEOUT_MS);
-  try {
-    const res = await fetch(api(port, "/health"), { signal: ctrl.signal });
-    if (!res.ok) return null;
-    const body = (await res.json()) as Health;
-    if (body.service !== "northstar" || !body.root || !body.startedAt) return null;
-    return {
-      port,
-      root: body.root,
-      startedAt: body.startedAt,
-      notices: body.notices ?? [],
-      version: body.version ?? null,
-      acceptsCid: body.serverVersion !== undefined,
-      terminal: body.terminal ?? { available: false },
-    };
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-async function findServer(): Promise<ServerInfo | null> {
-  if (serverCache && Date.now() - serverCache.cachedAt < SERVER_CACHE_TTL_MS) {
-    return serverCache.info;
-  }
-  serverCache = null;
-
-  const candidates = (await Promise.all(PORTS.map(probe))).filter(
-    (r): r is ServerInfo => r !== null,
-  );
-  if (candidates.length === 0) return null;
-
-  const info = candidates.sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0];
-  serverCache = { info, cachedAt: Date.now() };
-  return info;
-}
-
-async function refreshServer(): Promise<ServerInfo | null> {
-  const cached = serverCache?.info;
-  if (!cached) return findServer();
-  const fresh = await probe(cached.port);
-  if (!fresh) {
-    serverCache = null;
-    return findServer();
-  }
-  serverCache = { info: fresh, cachedAt: Date.now() };
-  return fresh;
-}
-
-export async function fetchServerComments(url: string): Promise<ServerComment[]> {
-  const server = await findServer();
-  if (!server) return [];
-  try {
-    const res = await request("GET", server.port, "/comments");
-    if (!res.ok) return [];
-    const all = (await res.json()) as ServerComment[];
-    return all.filter((c) => c.url === url);
-  } catch {
-    serverCache = null;
-    return [];
-  }
-}
-
-export async function dismissNotice(commentId: string): Promise<void> {
-  const server = await findServer();
-  if (!server) return;
-  try {
-    await request("POST", server.port, "/notices/dismiss", { commentId });
-  } catch {
-    serverCache = null;
-  }
-}
-
-function statusFrom(server: ServerInfo | null, queued: number): QueueStatus {
-  if (!server) {
-    return {
-      queued,
-      serverReachable: false,
-      port: null,
-      root: null,
-      notices: [],
-      version: null,
-      terminal: { available: false },
-    };
-  }
-  return {
-    queued,
-    serverReachable: true,
-    port: server.port,
-    root: server.root,
-    notices: server.notices,
-    version: server.version,
-    terminal: server.terminal,
-  };
-}
-
 export interface FlushResult {
   status: QueueStatus;
   send: SendOutcome;
 }
 
-let flushing: Promise<FlushResult> | null = null;
+const SERVER_STATUSES: readonly string[] = ["open", "in_progress", "resolved", "wontfix"];
 
-export function flush(): Promise<FlushResult> {
-  flushing ??= flushQueue().finally(() => {
-    flushing = null;
-  });
-  return flushing;
-}
-
-async function flushQueue(): Promise<FlushResult> {
-  const server = await findServer();
-  const items = await getQueue();
-  if (!server) {
-    return {
-      status: statusFrom(null, items.length),
-      send: { sent: 0, typed: false, reason: "the Northstar server is not reachable" },
-    };
-  }
-  if (items.length === 0) {
-    return { status: statusFrom(server, 0), send: { sent: 0, typed: false } };
-  }
-
-  const batch = items.map(
-    ({
-      cid,
-      queuedAt: _queuedAt,
-      schemaVersion: _schemaVersion,
-      intent: _intent,
-      locate: _locate,
-      page: _page,
-      element: _element,
-      ...legacy
-    }) =>
-      server.acceptsCid
-        ? {
-            ...legacy,
-            cid,
-            schemaVersion: _schemaVersion,
-            intent: _intent,
-            locate: _locate,
-            page: _page,
-            element: _element,
-          }
-        : legacy,
+function unreadable(what: string): UserError {
+  return new UserError(
+    `The Northstar server sent an unreadable ${what}.`,
+    "Update the Northstar server, then restart your AI agent.",
   );
-  let send: SendOutcome;
-  let rejectedCids = new Set<string>();
-  try {
-    const res = await request("POST", server.port, "/comments", batch);
-    const body = (await res.json().catch(() => ({}))) as {
-      ids?: string[];
-      typed?: boolean;
-      channel?: boolean;
-      reason?: string;
-      rejected?: { cid?: string | null; index?: number; reason?: string }[];
-    };
-    const rejected = body.rejected ?? [];
-    rejectedCids = new Set(
-      rejected.flatMap((r) => {
-        const cid = r.cid ?? (r.index === undefined ? undefined : items[r.index]?.cid);
-        return cid ? [cid] : [];
-      }),
-    );
-    if (!res.ok && rejectedCids.size === 0) {
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function parseServerComment(value: unknown): ServerComment {
+  if (
+    !isRecord(value) ||
+    typeof value.id !== "string" ||
+    typeof value.url !== "string" ||
+    typeof value.comment !== "string" ||
+    typeof value.operator !== "string" ||
+    typeof value.status !== "string" ||
+    !SERVER_STATUSES.includes(value.status) ||
+    !isRecord(value.operation) ||
+    !isRecord(value.metadata)
+  ) {
+    throw unreadable("comment");
+  }
+  return value as unknown as ServerComment;
+}
+
+interface StatusBody {
+  notices: DeferralNotice[];
+  terminal: TerminalStatus;
+  lastPolledAt: string | null;
+  handoff: HandoffNote | null;
+}
+
+function parseHandoff(value: unknown): HandoffNote | null {
+  if (value === null || value === undefined) return null;
+  if (!isRecord(value) || typeof value.typed !== "boolean" || typeof value.at !== "string") {
+    throw unreadable("status");
+  }
+  return {
+    delivered: value.typed || value.channel === true,
+    reason: typeof value.reason === "string" ? value.reason : undefined,
+    at: value.at,
+  };
+}
+
+function parseStatusBody(value: unknown): StatusBody {
+  if (
+    !isRecord(value) ||
+    !Array.isArray(value.notices) ||
+    !isRecord(value.terminal) ||
+    typeof value.terminal.available !== "boolean"
+  ) {
+    throw unreadable("status");
+  }
+  const polled = value.lastPolledAt;
+  return {
+    notices: value.notices as DeferralNotice[],
+    terminal: value.terminal as unknown as TerminalStatus,
+    lastPolledAt: typeof polled === "string" ? polled : null,
+    handoff: parseHandoff(value.handoff),
+  };
+}
+
+function problemOf(err: ApiFailure): ProblemNote {
+  return { error: err.message, fix: err.fix };
+}
+
+function baseStatus(counts: { queued: number; failed: number }): QueueStatus {
+  return {
+    ...counts,
+    connection: "offline",
+    serverReachable: false,
+    port: null,
+    root: null,
+    notices: [],
+    terminal: { available: false },
+    lastPolledAt: null,
+    handoff: null,
+    servers: [],
+    problem: null,
+  };
+}
+
+function statusFromLink(link: Link, counts: { queued: number; failed: number }): QueueStatus {
+  const base = baseStatus(counts);
+  switch (link.kind) {
+    case "offline":
+      return base;
+    case "choose":
+      return { ...base, connection: "choose", servers: toChoices(link.servers) };
+    case "mismatch":
       return {
-        status: statusFrom(server, items.length),
-        send: { sent: 0, typed: false, reason: `the server rejected the batch (${res.status})` },
+        ...base,
+        connection: "mismatch",
+        port: link.server.port,
+        root: link.server.root,
+        problem: link.problem,
       };
-    }
-    const sent = body.ids?.length ?? items.length - rejectedCids.size;
-    send = {
-      sent,
-      typed: (body.typed ?? false) || body.channel === true,
-      reason:
-        body.reason ??
-        (rejectedCids.size > 0 ? `${rejectedCids.size} comment(s) could not be sent` : undefined),
-    };
-  } catch (err) {
-    serverCache = null;
-    return {
-      status: statusFrom(null, items.length),
-      send: { sent: 0, typed: false, reason: (err as Error).message },
-    };
+    case "unpaired":
+      return { ...base, connection: "unpaired", port: link.server.port, root: link.server.root };
+    case "connected":
+      return {
+        ...base,
+        connection: "connected",
+        serverReachable: true,
+        port: link.server.port,
+        root: link.server.root,
+      };
   }
-
-  const delivered = new Set(items.map((item) => item.cid));
-  await setQueue((await getQueue()).filter((item) => !delivered.has(item.cid)));
-
-  const fresh = await refreshServer();
-  return { status: statusFrom(fresh, (await getQueue()).length), send };
 }
 
-export async function status(): Promise<QueueStatus> {
-  const [queue, server] = await Promise.all([getQueue(), refreshServer()]);
-  return statusFrom(server, queue.length);
-}
+export async function status(origin: string): Promise<QueueStatus> {
+  const counts = countFor(await listQueue(), origin);
+  if (!isLocalUrl(origin)) return baseStatus(counts);
 
-export async function reopenComment(id: string, note?: string): Promise<void> {
-  const server = await findServer();
-  if (!server) return;
+  const link = await resolveLink(origin);
+  const base = statusFromLink(link, counts);
+  if (link.kind !== "connected") return base;
+
   try {
-    await request("POST", server.port, "/comments/reopen", { id, note });
-  } catch {
-    serverCache = null;
+    const body = parseStatusBody(await callServer(link, "GET", "/status"));
+    return { ...base, ...body };
+  } catch (err) {
+    if (err instanceof ApiFailure) return { ...base, problem: problemOf(err) };
+    if (err instanceof UserError && (err.kind === "unpaired" || err.kind === "offline")) {
+      return statusFromLink(await resolveLink(origin), counts);
+    }
+    throw err;
   }
+}
+
+export function saveDraft(origin: string, draft: DraftRequest): Promise<QueuedRequest> {
+  if (originOf(draft.url) !== origin) {
+    throw new UserError(
+      "The page changed before the comment was saved.",
+      "Pick the element again.",
+      "input",
+    );
+  }
+  return enqueue(draft);
+}
+
+export async function commentsForPage(origin: string, page: string): Promise<QueuedRequest[]> {
+  const items = (await listForOrigin(origin)).filter((item) => samePage(item.url, page));
+  return withScreenshots(items);
+}
+
+export async function queuedForPage(origin: string, page: string): Promise<QueuedRequest[]> {
+  return (await listForOrigin(origin)).filter((item) => samePage(item.url, page));
+}
+
+export async function fetchServerComments(
+  origin: string,
+  page: string,
+): Promise<{ comments: ServerComment[]; problem: ProblemNote | null }> {
+  if (!isLocalUrl(origin)) return { comments: [], problem: null };
+  const link = await resolveLink(origin);
+  if (link.kind !== "connected") return { comments: [], problem: null };
+  try {
+    const body = await callServer(link, "GET", `/comments?page=${encodeURIComponent(page)}`);
+    if (!Array.isArray(body)) throw unreadable("comment list");
+    const comments = body.map(parseServerComment).filter((c) => samePage(c.url, page));
+    return { comments, problem: null };
+  } catch (err) {
+    if (err instanceof ApiFailure) return { comments: [], problem: problemOf(err) };
+    if (err instanceof UserError && (err.kind === "unpaired" || err.kind === "offline")) {
+      return { comments: [], problem: null };
+    }
+    throw err;
+  }
+}
+
+export function removeComment(origin: string, cid: string): Promise<void> {
+  return removeItem(cid, origin);
+}
+
+export function updateComment(
+  origin: string,
+  cid: string,
+  text: string,
+  opts?: { planFirst?: boolean; screenshotDataUrl?: string | null },
+): Promise<void> {
+  return updateItem(cid, origin, text, opts);
+}
+
+export async function clearAll(origin: string): Promise<void> {
+  if (isLocalUrl(origin)) {
+    const link = await resolveLink(origin);
+    if (link.kind !== "offline") {
+      await callServer(requireConnected(link), "DELETE", "/comments?all=true");
+    }
+  }
+  await removeOrigin(origin);
+}
+
+export async function dismissNotice(origin: string, commentId: string): Promise<void> {
+  const link = requireConnected(await resolveLink(origin));
+  await callServer(link, "POST", "/notices/dismiss", { commentId });
+}
+
+export async function reopenComment(origin: string, id: string, note?: string): Promise<void> {
+  const link = requireConnected(await resolveLink(origin));
+  await callServer(link, "POST", "/comments/reopen", { id, note });
+}
+
+interface SendBody {
+  accepted: string[];
+  rejections: Record<string, Rejection>;
+  reason?: string;
+  fallback?: Rejection;
+}
+
+function parseRejected(value: unknown): Record<string, Rejection> {
+  if (!Array.isArray(value)) return {};
+  const out: Record<string, Rejection> = {};
+  for (const entry of value) {
+    if (!isRecord(entry) || typeof entry.cid !== "string") throw unreadable("rejection");
+    out[entry.cid] = {
+      field: typeof entry.field === "string" ? entry.field : null,
+      error: typeof entry.error === "string" ? entry.error : "The server rejected this comment.",
+      fix: typeof entry.fix === "string" ? entry.fix : "Edit the comment and send it again.",
+    };
+  }
+  return out;
+}
+
+function parseSendBody(value: unknown): SendBody {
+  if (!isRecord(value) || !Array.isArray(value.accepted)) throw unreadable("answer");
+  const accepted = value.accepted.map((entry) => {
+    if (!isRecord(entry) || typeof entry.cid !== "string") throw unreadable("answer");
+    return entry.cid;
+  });
+  return {
+    accepted,
+    rejections: parseRejected(value.rejected),
+  };
+}
+
+const unconfirmed: Rejection = {
+  field: null,
+  error: "The server did not confirm this comment.",
+  fix: "Send it again.",
+};
+
+const flushing = new Map<string, Promise<FlushResult>>();
+
+export function flush(origin: string): Promise<FlushResult> {
+  let running = flushing.get(origin);
+  if (!running) {
+    running = flushQueue(origin).finally(() => flushing.delete(origin));
+    flushing.set(origin, running);
+  }
+  return running;
+}
+
+async function flushQueue(origin: string): Promise<FlushResult> {
+  const link = requireConnected(await resolveLink(origin));
+  const batch = await beginSend(origin);
+  if (batch.length === 0) {
+    return { status: await status(origin), send: { sent: 0, rejected: 0 } };
+  }
+  const cids = batch.map((item) => item.cid);
+  const payload = batch.map(
+    ({ queuedAt: _queuedAt, sendingAt: _sendingAt, rejection: _rejection, ...draft }) => draft,
+  );
+
+  let body: SendBody;
+  let failure: UserError | null = null;
+  try {
+    body = parseSendBody(await callServer(link, "POST", "/comments", payload));
+  } catch (err) {
+    if (err instanceof ApiFailure && err.status === 400 && isRecord(err.body)) {
+      body = {
+        accepted: [],
+        rejections: parseRejected(err.body.rejected),
+        reason: err.message,
+        fallback: { field: null, error: err.message, fix: err.fix },
+      };
+      failure = err;
+    } else {
+      await releaseSending(cids);
+      throw err;
+    }
+  }
+
+  const rejections: Record<string, Rejection> = {};
+  for (const cid of cids) {
+    if (body.accepted.includes(cid)) continue;
+    rejections[cid] = body.rejections[cid] ?? body.fallback ?? unconfirmed;
+  }
+  await finishSend(cids, body.accepted, rejections);
+
+  const send: SendOutcome = {
+    sent: body.accepted.length,
+    rejected: Object.keys(rejections).length,
+    reason: failure ? failure.message : undefined,
+  };
+  return { status: await status(origin), send };
 }

@@ -1,8 +1,5 @@
 import type { ComponentInfo, QueuedRequest, RouteInfo } from "../types.js";
 
-// Mirrors the block shape mcp/src/server.ts renders for the agent, so a comment reads with the
-// same precision whether it goes through the MCP tool or through this file: route, component and
-// source first, the element and its selector next, the operation, then the comment itself.
 export function buildHandoffMarkdown(requests: QueuedRequest[]): string {
   const source = requests.length ? safeHost(requests[0].url) : "frontend";
   const lines = [
