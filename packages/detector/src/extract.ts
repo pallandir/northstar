@@ -8,6 +8,8 @@ const COMPONENT_EXT = new Set([
   ".js",
   ".ts",
   ".mjs",
+  ".mts",
+  ".cts",
   ".vue",
   ".svelte",
   ".astro",
@@ -41,7 +43,7 @@ export function lineIndex(text: string): (index: number) => number {
 export function extractStrings(text: string): Str[] {
   const strings: Str[] = [];
   const pattern =
-    /"((?:[^"\\\n]|\\.){1,400})"|'((?:[^'\\\n]|\\.){1,400})'|`((?:[^`\\]|\\.){1,400})`/g;
+    /"((?:[^"\\\n]|\\.){1,400})"|(?<!\w)'((?:[^'\\\n]|\\.){1,400})'|`((?:[^`\\]|\\.){1,400})`/g;
   for (let match = pattern.exec(text); match; match = pattern.exec(text)) {
     const value = match[1] ?? match[2] ?? match[3] ?? "";
     strings.push({ value, index: match.index, end: match.index + match[0].length });

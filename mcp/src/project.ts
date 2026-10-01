@@ -1,9 +1,10 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { countPlaceholders } from "@northstar/design-md";
-import { parse } from "yaml";
+import { type Issue, parseFrontmatter, validateDesign } from "@northstar/design-md";
+import { getCanon } from "./assets.js";
 
-export type StackName = "next" | "react" | "vue" | "svelte" | "angular" | "solid" | "html";
+export const STACKS = ["next", "react", "vue", "svelte", "angular", "solid", "html"] as const;
+export type StackName = (typeof STACKS)[number];
 
 const STACK_ORDER: Array<[StackName, string]> = [
   ["next", "next"],
@@ -17,11 +18,17 @@ const STACK_ORDER: Array<[StackName, string]> = [
 export interface DesignDoc {
   exists: boolean;
   valid: boolean;
-  placeholders: boolean;
+  ready: boolean;
+  placeholders: number;
   name?: string;
   mode?: string;
   libraries?: Record<string, string>;
+  errors: string[];
   error?: string;
+}
+
+export interface DesignRead extends DesignDoc {
+  frontmatter?: Record<string, unknown>;
 }
 
 export interface Gate {
@@ -30,21 +37,41 @@ export interface Gate {
   next?: string;
 }
 
-export function designGap(design: DesignDoc): string | undefined {
-  if (!design.exists) return "there is no DESIGN.md";
-  if (!design.valid) return "DESIGN.md is not valid yet";
-  if (design.placeholders) return "DESIGN.md still has unfilled placeholders";
-  if (!design.mode) return "DESIGN.md has no northstar.mode";
-  return undefined;
+const MAX_GAPS = 3;
+
+function errorLines(issues: Issue[]): string[] {
+  return issues
+    .filter((issue) => issue.severity === "error")
+    .map((issue) =>
+      !issue.path || issue.message.startsWith(issue.path)
+        ? issue.message
+        : `${issue.path}: ${issue.message}`,
+    );
 }
 
-export function gateOf(design: DesignDoc): Gate {
+export function designGap(design: DesignDoc): string | undefined {
+  if (!design.exists) return "there is no DESIGN.md";
+  if (design.error) return `DESIGN.md cannot be read: ${design.error}`;
+  if (design.ready) return undefined;
+  const parts: string[] = [];
+  if (design.errors.length) {
+    const shown = design.errors.slice(0, MAX_GAPS).join("; ");
+    const more = design.errors.length - MAX_GAPS;
+    parts.push(`DESIGN.md is not valid yet (${shown}${more > 0 ? `; ${more} more` : ""})`);
+  }
+  if (design.placeholders > 0) {
+    parts.push(`DESIGN.md still has ${design.placeholders} unfilled placeholders`);
+  }
+  return parts.join(", ");
+}
+
+function gateOf(design: DesignDoc): Gate {
   const gap = designGap(design);
   if (!gap) return { open: true };
   return {
     open: false,
     gap,
-    next: "Write DESIGN.md before any UI code: design_md_normalize with the designer's direction and write true, or design_system_propose, then design_md_validate until it is ready.",
+    next: "Write DESIGN.md before any UI code: design_md_normalize with the designer's direction and write true, or design_system_propose, then design_md_validate until it is ready. If the designer wants the system from Figma, follow northstar://canon/references/figma first.",
   };
 }
 
@@ -61,11 +88,13 @@ export interface ProjectState {
   missing: string[];
 }
 
-function readJson(path: string): Record<string, unknown> | null {
+export function readJsonFile(path: string): Record<string, unknown> | null {
+  if (!existsSync(path)) return null;
+  const raw = readFileSync(path, "utf8");
   try {
-    return JSON.parse(readFileSync(path, "utf8")) as Record<string, unknown>;
-  } catch {
-    return null;
+    return JSON.parse(raw) as Record<string, unknown>;
+  } catch (err) {
+    throw new Error(`${path} is not valid JSON, fix it or remove it: ${(err as Error).message}`);
   }
 }
 
@@ -80,53 +109,61 @@ function dependencies(pkg: Record<string, unknown> | null): Set<string> {
   return names;
 }
 
-export function frontmatter(source: string): unknown {
-  const match = /^---\r?\n([\s\S]*?)\r?\n---/.exec(source);
-  if (!match) throw new Error("no YAML frontmatter");
-  return parse(match[1] ?? "");
-}
-
-export function readDesign(root: string): DesignDoc {
+export function readDesign(root: string): DesignRead {
   const path = join(root, "DESIGN.md");
-  if (!existsSync(path)) return { exists: false, valid: false, placeholders: false };
+  if (!existsSync(path)) {
+    return { exists: false, valid: false, ready: false, placeholders: 0, errors: [] };
+  }
   const source = readFileSync(path, "utf8");
+  const canon = getCanon();
+  const result = validateDesign(source, {
+    rules: canon.rules.map((rule) => ({ id: rule.id, allowable: rule.allowable })),
+  });
+  const errors = errorLines(result.issues);
+  let frontmatter: Record<string, unknown>;
   try {
-    const data = frontmatter(source) as Record<string, unknown>;
-    const northstar = (data.northstar ?? {}) as Record<string, unknown>;
-    const libraries = northstar.libraries as Record<string, string> | undefined;
+    frontmatter = parseFrontmatter(source).frontmatter;
+  } catch (err) {
     return {
       exists: true,
-      valid: typeof data.name === "string" && typeof data.colors === "object",
-      placeholders: countPlaceholders(data) > 0,
-      name: typeof data.name === "string" ? data.name : undefined,
-      mode: typeof northstar.mode === "string" ? northstar.mode : undefined,
-      libraries,
+      valid: false,
+      ready: false,
+      placeholders: 0,
+      errors,
+      error: (err as Error).message,
     };
-  } catch (err) {
-    return { exists: true, valid: false, placeholders: false, error: (err as Error).message };
   }
+  const northstar = (frontmatter.northstar ?? {}) as Record<string, unknown>;
+  return {
+    exists: true,
+    valid: errors.length === 0,
+    ready: result.ready,
+    placeholders: result.placeholders,
+    name: typeof frontmatter.name === "string" ? frontmatter.name : undefined,
+    mode: typeof northstar.mode === "string" ? northstar.mode : undefined,
+    libraries: northstar.libraries as Record<string, string> | undefined,
+    errors,
+    frontmatter,
+  };
 }
 
 export function inspectProject(root: string): ProjectState {
-  const deps = dependencies(readJson(join(root, "package.json")));
+  const deps = dependencies(readJsonFile(join(root, "package.json")));
   const stack = STACK_ORDER.find(([, dep]) => deps.has(dep))?.[0] ?? "html";
-  const design = readDesign(root);
+  const { frontmatter: _frontmatter, ...design } = readDesign(root);
   const product = existsSync(join(root, "PRODUCT.md"));
-  const modeSet = design.mode !== undefined && !design.mode.startsWith("<");
-  const designReady = design.valid && !design.placeholders && modeSet;
 
   const missing: string[] = [];
   if (!product) missing.push("PRODUCT.md: audience, primary job, success, constraints");
   if (!design.exists) missing.push("DESIGN.md: no design direction yet");
-  else if (!design.valid) missing.push("DESIGN.md: invalid frontmatter");
-  else if (design.placeholders) missing.push("DESIGN.md: unfilled template placeholders");
-  if (design.exists && !modeSet) missing.push("DESIGN.md: northstar.mode");
+  else if (design.error) missing.push(`DESIGN.md: ${design.error}`);
+  else if (!design.ready) missing.push(`DESIGN.md: ${designGap(design)}`);
 
   const stage = !product
     ? "brief"
     : !design.exists
       ? "direction"
-      : !designReady
+      : !design.ready
         ? "system"
         : "compose";
 

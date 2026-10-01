@@ -5,9 +5,11 @@ export function globToRegExp(glob: string): RegExp {
   for (let i = 0; i < glob.length; i++) {
     const char = glob[i] ?? "";
     if (char === "*" && glob[i + 1] === "*") {
-      out += ".*";
       i++;
-      if (glob[i + 1] === "/") i++;
+      if (glob[i + 1] === "/") {
+        out += "(?:.*/)?";
+        i++;
+      } else out += ".*";
     } else if (char === "*") out += "[^/]*";
     else if (char === "?") out += "[^/]";
     else out += char.replace(/[.+^${}()|[\]\\]/g, "\\$&");
@@ -15,14 +17,22 @@ export function globToRegExp(glob: string): RegExp {
   return new RegExp(`^${out}$`);
 }
 
-export function matchesAny(path: string, globs: string[]): boolean {
-  return globs.some((glob) => globToRegExp(glob).test(path));
+export interface CompiledGlobs {
+  test(path: string): boolean;
 }
 
-export function allowedByConfig(rule: string, path: string, allow: AllowEntry[]): boolean {
-  return allow.some(
-    (entry) => entry.rule === rule && (!entry.scope || globToRegExp(entry.scope).test(path)),
-  );
+export function compileGlobs(globs: string[]): CompiledGlobs {
+  const patterns = globs.map(globToRegExp);
+  return { test: (path) => patterns.some((pattern) => pattern.test(path)) };
+}
+
+export function compileAllow(allow: AllowEntry[]): (rule: string, path: string) => boolean {
+  const entries = allow.map((entry) => ({
+    rule: entry.rule,
+    scope: entry.scope ? globToRegExp(entry.scope) : null,
+  }));
+  return (rule, path) =>
+    entries.some((entry) => entry.rule === rule && (!entry.scope || entry.scope.test(path)));
 }
 
 export function allowedInline(rule: string, lines: string[], line: number): boolean {

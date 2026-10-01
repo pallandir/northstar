@@ -7,7 +7,8 @@ import { Broker } from "../src/broker.js";
 import { CHANNEL_METHOD, ChannelHandoff } from "../src/channel.js";
 import { CommentStore } from "../src/store.js";
 import type { Handoff, HandoffResult, TerminalStatus } from "../src/terminal/index.js";
-import type { IncomingComment } from "../src/types.js";
+import type { Draft } from "../src/types.js";
+import { draft } from "./fixtures.js";
 
 let root: string;
 let store: CommentStore;
@@ -39,14 +40,8 @@ function fakeServer(clientName: string, experimental?: Record<string, unknown>) 
   };
 }
 
-function sample(): IncomingComment {
-  return {
-    comment: "Fix padding",
-    operation: { type: "comment", property: null, from: null, to: null },
-    operator: "/html/body/main[1]",
-    url: "http://localhost:3000/",
-    metadata: { page: "/", viewport: { w: 1440, h: 900 }, elementText: "hi" },
-  };
+function sample(): Draft {
+  return draft();
 }
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -61,13 +56,16 @@ afterEach(async () => {
   await rm(root, { recursive: true, force: true });
 });
 
+let logs: string[] = [];
+
 function handoffFor(fake: ReturnType<typeof fakeServer>, terminal: FakeTerminal) {
+  logs = [];
   return new ChannelHandoff({
     server: fake.server as never,
     store,
     broker,
     terminal,
-    log: () => {},
+    log: (m) => logs.push(m),
     fallbackMs: 60,
   });
 }
@@ -142,4 +140,28 @@ test("nothing open means nothing is sent", async () => {
   assert.equal(result.typed, false);
   assert.equal(fake.pushed.length, 0);
   assert.equal(terminal.sends, 0);
+});
+
+test("a failing typed fallback is logged", async () => {
+  await store.add(sample());
+  const fake = fakeServer("claude-code");
+  const terminal = new FakeTerminal();
+  terminal.send = async () => {
+    throw new Error("tty gone");
+  };
+  await handoffFor(fake, terminal).send();
+  await wait(150);
+  assert.ok(logs.some((l) => l.includes("tty gone")));
+});
+
+test("a failed channel push is logged and falls back to the terminal", async () => {
+  await store.add(sample());
+  const fake = fakeServer("claude-code");
+  fake.server.notification = async () => {
+    throw new Error("push refused");
+  };
+  const terminal = new FakeTerminal();
+  const result = await handoffFor(fake, terminal).send();
+  assert.equal(result.typed, true);
+  assert.ok(logs.some((l) => l.includes("push refused")));
 });

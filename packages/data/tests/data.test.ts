@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { readdirSync, statSync } from "node:fs";
+import { mkdtempSync, readdirSync, rmSync, statSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { loadCanon } from "@northstar/canon";
@@ -95,4 +96,10 @@ test("the shipped data stays under the size budget", () => {
   const root = defaultDataRoot();
   const total = readdirSync(root).reduce((sum, name) => sum + statSync(join(root, name)).size, 0);
   assert.ok(total < 1.5 * 1024 * 1024, `data is ${total} bytes`);
+});
+
+test("loading from a root with a missing domain file fails with the file named", () => {
+  const root = mkdtempSync(join(tmpdir(), "northstar-data-"));
+  assert.throws(() => loadData(root), /styles\.json is missing/);
+  rmSync(root, { recursive: true, force: true });
 });

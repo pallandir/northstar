@@ -32,7 +32,9 @@ function parse(args: string[]): Options {
       if (!(MODES as readonly string[]).includes(value)) throw new Error(`unknown mode ${value}`);
       options.mode = value as Mode;
     } else if (arg === "--root") {
-      options.root = resolve(args[++i] ?? ".");
+      const value = args[++i];
+      if (!value) throw new Error("--root needs a directory");
+      options.root = resolve(value);
     } else if (arg.startsWith("--")) {
       throw new Error(`unknown option ${arg}`);
     } else {
@@ -53,7 +55,14 @@ export async function detect(args: string[]): Promise<number> {
     return 2;
   }
 
-  const { findings, scanned } = runScan(options);
+  let outcome: ReturnType<typeof runScan>;
+  try {
+    outcome = runScan(options);
+  } catch (err) {
+    process.stderr.write(`northstar detect: ${(err as Error).message}\n`);
+    return 2;
+  }
+  const { findings, scanned } = outcome;
   if (options.format === "json") process.stdout.write(`${formatJson(findings)}\n`);
   else if (options.format === "sarif") process.stdout.write(`${formatSarif(findings, VERSION)}\n`);
   else if (findings.length) process.stdout.write(`${formatText(findings)}\n`);

@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, test } from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { scaffold } from "../src/cli/init.js";
+import { scaffold } from "../src/lib/scaffold.js";
 import { VERBS } from "../src/prompts.js";
 import { createMcpServer } from "../src/server.js";
 import { CommentStore } from "../src/store.js";

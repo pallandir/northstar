@@ -30,9 +30,12 @@ export function loadData(root: string = defaultDataRoot()): DesignData {
   const rows = {} as Record<Domain, Row[]>;
   for (const domain of DOMAINS) {
     const path = join(root, `${domain}.json`);
-    rows[domain] = existsSync(path)
-      ? z.array(rowSchema).parse(JSON.parse(readFileSync(path, "utf8")))
-      : [];
+    if (!existsSync(path)) {
+      throw new Error(
+        `design data file ${path} is missing, reinstall the package or run npm run port`,
+      );
+    }
+    rows[domain] = z.array(rowSchema).parse(JSON.parse(readFileSync(path, "utf8")));
   }
   const manifest = manifestSchema.parse(
     JSON.parse(readFileSync(join(root, "manifest.json"), "utf8")),

@@ -9,14 +9,16 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, test } from "node:test";
 import { AGENT_NAMES, type AgentName } from "@northstar/adapters";
 import { VERSION } from "../src/config.js";
-import { doctor } from "../src/install/doctor.js";
+import { type DoctorOptions, doctor } from "../src/install/doctor.js";
 import { install, uninstall } from "../src/install/install.js";
-import { readRecord } from "../src/install/record.js";
+import { type AgentRecord, readRecord } from "../src/install/record.js";
+import { feedbackText } from "../src/lib/hook-feedback.js";
 
 const scratch = mkdtempSync(join(tmpdir(), "northstar-install-"));
 after(() => rmSync(scratch, { recursive: true, force: true }));
@@ -41,6 +43,25 @@ const base = (w: ReturnType<typeof world>, agents: AgentName[] = [...AGENT_NAMES
   run: w.run,
   stamp: "t0",
 });
+
+const entryOf = (home: string, agent: AgentName): AgentRecord | undefined =>
+  Object.values(readRecord(home).installs).find((entry) => entry.agent === agent);
+
+const scanHook: DoctorOptions["scanHook"] = (input) => feedbackText("claude", input, input.cwd);
+
+const doctorOptions = (w: ReturnType<typeof world>, probePorts: number[] = []): DoctorOptions => ({
+  home: w.home,
+  project: w.project,
+  run: w.run,
+  scanHook,
+  probePorts,
+});
+
+const uninstallOf = (
+  w: ReturnType<typeof world>,
+  agents: AgentName[],
+  scope: "user" | "project" = "user",
+) => uninstall({ agents, scope, home: w.home, project: w.project, dryRun: false, run: w.run });
 
 function put(path: string, content: string): void {
   mkdirSync(dirname(path), { recursive: true });
@@ -99,9 +120,14 @@ test("installing every agent writes each config, the skills and the record", () 
   assert.ok(w.calls.some((c) => c.slice(0, 3).join(" ") === "claude mcp add"));
 
   const record = readRecord(w.home);
-  assert.deepEqual(Object.keys(record.agents).sort(), [...AGENT_NAMES].sort());
-  assert.equal(record.agents.codex?.packs, "all");
-  assert.equal(record.agents.claude?.version, VERSION);
+  assert.deepEqual(
+    Object.values(record.installs)
+      .map((e) => e.agent)
+      .sort(),
+    [...AGENT_NAMES].sort(),
+  );
+  assert.equal(entryOf(w.home, "codex")?.packs, "all");
+  assert.equal(entryOf(w.home, "claude")?.version, VERSION);
 });
 
 test("a second install changes nothing and makes no backups", () => {
@@ -178,11 +204,14 @@ test("uninstalling one agent keeps the shared skill while another agent still ne
   install(base(w, ["cursor", "codex"]));
   const shared = join(w.home, ".agents/skills/northstar/SKILL.md");
   assert.ok(existsSync(shared));
-  uninstall({ agents: ["cursor"], home: w.home, project: w.project, dryRun: false, run: w.run });
+  uninstallOf(w, ["cursor"]);
   assert.ok(existsSync(shared));
   assert.equal(existsSync(join(w.home, ".cursor/mcp.json")), false);
-  assert.deepEqual(Object.keys(readRecord(w.home).agents), ["codex"]);
-  uninstall({ agents: ["codex"], home: w.home, project: w.project, dryRun: false, run: w.run });
+  assert.deepEqual(
+    Object.values(readRecord(w.home).installs).map((e) => e.agent),
+    ["codex"],
+  );
+  uninstallOf(w, ["codex"]);
   assert.equal(existsSync(shared), false);
 });
 
@@ -192,13 +221,7 @@ test("uninstall removes only what install added, restoring a pre-existing config
   put(path, JSON.stringify({ mcpServers: { other: { command: "keep" } } }));
   put(join(w.home, ".codex/AGENTS.md"), "# My rules\n\nBe kind.\n");
   install(base(w, ["cursor", "codex", "claude"]));
-  uninstall({
-    agents: ["cursor", "codex", "claude"],
-    home: w.home,
-    project: w.project,
-    dryRun: false,
-    run: w.run,
-  });
+  uninstallOf(w, ["cursor", "codex", "claude"]);
 
   assert.deepEqual(JSON.parse(readFileSync(path, "utf8")), {
     mcpServers: { other: { command: "keep" } },
@@ -207,24 +230,18 @@ test("uninstall removes only what install added, restoring a pre-existing config
   assert.equal(existsSync(join(w.home, ".codex/config.toml")), false);
   assert.equal(existsSync(join(w.home, ".claude/skills/northstar")), false);
   assert.ok(w.calls.some((c) => c.join(" ") === "claude mcp remove northstar --scope user"));
-  assert.deepEqual(readRecord(w.home).agents, {});
+  assert.deepEqual(readRecord(w.home).installs, {});
 });
 
 test("uninstall of an agent that was never installed is a quiet no-op", () => {
   const w = world();
-  const outcome = uninstall({
-    agents: ["gemini"],
-    home: w.home,
-    project: w.project,
-    dryRun: false,
-    run: w.run,
-  });
-  assert.equal(outcome.results[0]?.detail, "not installed");
+  const outcome = uninstallOf(w, ["gemini"]);
+  assert.match(outcome.results[0]?.detail ?? "", /not installed/);
 });
 
 test("doctor warns when nothing is installed, passes after an install and fails on a missing file", async () => {
   const w = world();
-  const options = { home: w.home, project: w.project, run: w.run, probePorts: [] };
+  const options = doctorOptions(w);
   assert.ok((await doctor(options)).some((c) => c.name === "install" && c.status === "warn"));
 
   install(base(w, ["cursor", "codex"]));
@@ -249,7 +266,7 @@ test("doctor flags an outdated skill and overlapping skills", async () => {
     readFileSync(skill, "utf8").replace(`version: "${VERSION}"`, 'version: "0.0.1"'),
   );
   put(join(w.home, ".claude/skills/impeccable/SKILL.md"), "x");
-  const checks = await doctor({ home: w.home, project: w.project, run: w.run, probePorts: [] });
+  const checks = await doctor(doctorOptions(w));
   assert.ok(
     checks.some((c) => c.name === "codex skill" && c.status === "warn" && /0\.0\.1/.test(c.detail)),
   );
@@ -310,15 +327,15 @@ test("a local bin is used for the server and the hook, and doctor and uninstall 
     readFileSync(join(w.home, ".codex/config.toml"), "utf8"),
     /command = "node"\nargs = \["\/opt\/northstar\/dist\/cli\.js"\]/,
   );
-  const hooks = readFileSync(join(w.home, ".codex/hooks.json"), "utf8");
-  assert.match(
-    hooks,
-    /\\"node\\" \\"\/opt\/northstar\/dist\/cli\.js\\" hook post-edit --agent codex/,
-  );
+  const hook = JSON.parse(readFileSync(join(w.home, ".codex/hooks.json"), "utf8")).hooks
+    .PostToolUse[0].hooks[0].command as string;
+  assert.ok(hook.startsWith('node -e "'));
+  assert.ok(hook.endsWith(" /opt/northstar/dist/cli.js hook post-edit --agent codex"));
+  assert.doesNotMatch(hook, /sh -c|\|\| true/);
   assert.ok(w.calls.some((c) => c.join(" ").endsWith("-- node /opt/northstar/dist/cli.js")));
-  assert.equal(readRecord(w.home).agents.cursor?.bin, "/opt/northstar/dist/cli.js");
+  assert.equal(entryOf(w.home, "cursor")?.bin, "/opt/northstar/dist/cli.js");
 
-  const checks = await doctor({ home: w.home, project: w.project, run: w.run, probePorts: [] });
+  const checks = await doctor(doctorOptions(w));
   assert.deepEqual(
     checks.filter((c) => c.status === "fail"),
     [],
@@ -329,26 +346,22 @@ test("a local bin is used for the server and the hook, and doctor and uninstall 
       .every((c) => c.status !== "warn"),
   );
 
-  uninstall({
-    agents: ["cursor", "codex", "claude"],
-    home: w.home,
-    project: w.project,
-    dryRun: false,
-    run: w.run,
-  });
+  uninstallOf(w, ["cursor", "codex", "claude"]);
   assert.equal(existsSync(join(w.home, ".cursor/mcp.json")), false);
   assert.equal(existsSync(join(w.home, ".codex/hooks.json")), false);
 });
 
-test("an extension id is recorded, written to the server env, and validated on the command line", () => {
+test("the extension id flag no longer exists", () => {
   const w = world();
-  const id = "pemllnphnlcnkolginljldoejphkmbba";
-  install({ ...base(w, ["cursor"]), extensionIds: [id] });
+  assert.equal(
+    cli(w, "install", "--agent", "cursor", "--extension-id", "pemllnphnlcnkolginljldoejphkmbba")
+      .status,
+    2,
+  );
+  install(base(w, ["cursor"]));
   const env = JSON.parse(readFileSync(join(w.home, ".cursor/mcp.json"), "utf8")).mcpServers
     .northstar.env;
-  assert.equal(env.NORTHSTAR_EXTRA_ORIGINS, `chrome-extension://${id}`);
-  assert.deepEqual(readRecord(w.home).agents.cursor?.extensionIds, [id]);
-  assert.equal(cli(w, "install", "--agent", "cursor", "--extension-id", "not-an-id").status, 2);
+  assert.deepEqual(env, { NORTHSTAR_PACKS: "all" });
 });
 
 test("the gate hook is installed by default and left out with --no-gate", () => {
@@ -359,7 +372,205 @@ test("the gate hook is installed by default and left out with --no-gate", () => 
   install({ ...base(w, ["claude"]), gate: false });
   assert.equal(settings().hooks.PreToolUse, undefined);
   assert.ok(settings().hooks.PostToolUse);
-  assert.equal(readRecord(w.home).agents.claude?.gate, false);
+  assert.equal(entryOf(w.home, "claude")?.gate, false);
   const dry = cli(w, "install", "--agent", "claude", "--no-gate", "--dry-run");
   assert.equal(dry.status, 0, dry.stderr);
+});
+
+test("the default packs are dynamic and an option without a value is refused", () => {
+  const w = world();
+  assert.match(cli(w, "install", "--agent", "cursor", "--dry-run").stdout, /dynamic packs/);
+  const missing = spawnSync(
+    process.execPath,
+    ["--import", "tsx", "src/cli.ts", "install", "--bin"],
+    {
+      encoding: "utf8",
+      input: "",
+    },
+  );
+  assert.equal(missing.status, 2);
+  assert.match(missing.stderr, /--bin needs a value/);
+});
+
+test("a corrupt install record stops install, uninstall and doctor with the file named", async () => {
+  const w = world();
+  const path = join(w.home, ".northstar/install.json");
+  put(path, "{ nope");
+  assert.throws(() => install(base(w, ["cursor"])), /install\.json is not valid JSON/);
+  assert.throws(() => uninstallOf(w, ["cursor"]), /install\.json/);
+  const checks = await doctor(doctorOptions(w));
+  assert.ok(
+    checks.some(
+      (c) => c.name === "install record" && c.status === "fail" && /install\.json/.test(c.detail),
+    ),
+  );
+  assert.equal(readFileSync(path, "utf8"), "{ nope");
+  put(path, JSON.stringify({ installs: { x: { agent: "vim" } } }));
+  assert.throws(() => readRecord(w.home), /is corrupt/);
+});
+
+test("a created flag survives a re-run so uninstall still removes what install made", () => {
+  const w = world();
+  const path = join(w.home, ".cursor/mcp.json");
+  install(base(w, ["cursor"]));
+  install({ ...base(w, ["cursor"]), packs: "dynamic" });
+  assert.equal(entryOf(w.home, "cursor")?.files.find((f) => f.path === path)?.created, true);
+  uninstallOf(w, ["cursor"]);
+  assert.equal(existsSync(path), false);
+});
+
+test("uninstall puts back a file install replaced and a skill folder it displaced", () => {
+  const w = world();
+  const critic = join(w.home, ".claude/agents/northstar-critic.md");
+  put(critic, "my own critic");
+  const skill = join(w.home, ".claude/skills/northstar/SKILL.md");
+  put(skill, "my own skill");
+  const outcome = install(base(w, ["claude"]));
+  assert.notEqual(readFileSync(critic, "utf8"), "my own critic");
+  assert.ok(existsSync(join(w.home, ".northstar/backups/t0")));
+  assert.ok(outcome.results.some((r) => r.target === skill.replace("/SKILL.md", "") && r.detail));
+  uninstallOf(w, ["claude"]);
+  assert.equal(readFileSync(critic, "utf8"), "my own critic");
+  assert.equal(readFileSync(skill, "utf8"), "my own skill");
+});
+
+test("a change deep inside the installed skill is noticed and repaired", () => {
+  const w = world();
+  install(base(w, ["codex"]));
+  const reference = join(w.home, ".agents/skills/northstar/references/typography.md");
+  writeFileSync(reference, "tampered");
+  const again = install(base(w, ["codex"]));
+  assert.ok(again.results.some((r) => r.label === "skill" && r.status === "updated"));
+  assert.notEqual(readFileSync(reference, "utf8"), "tampered");
+});
+
+test("an empty config left after removal is deleted, not written empty", () => {
+  const w = world();
+  install(base(w, ["gemini"]));
+  uninstallOf(w, ["gemini"]);
+  assert.equal(existsSync(join(w.home, ".gemini/settings.json")), false);
+});
+
+test("installs are recorded per scope and project, and uninstall only touches the one asked for", () => {
+  const w = world();
+  const other = mkdtempSync(join(scratch, "project-"));
+  install({ ...base(w, ["cursor"]), scope: "project" });
+  install({ ...base(w, ["cursor"]), scope: "project", project: other });
+  install(base(w, ["cursor"]));
+  const entries = Object.values(readRecord(w.home).installs);
+  assert.equal(entries.length, 3);
+  assert.deepEqual(
+    entries
+      .filter((e) => e.scope === "project")
+      .map((e) => e.project)
+      .sort(),
+    [w.project, other].sort(),
+  );
+  uninstallOf(w, ["cursor"], "project");
+  assert.equal(existsSync(join(w.project, ".cursor/mcp.json")), false);
+  assert.ok(existsSync(join(other, ".cursor/mcp.json")));
+  assert.ok(existsSync(join(w.home, ".cursor/mcp.json")));
+  assert.equal(Object.values(readRecord(w.home).installs).length, 2);
+});
+
+test("an agent whose install failed is not recorded", () => {
+  const w = world();
+  put(join(w.home, ".gemini/settings.json"), "{ broken");
+  install(base(w, ["gemini", "cursor"]));
+  assert.equal(entryOf(w.home, "gemini"), undefined);
+  assert.ok(entryOf(w.home, "cursor"));
+});
+
+test("with the Northstar plugin installed claude gets no duplicate hooks, skill or critic", () => {
+  const w = world();
+  put(
+    join(w.home, ".claude/plugins/installed_plugins.json"),
+    JSON.stringify({ plugins: { "northstar@northstar": [{}] } }),
+  );
+  put(
+    join(w.home, ".claude/settings.json"),
+    JSON.stringify({
+      hooks: {
+        PostToolUse: [
+          {
+            matcher: "x",
+            hooks: [{ type: "command", command: "northstar hook post-edit --agent claude" }],
+          },
+        ],
+      },
+    }),
+  );
+  const outcome = install({ ...base(w, ["claude"]), plugin: true });
+  assert.ok(outcome.notes.some((n) => /plugin/.test(n)));
+  assert.equal(existsSync(join(w.home, ".claude/skills/northstar")), false);
+  assert.equal(existsSync(join(w.home, ".claude/agents/northstar-critic.md")), false);
+  assert.ok(w.calls.some((c) => c.slice(0, 3).join(" ") === "claude mcp add"));
+  assert.equal(existsSync(join(w.home, ".claude/settings.json")), false);
+});
+
+test("doctor reports the pairing token, a running server and a protocol mismatch", async (t) => {
+  const w = world();
+  install(base(w, ["cursor"]));
+  const names = (checks: Awaited<ReturnType<typeof doctor>>, name: string) =>
+    checks.filter((c) => c.name === name);
+
+  let checks = await doctor(doctorOptions(w));
+  assert.equal(names(checks, "token")[0]?.status, "warn");
+  assert.match(names(checks, "token")[0]?.detail ?? "", /click Connect in the Northstar toolbar/);
+  put(join(w.home, ".northstar/token"), "not hex");
+  checks = await doctor(doctorOptions(w));
+  assert.equal(names(checks, "token")[0]?.status, "fail");
+  put(join(w.home, ".northstar/token"), `${"ab".repeat(32)}\n`);
+  checks = await doctor(doctorOptions(w));
+  assert.equal(names(checks, "token")[0]?.status, "ok");
+
+  let body: unknown = {};
+  const server = createServer((_req, res) => {
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify(body));
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  t.after(() => server.close());
+  const port = (server.address() as { port: number }).port;
+  const health = {
+    ok: true,
+    service: "northstar",
+    version: "x",
+    root: "/r",
+    startedAt: "now",
+    paired: false,
+  };
+
+  body = { ...health, protocol: 3 };
+  checks = await doctor(doctorOptions(w, [port]));
+  assert.ok(
+    names(checks, "ingest").some((c) => c.status === "ok" && c.detail.includes(String(port))),
+  );
+
+  body = { ...health, protocol: 2 };
+  checks = await doctor(doctorOptions(w, [port]));
+  assert.ok(
+    names(checks, "ingest").some((c) => c.status === "warn" && /protocol 2/.test(c.detail)),
+  );
+
+  body = { ok: true, service: "other" };
+  checks = await doctor(doctorOptions(w, [port]));
+  assert.ok(
+    names(checks, "ingest").some((c) => c.status === "warn" && /another service/.test(c.detail)),
+  );
+});
+
+test("doctor fails the hook check when the scan finds nothing in a fixture with a known error", async () => {
+  const w = world();
+  const checks = await doctor({ ...doctorOptions(w), scanHook: () => undefined });
+  assert.equal(checks.find((c) => c.name === "hook")?.status, "fail");
+});
+
+test("doctor compares json configs by value, so formatting alone is not drift", async () => {
+  const w = world();
+  install(base(w, ["cursor"]));
+  const path = join(w.home, ".cursor/mcp.json");
+  writeFileSync(path, JSON.stringify(JSON.parse(readFileSync(path, "utf8"))));
+  const checks = await doctor(doctorOptions(w));
+  assert.equal(checks.find((c) => c.name === "cursor MCP server")?.status, "ok");
 });

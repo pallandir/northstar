@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { Canon } from "@northstar/canon";
 import { type DesignData, type Row, search } from "@northstar/data";
@@ -10,20 +10,20 @@ import {
   validateDesign,
 } from "@northstar/design-md";
 import { z } from "zod";
-import { SCAFFOLDS, scaffold } from "../cli/init.js";
-import { resolveInside } from "../detect.js";
+import { resolveInside } from "../lib/paths.js";
+import { SCAFFOLDS, scaffold } from "../lib/scaffold.js";
 import { inspectProject } from "../project.js";
 import type { PackRegistry } from "./registry.js";
 import { findNeed, stackChoice } from "./resolve.js";
+import { error, modeSchema, text } from "./util.js";
 
-const modeSchema = z.enum(["operate", "read", "persuade", "experience"]);
-
-function text(value: string) {
-  return { content: [{ type: "text" as const, text: value }] };
-}
-
-function error(value: string) {
-  return { ...text(value), isError: true };
+async function readIfExists(file: string): Promise<string | null> {
+  try {
+    return await readFile(file, "utf8");
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw err;
+  }
 }
 
 function formatIssues(issues: Issue[]): string {
@@ -42,7 +42,7 @@ function pick(rows: Row[]): Row | undefined {
 export function registerSystem(
   registry: PackRegistry,
   canon: Canon,
-  data: DesignData,
+  data: () => DesignData,
   root: string,
 ): void {
   const options = {
@@ -50,7 +50,7 @@ export function registerSystem(
     defaultFamilies: (canon.rules.find((r) => r.id === "NS-TYPE-DEFAULT-DISPLAY")?.params
       ?.families ?? []) as string[],
   };
-  const known = new Set(data.rows.fonts.map((row) => row.name.toLowerCase()));
+  const known = () => new Set(data().rows.fonts.map((row) => row.name.toLowerCase()));
   const designPath = join(root, "DESIGN.md");
 
   registry.register(
@@ -80,9 +80,10 @@ export function registerSystem(
     async ({ path }) => {
       try {
         const file = join(root, resolveInside(root, path ?? "DESIGN.md"));
-        if (!existsSync(file))
+        const source = await readIfExists(file);
+        if (source === null)
           return error("DESIGN.md does not exist. Run design_md_init or design_md_normalize.");
-        const result = validateDesign(readFileSync(file, "utf8"), options);
+        const result = validateDesign(source, options);
         const head = `ready: ${result.ready}. placeholders: ${result.placeholders}.`;
         return text(`${head}\n${formatIssues(result.issues)}`);
       } catch (err) {
@@ -108,13 +109,14 @@ export function registerSystem(
         let input = source;
         if (!input && path) {
           const file = join(root, resolveInside(root, path));
-          if (!existsSync(file)) return error(`No file at ${path}.`);
-          input = readFileSync(file, "utf8");
+          const content = await readIfExists(file);
+          if (content === null) return error(`No file at ${path}.`);
+          input = content;
         }
         if (!input) return error("Pass source text or a path to a markdown file.");
 
         const { markdown, report } = normalizeDirection(input, {
-          knownFamilies: known,
+          knownFamilies: known(),
           stack: inspectProject(root).stack,
         });
         const summary = [
@@ -124,12 +126,15 @@ export function registerSystem(
         ].join("\n");
 
         if (write) {
-          if (existsSync(designPath))
+          await mkdir(dirname(designPath), { recursive: true });
+          try {
+            await writeFile(designPath, markdown, { flag: "wx" });
+          } catch (err) {
+            if ((err as NodeJS.ErrnoException).code !== "EEXIST") throw err;
             return error(
               "DESIGN.md already exists, it is never overwritten. Review the draft by calling without write.",
             );
-          mkdirSync(dirname(designPath), { recursive: true });
-          writeFileSync(designPath, markdown);
+          }
           return text(`Wrote DESIGN.md.\n${summary}`);
         }
         return text(`${summary}\n\n${markdown}`);
@@ -153,8 +158,9 @@ export function registerSystem(
     async ({ format, path }) => {
       try {
         const file = join(root, resolveInside(root, path ?? "DESIGN.md"));
-        if (!existsSync(file)) return error("DESIGN.md does not exist.");
-        return text(exportDesign(readFileSync(file, "utf8"), format as ExportFormat));
+        const source = await readIfExists(file);
+        if (source === null) return error("DESIGN.md does not exist.");
+        return text(exportDesign(source, format as ExportFormat));
       } catch (err) {
         return error((err as Error).message);
       }
@@ -174,19 +180,19 @@ export function registerSystem(
       },
     },
     async ({ product, mood, mode }) => {
-      const palette = pick(search(data, { domain: "palettes", query: product, mode, limit: 5 }));
+      const palette = pick(search(data(), { domain: "palettes", query: product, mode, limit: 5 }));
       const pairing = pick(
-        search(data, { domain: "typography", query: mood ?? product, mode, limit: 5 }),
+        search(data(), { domain: "typography", query: mood ?? product, mode, limit: 5 }),
       );
       const style = pick(
-        search(data, {
+        search(data(), {
           domain: "styles",
           query: `${mood ?? ""} ${product}`.trim(),
           mode,
           limit: 5,
         }),
       );
-      const reasoning = pick(search(data, { domain: "reasoning", query: product, limit: 3 }));
+      const reasoning = pick(search(data(), { domain: "reasoning", query: product, limit: 3 }));
       if (!palette)
         return error(`No palette found for "${product}". Ask the designer for brand colours.`);
 
@@ -223,7 +229,7 @@ export function registerSystem(
         return key ? stackChoice(canon, key, stack)?.choice : undefined;
       };
       const { markdown, report } = normalizeDirection(direction, {
-        knownFamilies: known,
+        knownFamilies: known(),
         stack,
         defaults: {
           rounded: "8px",

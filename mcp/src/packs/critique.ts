@@ -1,17 +1,19 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { type Canon, MODES, type Mode } from "@northstar/canon";
 import { z } from "zod";
 import type { PackRegistry } from "./registry.js";
+import { error, modeSchema, text } from "./util.js";
 
-const modeSchema = z.enum(["operate", "read", "persuade", "experience"]);
+const DECISIONS_HEADER = "# Design decisions\n";
 
-function text(value: string) {
-  return { content: [{ type: "text" as const, text: value }] };
-}
-
-function error(value: string) {
-  return { ...text(value), isError: true };
+async function readDecisions(file: string): Promise<string> {
+  try {
+    return await readFile(file, "utf8");
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return DECISIONS_HEADER;
+    throw err;
+  }
 }
 
 const oneLine = (value: string, max: number) =>
@@ -146,9 +148,9 @@ export function registerCritique(registry: PackRegistry, canon: Canon, root: str
       ].join("\n");
 
       const file = join(root, "design", "decisions.md");
-      mkdirSync(dirname(file), { recursive: true });
-      const existing = existsSync(file) ? readFileSync(file, "utf8") : "# Design decisions\n";
-      writeFileSync(file, `${existing.trimEnd()}\n${entry}`);
+      await mkdir(dirname(file), { recursive: true });
+      const existing = await readDecisions(file);
+      await writeFile(file, `${existing.trimEnd()}\n${entry}`);
       return text(
         `Recorded. Overall ${overall} (${band})${capped ? `, capped by the ${capped} gate` : ""}. Appended to design/decisions.md.`,
       );

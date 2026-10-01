@@ -8,16 +8,18 @@ browser extension. It speaks standard MCP, so any MCP capable client can use it.
 It does two things in one process:
 
 - Speaks MCP over stdio to your assistant (spawned automatically per session).
-- Opens a localhost HTTP listener (7474, then 7475/7476) the browser extension
-  posts comments to. The listener binds to `127.0.0.1` only and accepts requests
-  solely from the extension (web-page origins and non-loopback hosts are
-  rejected); payloads are validated against a strict schema. If every port is
-  busy the server keeps serving MCP and logs that ingest is disabled.
+- Opens a localhost HTTP listener (ports 7474 to 7476) the browser extension
+  posts comments to. The listener binds to `127.0.0.1` only, accepts requests
+  solely from a browser extension origin and needs the pairing token; payloads
+  are validated against a strict schema and a bad field is rejected with its name.
+  If every port is busy the server keeps serving MCP and reports the error in
+  `northstar_context`.
 
-Comments are stored in `.northstar/design-comments.md` and screenshots in
-`.northstar/design-shots/`, relative to the working directory it is launched from.
-The `.northstar/` folder is gitignored (the server also writes a `.gitignore`
-inside it).
+Comments are stored in `.northstar/design-comments.json` with a write only
+`design-comments.md` mirror, deferred entries in `.northstar/northstar-deferred.json`
+and screenshots in `.northstar/design-shots/`, relative to the working directory it is
+launched from. The `.northstar/` folder is gitignored (the server also writes a
+`.gitignore` inside it).
 
 ## Install
 
@@ -30,13 +32,13 @@ commands:
 
 | Command | Purpose |
 | --- | --- |
-| `northstar install [--agent a,b] [--all] [--scope user\|project] [--packs all\|dynamic] [--dry-run] [--yes]` | Register the server, install the skill and the edit hook. |
-| `northstar uninstall [--agent a,b]` | Remove exactly what install added. |
-| `northstar doctor` | Check installs, assets, hooks, ports, DESIGN.md and conflicts. |
+| `northstar install [--agent a,b] [--all] [--scope user\|project] [--packs all\|dynamic] [--bin path] [--no-gate] [--home dir] [--project dir] [--dry-run] [--yes]` | Register the server, install the skill and the edit hooks. `--packs` defaults to `dynamic`. `--bin` points the server and hooks at a local build, `--no-gate` leaves out the design gate hook. |
+| `northstar uninstall [--agent a,b] [--scope user\|project]` | Remove exactly what install added and restore what it replaced. |
+| `northstar doctor` | Check installs, assets, hooks, the pairing token, ports, DESIGN.md and conflicts. |
 | `northstar init [dir]` | Scaffold `DESIGN.md`, `PRODUCT.md` and `design/decisions.md` without overwriting. |
 | `northstar detect [paths] [--diff] [--format text\|json\|sarif] [--mode m]` | Scan UI files, exit 1 on errors. |
 | `northstar conflicts [--remove] [--restore stamp]` | Find overlapping design skills and quarantine them. |
-| `northstar hook post-edit --agent a` | The edit hook entry point, never fails an edit. |
+| `northstar hook pre-edit\|post-edit --agent a` | The edit hook entry point. `pre-edit` is the design gate that denies UI edits until DESIGN.md is ready, `post-edit` scans the edited files. Hooks never block an edit on their own errors, they exit non zero with a message. |
 
 To register by hand with Claude Code instead:
 
@@ -76,28 +78,38 @@ only if no agent call follows within 8 seconds.
 
 ## HTTP endpoints (for the extension)
 
+Every non 2xx response is JSON `{ error, fix }`. The server creates a 32 byte random
+token in `~/.northstar/token` (mode 0600) on first start. Every route except
+`/health`, `/pair` and `/pair/confirm` needs it in the `x-northstar-token` header, and
+requests must come from a `chrome-extension://` or `moz-extension://` origin on a
+loopback host.
+
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `GET` | `/health` | Port discovery probe; returns `{ ok, service: "northstar", root, terminal }`. |
+| `GET` | `/health` | Open. Returns `{ ok, service: "northstar", protocol, version, root, startedAt, paired }`. |
+| `GET` | `/pair` | Open. A page naming the project with one Allow button. |
+| `POST` | `/pair/confirm` | Open, same origin only. Trades the page's single use nonce for the token. |
+| `GET` | `/status` | Notices, terminal availability and the last poll time. |
 | `GET` | `/state` | Version, stored comments, deferral notices, and terminal availability. |
-| `GET` | `/comments` | List stored comments (lets the extension show synced pins). |
-| `POST` | `/comments` | Ingest a batch of comments, then announce it in the terminal. Returns `{ ids, typed, reason? }`. |
+| `GET` | `/comments?page=<pageKey>` | Stored comments for one page, so the extension shows synced pins. `page` is required. |
+| `POST` | `/comments` | Ingest an array of drafts, each with a `cid`. Returns `{ ids, accepted, rejected, typed, channel, reason? }` before the terminal handoff runs. |
 | `POST` | `/comments/reopen` | Reopen a resolved comment with an optional note. |
 | `POST` | `/notices/dismiss` | Clear a deferral notice from the toolbar. |
-| `DELETE` | `/comments?url=<page>` | Delete stored comments for a page (omit `url` for `?all=true`). |
+| `DELETE` | `/comments?page=<pageKey>` | Delete stored comments for a page, or every comment with `?all=true`. |
 
-Every route is loopback-only and rejects any `Origin` that is not a browser
-extension. There is no bearer token; see [SECURITY.md](../SECURITY.md).
+See [SECURITY.md](../SECURITY.md) for the pairing flow.
 
 ## Env
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `NORTHSTAR_PORT` | 7474 | Preferred ingest port (falls back to 7475/7476). |
+| `NORTHSTAR_PORT` | 7474 | Preferred ingest port (then 7474 to 7476). |
 | `NORTHSTAR_ROOT` | `process.cwd()` | Where the store is written and DESIGN.md is read. |
 | `NORTHSTAR_PACKS` | `dynamic` | Starting tool packs: `dynamic`, `all`, or a comma list. |
 | `NORTHSTAR_TERMINAL` | detected | Force a driver: `tmux`, `iterm`, `terminal-app`, or `none`. |
 | `NORTHSTAR_INJECT` | `1` | Set to `0` to never type into the terminal. |
+| `NORTHSTAR_GATE` | on | Set to `off` to disable the design gate hook. |
+| `NORTHSTAR_HOME` | the home directory | Parent of the `.northstar` folder that holds the pairing token. |
 
 ## Develop
 

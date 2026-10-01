@@ -1,12 +1,51 @@
 import type { Check } from "../types.js";
+import { importSpecifiers, importsAny } from "./util.js";
 
 const COMPONENT = ["component"] as const;
 
-const OVERLAY_LIBS =
-  /@radix-ui|radix-ui|@headlessui|react-aria|@ark-ui|bits-ui|@kobalte|@angular\/cdk|reka-ui|vaul|cmdk|components\/ui|@floating-ui|@base-ui|@mui|antd|primevue|vuetify|@mantine|@chakra-ui|sonner|@zag-js|@spartan-ng/;
-const TOAST_LIBS =
-  /sonner|react-hot-toast|react-toastify|@radix-ui\/react-toast|primevue|@mantine\/notifications|notistack|@angular\/material|ngx-toastr|sileo/;
-const ICON_FILE = /icon|logo|illustration|sprite|svg/i;
+const OVERLAY_PACKAGES = [
+  "@radix-ui/",
+  "radix-ui",
+  "@headlessui/",
+  "react-aria",
+  "react-aria-components",
+  "@ark-ui/",
+  "bits-ui",
+  "@kobalte/",
+  "@angular/cdk",
+  "reka-ui",
+  "vaul",
+  "cmdk",
+  "@floating-ui/",
+  "@base-ui",
+  "@mui/",
+  "antd",
+  "primevue",
+  "vuetify",
+  "@mantine/",
+  "@chakra-ui/",
+  "sonner",
+  "@zag-js/",
+  "@spartan-ng/",
+];
+const TOAST_PACKAGES = [
+  "sonner",
+  "react-hot-toast",
+  "react-toastify",
+  "@radix-ui/react-toast",
+  "primevue",
+  "@mantine/notifications",
+  "notistack",
+  "@angular/material",
+  "ngx-toastr",
+  "sileo",
+];
+const LOCAL_UI = /(^|\/)components\/ui(\/|$)/;
+const ICON_FILE =
+  /(?:^|[/._-])(?:icons?|logos?|illustrations?|sprites?|svgs?)(?:[/._-]|$)|(?:Icons?|Logos?|Illustrations?|Sprites?|Svgs?|SVGs?)(?=[A-Z/._-]|$)/;
+
+const usesLocalUi = (text: string, file: string): boolean =>
+  LOCAL_UI.test(file) || importSpecifiers(text).some((spec) => LOCAL_UI.test(spec));
 
 export const libraryChecks: Check[] = [
   {
@@ -24,7 +63,7 @@ export const libraryChecks: Check[] = [
     id: "NS-LIB-OVERLAY",
     kinds: [...COMPONENT],
     run(ctx) {
-      if (OVERLAY_LIBS.test(ctx.text) || /components\/ui\//.test(ctx.file)) return;
+      if (importsAny(ctx.text, OVERLAY_PACKAGES) || usesLocalUi(ctx.text, ctx.file)) return;
       const pattern =
         /\brole=["'](dialog|alertdialog|menu|listbox)["']|\baria-modal=|\baria-haspopup=/g;
       const first = pattern.exec(ctx.text);
@@ -50,7 +89,7 @@ export const libraryChecks: Check[] = [
     id: "NS-LIB-TOAST",
     kinds: [...COMPONENT],
     run(ctx) {
-      if (TOAST_LIBS.test(ctx.text) || /components\/ui\//.test(ctx.file)) return;
+      if (importsAny(ctx.text, TOAST_PACKAGES) || usesLocalUi(ctx.text, ctx.file)) return;
       const pattern = /(?:className|class)=["'][^"']*\b(toast|snackbar)\b[^"']*["']/g;
       const first = pattern.exec(ctx.text);
       if (first)

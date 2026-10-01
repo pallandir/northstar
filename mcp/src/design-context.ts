@@ -1,7 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
 import type { Canon } from "@northstar/canon";
-import { frontmatter, readDesign } from "./project.js";
+import { type DesignRead, readDesign } from "./project.js";
 import type { Comment } from "./types.js";
 
 type TokenGroup = "colors" | "typography" | "rounded" | "spacing";
@@ -51,20 +49,13 @@ export function relevantRules(comment: Comment): string[] {
   return [...rules];
 }
 
-function tokenLines(root: string, group: TokenGroup): string[] {
-  const path = join(root, "DESIGN.md");
-  if (!existsSync(path)) return [];
-  try {
-    const data = frontmatter(readFileSync(path, "utf8")) as Record<string, unknown>;
-    const section = data[group];
-    if (!section || typeof section !== "object") return [];
-    return Object.entries(section as Record<string, unknown>)
-      .filter(([, value]) => typeof value === "string" || typeof value === "number")
-      .slice(0, MAX_TOKENS)
-      .map(([name, value]) => `${name}: ${String(value).slice(0, MAX_VALUE)}`);
-  } catch {
-    return [];
-  }
+function tokenLines(design: DesignRead, group: TokenGroup): string[] {
+  const section = design.frontmatter?.[group];
+  if (!section || typeof section !== "object") return [];
+  return Object.entries(section as Record<string, unknown>)
+    .filter(([, value]) => typeof value === "string" || typeof value === "number")
+    .slice(0, MAX_TOKENS)
+    .map(([name, value]) => `${name}: ${String(value).slice(0, MAX_VALUE)}`);
 }
 
 export function designContext(comment: Comment, root: string, canon: Canon): string {
@@ -83,7 +74,7 @@ export function designContext(comment: Comment, root: string, canon: Canon): str
     }
     const group = groupFor(comment.operation.property);
     if (group && group !== "elevation") {
-      const tokens = tokenLines(root, group);
+      const tokens = tokenLines(design, group);
       if (tokens.length) lines.push(`${group} tokens: ${tokens.join(" | ")}`);
     }
     lines.push(

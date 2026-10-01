@@ -1,15 +1,11 @@
 import { DOMAINS, type DesignData, type Row, getRow, search } from "@northstar/data";
 import { z } from "zod";
 import type { PackRegistry } from "./registry.js";
+import { error, modeSchema, text } from "./util.js";
 
 const domainSchema = z.enum(DOMAINS);
-const modeSchema = z.enum(["operate", "read", "persuade", "experience"]);
 
 const SUMMARY_FIELDS = 4;
-
-function text(value: string) {
-  return { content: [{ type: "text" as const, text: value }] };
-}
 
 export function brief(row: Row): string {
   const facts = Object.entries(row.fields)
@@ -28,7 +24,7 @@ export function full(row: Row): string {
   return lines.join("\n");
 }
 
-export function registerResearch(registry: PackRegistry, data: DesignData): void {
+export function registerResearch(registry: PackRegistry, data: () => DesignData): void {
   registry.register(
     "research",
     "design_search",
@@ -43,7 +39,7 @@ export function registerResearch(registry: PackRegistry, data: DesignData): void
       },
     },
     async ({ domain, query, mode, limit }) => {
-      const rows = search(data, { domain, query, mode, limit: limit ?? 5 });
+      const rows = search(data(), { domain, query, mode, limit: limit ?? 5 });
       if (!rows.length)
         return text(`No ${domain} rows match "${query}". Try fewer or broader words.`);
       return text(rows.map(brief).join("\n"));
@@ -59,8 +55,8 @@ export function registerResearch(registry: PackRegistry, data: DesignData): void
     },
     async ({ id }) => {
       const domain = domainSchema.safeParse(id.split(":")[0]);
-      const row = domain.success ? getRow(data, domain.data, id) : undefined;
-      if (!row) return { ...text(`No design row with id ${id}.`), isError: true };
+      const row = domain.success ? getRow(data(), domain.data, id) : undefined;
+      if (!row) return error(`No design row with id ${id}.`);
       return text(full(row));
     },
   );

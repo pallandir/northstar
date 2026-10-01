@@ -32,7 +32,7 @@ export class ItermDriver implements TerminalDriver {
   constructor(private readonly tty: string) {}
 
   async capture(): Promise<string> {
-    return runOrThrow(this.tty, 'return "ok:" & (get text of s)');
+    return (await runOrThrow(this.tty, 'return "ok:" & (get text of s)')).slice(3);
   }
 
   async sendText(text: string): Promise<void> {

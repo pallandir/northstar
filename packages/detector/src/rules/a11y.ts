@@ -1,8 +1,10 @@
+import { hasAttr, openTags } from "../jsx.js";
 import type { Check } from "../types.js";
 import { classLists } from "./util.js";
 
 const ALL = ["css", "markup", "component"] as const;
 const MARKUP = ["markup", "component"] as const;
+const SEMANTIC_TAGS = new Set(["div", "span", "img"]);
 
 export const a11yChecks: Check[] = [
   {
@@ -48,17 +50,19 @@ export const a11yChecks: Check[] = [
     id: "NS-A11Y-SEMANTICS",
     kinds: [...MARKUP],
     run(ctx) {
-      const clickable = /<(div|span)\b(?![^>]*\brole=)[^>]*\bon[cC]lick=/g;
-      for (let m = clickable.exec(ctx.text); m; m = clickable.exec(ctx.text)) {
-        ctx.report(
-          "NS-A11Y-SEMANTICS",
-          m.index,
-          `Clickable ${m[1]} without a role, use a button or a link`,
-        );
-      }
-      const image = /<img\b(?![^>]*\balt=)[^>]*>/g;
-      for (let m = image.exec(ctx.text); m; m = image.exec(ctx.text)) {
-        ctx.report("NS-A11Y-SEMANTICS", m.index, "Image without alternative text");
+      for (const tag of openTags(ctx.text, SEMANTIC_TAGS)) {
+        const name = tag.name.toLowerCase();
+        if (name === "img") {
+          if (!hasAttr(tag, /\balt\s*=|\{\s*\.\.\./)) {
+            ctx.report("NS-A11Y-SEMANTICS", tag.index, "Image without alternative text");
+          }
+        } else if (hasAttr(tag, /\bon[cC]lick\s*=/) && !hasAttr(tag, /\brole\s*=|\{\s*\.\.\./)) {
+          ctx.report(
+            "NS-A11Y-SEMANTICS",
+            tag.index,
+            `Clickable ${name} without a role, use a button or a link`,
+          );
+        }
       }
     },
   },

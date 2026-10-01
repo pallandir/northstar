@@ -7,10 +7,10 @@ const RG_TEXT_MAX = 80;
 export function summarize(c: Comment): string {
   const route = c.route?.pattern ?? c.metadata.page;
   const component = c.component?.stack[0]?.name ?? "none";
-  return `${c.id} [${c.status}] ${route} · ${component} · ${oneLine(c.comment, SUMMARY_TEXT_MAX)}`;
+  return `${c.id} [${c.status}] ${oneLine(route, SUMMARY_TEXT_MAX)} · ${component} · ${JSON.stringify(oneLine(c.comment, SUMMARY_TEXT_MAX))}`;
 }
 
-export function deriveLocate(c: Comment): LocateEntry[] {
+function deriveLocate(c: Comment): LocateEntry[] {
   if (c.locate?.length) return c.locate;
   const entries: LocateEntry[] = [];
   if (c.source) {
@@ -51,17 +51,17 @@ export function deriveLocate(c: Comment): LocateEntry[] {
   return entries;
 }
 
-export function suggestSearches(c: Comment): string[] {
+function suggestSearches(c: Comment): string[] {
   const locate = deriveLocate(c);
   const commands: string[] = [];
   for (const entry of locate) {
-    if (entry.kind === "testId") commands.push(`rg -n -F ${shellQuote(entry.value)}`);
+    if (entry.kind === "testId") commands.push(`rg -n -F -e ${shellQuote(entry.value)}`);
     if (entry.kind === "text" && isSearchableText(entry.value)) {
-      commands.push(`rg -n -F ${shellQuote(entry.value)}`);
+      commands.push(`rg -n -F -e ${shellQuote(entry.value)}`);
     }
     if (entry.kind === "component") {
       const name = entry.value.split(" < ")[0];
-      if (/^[A-Za-z_$][\w$]*$/.test(name)) commands.push(`rg -n -w ${shellQuote(name)}`);
+      if (/^[A-Za-z_$][\w$]*$/.test(name)) commands.push(`rg -n -w -e ${shellQuote(name)}`);
     }
   }
   return [...new Set(commands)];
@@ -77,7 +77,7 @@ export function render(c: Comment): string {
       `route: ${c.route.pattern}${suffix}${c.route.confidence === "inferred" ? "  [inferred, not confirmed]" : ""}`,
     );
   } else {
-    lines.push(`route: ${c.metadata.page}`);
+    lines.push(`route: ${JSON.stringify(c.metadata.page)}`);
   }
 
   if (c.page?.title) lines.push(`page title: ${JSON.stringify(c.page.title)}`);
@@ -85,12 +85,16 @@ export function render(c: Comment): string {
     lines.push(`component: ${c.component.stack.map((f) => f.name).join(" < ")}`);
   }
   if (c.source) {
-    lines.push(`source: ${c.source.path}:${c.source.line}:${c.source.column} (${c.source.via})`);
+    lines.push(
+      `source: ${c.source.path}:${c.source.line}:${c.source.column} (${JSON.stringify(c.source.via)})`,
+    );
   }
 
   if (c.target) {
-    const tag = c.target.id ? `<${c.target.tag} id="${c.target.id}">` : `<${c.target.tag}>`;
-    lines.push(`element: ${tag}  selector: ${c.target.selector}`);
+    const tag = c.target.id
+      ? `<${c.target.tag} id=${JSON.stringify(c.target.id)}>`
+      : `<${c.target.tag}>`;
+    lines.push(`element: ${tag}  selector: ${JSON.stringify(c.target.selector)}`);
     if (c.target.ownText) lines.push(`text: ${JSON.stringify(c.target.ownText)}`);
   } else if (c.metadata.elementText) {
     lines.push(`elementText: ${JSON.stringify(c.metadata.elementText)}`);
@@ -104,11 +108,13 @@ export function render(c: Comment): string {
     ].filter(Boolean);
     if (bits.length) lines.push(`context: ${bits.join(", ")}`);
   }
-  if (!c.source && !c.target) lines.push(`operator: ${c.operator}`);
+  if (!c.source && !c.target) lines.push(`operator: ${JSON.stringify(c.operator)}`);
 
   const op = c.operation;
   if (op.type === "style" && op.property && op.from !== null && op.to !== null) {
-    lines.push(`operation: ${op.type} ${op.property}: ${op.from} -> ${op.to}`);
+    lines.push(
+      `operation: ${op.type} ${JSON.stringify(op.property)}: ${JSON.stringify(op.from)} -> ${JSON.stringify(op.to)}`,
+    );
   } else if (op.type === "text" && op.from !== null && op.to !== null) {
     lines.push(`operation: ${op.type} ${JSON.stringify(op.from)} -> ${JSON.stringify(op.to)}`);
   }
@@ -117,7 +123,9 @@ export function render(c: Comment): string {
   if (locate.length) {
     lines.push("", "Where to look, in order:");
     locate.forEach((entry, i) => {
-      lines.push(`${i + 1}. ${entry.kind}: ${entry.value} (${formatConfidence(entry.confidence)})`);
+      lines.push(
+        `${i + 1}. ${entry.kind}: ${locateValue(entry)} (${formatConfidence(entry.confidence)})`,
+      );
     });
   }
   const searches = suggestSearches(c);
@@ -131,7 +139,7 @@ export function render(c: Comment): string {
 
   if (c.screenshot) lines.push(`screenshot: ${c.screenshot}`);
   if (c.planFirst) lines.push("plan-first: true");
-  lines.push(`url: ${c.url}`);
+  lines.push(`url: ${JSON.stringify(c.url)}`);
   if (c.resolution) {
     const { note, files, by } = c.resolution;
     lines.push(
@@ -139,6 +147,12 @@ export function render(c: Comment): string {
     );
   }
   return lines.join("\n");
+}
+
+const PLAIN_LOCATE: readonly string[] = ["source", "component", "routeFile"];
+
+function locateValue(entry: LocateEntry): string {
+  return PLAIN_LOCATE.includes(entry.kind) ? entry.value : JSON.stringify(entry.value);
 }
 
 function fence(body: string): string[] {
@@ -155,7 +169,7 @@ function formatParams(params: Record<string, string> | null): string | null {
   if (!params) return null;
   const entries = Object.entries(params);
   if (entries.length === 0) return null;
-  return entries.map(([k, v]) => `${k}=${v}`).join(",");
+  return entries.map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(",");
 }
 
 function oneLine(value: string, max: number): string {

@@ -6,7 +6,7 @@ import type { Handoff, HandoffResult, TerminalStatus } from "./terminal/index.js
 
 export const CHANNEL_CAPABILITY = "claude/channel";
 export const CHANNEL_METHOD = "notifications/claude/channel";
-export const FALLBACK_MS = 8_000;
+const FALLBACK_MS = 8_000;
 
 export interface ChannelHandoffOptions {
   server: Pick<Server, "notification" | "getClientCapabilities" | "getClientVersion">;
@@ -82,6 +82,10 @@ export class ChannelHandoff implements Handoff {
     if (broker.lastPolledMs >= pushedAt) return;
     if ((await store.list("open")).length === 0) return;
     log("no agent call after the channel push, typing into the terminal");
-    await terminal.send().catch(() => undefined);
+    try {
+      await terminal.send();
+    } catch (err) {
+      log(`typed fallback failed: ${(err as Error).message}`);
+    }
   }
 }

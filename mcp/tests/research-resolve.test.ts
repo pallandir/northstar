@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -117,4 +118,33 @@ test("resolve_icon names the stack's icon library and a verification command", a
   const out = text(await call("resolve_icon", { names: ["search"], stack: "react" }));
   assert.match(out, /lucide-react/);
   assert.match(out, /verify: node -e/);
+});
+
+test("design data loads on the first data tool call, not at the handshake", () => {
+  const script = `
+    import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+    import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+    import { createMcpServer } from "./src/server.ts";
+    import { CommentStore } from "./src/store.ts";
+    const server = createMcpServer(new CommentStore(process.env.ROOT), undefined, undefined, { root: process.env.ROOT, packs: "all" });
+    const [c, s] = InMemoryTransport.createLinkedPair();
+    const client = new Client({ name: "t", version: "0" });
+    await Promise.all([server.connect(s), client.connect(c)]);
+    const listed = (await client.listTools()).tools.some((t) => t.name === "design_search");
+    const result = await client.callTool({ name: "design_search", arguments: { domain: "styles", query: "minimal" } });
+    console.log(JSON.stringify({ listed, isError: result.isError, text: result.content[0].text }));
+    process.exit(0);
+  `;
+  const out = spawnSync(
+    process.execPath,
+    ["--import", "tsx", "--input-type=module", "-e", script],
+    {
+      encoding: "utf8",
+      env: { ...process.env, ROOT: root, NORTHSTAR_DATA_ROOT: join(root, "missing") },
+    },
+  );
+  const parsed = JSON.parse(out.stdout) as { listed: boolean; isError: boolean; text: string };
+  assert.equal(parsed.listed, true, out.stderr);
+  assert.equal(parsed.isError, true);
+  assert.match(parsed.text, /NORTHSTAR_DATA_ROOT is .*manifest.json/);
 });

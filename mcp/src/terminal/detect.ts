@@ -7,6 +7,7 @@ import type { DriverName, TerminalDriver } from "./types.js";
 export interface Detection {
   driver: TerminalDriver | null;
   reason?: string;
+  transient?: boolean;
 }
 
 function forced(): DriverName | "none" | null {
@@ -51,7 +52,16 @@ export async function detectTerminal(): Promise<Detection> {
     return { driver: new TmuxDriver(pane) };
   }
 
-  const tty = await findControllingTty();
+  let tty: string | null;
+  try {
+    tty = await findControllingTty();
+  } catch (error) {
+    return {
+      driver: null,
+      reason: `could not read the process list to find the agent terminal: ${(error as Error).message}`,
+      transient: true,
+    };
+  }
   if (!tty) {
     return { driver: null, reason: "could not find the controlling terminal of the agent process" };
   }

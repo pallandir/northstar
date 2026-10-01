@@ -1,19 +1,11 @@
 import type { Canon } from "@northstar/canon";
 import { type DesignData, search } from "@northstar/data";
 import { z } from "zod";
-import { type StackName, inspectProject } from "../project.js";
+import { STACKS, type StackName, inspectProject } from "../project.js";
 import type { PackRegistry } from "./registry.js";
+import { error, modeSchema, text } from "./util.js";
 
-const stackSchema = z.enum(["next", "react", "vue", "svelte", "angular", "solid", "html"]);
-const modeSchema = z.enum(["operate", "read", "persuade", "experience"]);
-
-function text(value: string) {
-  return { content: [{ type: "text" as const, text: value }] };
-}
-
-function error(value: string) {
-  return { ...text(value), isError: true };
-}
+const stackSchema = z.enum(STACKS);
 
 const kebab = (value: string) =>
   value
@@ -50,7 +42,7 @@ export function stackChoice(canon: Canon, need: string, stack: StackName): Stack
   return pick;
 }
 
-export function fontPackages(name: string, axes: string | undefined): string {
+function fontPackages(name: string, axes: string | undefined): string {
   const slug = kebab(name);
   const variable = axes ? `@fontsource-variable/${slug}` : undefined;
   return variable
@@ -61,7 +53,7 @@ export function fontPackages(name: string, axes: string | undefined): string {
 export function registerResolve(
   registry: PackRegistry,
   canon: Canon,
-  data: DesignData,
+  data: () => DesignData,
   root: string,
 ): void {
   const stackOf = (stack?: StackName) => stack ?? inspectProject(root).stack;
@@ -120,11 +112,11 @@ export function registerResolve(
     },
     async ({ mood, mode, family, stack }) => {
       if (family) {
-        const match = data.rows.fonts.find(
+        const match = data().rows.fonts.find(
           (row) => row.name.toLowerCase() === family.toLowerCase(),
         );
         if (!match) {
-          const near = search(data, { domain: "fonts", query: family, limit: 3 }).map(
+          const near = search(data(), { domain: "fonts", query: family, limit: 3 }).map(
             (r) => r.name,
           );
           return error(`No family named "${family}". Closest: ${near.join(", ") || "none"}.`);
@@ -139,8 +131,8 @@ export function registerResolve(
       }
       if (!mood) return error("Give a mood to search by, or a family to verify.");
 
-      const pairings = search(data, { domain: "typography", query: mood, mode, limit: 3 });
-      const families = search(data, { domain: "fonts", query: mood, limit: 5 });
+      const pairings = search(data(), { domain: "typography", query: mood, mode, limit: 3 });
+      const families = search(data(), { domain: "fonts", query: mood, limit: 5 });
       const lines = ["Pairings:"];
       for (const row of pairings) {
         lines.push(
@@ -177,7 +169,7 @@ export function registerResolve(
       const lines = [`stack: ${resolvedStack}`];
       if (pick) lines.push(`library: ${pick.choice} (${pick.package})`);
       for (const name of names) {
-        const rows = search(data, { domain: "icons", query: name, limit: 3 });
+        const rows = search(data(), { domain: "icons", query: name, limit: 3 });
         lines.push(`${name}:`);
         if (!rows.length)
           lines.push("  no curated candidate, search the installed package exports");

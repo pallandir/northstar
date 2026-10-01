@@ -1,3 +1,4 @@
+import type { TerminalStatus } from "@northstar/protocol";
 export type DriverName = "tmux" | "iterm" | "terminal-app";
 
 export interface TerminalDriver {
@@ -7,11 +8,7 @@ export interface TerminalDriver {
   sendEnter(): Promise<void>;
 }
 
-export interface TerminalStatus {
-  available: boolean;
-  driver?: string;
-  reason?: string;
-}
+export type { TerminalStatus } from "@northstar/protocol";
 
 export interface HandoffResult {
   typed: boolean;

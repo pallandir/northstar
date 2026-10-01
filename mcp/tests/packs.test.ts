@@ -35,7 +35,7 @@ async function connect(server: McpServer): Promise<void> {
 function dummyServer(packs: string): McpServer {
   const server = new McpServer({ name: "dummy", version: "0.0.0" });
   const registry = new PackRegistry(server, parsePacks(packs));
-  registerCore(registry, root);
+  registerCore(registry, root, () => ({ state: "off", error: "test server" }));
   registry.register(
     "research",
     "echo_design",
@@ -77,9 +77,14 @@ test("only core and comments tools are visible by default", async () => {
   );
 });
 
-test("parsePacks keeps core and comments, understands all and ignores unknown names", () => {
+test("parsePacks keeps core and comments, understands all", () => {
   assert.deepEqual([...parsePacks(undefined)].sort(), ["comments", "core"]);
-  assert.deepEqual([...parsePacks("detect, bogus")].sort(), ["comments", "core", "detect"]);
+  assert.deepEqual([...parsePacks("detect, critique")].sort(), [
+    "comments",
+    "core",
+    "critique",
+    "detect",
+  ]);
   assert.equal(parsePacks("all").size, 7);
 });
 
@@ -148,7 +153,7 @@ test("northstar_context moves to compose once PRODUCT.md and a filled DESIGN.md 
   await mkdir(join(root, "design"), { recursive: true });
   await writeFile(
     join(root, "DESIGN.md"),
-    '---\nname: Acme\ncolors:\n  primary: "#112233"\nnorthstar:\n  mode: operate\n---\n# Acme',
+    '---\nname: Acme\ncolors:\n  primary: "#112233"\ntypography:\n  body:\n    fontFamily: Geist\n    fontSize: 16px\nrounded:\n  md: 8px\nspacing:\n  md: 16px\nnorthstar:\n  mode: operate\n---\n# Acme',
   );
   await connect(dummyServer("dynamic"));
   const state = JSON.parse(
@@ -170,7 +175,8 @@ test("template placeholders keep the project at the system stage", async () => {
     text(await client.callTool({ name: "northstar_context", arguments: {} })),
   );
   assert.equal(state.stage, "system");
-  assert.equal(state.design.placeholders, true);
+  assert.equal(state.design.placeholders, 3);
+  assert.equal(state.design.ready, false);
 });
 
 test("northstar_context reports the DESIGN.md gate and how to open it", async () => {
@@ -185,10 +191,39 @@ test("northstar_context reports the DESIGN.md gate and how to open it", async ()
 
   await writeFile(
     join(root, "DESIGN.md"),
-    '---\nname: Acme\ncolors:\n  primary: "#112233"\nnorthstar:\n  mode: operate\n---\n',
+    '---\nname: Acme\ncolors:\n  primary: "#112233"\ntypography:\n  body:\n    fontFamily: Geist\n    fontSize: 16px\nrounded:\n  md: 8px\nspacing:\n  md: 16px\nnorthstar:\n  mode: operate\n---\n',
   );
   const open = JSON.parse(
     text(await client.callTool({ name: "northstar_context", arguments: {} })),
   );
   assert.deepEqual(open.gate, { open: true });
+
+  await writeFile(
+    join(root, "DESIGN.md"),
+    '---\nname: Acme\ncolors:\n  primary: "#112233"\nnorthstar:\n  mode: operate\n---\n',
+  );
+  const incomplete = JSON.parse(
+    text(await client.callTool({ name: "northstar_context", arguments: {} })),
+  );
+  assert.equal(incomplete.gate.open, false);
+  assert.match(incomplete.gate.gap, /not valid yet \(typography is required/);
+});
+
+test("northstar_context surfaces a DESIGN.md that cannot be parsed and a broken package.json", async () => {
+  await writeFile(join(root, "DESIGN.md"), "no frontmatter");
+  await connect(dummyServer("dynamic"));
+  const state = JSON.parse(
+    text(await client.callTool({ name: "northstar_context", arguments: {} })),
+  );
+  assert.match(state.design.error, /no YAML frontmatter/);
+  assert.match(state.gate.gap, /cannot be read/);
+  await writeFile(join(root, "package.json"), "{ broken");
+  const broken = await client.callTool({ name: "northstar_context", arguments: {} });
+  assert.equal(broken.isError, true);
+  assert.match(text(broken), /package\.json is not valid JSON/);
+});
+
+test("an unknown pack name is an error naming the valid packs", () => {
+  assert.throws(() => parsePacks("research,nope"), /unknown pack "nope".*critique/);
+  assert.deepEqual([...parsePacks("research")].sort(), ["comments", "core", "research"]);
 });

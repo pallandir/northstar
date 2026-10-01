@@ -1,14 +1,26 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { loadCanon } from "@northstar/canon";
 import { AGENT_NAMES, type Op, type PlanContext, planAgent } from "./agents/index.js";
-import { hooksManifest, marketplaceManifest, pluginManifest } from "./claude.js";
+import { hooksManifest, marketplaceManifest, mcpManifest, pluginManifest } from "./claude.js";
 import { renderRuleIndex, renderSkill } from "./render.js";
 
 export const SKILL_DIR = "plugin/skills/northstar";
 export const INTEGRATIONS_DIR = "integrations";
+export const GENERATED_DIRS = [
+  SKILL_DIR,
+  INTEGRATIONS_DIR,
+  "plugin/agents",
+  "plugin/hooks",
+  "plugin/.claude-plugin",
+  ".claude-plugin",
+];
 
 export type Outputs = Map<string, string>;
+
+function posix(path: string): string {
+  return path.split(sep).join("/");
+}
 
 function listFiles(dir: string): string[] {
   if (!existsSync(dir)) return [];
@@ -33,13 +45,14 @@ export function generate(repoRoot: string): Outputs {
   }
   for (const file of listFiles(join(canonRoot, "templates"))) {
     outputs.set(
-      `${SKILL_DIR}/assets/${relative(join(canonRoot, "templates"), file)}`,
+      `${SKILL_DIR}/assets/${posix(relative(join(canonRoot, "templates"), file))}`,
       readFileSync(file, "utf8"),
     );
   }
 
   outputs.set("plugin/.claude-plugin/plugin.json", pluginManifest(version));
   outputs.set("plugin/hooks/hooks.json", hooksManifest(version));
+  outputs.set("plugin/.mcp.json", mcpManifest(version));
   outputs.set(
     "plugin/agents/northstar-critic.md",
     readFileSync(join(canonRoot, "agents", "critic.md"), "utf8"),
@@ -122,9 +135,9 @@ export function drift(repoRoot: string, outputs: Outputs): string[] {
     if (!existsSync(full)) problems.push(`missing ${path}`);
     else if (readFileSync(full, "utf8") !== content) problems.push(`stale ${path}`);
   }
-  for (const dir of [SKILL_DIR, INTEGRATIONS_DIR]) {
+  for (const dir of GENERATED_DIRS) {
     for (const file of listFiles(join(repoRoot, dir))) {
-      const path = relative(repoRoot, file);
+      const path = posix(relative(repoRoot, file));
       if (!outputs.has(path)) problems.push(`unexpected ${path}`);
     }
   }
@@ -132,8 +145,7 @@ export function drift(repoRoot: string, outputs: Outputs): string[] {
 }
 
 export function write(repoRoot: string, outputs: Outputs): void {
-  rmSync(join(repoRoot, SKILL_DIR), { recursive: true, force: true });
-  rmSync(join(repoRoot, INTEGRATIONS_DIR), { recursive: true, force: true });
+  for (const dir of GENERATED_DIRS) rmSync(join(repoRoot, dir), { recursive: true, force: true });
   for (const [path, content] of outputs) {
     const full = join(repoRoot, path);
     mkdirSync(dirname(full), { recursive: true });

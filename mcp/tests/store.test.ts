@@ -1,10 +1,22 @@
 import assert from "node:assert/strict";
-import { access, mkdtemp, readFile, readdir, rm, unlink, writeFile } from "node:fs/promises";
+import {
+  access,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  stat,
+  symlink,
+  utimes,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, beforeEach, test } from "node:test";
 import { CommentStore } from "../src/store.js";
-import type { IncomingComment } from "../src/types.js";
+import type { Draft } from "../src/types.js";
+import { draft } from "./fixtures.js";
 
 let root: string;
 
@@ -16,17 +28,16 @@ afterEach(async () => {
   await rm(root, { recursive: true, force: true });
 });
 
-function sample(overrides: Partial<IncomingComment> = {}): IncomingComment {
-  return {
+function sample(overrides: Partial<Draft> = {}): Draft {
+  return draft({
     comment: "This card padding is off",
-    operation: { type: "comment", property: null, from: null, to: null },
     operator: "/html/body/main[1]/section[2]/div[1]",
     url: "http://localhost:3000/dashboard",
     metadata: { page: "/dashboard", viewport: { w: 1440, h: 900 }, elementText: "Total revenue" },
     source: { path: "src/Card.tsx", line: 42, column: 8, via: "react-dev-inspector" },
     screenshotDataUrl: null,
     ...overrides,
-  };
+  });
 }
 
 test("add then list round-trips core fields", async () => {
@@ -130,48 +141,6 @@ test("text operation containing the arrow sequence round-trips intact", async ()
   assert.equal(got.operation.to, 'end " -> " done');
 });
 
-test("component, route, target and attachScreenshot survive the markdown fallback parse", async () => {
-  const store = new CommentStore(root);
-  await store.add(
-    sample({
-      component: { stack: [{ name: "TrafficSources" }, { name: "DashboardPage" }] },
-      route: {
-        pattern: "/users/:id",
-        params: { id: "8123" },
-        router: "react-router",
-        routeFile: "app/routes/users.$id.tsx",
-        confidence: "exact",
-      },
-      target: {
-        selector: "article.card",
-        tag: "article",
-        id: null,
-        testId: null,
-        role: null,
-        ariaLabel: null,
-        classes: ["card"],
-        attributes: {},
-        ownText: "Traffic sources",
-        ancestors: [],
-        rect: { x: 0, y: 0, w: 10, h: 10 },
-        outerHtml: '<article class="card"></article>',
-      },
-      attachScreenshot: true,
-    }),
-  );
-
-  // The store always writes both formats; forcing the JSON one away is the only way to exercise
-  // the hand-rolled markdown parser rather than a JSON.stringify/parse round trip.
-  await unlink(store.commentsPath);
-
-  const [got] = await store.list();
-  assert.equal(got.component?.stack[0].name, "TrafficSources");
-  assert.equal(got.route?.pattern, "/users/:id");
-  assert.equal(got.route?.params?.id, "8123");
-  assert.equal(got.target?.selector, "article.card");
-  assert.equal(got.attachScreenshot, true);
-});
-
 test("style operation with arrow-sequence values round-trips intact", async () => {
   const store = new CommentStore(root);
   await store.add(
@@ -188,19 +157,6 @@ test("style operation with arrow-sequence values round-trips intact", async () =
   assert.equal(got.operation.property, "content");
   assert.equal(got.operation.from, '"a -> b"');
   assert.equal(got.operation.to, '"c -> d"');
-});
-
-test("a corrupt comments file is backed up instead of wiped", async () => {
-  const store = new CommentStore(root);
-  await store.add(sample());
-  const { commentsPath } = store;
-  await writeFile(commentsPath, "{ not json", "utf8");
-
-  assert.equal((await store.list()).length, 1, "recovered from the markdown mirror");
-  const files = await readdir(dirname(commentsPath));
-  const backup = files.find((f) => f.startsWith("design-comments.json.bak-"));
-  assert.ok(backup, "a timestamped backup should exist");
-  assert.equal(await readFile(join(dirname(commentsPath), backup), "utf8"), "{ not json");
 });
 
 test("resolving stores by, note, files and a timestamp", async () => {
@@ -258,3 +214,180 @@ async function exists(path: string): Promise<boolean> {
     () => false,
   );
 }
+
+test("a corrupt comments file stops the store with an error that names the file and a backup", async () => {
+  const store = new CommentStore(root);
+  await store.add(sample());
+  await writeFile(store.commentsPath, "{ not json", "utf8");
+
+  await assert.rejects(store.list(), (error: Error) => {
+    assert.ok(error.message.includes(store.commentsPath));
+    assert.match(error.message, /\.bak-/);
+    assert.match(error.message, /Fix the file or delete it/);
+    return true;
+  });
+  await assert.rejects(store.add(sample()), /corrupt/);
+  const files = await readdir(dirname(store.commentsPath));
+  const backups = files.filter((f) => f.startsWith("design-comments.json.bak-"));
+  assert.equal(backups.length, 1);
+  assert.equal(
+    await readFile(join(dirname(store.commentsPath), backups[0] as string), "utf8"),
+    "{ not json",
+  );
+  assert.equal(await readFile(store.commentsPath, "utf8"), "{ not json");
+});
+
+test("a store that is valid JSON but not a comment list is corrupt", async () => {
+  const store = new CommentStore(root);
+  await store.add(sample());
+  await writeFile(store.commentsPath, JSON.stringify([{ nope: true }]), "utf8");
+  await assert.rejects(store.list(), /corrupt/);
+});
+
+test("the markdown mirror is never read back", async () => {
+  const store = new CommentStore(root);
+  await store.add(sample());
+  await rm(store.commentsPath);
+  assert.deepEqual(await store.list(), []);
+});
+
+test("the screenshot extension follows the mime type and the write is atomic", async () => {
+  const store = new CommentStore(root);
+  const jpeg = await store.add(sample({ screenshotDataUrl: "data:image/jpeg;base64,/9j/4AAQ" }));
+  const webp = await store.add(sample({ screenshotDataUrl: "data:image/webp;base64,UklGRg==" }));
+  assert.match(jpeg.screenshot ?? "", /\.jpg$/);
+  assert.match(webp.screenshot ?? "", /\.webp$/);
+  const files = await readdir(join(root, ".northstar", "design-shots"));
+  assert.equal(files.filter((f) => f.endsWith(".tmp")).length, 0);
+});
+
+test("ingestMany writes a batch once and dedupes a cid repeated inside it", async () => {
+  const store = new CommentStore(root);
+  const same = sample({ cid: "same" });
+  const outcomes = await store.ingestMany([sample(), same, same]);
+  assert.deepEqual(
+    outcomes.map((o) => o.ok && o.duplicate),
+    [false, false, true],
+  );
+  assert.equal((await store.list()).length, 2);
+});
+
+test("a failed batch leaves no screenshot behind", async () => {
+  const store = new CommentStore(root);
+  await store.add(sample());
+  await writeFile(store.commentsPath, "{ not json", "utf8");
+  await assert.rejects(store.ingestMany([sample({ screenshotDataUrl: PNG })]));
+  const shots = await readdir(join(root, ".northstar", "design-shots")).catch(() => []);
+  assert.equal(shots.length, 0);
+});
+
+test("list is served from the cache until the file changes", async () => {
+  const store = new CommentStore(root);
+  await store.add(sample({ comment: "first" }));
+  const a = await store.list();
+  const b = await store.list();
+  assert.equal(a[0], b[0]);
+
+  const other = new CommentStore(root);
+  await other.add(sample({ comment: "second" }));
+  assert.equal((await store.list()).length, 2);
+});
+
+test("clear and list filter by page key, ignoring query and trailing slash", async () => {
+  const store = new CommentStore(root);
+  await store.add(sample({ url: "http://localhost:3000/users/1?tab=a" }));
+  await store.add(sample({ url: "http://localhost:3000/users/1/" }));
+  await store.add(sample({ url: "http://localhost:3000/users/2" }));
+  assert.equal((await store.list(undefined, "http://localhost:3000/users/1")).length, 2);
+  assert.equal(await store.clear("http://localhost:3000/users/1"), 2);
+  assert.equal((await store.list()).length, 1);
+  assert.equal(await store.clear("http://localhost:3000/nothing"), 0);
+});
+
+test("update reports a no-op and reopen reports an already open comment", async () => {
+  const store = new CommentStore(root);
+  const a = await store.add(sample());
+  assert.equal((await store.update(a.id, "open"))?.changed, false);
+  assert.equal((await store.update(a.id, "resolved", { note: "x" }))?.changed, true);
+  assert.equal((await store.update(a.id, "resolved", { note: "x" }))?.changed, false);
+  assert.equal((await store.reopenWithNote(a.id))?.changed, true);
+  assert.equal((await store.reopenWithNote(a.id))?.changed, false);
+  assert.equal(await store.update("missing", "open"), undefined);
+});
+
+test("deferred entries are stored as JSON and a corrupt file stops with an error", async () => {
+  const store = new CommentStore(root);
+  const c = await store.add(sample());
+  const entry = await store.addDeferred(c, "too big", "assistant", "needs-plan");
+  assert.equal(entry.reason, "too big");
+  assert.deepEqual(JSON.parse(await readFile(store.deferredFile, "utf8"))[0].id, c.id);
+  assert.equal((await store.addDeferred(c, "again", "user")).reason, "too big");
+  assert.equal((await new CommentStore(root).listDeferred()).length, 1);
+
+  await writeFile(store.deferredFile, "oops", "utf8");
+  await assert.rejects(new CommentStore(root).listDeferred(), /corrupt/);
+});
+
+test("two stores on one root serialise writes through the file lock", async () => {
+  const a = new CommentStore(root);
+  const b = new CommentStore(root);
+  await Promise.all(
+    Array.from({ length: 12 }, (_, i) => (i % 2 ? a : b).add(sample({ comment: `c${i}` }))),
+  );
+  assert.equal((await new CommentStore(root).list()).length, 12);
+});
+
+test("a stale lock is taken over", async () => {
+  const store = new CommentStore(root);
+  await store.add(sample());
+  const lock = join(root, ".northstar", "store.lock");
+  await mkdir(lock);
+  const old = new Date(Date.now() - 120_000);
+  await utimes(lock, old, old);
+  await store.add(sample());
+  assert.equal((await store.list()).length, 2);
+  await assert.rejects(stat(lock), /ENOENT/);
+});
+
+test("the store directory gets one gitignore that is not appended to", async () => {
+  const store = new CommentStore(root);
+  await store.add(sample());
+  await new CommentStore(root).add(sample());
+  assert.equal(await readFile(join(root, ".northstar", ".gitignore"), "utf8"), "*\n");
+});
+
+function withSource(path: string) {
+  return sample({ source: { path, line: 1, column: 0, via: "react-fiber" } });
+}
+
+test("source paths are confined to the project root", async () => {
+  const store = new CommentStore(root);
+  const relative = await store.add(withSource("src/Card.tsx"));
+  assert.equal(relative.source?.path, "src/Card.tsx");
+  const absolute = await store.add(withSource(join(root, "src", "Card.tsx")));
+  assert.equal(absolute.source?.path, "src/Card.tsx");
+
+  for (const bad of [
+    "/etc/passwd",
+    `${root}-evil/src/a.tsx`,
+    "../outside.tsx",
+    "src/../../outside.tsx",
+  ]) {
+    const [outcome] = await store.ingestMany([withSource(bad)]);
+    assert.equal(outcome?.ok, false, bad);
+    if (outcome && !outcome.ok) {
+      assert.equal(outcome.rejection.field, "source.path");
+      assert.match(outcome.rejection.error, /outside the project/);
+    }
+  }
+  assert.equal((await store.list()).length, 2);
+});
+
+test("a symlink that leaves the project is rejected", async () => {
+  const outside = await mkdtemp(join(tmpdir(), "northstar-outside-"));
+  await symlink(outside, join(root, "linked"));
+  const store = new CommentStore(root);
+  const [outcome] = await store.ingestMany([withSource("linked/secret.tsx")]);
+  assert.equal(outcome?.ok, false);
+  await rm(outside, { recursive: true, force: true });
+});

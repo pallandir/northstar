@@ -28,6 +28,11 @@ async function runOrThrow(tty: string, body: string): Promise<string> {
   if (out === "notfound") {
     throw new Error(`no Terminal.app tab is attached to ${tty}`);
   }
+  if (out === "notfront") {
+    throw new Error(
+      "Terminal.app is not the frontmost app, Northstar will not type into another app",
+    );
+  }
   return out;
 }
 
@@ -37,18 +42,20 @@ export class TerminalAppDriver implements TerminalDriver {
   constructor(private readonly tty: string) {}
 
   async capture(): Promise<string> {
-    return runOrThrow(this.tty, 'return "ok:" & (get contents of t)');
+    return (await runOrThrow(this.tty, 'return "ok:" & (get contents of t)')).slice(3);
   }
 
-  // Terminal.app exposes no per-tab write, so the tab must be focused and driven through
-  // System Events, which is why this driver alone needs Accessibility permission.
   async sendText(text: string): Promise<void> {
     await runOrThrow(
       this.tty,
       `set selected tab of w to t
           set index of w to 1
           activate
-          tell application "System Events" to keystroke "${appleQuote(text)}"
+          delay 0.2
+          tell application "System Events"
+            if name of first application process whose frontmost is true is not "Terminal" then return "notfront"
+            keystroke "${appleQuote(text)}"
+          end tell
           return "ok"`,
     );
   }
@@ -57,7 +64,10 @@ export class TerminalAppDriver implements TerminalDriver {
     await runOrThrow(
       this.tty,
       `set selected tab of w to t
-          tell application "System Events" to key code 36
+          tell application "System Events"
+            if name of first application process whose frontmost is true is not "Terminal" then return "notfront"
+            key code 36
+          end tell
           return "ok"`,
     );
   }

@@ -34,21 +34,39 @@ export function canonicalSection(heading: string): string {
   return known ?? ALIASES[clean.toLowerCase()] ?? clean;
 }
 
-export function parseDesign(source: string): ParsedDesign {
-  const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(source);
-  if (!match) throw new DesignParseError("DESIGN.md has no YAML frontmatter");
+export interface Frontmatter {
+  frontmatter: Record<string, unknown>;
+  body: string;
+}
+
+const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)([\s\S]*)$/;
+
+export function parseFrontmatter(source: string): Frontmatter {
+  const text = source.charCodeAt(0) === 0xfeff ? source.slice(1) : source;
+  const match = FRONTMATTER.exec(text);
+  if (!match) {
+    throw new DesignParseError(
+      "DESIGN.md has no YAML frontmatter, start the file with a --- block or run design_md_normalize",
+    );
+  }
   let data: unknown;
   try {
     data = parse(match[1] ?? "");
   } catch (err) {
-    throw new DesignParseError(`frontmatter is not valid YAML: ${(err as Error).message}`);
+    throw new DesignParseError(
+      `DESIGN.md frontmatter is not valid YAML: ${(err as Error).message}`,
+    );
   }
   if (!data || typeof data !== "object" || Array.isArray(data)) {
-    throw new DesignParseError("frontmatter must be a mapping");
+    throw new DesignParseError("DESIGN.md frontmatter must be a YAML mapping");
   }
-  const body = match[2] ?? "";
+  return { frontmatter: data as Record<string, unknown>, body: match[2] ?? "" };
+}
+
+export function parseDesign(source: string): ParsedDesign {
+  const { frontmatter, body } = parseFrontmatter(source);
   const sections = [...body.matchAll(/^##\s+(.+?)\s*$/gm)].map((m) => canonicalSection(m[1] ?? ""));
-  return { frontmatter: data as Record<string, unknown>, body, sections };
+  return { frontmatter, body, sections };
 }
 
 export function lookup(root: Record<string, unknown>, path: string): unknown {

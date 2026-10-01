@@ -5,7 +5,6 @@ export default defineConfig({
   format: ["esm"],
   target: "node20",
   clean: true,
-  sourcemap: true,
   noExternal: [/^@northstar\//],
   banner: {
     js: "#!/usr/bin/env node",

@@ -34,7 +34,13 @@ export function parsePacks(value: string | undefined): Set<PackName> {
   if (requested.includes("all")) return new Set(PACK_NAMES);
   const active = new Set<PackName>(ALWAYS_ON);
   for (const name of requested) {
-    if ((PACK_NAMES as readonly string[]).includes(name)) active.add(name as PackName);
+    if (name === "dynamic") continue;
+    if (!(PACK_NAMES as readonly string[]).includes(name)) {
+      throw new Error(
+        `unknown pack "${name}" in NORTHSTAR_PACKS, use all, dynamic or a list of ${PACK_NAMES.join(", ")}`,
+      );
+    }
+    active.add(name as PackName);
   }
   return active;
 }

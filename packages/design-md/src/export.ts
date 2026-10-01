@@ -1,23 +1,25 @@
 import { parseColor, toHex } from "./contrast.js";
+import { isGenericFamily, quoteFamily, splitFontStack } from "./fonts.js";
 import { parseDesign, resolveRefs } from "./parse.js";
+import { kebab } from "./text.js";
 
 export type ExportFormat = "css" | "tailwind" | "dtcg";
-
-const kebab = (value: string) =>
-  value
-    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-    .replace(/[^a-zA-Z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .toLowerCase();
 
 function entries(value: unknown): Array<[string, Record<string, unknown> | string]> {
   if (!value || typeof value !== "object") return [];
   return Object.entries(value as Record<string, Record<string, unknown> | string>);
 }
 
-function dimension(value: string): { value: number; unit: "px" | "rem" } | undefined {
-  const match = /^(-?[\d.]+)(px|rem)$/.exec(value.trim());
-  return match ? { value: Number(match[1]), unit: match[2] as "px" | "rem" } : undefined;
+function dimension(value: string, token: string): { value: number; unit: "px" | "rem" } {
+  const trimmed = value.trim();
+  if (/^-?0(\.0+)?$/.test(trimmed)) return { value: 0, unit: "px" };
+  const match = /^(-?(?:\d+|\d*\.\d+))(px|rem)$/.exec(trimmed);
+  if (!match) {
+    throw new Error(
+      `${token} is ${value}, DTCG dimensions support only px or rem, change it in DESIGN.md or export css instead`,
+    );
+  }
+  return { value: Number(match[1]), unit: match[2] as "px" | "rem" };
 }
 
 interface Tokens {
@@ -43,10 +45,12 @@ function collect(source: string): Tokens {
   return tokens;
 }
 
-const fontStack = (family: string) =>
-  /mono|code/i.test(family)
-    ? `"${family}", ui-monospace, monospace`
-    : `"${family}", system-ui, sans-serif`;
+function fontStack(value: string): string {
+  const families = splitFontStack(value);
+  if (families.some(isGenericFamily)) return families.map(quoteFamily).join(", ");
+  const fallback = /mono|code/i.test(value) ? "ui-monospace, monospace" : "system-ui, sans-serif";
+  return `${families.map(quoteFamily).join(", ")}, ${fallback}`;
+}
 
 export function exportCss(source: string): string {
   const t = collect(source);
@@ -91,20 +95,27 @@ export function exportDtcg(source: string): string {
         }
       : { $type: "color", $value: value };
   }
-  const dimensions = (list: Array<[string, string]>) =>
+  const dimensions = (group: string, list: Array<[string, string]>) =>
     Object.fromEntries(
-      list.map(([key, value]) => [key, { $type: "dimension", $value: dimension(value) ?? value }]),
+      list.map(([key, value]) => [
+        key,
+        { $type: "dimension", $value: dimension(value, `${group}.${key}`) },
+      ]),
     );
+  const dtcgFamily = (value: string) => {
+    const families = splitFontStack(value);
+    return families.length === 1 ? families[0] : families;
+  };
   const fontFamily = Object.fromEntries(
-    t.fonts.map(([key, value]) => [key, { $type: "fontFamily", $value: value }]),
+    t.fonts.map(([key, value]) => [key, { $type: "fontFamily", $value: dtcgFamily(value) }]),
   );
   return `${JSON.stringify(
     {
       color,
       fontFamily,
-      fontSize: dimensions(t.sizes),
-      radius: dimensions(t.radii),
-      spacing: dimensions(t.spaces),
+      fontSize: dimensions("typography", t.sizes),
+      radius: dimensions("rounded", t.radii),
+      spacing: dimensions("spacing", t.spaces),
     },
     null,
     2,

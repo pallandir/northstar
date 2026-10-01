@@ -3,7 +3,31 @@ import { classLists } from "./util.js";
 
 const ALL = ["css", "markup", "component"] as const;
 const COMPONENT = ["component"] as const;
-const LAYOUT_PROPS = /\b(width|height|top|left|right|bottom|margin|padding)\b/;
+const LAYOUT_PROP =
+  /^(?:(?:min|max)-)?(?:width|height)$|^(?:top|left|right|bottom|inset)$|^(?:margin|padding)(?:-[a-z]+)?$/;
+
+function commaParts(value: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < value.length; i++) {
+    if (value[i] === "(") depth++;
+    else if (value[i] === ")") depth = Math.max(0, depth - 1);
+    else if (value[i] === "," && depth === 0) {
+      parts.push(value.slice(start, i));
+      start = i + 1;
+    }
+  }
+  parts.push(value.slice(start));
+  return parts.map((part) => part.trim()).filter(Boolean);
+}
+
+function animatesLayout(prop: string, value: string): boolean {
+  return commaParts(value).some((part) => {
+    const property = prop === "transition" ? part.split(/\s+/)[0] : part;
+    return LAYOUT_PROP.test(property ?? "");
+  });
+}
 
 export const motionChecks: Check[] = [
   {
@@ -53,10 +77,7 @@ export const motionChecks: Check[] = [
     kinds: [...ALL],
     run(ctx) {
       for (const d of ctx.decls) {
-        if (
-          /^transition(-property)?$/.test(d.prop) &&
-          LAYOUT_PROPS.test(d.value.split(/\s+\d/)[0] ?? d.value)
-        ) {
+        if (/^transition(-property)?$/.test(d.prop) && animatesLayout(d.prop, d.value)) {
           ctx.report("NS-MOTION-PROPERTIES", d.index);
         }
       }
@@ -110,6 +131,7 @@ export const motionChecks: Check[] = [
           )
         )
           continue;
+        if (/^animation/.test(d.prop) && /\binfinite\b/.test(d.value)) continue;
         if (/(^|[\s,])(ease|ease-in|ease-out|ease-in-out|linear)(\s|,|$)/.test(d.value)) {
           ctx.report("NS-MOTION-EASING", d.index);
         }

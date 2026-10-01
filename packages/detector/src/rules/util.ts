@@ -13,6 +13,30 @@ export function classLists(ctx: Ctx): Array<{ str: Str; tokens: string[] }> {
     .map((str) => ({ str, tokens: toks(str.value) }));
 }
 
+export const isCapsLabel = (tokens: string[]): boolean =>
+  tokens.includes("uppercase") &&
+  tokens.some((t) => /^tracking-(wide|wider|widest)$/.test(t)) &&
+  tokens.some((t) => /^text-(xs|sm)$/.test(t));
+
+export const HEADING_AHEAD = /<h[1-3]\b|text-(3|4|5|6|7|8|9)xl/;
+
+export function importSpecifiers(text: string): string[] {
+  const pattern = /(?:\bfrom\s+|\bimport\s+|\brequire\(\s*|\bimport\(\s*)["']([^"'\n]+)["']/g;
+  return [...text.matchAll(pattern)].map((m) => m[1] ?? "");
+}
+
+export function importsAny(text: string, packages: readonly string[]): boolean {
+  const specifiers = importSpecifiers(text);
+  return specifiers.some((spec) =>
+    packages.some(
+      (name) =>
+        spec === name ||
+        spec.startsWith(`${name}/`) ||
+        (name.endsWith("/") && spec.startsWith(name)),
+    ),
+  );
+}
+
 export function blocks(decls: Decl[]): Decl[][] {
   const groups = new Map<number, Decl[]>();
   for (const decl of decls) groups.set(decl.block, [...(groups.get(decl.block) ?? []), decl]);

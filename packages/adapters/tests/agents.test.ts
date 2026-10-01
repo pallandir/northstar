@@ -1,15 +1,21 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { after, test } from "node:test";
 import {
   AGENT_NAMES,
   ConfigError,
   type Op,
   type PlanContext,
+  hookArgv,
   hookCommand,
   planAgent,
   removeBlock,
   removeTomlTables,
   upsertBlock,
+  upsertHook,
   upsertToml,
 } from "../src/index.js";
 
@@ -57,6 +63,7 @@ test("json merges keep foreign keys and other servers through install and remova
     assert.equal(merged.theme, "dark");
     assert.deepEqual(merged.mcpServers.other, { command: "x" });
     assert.equal(merged.mcpServers.northstar.command, "npx");
+    assert.deepEqual(merged.mcpServers.northstar.args, ["-y", "@pallandir/northstar@2.2.0"]);
     assert.equal(merged.mcpServers.northstar.env.NORTHSTAR_PACKS, "all");
     const removed = JSON.parse(op.remove(op.apply(existing)));
     assert.equal(removed.theme, "dark");
@@ -82,7 +89,7 @@ test("hooks are added once, keep other hooks and are removed on uninstall", () =
   const twice = JSON.parse(op.apply(once));
   assert.equal(twice.hooks.PostToolUse.length, 2);
   assert.deepEqual(twice.hooks.PostToolUse[0], other);
-  assert.equal(twice.hooks.PostToolUse[1].matcher, "Edit|Write|MultiEdit");
+  assert.equal(twice.hooks.PostToolUse[1].matcher, "Edit|Write|MultiEdit|NotebookEdit");
   const removed = JSON.parse(op.remove(once));
   assert.deepEqual(removed.hooks.PostToolUse, [other]);
   assert.equal(removed.model, "x");
@@ -195,18 +202,157 @@ test("opencode installs a plugin that appends scan feedback and pins the hook co
   assert.match(file.path, /plugins\/northstar\.ts$/);
   assert.match(file.content, /"tool\.execute\.after"/);
   assert.match(file.content, /output\.output = /);
-  assert.ok(file.content.includes(JSON.stringify(hookCommand("2.2.0", "opencode"))));
+  assert.ok(file.content.includes(JSON.stringify(hookArgv(ctx("opencode"), "opencode"))));
+  assert.doesNotMatch(file.content, /"sh"/);
   const config = merges(planAgent(ctx("opencode")).ops)[0] as Extract<Op, { kind: "merge" }>;
   const parsed = JSON.parse(config.apply(undefined));
-  assert.deepEqual(parsed.mcp.northstar.command, ["npx", "-y", "@pallandir/northstar"]);
+  assert.deepEqual(parsed.mcp.northstar.command, ["npx", "-y", "@pallandir/northstar@2.2.0"]);
   assert.equal(parsed.mcp.northstar.environment.NORTHSTAR_PACKS, "all");
 });
 
-test("the hook command prefers a global install, falls back to a pinned npx and never fails", () => {
-  const command = hookCommand("2.2.0", "gemini");
-  assert.match(command, /command -v northstar/);
-  assert.match(command, /npx -y @pallandir\/northstar@2\.2\.0 hook post-edit --agent gemini/);
-  assert.match(command, /\|\| true'$/);
+const scratch = mkdtempSync(join(tmpdir(), "northstar-hook-"));
+after(() => rmSync(scratch, { recursive: true, force: true }));
+
+test("the hook command is a node launcher with argv, pinned like the server, with no shell chain", () => {
+  const command = hookCommand(ctx("gemini"), "gemini");
+  assert.match(command, /^node -e "/);
+  assert.match(command, / npx -y @pallandir\/northstar@2\.2\.0 hook post-edit --agent gemini$/);
+  assert.doesNotMatch(command, /sh -c|\|\| true|command -v/);
+  const argv = hookArgv(ctx("gemini"), "gemini", "pre-edit");
+  assert.deepEqual(argv.slice(0, 2), ["node", "-e"]);
+  assert.deepEqual(argv.slice(3), [
+    "npx",
+    "-y",
+    "@pallandir/northstar@2.2.0",
+    "hook",
+    "pre-edit",
+    "--agent",
+    "gemini",
+  ]);
+});
+
+test("the launcher runs the installed binary with the hook arguments and keeps its exit code", () => {
+  const bin = join(scratch, "cli.js");
+  writeFileSync(
+    bin,
+    "process.stdout.write(process.argv.slice(2).join(' '));process.exit(Number(process.env.EXIT ?? 0));",
+  );
+  const argv = hookArgv({ ...ctx("claude"), launch: { command: "node", args: [bin] } }, "claude");
+  const ok = spawnSync(argv[0] as string, argv.slice(1), { encoding: "utf8" });
+  assert.equal(ok.status, 0);
+  assert.equal(ok.stdout, "hook post-edit --agent claude");
+  const failing = spawnSync(argv[0] as string, argv.slice(1), {
+    encoding: "utf8",
+    env: { ...process.env, EXIT: "3" },
+  });
+  assert.equal(failing.status, 3);
+});
+
+test("the launcher exits non zero with a clear message when the binary is missing", () => {
+  const missing = join(scratch, "gone.js");
+  const argv = hookArgv(
+    { ...ctx("claude"), launch: { command: "node", args: [missing] } },
+    "claude",
+  );
+  const result = spawnSync(argv[0] as string, argv.slice(1), { encoding: "utf8" });
+  assert.equal(result.status, 1);
+  assert.match(
+    result.stderr,
+    /Northstar is not installed at .*gone\.js\. Run northstar install again\./,
+  );
+});
+
+test("the launcher works through a shell with a path that has spaces", () => {
+  const dir = join(scratch, "with space");
+  const bin = join(dir, "cli.js");
+  spawnSync("mkdir", ["-p", dir]);
+  writeFileSync(bin, "process.stdout.write('ran');");
+  const command = hookCommand(
+    { ...ctx("claude"), launch: { command: "node", args: [bin] } },
+    "claude",
+  );
+  const result = spawnSync("sh", ["-c", command], { encoding: "utf8" });
+  assert.equal(result.stdout, "ran");
+});
+
+test("upsertHook replaces our entry where it was instead of moving it to the end", () => {
+  const ours = {
+    matcher: "Edit",
+    hooks: [{ type: "command" as const, command: "northstar hook post-edit --agent claude" }],
+  };
+  const before = { matcher: "A", hooks: [{ type: "command" as const, command: "a.sh" }] };
+  const after = { matcher: "B", hooks: [{ type: "command" as const, command: "b.sh" }] };
+  const root: Record<string, unknown> = { hooks: { PostToolUse: [before, ours, after] } };
+  const next = {
+    matcher: "Edit|Write",
+    hooks: [{ type: "command" as const, command: "northstar hook post-edit --agent claude" }],
+  };
+  upsertHook(root, "PostToolUse", next);
+  assert.deepEqual((root.hooks as { PostToolUse: unknown[] }).PostToolUse, [before, next, after]);
+});
+
+test("removing a toml table leaves comments and other tables byte for byte", () => {
+  const text = [
+    "# global",
+    'model = "x"',
+    "",
+    "[mcp_servers.northstar]",
+    'command = "a"',
+    "",
+    "[mcp_servers.northstar.env]",
+    'K = "v"',
+    "",
+    "",
+    "# about other",
+    "[mcp_servers.other]",
+    'command = "keep"',
+    "",
+    "",
+    "",
+    "[tail]",
+    "x = 1",
+    "",
+  ].join("\n");
+  const out = removeTomlTables(text, "mcp_servers.northstar");
+  assert.equal(
+    out,
+    [
+      "# global",
+      'model = "x"',
+      "",
+      "# about other",
+      "[mcp_servers.other]",
+      'command = "keep"',
+      "",
+      "",
+      "",
+      "[tail]",
+      "x = 1",
+      "",
+    ].join("\n"),
+  );
+});
+
+test("with the Northstar plugin installed claude registers no second copy of hooks, skill or critic", () => {
+  const plan = planAgent({ ...ctx("claude"), plugin: true });
+  assert.deepEqual(
+    plan.ops.map((op) => op.kind),
+    ["command", "merge"],
+  );
+  assert.ok(plan.notes.some((n) => /plugin/.test(n)));
+  const op = merges(plan.ops)[0] as Extract<Op, { kind: "merge" }>;
+  const present = JSON.stringify({
+    hooks: {
+      PostToolUse: [
+        {
+          matcher: "x",
+          hooks: [{ type: "command", command: "northstar hook post-edit --agent claude" }],
+        },
+      ],
+    },
+    keep: 1,
+  });
+  assert.deepEqual(JSON.parse(op.apply(present)), { keep: 1 });
 });
 
 test("hooks that merely mention northstar in a path survive install and uninstall", () => {
@@ -235,7 +381,7 @@ test("hooks that merely mention northstar in a path survive install and uninstal
   assert.equal(removed.length, 2);
 });
 
-test("both the global and the pinned npx form of the command are recognised as ours", () => {
+test("an older command form of our hook is recognised and replaced", () => {
   const op = merges(planAgent(ctx("codex")).ops).find((o) =>
     o.path.endsWith("hooks.json"),
   ) as Extract<Op, { kind: "merge" }>;
@@ -251,45 +397,14 @@ test("both the global and the pinned npx form of the command are recognised as o
   const out = JSON.parse(op.apply(JSON.stringify({ hooks: { PostToolUse: [old] } }))).hooks
     .PostToolUse;
   assert.equal(out.length, 1);
-  assert.match(out[0].hooks[0].command, /northstar@2\.2\.0/);
+  assert.match(out[0].hooks[0].command, /northstar@2\.2\.0 hook post-edit --agent codex/);
 });
 
-test("extension ids become a trusted origin list in every server entry", () => {
-  const withIds = {
-    ...ctx("codex"),
-    extensionIds: ["pemllnphnlcnkolginljldoejphkmbba", "abcdefghijklmnopabcdefghijklmnop"],
-  };
-  const expected =
-    "chrome-extension://pemllnphnlcnkolginljldoejphkmbba,chrome-extension://abcdefghijklmnopabcdefghijklmnop";
-  const toml = merges(planAgent(withIds).ops).find((o) =>
-    o.path.endsWith("config.toml"),
-  ) as Extract<Op, { kind: "merge" }>;
-  assert.match(toml.apply(undefined), new RegExp(`NORTHSTAR_EXTRA_ORIGINS = "${expected}"`));
-  const cursor = merges(planAgent({ ...withIds, agent: "cursor" }).ops)[0] as Extract<
-    Op,
-    { kind: "merge" }
-  >;
-  assert.equal(
-    JSON.parse(cursor.apply(undefined)).mcpServers.northstar.env.NORTHSTAR_EXTRA_ORIGINS,
-    expected,
-  );
-  const claude = planAgent({ ...withIds, agent: "claude" }).ops.find(
-    (o) => o.kind === "command",
-  ) as Extract<Op, { kind: "command" }>;
-  assert.ok(claude.run.includes(`NORTHSTAR_EXTRA_ORIGINS=${expected}`));
-  const opencode = merges(planAgent({ ...withIds, agent: "opencode" }).ops)[0] as Extract<
-    Op,
-    { kind: "merge" }
-  >;
-  assert.equal(
-    JSON.parse(opencode.apply(undefined)).mcp.northstar.environment.NORTHSTAR_EXTRA_ORIGINS,
-    expected,
-  );
-  const plain = merges(planAgent({ ...ctx("cursor") }).ops)[0] as Extract<Op, { kind: "merge" }>;
-  assert.equal(
-    JSON.parse(plain.apply(undefined)).mcpServers.northstar.env.NORTHSTAR_EXTRA_ORIGINS,
-    undefined,
-  );
+test("the server env carries only the pack choice", () => {
+  const cursor = merges(planAgent(ctx("cursor")).ops)[0] as Extract<Op, { kind: "merge" }>;
+  assert.deepEqual(JSON.parse(cursor.apply(undefined)).mcpServers.northstar.env, {
+    NORTHSTAR_PACKS: "all",
+  });
 });
 
 test("claude gets a design gate before edits and a scan after, and both are removed together", () => {
@@ -297,7 +412,7 @@ test("claude gets a design gate before edits and a scan after, and both are remo
     o.path.endsWith("settings.json"),
   ) as Extract<Op, { kind: "merge" }>;
   const written = JSON.parse(op.apply(undefined)).hooks;
-  assert.equal(written.PreToolUse[0].matcher, "Edit|Write|MultiEdit");
+  assert.equal(written.PreToolUse[0].matcher, "Edit|Write|MultiEdit|NotebookEdit");
   assert.match(written.PreToolUse[0].hooks[0].command, /hook pre-edit --agent claude/);
   assert.match(written.PostToolUse[0].hooks[0].command, /hook post-edit --agent claude/);
   assert.equal(op.remove(op.apply(undefined)).trim(), "");

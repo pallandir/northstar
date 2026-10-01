@@ -18,14 +18,19 @@ interface Options {
   home: string;
 }
 
+function required(value: string | undefined, flag: string): string {
+  if (value === undefined) throw new Error(`${flag} needs a value`);
+  return value;
+}
+
 function parse(args: string[]): Options {
   const options: Options = { remove: false, yes: false, home: homedir() };
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === "--remove") options.remove = true;
     else if (arg === "--yes") options.yes = true;
-    else if (arg === "--restore") options.restore = args[++i];
-    else if (arg === "--home") options.home = resolve(args[++i] ?? homedir());
+    else if (arg === "--restore") options.restore = required(args[++i], arg);
+    else if (arg === "--home") options.home = resolve(required(args[++i], arg));
     else throw new Error(`unknown option ${arg}`);
   }
   return options;
@@ -66,7 +71,13 @@ export async function conflicts(args: string[]): Promise<number> {
     }
   }
 
-  const found = findConflicts(options.home);
+  let found: Conflict[];
+  try {
+    found = findConflicts(options.home);
+  } catch (err) {
+    process.stderr.write(`${(err as Error).message}\n`);
+    return 1;
+  }
   if (!found.length) {
     process.stdout.write("No conflicting design skills found.\n");
     return 0;
@@ -79,7 +90,13 @@ export async function conflicts(args: string[]): Promise<number> {
     return 0;
   }
 
-  const eligible = found.filter((c) => installedFor(options.home, c));
+  let eligible: Conflict[];
+  try {
+    eligible = found.filter((c) => installedFor(options.home, c));
+  } catch (err) {
+    process.stderr.write(`${(err as Error).message}\n`);
+    return 1;
+  }
   for (const conflict of found.filter((c) => !eligible.includes(c))) {
     process.stderr.write(
       `kept ${conflict.name}: Northstar is not installed for ${conflict.owner} yet, run northstar install first\n`,

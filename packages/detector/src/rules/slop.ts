@@ -1,9 +1,23 @@
+import { openTags } from "../jsx.js";
 import type { Check } from "../types.js";
-import { blocks, classLists } from "./util.js";
+import { HEADING_AHEAD, blocks, classLists, isCapsLabel } from "./util.js";
 
 const ALL = ["css", "markup", "component"] as const;
 const MARKUP = ["markup", "component"] as const;
-const EMOJI_RUN = /\p{Extended_Pictographic}/u;
+const ACTION_TAGS = new Set(["a", "button"]);
+const PLAIN_SIGNS = "\u00a9\u00ae\u2122";
+const EMOJI = new RegExp(
+  `>\\s*((?:(?![${PLAIN_SIGNS}])\\p{Extended_Pictographic}[\\uFE0F\\u200D]*)+)\\s*<`,
+  "gu",
+);
+
+const PALETTE =
+  "slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose";
+const SEMANTIC =
+  "black|white|primary|secondary|accent|destructive|muted|brand|foreground|ring|input|border";
+const BORDER_COLOUR = new RegExp(
+  `^border-(?:(?:${PALETTE})-\\d{2,3}|(?:${SEMANTIC})|\\[(?:#|rgba?\\(|hsla?\\(|oklch\\()[^\\]]*\\])(?:/\\d+)?$`,
+);
 
 export const slopChecks: Check[] = [
   {
@@ -31,11 +45,7 @@ export const slopChecks: Check[] = [
     run(ctx) {
       for (const { str, tokens } of classLists(ctx)) {
         const thick = tokens.some((t) => /^border-[lr]-(2|4|8|\[[2-9]px\])$/.test(t));
-        const coloured = tokens.some((t) =>
-          /^border-(?!l-|r-|t-|b-|x-|y-|solid|dashed|dotted|none|collapse|separate|spacing|opacity|0|2|4|8)[a-z]+(-\d{2,3})?$/.test(
-            t,
-          ),
-        );
+        const coloured = tokens.some((t) => BORDER_COLOUR.test(t));
         if (thick && coloured) ctx.report("NS-SLOP-SIDE-BORDER", str.index);
       }
       for (const d of ctx.decls) {
@@ -73,13 +83,8 @@ export const slopChecks: Check[] = [
     kinds: [...MARKUP],
     run(ctx) {
       for (const { str, tokens } of classLists(ctx)) {
-        const label =
-          tokens.includes("uppercase") &&
-          tokens.some((t) => /^tracking-(wide|wider|widest)$/.test(t)) &&
-          tokens.some((t) => /^text-(xs|sm)$/.test(t));
-        if (!label) continue;
-        const after = ctx.text.slice(str.end, str.end + 260);
-        if (/<h[1-3]\b|text-(3|4|5|6|7|8|9)xl/.test(after))
+        if (!isCapsLabel(tokens)) continue;
+        if (HEADING_AHEAD.test(ctx.text.slice(str.end, str.end + 260)))
           ctx.report("NS-SLOP-EYEBROW", str.index);
       }
     },
@@ -89,13 +94,8 @@ export const slopChecks: Check[] = [
     kinds: [...MARKUP],
     run(ctx) {
       for (const { str, tokens } of classLists(ctx)) {
-        const label =
-          tokens.includes("uppercase") &&
-          tokens.some((t) => /^tracking-(wide|wider|widest)$/.test(t)) &&
-          tokens.some((t) => /^text-(xs|sm)$/.test(t));
-        if (!label) continue;
-        const after = ctx.text.slice(str.end, str.end + 260);
-        if (!/<h[1-3]\b|text-(3|4|5|6|7|8|9)xl/.test(after))
+        if (!isCapsLabel(tokens)) continue;
+        if (!HEADING_AHEAD.test(ctx.text.slice(str.end, str.end + 260)))
           ctx.report("NS-SLOP-CAPS-LABELS", str.index);
       }
     },
@@ -104,9 +104,8 @@ export const slopChecks: Check[] = [
     id: "NS-SLOP-EMOJI-ICON",
     kinds: [...MARKUP],
     run(ctx) {
-      const pattern = />\s*((?:\p{Extended_Pictographic}[️‍]*)+)\s*</gu;
-      for (let m = pattern.exec(ctx.text); m; m = pattern.exec(ctx.text)) {
-        if (EMOJI_RUN.test(m[1] ?? "")) ctx.report("NS-SLOP-EMOJI-ICON", m.index);
+      for (let m = EMOJI.exec(ctx.text); m; m = EMOJI.exec(ctx.text)) {
+        ctx.report("NS-SLOP-EMOJI-ICON", m.index);
       }
     },
   },
@@ -114,7 +113,9 @@ export const slopChecks: Check[] = [
     id: "NS-SLOP-NUMBERED-SECTIONS",
     kinds: [...MARKUP],
     run(ctx) {
-      const found = [...ctx.text.matchAll(/>\s*(0[1-9])\s*</g)];
+      const found = [...ctx.text.matchAll(/>\s*(0[1-9])\s*</g)].filter(
+        (m) => !/<option\b[^>]*$/.test(ctx.text.slice(Math.max(0, (m.index ?? 0) - 200), m.index)),
+      );
       const distinct = new Set(found.map((m) => m[1]));
       if (distinct.size >= 3 && found[0])
         ctx.report("NS-SLOP-NUMBERED-SECTIONS", found[0].index ?? 0);
@@ -166,9 +167,11 @@ export const slopChecks: Check[] = [
       for (let m = middot.exec(ctx.text); m; m = middot.exec(ctx.text)) {
         ctx.report("NS-SLOP-TEMPLATE-CHROME", m.index, "Middle dot separated metadata");
       }
-      const arrow = /<(?:a|button)\b[^>]*>[^<>{}]*→\s*</g;
-      for (let m = arrow.exec(ctx.text); m; m = arrow.exec(ctx.text)) {
-        ctx.report("NS-SLOP-TEMPLATE-CHROME", m.index, "Arrow appended to a link or button");
+      for (const tag of openTags(ctx.text, ACTION_TAGS)) {
+        if (tag.selfClosing) continue;
+        if (/^[^<>{}]*→\s*</.test(ctx.text.slice(tag.end + 1, tag.end + 200))) {
+          ctx.report("NS-SLOP-TEMPLATE-CHROME", tag.index, "Arrow appended to a link or button");
+        }
       }
     },
   },

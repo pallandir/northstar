@@ -1,4 +1,4 @@
-import { hookCommand } from "./agents/plan.js";
+import { hookCommand, launchOf } from "./agents/plan.js";
 import { formatJson } from "./json.js";
 
 export const AUTHOR = { name: "pallandir", url: "https://github.com/pallandir" };
@@ -42,7 +42,7 @@ export function marketplaceManifest(version: string): string {
 }
 
 export function hooksManifest(version: string): string {
-  const matcher = "Edit|Write|MultiEdit";
+  const matcher = "Edit|Write|MultiEdit|NotebookEdit";
   return formatJson({
     hooks: {
       PreToolUse: [
@@ -51,7 +51,7 @@ export function hooksManifest(version: string): string {
           hooks: [
             {
               type: "command",
-              command: hookCommand(version, "claude", undefined, "pre-edit"),
+              command: hookCommand({ version }, "claude", "pre-edit"),
               timeout: 10,
             },
           ],
@@ -60,9 +60,14 @@ export function hooksManifest(version: string): string {
       PostToolUse: [
         {
           matcher,
-          hooks: [{ type: "command", command: hookCommand(version, "claude"), timeout: 20 }],
+          hooks: [{ type: "command", command: hookCommand({ version }, "claude"), timeout: 20 }],
         },
       ],
     },
   });
+}
+
+export function mcpManifest(version: string): string {
+  const { command, args } = launchOf({ version });
+  return formatJson({ mcpServers: { northstar: { command, args } } });
 }

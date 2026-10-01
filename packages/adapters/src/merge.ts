@@ -61,10 +61,14 @@ export function isOwnHook(hook: HookCommand): boolean {
   return hook.name === OWN_NAME || OWN_COMMAND.test(hook.command ?? "");
 }
 
+function ownHooks(entry: HookEntry): HookCommand[] {
+  return (entry.hooks ?? []).filter(isOwnHook);
+}
+
 function withoutOwn(list: HookEntry[]): HookEntry[] {
   return list.flatMap((entry) => {
+    if (ownHooks(entry).length === 0) return [entry];
     const hooks = (entry.hooks ?? []).filter((hook) => !isOwnHook(hook));
-    if (hooks.length === (entry.hooks ?? []).length) return [entry];
     return hooks.length ? [{ ...entry, hooks }] : [];
   });
 }
@@ -72,7 +76,21 @@ function withoutOwn(list: HookEntry[]): HookEntry[] {
 export function upsertHook(root: Json, event: string, entry: HookEntry): void {
   const hooks = child(root, "hooks");
   const list = Array.isArray(hooks[event]) ? (hooks[event] as HookEntry[]) : [];
-  hooks[event] = [...withoutOwn(list), entry];
+  const result: HookEntry[] = [];
+  let placed = false;
+  for (const existing of list) {
+    if (ownHooks(existing).length === 0) {
+      result.push(existing);
+      continue;
+    }
+    result.push(...withoutOwn([existing]));
+    if (!placed) {
+      result.push(entry);
+      placed = true;
+    }
+  }
+  if (!placed) result.push(entry);
+  hooks[event] = result;
 }
 
 export function removeHook(root: Json, event: string): void {
@@ -87,15 +105,33 @@ export function isTableHeader(line: string): boolean {
   return /^\s*\[/.test(line);
 }
 
+const COMMENT_OR_BLANK = /^\s*(#.*)?$/;
+
 export function removeTomlTables(text: string, table: string): string {
   const own = new RegExp(`^\\s*\\[${table.replace(/\./g, "\\.")}(\\..+)?\\]\\s*$`);
+  const lines = text.split("\n");
   const out: string[] = [];
-  let skipping = false;
-  for (const line of text.split("\n")) {
-    if (isTableHeader(line)) skipping = own.test(line);
-    if (!skipping) out.push(line);
+  let index = 0;
+  while (index < lines.length) {
+    const line = lines[index] as string;
+    if (!(isTableHeader(line) && own.test(line))) {
+      out.push(line);
+      index += 1;
+      continue;
+    }
+    let end = index + 1;
+    while (end < lines.length && !isTableHeader(lines[end] as string)) end += 1;
+    let lastBody = end - 1;
+    while (lastBody > index && COMMENT_OR_BLANK.test(lines[lastBody] as string)) lastBody -= 1;
+    for (const kept of lines.slice(lastBody + 1, end)) {
+      if (kept.trim() !== "") out.push(kept);
+    }
+    index = end;
+    if (out.length && (out[out.length - 1] as string).trim() === "") {
+      while (index < lines.length && (lines[index] as string).trim() === "") index += 1;
+    }
   }
-  return out.join("\n").replace(/\n{3,}/g, "\n\n");
+  return out.join("\n");
 }
 
 export function upsertToml(text: string | undefined, table: string, body: string): string {

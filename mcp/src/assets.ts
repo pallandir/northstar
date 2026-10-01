@@ -6,15 +6,26 @@ import { type DesignData, loadData } from "@northstar/data";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
+function locate(label: string, envName: string, marker: string, bundled: string[]): string {
+  const override = process.env[envName];
+  if (override) {
+    if (!existsSync(join(override, marker))) {
+      throw new Error(
+        `${envName} is ${override} but it has no ${marker}, fix the variable or unset it`,
+      );
+    }
+    return override;
+  }
+  const found = bundled.find((path) => existsSync(join(path, marker)));
+  if (!found) throw new Error(`northstar ${label} assets not found, reinstall the package`);
+  return found;
+}
+
 export function canonRoot(): string {
-  const candidates = [
-    process.env.NORTHSTAR_CANON_ROOT,
+  return locate("canon", "NORTHSTAR_CANON_ROOT", "rules", [
     join(here, "assets", "canon"),
     join(here, "..", "..", "canon"),
-  ];
-  const found = candidates.find((path) => path && existsSync(join(path, "rules")));
-  if (!found) throw new Error("northstar canon assets not found, reinstall the package");
-  return found;
+  ]);
 }
 
 let cached: Canon | undefined;
@@ -24,15 +35,11 @@ export function getCanon(): Canon {
   return cached;
 }
 
-export function dataRoot(): string {
-  const candidates = [
-    process.env.NORTHSTAR_DATA_ROOT,
+function dataRoot(): string {
+  return locate("design data", "NORTHSTAR_DATA_ROOT", "manifest.json", [
     join(here, "assets", "data"),
     join(here, "..", "..", "packages", "data", "json"),
-  ];
-  const found = candidates.find((path) => path && existsSync(join(path, "manifest.json")));
-  if (!found) throw new Error("northstar design data not found, reinstall the package");
-  return found;
+  ]);
 }
 
 let cachedData: DesignData | undefined;
@@ -43,12 +50,8 @@ export function getData(): DesignData {
 }
 
 export function skillRoot(): string {
-  const candidates = [
-    process.env.NORTHSTAR_SKILL_ROOT,
+  return locate("skill", "NORTHSTAR_SKILL_ROOT", "SKILL.md", [
     join(here, "assets", "skill"),
     join(here, "..", "..", "plugin", "skills", "northstar"),
-  ];
-  const found = candidates.find((path) => path && existsSync(join(path, "SKILL.md")));
-  if (!found) throw new Error("northstar skill assets not found, reinstall the package");
-  return found;
+  ]);
 }

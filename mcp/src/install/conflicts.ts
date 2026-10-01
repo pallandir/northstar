@@ -9,8 +9,11 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, join } from "node:path";
-import { AGENTS, type AgentName, readRecord } from "./record.js";
+import { dirname, join, sep } from "node:path";
+import type { AgentName } from "@northstar/adapters";
+import { z } from "zod";
+import { installedPluginIds } from "./plugin.js";
+import { readRecord } from "./record.js";
 
 export type ConflictKind = "skill" | "agent" | "plugin";
 
@@ -45,12 +48,18 @@ const SKILL_ROOTS: Array<[Conflict["owner"], string]> = [
   ["opencode", ".config/opencode/skills"],
 ];
 
+function isMissing(err: unknown): boolean {
+  const code = (err as NodeJS.ErrnoException).code;
+  return code === "ENOENT" || code === "ENOTDIR";
+}
+
 function exists(path: string): boolean {
   try {
     lstatSync(path);
     return true;
-  } catch {
-    return false;
+  } catch (err) {
+    if (isMissing(err)) return false;
+    throw err;
   }
 }
 
@@ -61,8 +70,9 @@ function isBroken(path: string): boolean {
 function mentionsNorthstar(skillDir: string): boolean {
   try {
     return /northstar/i.test(readFileSync(join(skillDir, "SKILL.md"), "utf8"));
-  } catch {
-    return false;
+  } catch (err) {
+    if (isMissing(err)) return false;
+    throw err;
   }
 }
 
@@ -95,26 +105,18 @@ export function findConflicts(home: string): Conflict[] {
     }
   }
 
-  const installed = join(home, ".claude", "plugins", "installed_plugins.json");
-  if (existsSync(installed)) {
-    try {
-      const data = JSON.parse(readFileSync(installed, "utf8")) as {
-        plugins?: Record<string, unknown>;
-      };
-      for (const id of Object.keys(data.plugins ?? {}).sort()) {
-        if (CONFLICT_PLUGINS.includes(id) || id.startsWith(CONFLICT_PLUGIN_PREFIX)) {
-          found.push({ kind: "plugin", name: id, owner: "claude", id, broken: false });
-        }
-      }
-    } catch {}
+  for (const id of installedPluginIds(home)) {
+    if (CONFLICT_PLUGINS.includes(id) || id.startsWith(CONFLICT_PLUGIN_PREFIX)) {
+      found.push({ kind: "plugin", name: id, owner: "claude", id, broken: false });
+    }
   }
   return found;
 }
 
 export function installedFor(home: string, conflict: Conflict): boolean {
-  const agents = Object.keys(readRecord(home).agents) as AgentName[];
-  if (conflict.owner === "shared") return agents.some((agent) => agent !== "claude");
-  return agents.includes(conflict.owner);
+  const installs = Object.values(readRecord(home).installs);
+  if (conflict.owner === "shared") return installs.some((entry) => entry.agent !== "claude");
+  return installs.some((entry) => entry.agent === conflict.owner);
 }
 
 export type Runner = (command: string, args: string[]) => void;
@@ -137,9 +139,27 @@ function move(from: string, to: string): void {
   }
 }
 
+const STAMP = /^[\w][\w.-]*$/;
+
+function assertStamp(stamp: string): void {
+  if (!STAMP.test(stamp) || stamp.includes("..")) {
+    throw new Error(
+      `${stamp} is not a valid quarantine name, use letters, digits, dots and dashes`,
+    );
+  }
+}
+
 export function quarantineDir(home: string, stamp: string): string {
+  assertStamp(stamp);
   return join(home, ".northstar", "quarantine", stamp);
 }
+
+const entrySchema = z.object({
+  from: z.string(),
+  to: z.string(),
+  kind: z.enum(["skill", "agent", "plugin"]),
+  name: z.string(),
+});
 
 export function remove(
   home: string,
@@ -161,26 +181,40 @@ export function remove(
         const to = join(base, conflict.owner, conflict.kind, conflict.name);
         move(conflict.path, to);
         moved.push({ from: conflict.path, to, kind: conflict.kind, name: conflict.name });
+        writeFileSync(join(base, "manifest.json"), `${JSON.stringify(moved, null, 2)}\n`);
       }
     } catch (err) {
       failed.push(`${conflict.name}: ${(err as Error).message}`);
     }
   }
-  if (moved.length) {
-    mkdirSync(base, { recursive: true });
-    writeFileSync(join(base, "manifest.json"), `${JSON.stringify(moved, null, 2)}\n`);
-  }
   return { moved, uninstalled, failed };
 }
 
 export function restore(home: string, stamp: string): { restored: string[]; failed: string[] } {
-  const manifest = join(quarantineDir(home, stamp), "manifest.json");
+  const dir = quarantineDir(home, stamp);
+  const manifest = join(dir, "manifest.json");
   if (!existsSync(manifest)) throw new Error(`no quarantine named ${stamp}`);
-  const entries = JSON.parse(readFileSync(manifest, "utf8")) as QuarantineEntry[];
+  let raw: unknown;
+  try {
+    raw = JSON.parse(readFileSync(manifest, "utf8"));
+  } catch (err) {
+    throw new Error(
+      `${manifest} is not valid JSON (${(err as Error).message}), restore by hand from ${dir}`,
+    );
+  }
+  const parsed = z.array(entrySchema).safeParse(raw);
+  if (!parsed.success) {
+    throw new Error(
+      `${manifest} is corrupt (${parsed.error.issues[0]?.message}), restore by hand from ${dir}`,
+    );
+  }
   const restored: string[] = [];
   const failed: string[] = [];
-  for (const entry of entries) {
+  for (const entry of parsed.data) {
     try {
+      if (!entry.to.startsWith(`${dir}${sep}`)) throw new Error("entry is outside the quarantine");
+      if (!entry.from.startsWith(`${home}${sep}`))
+        throw new Error("destination is outside the home directory");
       if (exists(entry.from)) throw new Error("destination already exists");
       move(entry.to, entry.from);
       restored.push(entry.from);
@@ -190,5 +224,3 @@ export function restore(home: string, stamp: string): { restored: string[]; fail
   }
   return { restored, failed };
 }
-
-export const KNOWN_AGENTS: readonly string[] = AGENTS;

@@ -1,3 +1,4 @@
+import type { HandoffOutcome } from "@northstar/protocol";
 import type { DeferralNotice } from "./types.js";
 
 const MAX_NOTICES = 20;
@@ -10,6 +11,7 @@ export class Broker {
   private lastPolled: string | null = null;
   private lastPolledTime = 0;
   private notices: DeferralNotice[] = [];
+  private handoff: HandoffOutcome | null = null;
 
   get currentVersion(): number {
     return this.version;
@@ -25,6 +27,14 @@ export class Broker {
 
   get pendingNotices(): DeferralNotice[] {
     return [...this.notices];
+  }
+
+  get lastHandoff(): HandoffOutcome | null {
+    return this.handoff;
+  }
+
+  recordHandoff(outcome: HandoffOutcome): void {
+    this.handoff = outcome;
   }
 
   markPolled(): void {

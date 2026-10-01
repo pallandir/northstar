@@ -9,7 +9,7 @@ import { loadCanon } from "@northstar/canon";
 import { designContext, groupFor, relevantRules } from "../src/design-context.js";
 import { createMcpServer } from "../src/server.js";
 import { CommentStore } from "../src/store.js";
-import type { Comment, IncomingComment } from "../src/types.js";
+import type { Comment, Draft } from "../src/types.js";
 
 const canon = loadCanon();
 let root: string;
@@ -22,8 +22,12 @@ function text(result: CallResult): string {
   return (result.content as Array<{ text?: string }>).map((c) => c.text ?? "").join("");
 }
 
-function sample(overrides: Partial<IncomingComment> = {}): IncomingComment {
+let cidCounter = 0;
+
+function sample(overrides: Partial<Draft> = {}): Draft {
+  cidCounter += 1;
   return {
+    cid: `cid-${cidCounter}`,
     comment: "Make the heading color calmer",
     operation: { type: "style", property: "color", from: "#000", to: "#333" },
     operator: "/html/body/main[1]",

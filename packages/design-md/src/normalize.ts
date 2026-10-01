@@ -1,4 +1,6 @@
 import { stringify } from "yaml";
+import { kebab } from "./text.js";
+import { STACKS } from "./validate.js";
 
 export interface NormalizeDefaults {
   rounded?: string;
@@ -34,21 +36,21 @@ export interface NormalizeResult {
 }
 
 const COLOR =
-  /#[0-9a-fA-F]{8}\b|#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b|oklch\([^)]*\)|rgba?\([^)]*\)|hsla?\([^)]*\)/g;
+  /(?<![\w&#])(?:#[0-9a-fA-F]{8}\b|#[0-9a-fA-F]{6}\b|#(?=[0-9a-fA-F]*[a-fA-F])[0-9a-fA-F]{3}\b)|\b(?:oklch|rgba?|hsla?)\([^)]*\)/g;
 
 const ROLE_WORDS: Array<[string, RegExp]> = [
-  ["primary", /\bprimary|brand\b/],
+  ["primary", /\b(?:primary|brand)\b/],
   ["secondary", /\bsecondary\b/],
-  ["accent", /\baccent|tertiary|highlight\b/],
-  ["background", /\bbackground|canvas|\bbg\b/],
-  ["surface", /\bsurface|card|panel\b/],
-  ["text", /\btext|foreground|ink|body copy\b/],
-  ["muted", /\bmuted|neutral|gr[ae]y\b/],
-  ["border", /\bborder|divider|outline|line\b/],
-  ["danger", /\bdanger|error|destructive|red\b/],
-  ["success", /\bsuccess|positive|green\b/],
-  ["warning", /\bwarning|caution|amber|yellow\b/],
-  ["info", /\binfo|blue\b/],
+  ["accent", /\b(?:accent|tertiary|highlight)\b/],
+  ["background", /\b(?:background|canvas|bg)\b/],
+  ["surface", /\b(?:surface|card|panel)\b/],
+  ["text", /\b(?:text|foreground|ink|body copy)\b/],
+  ["muted", /\b(?:muted|neutral|gr[ae]y)\b/],
+  ["border", /\b(?:border|divider|outline|line)\b/],
+  ["danger", /\b(?:danger|error|destructive|red)\b/],
+  ["success", /\b(?:success|positive|green)\b/],
+  ["warning", /\b(?:warning|caution|amber|yellow)\b/],
+  ["info", /\b(?:info|blue)\b/],
 ];
 
 const MODE_WORDS: Array<[string, RegExp]> = [
@@ -69,11 +71,26 @@ const LIBRARIES: Array<[string, string, RegExp, string]> = [
   ["fonts", "fonts", /google fonts/i, "google fonts"],
 ];
 
-const kebab = (value: string) =>
-  value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+function proseLines(lines: string[]): string[] {
+  const prose: string[] = [];
+  let index = 0;
+  if (lines[0]?.replace(/^\uFEFF/, "").trim() === "---") {
+    const close = lines.findIndex((line, i) => i > 0 && line.trim() === "---");
+    if (close > 0) index = close + 1;
+  }
+  let fence: string | null = null;
+  for (; index < lines.length; index++) {
+    const line = lines[index] ?? "";
+    const marker = /^\s*(```+|~~~+)/.exec(line)?.[1];
+    if (marker) {
+      if (!fence) fence = marker[0] ?? "`";
+      else if (marker.startsWith(fence)) fence = null;
+      continue;
+    }
+    if (!fence && !/^\s*(---+|<!--.*-->)\s*$/.test(line)) prose.push(line);
+  }
+  return prose;
+}
 
 function cleanLabel(text: string): string {
   return text
@@ -135,7 +152,7 @@ function extractFonts(lines: string[], known: Set<string> | undefined): Record<s
     if (!/font|typeface|typograph|heading|display|body|sans|serif|mono|headline/i.test(line))
       continue;
     const explicit =
-      /(heading|display|headline|title|body|text)\s*(?:font|typeface)?\s*[:\-–—]\s*\**([A-Z][A-Za-z0-9]*(?: [A-Z0-9][A-Za-z0-9]*){0,2})/.exec(
+      /([Hh]eading|[Dd]isplay|[Hh]eadline|[Tt]itle|[Bb]ody|[Tt]ext)\s*(?:[Ff]ont|[Tt]ypeface)?\s*[:\-–—]\s*[*"'`]*([A-Z][A-Za-z0-9]*(?: [A-Z0-9][A-Za-z0-9]*){0,2})/.exec(
         line,
       );
     if (explicit?.[1] && explicit[2]) assign(explicit[1], explicit[2]);
@@ -173,7 +190,8 @@ export function normalizeDirection(
   options: NormalizeOptions = {},
 ): NormalizeResult {
   const lines = source.split("\n");
-  const title = lines.map((l) => /^#\s+(.+)$/.exec(l)?.[1]).find(Boolean);
+  const prose = proseLines(lines);
+  const title = prose.map((l) => /^#\s+(.+)$/.exec(l)?.[1]).find(Boolean);
   const name =
     title
       ?.replace(
@@ -181,7 +199,7 @@ export function normalizeDirection(
         "",
       )
       .trim() || "Untitled";
-  const description = lines
+  const description = prose
     .find((l) => l.trim() && !l.startsWith("#") && !l.startsWith("|") && !/^[-*]\s/.test(l.trim()))
     ?.trim()
     .slice(0, 240);
@@ -265,7 +283,7 @@ export function normalizeDirection(
     spacing: { unit: unitValue ?? "<px>" },
     northstar: {
       mode: mode ?? "<operate | read | persuade | experience>",
-      stack: options.stack ?? "<react | next | vue | svelte | angular | solid | html>",
+      stack: options.stack ?? `<${STACKS.join(" | ")}>`,
       libraries: {
         components: libs.components ?? "<for example shadcn/ui>",
         icons: libs.icons ?? "<for example lucide>",

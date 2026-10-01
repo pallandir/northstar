@@ -3,13 +3,9 @@ import { formatText, sortFindings } from "@northstar/detector";
 import { z } from "zod";
 import { runScan } from "../detect.js";
 import type { PackRegistry } from "./registry.js";
+import { error, modeSchema, text } from "./util.js";
 
-const modeSchema = z.enum(["operate", "read", "persuade", "experience"]);
 const SHOWN = 30;
-
-function text(value: string) {
-  return { content: [{ type: "text" as const, text: value }] };
-}
 
 export function registerDetect(registry: PackRegistry, canon: Canon, root: string): void {
   registry.register(
@@ -32,7 +28,7 @@ export function registerDetect(registry: PackRegistry, canon: Canon, root: strin
         if (!findings.length) return text(`${header} Clean.`);
         return text(`${header}\n${formatText(sortFindings(findings), SHOWN)}`);
       } catch (err) {
-        return { ...text((err as Error).message), isError: true };
+        return error((err as Error).message);
       }
     },
   );
@@ -47,7 +43,7 @@ export function registerDetect(registry: PackRegistry, canon: Canon, root: strin
     },
     async ({ id }) => {
       const rule = canon.rules.find((r) => r.id === id.toUpperCase());
-      if (!rule) return { ...text(`Unknown rule ${id}.`), isError: true };
+      if (!rule) return error(`Unknown rule ${id}.`);
       const related = canon.arbitration.conflicts
         .filter((c) => c.rules.includes(rule.id))
         .map((c) => `Conflict resolved: ${c.topic}. ${c.resolution}`);

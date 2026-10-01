@@ -1,6 +1,6 @@
 {
   "name": "@northstar/detector",
-  "version": "2.1.0",
+  "version": "2.3.0",
   "private": true,
   "type": "module",
   "description": "Static scanner for generic AI interface patterns, driven by the Northstar canon.",
@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@northstar/canon": "*",
+    "@northstar/design-md": "*",
     "yaml": "^2.8.0"
   },
   "devDependencies": {

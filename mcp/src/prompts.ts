@@ -59,7 +59,7 @@ export const VERBS: Verb[] = [
   },
 ];
 
-export function verbText(verb: Verb, request?: string): string {
+function verbText(verb: Verb, request?: string): string {
   const lines = [
     `Run the Northstar ${verb.title} stage. ${verb.task}`,
     "DESIGN.md comes first: do not create or edit UI files until it exists and is valid.",

@@ -1,14 +1,16 @@
 import { z } from "zod";
+import type { IngestStatus } from "../ingest-status.js";
 import { inspectProject } from "../project.js";
 import { PACK_NAMES, PACK_SUMMARIES, type PackName, type PackRegistry } from "./registry.js";
+import { text } from "./util.js";
 
 const packSchema = z.enum(PACK_NAMES);
 
-function text(value: string) {
-  return { content: [{ type: "text" as const, text: value }] };
-}
-
-export function registerCore(registry: PackRegistry, root: string): void {
+export function registerCore(
+  registry: PackRegistry,
+  root: string,
+  ingest: () => IngestStatus,
+): void {
   registry.register(
     "core",
     "northstar_context",
@@ -24,7 +26,12 @@ export function registerCore(registry: PackRegistry, root: string): void {
         summary: PACK_SUMMARIES[name],
         tools: registry.toolsOf(name),
       }));
-      return text(JSON.stringify({ ...state, packs }, null, 2));
+      const status = ingest();
+      const channel =
+        status.state === "on"
+          ? { ingest: "on", port: status.port }
+          : { ingest: "off", error: status.error };
+      return text(JSON.stringify({ ...state, channel, packs }, null, 2));
     },
   );
 

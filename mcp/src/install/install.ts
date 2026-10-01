@@ -1,9 +1,17 @@
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { createHash } from "node:crypto";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { dirname, join, relative } from "node:path";
 import {
   type AgentName,
   type AgentPlan,
-  ConfigError,
   type Op,
   type Packs,
   type PlanContext,
@@ -13,7 +21,13 @@ import {
 import { canonRoot, skillRoot } from "../assets.js";
 import { VERSION } from "../config.js";
 import type { Runner } from "./conflicts.js";
-import { type InstalledFile, readRecord, writeRecord } from "./record.js";
+import {
+  type AgentRecord,
+  type InstalledFile,
+  readRecord,
+  recordKey,
+  writeRecord,
+} from "./record.js";
 
 export interface InstallOptions {
   agents: AgentName[];
@@ -25,8 +39,8 @@ export interface InstallOptions {
   run: Runner;
   stamp?: string;
   bin?: string;
-  extensionIds?: string[];
   gate?: boolean;
+  plugin?: boolean;
 }
 
 export type Status = "created" | "updated" | "unchanged" | "planned" | "failed";
@@ -46,10 +60,7 @@ export interface InstallOutcome {
 
 export function contextFor(
   agent: AgentName,
-  options: Pick<
-    InstallOptions,
-    "scope" | "packs" | "home" | "project" | "bin" | "extensionIds" | "gate"
-  >,
+  options: Pick<InstallOptions, "scope" | "packs" | "home" | "project" | "bin" | "gate" | "plugin">,
 ): PlanContext {
   const root = canonRoot();
   return {
@@ -62,18 +73,26 @@ export function contextFor(
     snippet: readFileSync(join(root, "snippets", "agents-md.md"), "utf8"),
     critic: readFileSync(join(root, "agents", "critic.md"), "utf8"),
     launch: options.bin ? { command: "node", args: [options.bin] } : undefined,
-    extensionIds: options.extensionIds,
     gate: options.gate,
+    plugin: agent === "claude" && options.scope === "user" && options.plugin === true,
   };
 }
 
-export function plansFor(
-  options: Pick<
-    InstallOptions,
-    "agents" | "scope" | "packs" | "home" | "project" | "bin" | "extensionIds"
-  >,
-): AgentPlan[] {
-  return options.agents.map((agent) => planAgent(contextFor(agent, options)));
+export function contextForRecord(
+  entry: AgentRecord,
+  home: string,
+  project: string,
+  plugin = false,
+): PlanContext {
+  return contextFor(entry.agent, {
+    scope: entry.scope,
+    packs: entry.packs,
+    home,
+    project: entry.project ?? project,
+    bin: entry.bin,
+    gate: entry.gate,
+    plugin,
+  });
 }
 
 function target(op: Op): string {
@@ -86,63 +105,91 @@ function backupOf(path: string, stamp: string): string {
   return backup;
 }
 
-function sameTree(a: string, b: string): boolean {
+function backupDirOf(home: string, path: string, stamp: string): string {
+  const backup = join(home, ".northstar", "backups", stamp, path.replace(/[^\w.-]+/g, "_"));
+  mkdirSync(dirname(backup), { recursive: true });
+  cpSync(path, backup, { recursive: true, verbatimSymlinks: true });
+  return backup;
+}
+
+function filesUnder(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true })
+    .flatMap((entry) => {
+      const path = join(dir, entry.name);
+      return entry.isDirectory() ? filesUnder(path) : [path];
+    })
+    .sort();
+}
+
+export function treeHash(dir: string): string | undefined {
+  if (!existsSync(dir)) return undefined;
+  const hash = createHash("sha256");
+  for (const file of filesUnder(dir)) {
+    hash.update(relative(dir, file).split("\\").join("/"));
+    hash.update("\0");
+    hash.update(readFileSync(file));
+    hash.update("\0");
+  }
+  return hash.digest("hex");
+}
+
+function resetRegistration(run: Runner, reset: string[]): void {
   try {
-    return readFileSync(join(a, "SKILL.md"), "utf8") === readFileSync(join(b, "SKILL.md"), "utf8");
-  } catch {
-    return false;
+    run(reset[0] as string, reset.slice(1));
+  } catch (err) {
+    const detail = `${(err as Error).message} ${String((err as { stderr?: unknown }).stderr ?? "")}`;
+    if (!/no mcp server|not found/i.test(detail)) throw err;
   }
 }
 
 export function install(options: InstallOptions): InstallOutcome {
   const stamp = options.stamp ?? new Date().toISOString().replace(/[:.]/g, "-");
-  const plans = plansFor(options);
+  const plans: AgentPlan[] = options.agents.map((agent) => planAgent(contextFor(agent, options)));
   const results: OpResult[] = [];
   const notes = plans.flatMap((plan) => plan.notes);
   const record = readRecord(options.home);
   const doneSkills = new Set<string>();
+  let changed = false;
 
   for (const plan of plans) {
+    const key = recordKey(plan.agent, options.scope, options.project);
+    const prior = record.installs[key];
+    const known = (path: string) => prior?.files.find((file) => file.path === path);
     const files: InstalledFile[] = [];
+    const first = results.length;
+
     for (const op of plan.ops) {
       const base = { agent: plan.agent, label: op.label, target: target(op) };
-      const fail = (detail: string) => results.push({ ...base, status: "failed", detail });
       try {
-        if (op.kind === "merge") {
+        if (op.kind === "merge" || op.kind === "file") {
           const existed = existsSync(op.path);
           const existing = existed ? readFileSync(op.path, "utf8") : undefined;
-          const next = op.apply(existing);
-          if (next === existing) {
+          const next = op.kind === "merge" ? op.apply(existing) : op.content;
+          const removing = op.kind === "merge" && next.trim() === "";
+          if (next === existing || (removing && !existed)) {
             results.push({ ...base, status: "unchanged" });
-            files.push({ path: op.path, created: false });
+            if (existed) files.push(known(op.path) ?? { path: op.path, created: false });
             continue;
           }
           if (options.dryRun) {
             results.push({ ...base, status: "planned" });
             continue;
           }
-          const backup = existed ? backupOf(op.path, stamp) : undefined;
-          mkdirSync(dirname(op.path), { recursive: true });
-          writeFileSync(op.path, next);
-          results.push({ ...base, status: existed ? "updated" : "created", detail: backup });
-          files.push({ path: op.path, created: !existed, backup });
-        } else if (op.kind === "file") {
-          const existed = existsSync(op.path);
-          const existing = existed ? readFileSync(op.path, "utf8") : undefined;
-          if (existing === op.content) {
-            results.push({ ...base, status: "unchanged" });
-            files.push({ path: op.path, created: false });
-            continue;
+          const was = known(op.path);
+          const backup = was ? was.backup : existed ? backupOf(op.path, stamp) : undefined;
+          if (removing) {
+            rmSync(op.path);
+          } else {
+            mkdirSync(dirname(op.path), { recursive: true });
+            writeFileSync(op.path, next);
           }
-          if (options.dryRun) {
-            results.push({ ...base, status: "planned" });
-            continue;
-          }
-          const backup = existed ? backupOf(op.path, stamp) : undefined;
-          mkdirSync(dirname(op.path), { recursive: true });
-          writeFileSync(op.path, op.content);
-          results.push({ ...base, status: existed ? "updated" : "created", detail: backup });
-          files.push({ path: op.path, created: !existed, backup });
+          results.push({
+            ...base,
+            status: existed ? "updated" : "created",
+            detail: removing ? "removed" : backup,
+          });
+          if (!removing)
+            files.push({ path: op.path, created: was ? was.created : !existed, backup });
         } else if (op.kind === "skill") {
           if (doneSkills.has(op.path)) {
             results.push({ ...base, status: "unchanged", detail: "shared with another agent" });
@@ -150,114 +197,110 @@ export function install(options: InstallOptions): InstallOutcome {
           }
           doneSkills.add(op.path);
           const source = skillRoot();
-          if (sameTree(source, op.path)) {
+          const existed = existsSync(op.path);
+          const was = known(op.path);
+          if (treeHash(source) === treeHash(op.path)) {
             results.push({ ...base, status: "unchanged" });
-            files.push({ path: op.path, created: false });
+            files.push(was ?? { path: op.path, created: false });
             continue;
           }
           if (options.dryRun) {
             results.push({ ...base, status: "planned" });
             continue;
           }
-          const existed = existsSync(op.path);
+          const backup =
+            was?.backup ??
+            (existed && !was?.created ? backupDirOf(options.home, op.path, stamp) : undefined);
           rmSync(op.path, { recursive: true, force: true });
           mkdirSync(dirname(op.path), { recursive: true });
           cpSync(source, op.path, { recursive: true });
-          results.push({ ...base, status: existed ? "updated" : "created" });
-          files.push({ path: op.path, created: !existed });
+          results.push({ ...base, status: existed ? "updated" : "created", detail: backup });
+          files.push({ path: op.path, created: was ? was.created : !existed, backup });
         } else {
           if (options.dryRun) {
             results.push({ ...base, status: "planned" });
             continue;
           }
-          if (op.reset) {
-            try {
-              options.run(op.reset[0], op.reset.slice(1));
-            } catch {}
-          }
+          if (op.reset) resetRegistration(options.run, op.reset);
           options.run(op.run[0], op.run.slice(1));
           results.push({ ...base, status: "created" });
         }
       } catch (err) {
-        fail(err instanceof ConfigError ? err.message : (err as Error).message);
+        results.push({ ...base, status: "failed", detail: (err as Error).message });
       }
     }
-    if (!options.dryRun) {
-      record.agents[plan.agent] = {
-        installedAt: new Date().toISOString(),
+
+    const failed = results.slice(first).some((r) => r.status === "failed");
+    if (!options.dryRun && !failed) {
+      record.installs[key] = {
+        agent: plan.agent,
+        installedAt: prior?.installedAt ?? new Date().toISOString(),
         version: VERSION,
         scope: options.scope,
+        project: options.scope === "project" ? options.project : undefined,
         packs: options.packs,
         bin: options.bin,
-        extensionIds: options.extensionIds,
         gate: options.gate,
         files,
       };
+      changed = true;
     }
   }
-  if (!options.dryRun && results.some((r) => r.status !== "failed"))
-    writeRecord(options.home, record);
+  if (changed) writeRecord(options.home, record);
   return { results, notes };
 }
 
 export interface UninstallOptions {
   agents: AgentName[];
+  scope: Scope;
   home: string;
   project: string;
   dryRun: boolean;
   run: Runner;
 }
 
+function restoreOrRemove(path: string, file: InstalledFile | undefined): string {
+  const backup = file?.backup;
+  if (file && !file.created && backup && existsSync(backup)) {
+    rmSync(path, { recursive: true, force: true });
+    cpSync(backup, path, { recursive: true, verbatimSymlinks: true });
+    return "restored from backup";
+  }
+  rmSync(path, { recursive: true, force: true });
+  return "removed";
+}
+
 export function uninstall(options: UninstallOptions): InstallOutcome {
   const record = readRecord(options.home);
   const results: OpResult[] = [];
-  const remaining = (Object.keys(record.agents) as AgentName[]).filter(
-    (a) => !options.agents.includes(a),
-  );
+  const removing = new Set(options.agents.map((a) => recordKey(a, options.scope, options.project)));
   const stillNeeded = new Set<string>();
-  for (const agent of remaining) {
-    const entry = record.agents[agent];
-    if (!entry) continue;
-    for (const op of planAgent(
-      contextFor(agent, {
-        scope: entry.scope,
-        packs: entry.packs ?? "all",
-        home: options.home,
-        project: options.project,
-        bin: entry.bin,
-        extensionIds: entry.extensionIds,
-        gate: entry.gate,
-      }),
-    ).ops) {
+  for (const [key, entry] of Object.entries(record.installs)) {
+    if (removing.has(key)) continue;
+    for (const op of planAgent(contextForRecord(entry, options.home, options.project)).ops) {
       if (op.kind === "skill") stillNeeded.add(op.path);
     }
   }
 
+  let changed = false;
   for (const agent of options.agents) {
-    const entry = record.agents[agent];
+    const key = recordKey(agent, options.scope, options.project);
+    const entry = record.installs[key];
     if (!entry) {
       results.push({
         agent,
         label: "install record",
         target: agent,
         status: "unchanged",
-        detail: "not installed",
+        detail: `not installed at ${options.scope} scope`,
       });
       continue;
     }
-    const plan = planAgent(
-      contextFor(agent, {
-        scope: entry.scope,
-        packs: entry.packs ?? "all",
-        home: options.home,
-        project: options.project,
-        bin: entry.bin,
-        extensionIds: entry.extensionIds,
-        gate: entry.gate,
-      }),
-    );
+    const plan = planAgent(contextForRecord(entry, options.home, options.project));
+    const first = results.length;
     for (const op of [...plan.ops].reverse()) {
       const base = { agent, label: op.label, target: target(op) };
+      const file = op.kind === "command" ? undefined : entry.files.find((f) => f.path === op.path);
       try {
         if (op.kind === "merge") {
           if (!existsSync(op.path)) continue;
@@ -267,32 +310,24 @@ export function uninstall(options: UninstallOptions): InstallOutcome {
             results.push({ ...base, status: "unchanged" });
             continue;
           }
+          let detail: string | undefined;
           if (!options.dryRun) {
-            const created = entry.files.find((f) => f.path === op.path)?.created ?? false;
-            if (!next.trim() && created) rmSync(op.path);
+            if (next.trim() === "") detail = restoreOrRemove(op.path, file);
             else writeFileSync(op.path, next);
           }
-          results.push({ ...base, status: options.dryRun ? "planned" : "updated" });
+          results.push({ ...base, status: options.dryRun ? "planned" : "updated", detail });
         } else if (op.kind === "file") {
           if (!existsSync(op.path)) continue;
-          if (!options.dryRun) rmSync(op.path);
-          results.push({
-            ...base,
-            status: options.dryRun ? "planned" : "updated",
-            detail: "removed",
-          });
+          const detail = options.dryRun ? undefined : restoreOrRemove(op.path, file);
+          results.push({ ...base, status: options.dryRun ? "planned" : "updated", detail });
         } else if (op.kind === "skill") {
           if (!existsSync(op.path)) continue;
           if (stillNeeded.has(op.path)) {
             results.push({ ...base, status: "unchanged", detail: "still used by another agent" });
             continue;
           }
-          if (!options.dryRun) rmSync(op.path, { recursive: true, force: true });
-          results.push({
-            ...base,
-            status: options.dryRun ? "planned" : "updated",
-            detail: "removed",
-          });
+          const detail = options.dryRun ? undefined : restoreOrRemove(op.path, file);
+          results.push({ ...base, status: options.dryRun ? "planned" : "updated", detail });
         } else if (!options.dryRun) {
           options.run(op.undo[0], op.undo.slice(1));
           results.push({ ...base, status: "updated", detail: "removed" });
@@ -303,8 +338,12 @@ export function uninstall(options: UninstallOptions): InstallOutcome {
         results.push({ ...base, status: "failed", detail: (err as Error).message });
       }
     }
-    if (!options.dryRun) delete record.agents[agent];
+    const failed = results.slice(first).some((r) => r.status === "failed");
+    if (!options.dryRun && !failed) {
+      delete record.installs[key];
+      changed = true;
+    }
   }
-  if (!options.dryRun) writeRecord(options.home, record);
+  if (changed) writeRecord(options.home, record);
   return { results, notes: [] };
 }

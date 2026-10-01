@@ -15,34 +15,47 @@ import {
 import { opencodePlugin } from "./opencode-plugin.js";
 import { type AgentPlan, type Op, PACKAGE, type PlanContext, SERVER } from "./types.js";
 
-export function launchOf(ctx: Pick<PlanContext, "launch">): { command: string; args: string[] } {
-  return ctx.launch ?? { command: "npx", args: ["-y", PACKAGE] };
+export function launchOf(ctx: Pick<PlanContext, "launch" | "version">): {
+  command: string;
+  args: string[];
+} {
+  return ctx.launch ?? { command: "npx", args: ["-y", `${PACKAGE}@${ctx.version}`] };
 }
 
-export function serverEnv(
-  ctx: Pick<PlanContext, "packs" | "extensionIds">,
-): Record<string, string> {
-  const env: Record<string, string> = { NORTHSTAR_PACKS: ctx.packs };
-  if (ctx.extensionIds?.length) {
-    env.NORTHSTAR_EXTRA_ORIGINS = ctx.extensionIds
-      .map((id) => `chrome-extension://${id}`)
-      .join(",");
-  }
-  return env;
+export function serverEnv(ctx: Pick<PlanContext, "packs">): Record<string, string> {
+  return { NORTHSTAR_PACKS: ctx.packs };
 }
+
+const LAUNCHER = [
+  "const cp=require('child_process');",
+  "const a=process.argv.slice(1);",
+  "const npx=a[0]==='npx';",
+  "if(npx===false&&require('fs').existsSync(a[0])===false){console.error('Northstar is not installed at '+a[0]+'. Run northstar install again.');process.exit(1)}",
+  "const r=npx?cp.spawnSync('npx',a.slice(1),{stdio:'inherit',shell:process.platform==='win32'}):cp.spawnSync(process.execPath,a,{stdio:'inherit'});",
+  "if(r.error||r.status===null){console.error('Northstar hook failed: '+(r.error?r.error.message:'killed by signal')+'. Run northstar doctor.');process.exit(1)}",
+  "process.exit(r.status)",
+].join("");
+
+export function hookArgv(
+  ctx: Pick<PlanContext, "launch" | "version">,
+  agent: string,
+  event: "pre-edit" | "post-edit" = "post-edit",
+): string[] {
+  const { command, args } = launchOf(ctx);
+  const target = command === "node" ? args : [command, ...args];
+  return ["node", "-e", LAUNCHER, ...target, "hook", event, "--agent", agent];
+}
+
+const SAFE_ARG = /^[\w@./:=+-]+$/;
 
 export function hookCommand(
-  version: string,
+  ctx: Pick<PlanContext, "launch" | "version">,
   agent: string,
-  launch?: PlanContext["launch"],
   event: "pre-edit" | "post-edit" = "post-edit",
 ): string {
-  const base = `hook ${event} --agent ${agent}`;
-  if (launch) {
-    const parts = [launch.command, ...launch.args].map((part) => `"${part}"`).join(" ");
-    return `sh -c '${parts} ${base} || true'`;
-  }
-  return `sh -c '(command -v northstar >/dev/null 2>&1 && northstar ${base}) || npx -y ${PACKAGE}@${version} ${base} || true'`;
+  return hookArgv(ctx, agent, event)
+    .map((part) => (SAFE_ARG.test(part) ? part : `"${part}"`))
+    .join(" ");
 }
 
 function standardEntry(ctx: PlanContext) {
@@ -63,7 +76,7 @@ function jsonMerge(
     apply(existing) {
       const root = parseJsonObject(existing, path);
       edit(root);
-      return writeJson(root);
+      return Object.keys(root).length ? writeJson(root) : "";
     },
     remove(existing) {
       const root = parseJsonObject(existing, path);
@@ -107,17 +120,15 @@ const skillOp = (path: string): Op => ({
 function claude(ctx: PlanContext): AgentPlan {
   const root = ctx.scope === "user" ? join(ctx.home, ".claude") : join(ctx.project, ".claude");
   const entry: HookEntry = {
-    matcher: "Edit|Write|MultiEdit",
-    hooks: [
-      { type: "command", command: hookCommand(ctx.version, "claude", ctx.launch), timeout: 20 },
-    ],
+    matcher: "Edit|Write|MultiEdit|NotebookEdit",
+    hooks: [{ type: "command", command: hookCommand(ctx, "claude"), timeout: 20 }],
   };
   const gate: HookEntry = {
-    matcher: "Edit|Write|MultiEdit",
+    matcher: "Edit|Write|MultiEdit|NotebookEdit",
     hooks: [
       {
         type: "command",
-        command: hookCommand(ctx.version, "claude", ctx.launch, "pre-edit"),
+        command: hookCommand(ctx, "claude", "pre-edit"),
         timeout: 10,
       },
     ],
@@ -148,18 +159,39 @@ function claude(ctx: PlanContext): AgentPlan {
   } else {
     ops.push(mcpServersMerge(join(ctx.project, ".mcp.json"), ctx));
   }
+  const settings = join(root, "settings.json");
+  if (ctx.plugin) {
+    ops.push(
+      jsonMerge(
+        settings,
+        "remove hooks the Northstar plugin already provides",
+        (config) => {
+          removeHook(config, "PreToolUse");
+          removeHook(config, "PostToolUse");
+        },
+        () => undefined,
+      ),
+    );
+    return {
+      agent: "claude",
+      ops,
+      notes: [
+        "The Northstar Claude plugin is installed, so its hooks, skill and critic agent are used and not registered twice.",
+      ],
+    };
+  }
   ops.push(
     jsonMerge(
-      join(root, "settings.json"),
+      settings,
       "design gate and post edit scan hooks",
-      (settings) => {
-        if (ctx.gate === false) removeHook(settings, "PreToolUse");
-        else upsertHook(settings, "PreToolUse", gate);
-        upsertHook(settings, "PostToolUse", entry);
+      (config) => {
+        if (ctx.gate === false) removeHook(config, "PreToolUse");
+        else upsertHook(config, "PreToolUse", gate);
+        upsertHook(config, "PostToolUse", entry);
       },
-      (settings) => {
-        removeHook(settings, "PreToolUse");
-        removeHook(settings, "PostToolUse");
+      (config) => {
+        removeHook(config, "PreToolUse");
+        removeHook(config, "PostToolUse");
       },
     ),
     {
@@ -192,7 +224,7 @@ function codex(ctx: PlanContext): AgentPlan {
     hooks: [
       {
         type: "command",
-        command: hookCommand(ctx.version, "codex", ctx.launch),
+        command: hookCommand(ctx, "codex"),
         timeout: 30,
         statusMessage: "Northstar scan",
       },
@@ -264,7 +296,7 @@ function gemini(ctx: PlanContext): AgentPlan {
       {
         type: "command",
         name: "northstar-scan",
-        command: hookCommand(ctx.version, "gemini", ctx.launch),
+        command: hookCommand(ctx, "gemini"),
         timeout: 20000,
       },
     ],
@@ -325,7 +357,7 @@ function opencode(ctx: PlanContext): AgentPlan {
         kind: "file",
         path: join(configRoot, "plugins", "northstar.ts"),
         label: "post edit scan plugin",
-        content: opencodePlugin(hookCommand(ctx.version, "opencode", ctx.launch)),
+        content: opencodePlugin(hookArgv(ctx, "opencode")),
       },
       skillOp(join(configRoot, "skills")),
       blockMerge(user ? join(root, "AGENTS.md") : join(ctx.project, "AGENTS.md"), ctx),

@@ -66,14 +66,38 @@ test("the plugin manifest carries the root package version", () => {
   assert.equal(manifest.name, "northstar");
 });
 
-test("the plugin hook scans edits and can never break them", () => {
+test("the plugin hook scans edits through the pinned launcher and never chains a fallback", () => {
   const hooks = JSON.parse(generate(repoRoot).get("plugin/hooks/hooks.json") ?? "{}");
   const entry = hooks.hooks.PostToolUse[0];
-  assert.equal(entry.matcher, "Edit|Write|MultiEdit");
+  assert.equal(entry.matcher, "Edit|Write|MultiEdit|NotebookEdit");
   const command: string = entry.hooks[0].command;
-  assert.match(command, /northstar hook post-edit --agent claude/);
-  assert.match(command, /npx -y @pallandir\/northstar@\d+\.\d+\.\d+/);
-  assert.match(command, /\|\| true'$/);
+  assert.match(command, /^node -e "/);
+  assert.match(
+    command,
+    /npx -y @pallandir\/northstar@\d+\.\d+\.\d+ hook post-edit --agent claude$/,
+  );
+  assert.doesNotMatch(command, /sh -c|\|\| true/);
+});
+
+test("the plugin ships an mcp config pinned to the same version as the hooks", () => {
+  const outputs = generate(repoRoot);
+  const mcp = JSON.parse(outputs.get("plugin/.mcp.json") ?? "{}");
+  const version = JSON.parse(outputs.get("plugin/.claude-plugin/plugin.json") ?? "{}").version;
+  assert.equal(mcp.mcpServers.northstar.command, "npx");
+  assert.deepEqual(mcp.mcpServers.northstar.args, ["-y", `@pallandir/northstar@${version}`]);
+});
+
+test("drift reports stray files in every generated plugin directory", () => {
+  const root = stage();
+  const outputs = generate(root);
+  write(root, outputs);
+  for (const dir of ["plugin/agents", "plugin/hooks", "plugin/.claude-plugin", ".claude-plugin"]) {
+    writeFileSync(join(root, dir, "stray.json"), "{}");
+  }
+  const problems = drift(root, outputs);
+  for (const dir of ["plugin/agents", "plugin/hooks", "plugin/.claude-plugin", ".claude-plugin"]) {
+    assert.ok(problems.includes(`unexpected ${dir}/stray.json`), dir);
+  }
 });
 
 test("the critic agent ships read only", () => {

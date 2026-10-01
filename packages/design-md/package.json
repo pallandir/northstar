@@ -1,6 +1,6 @@
 {
   "name": "@northstar/design-md",
-  "version": "2.1.0",
+  "version": "2.3.0",
   "private": true,
   "type": "module",
   "description": "Parse, validate, normalise and export DESIGN.md design systems.",

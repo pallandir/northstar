@@ -13,8 +13,8 @@ export interface PlanContext {
   snippet: string;
   critic: string;
   launch?: { command: string; args: string[] };
-  extensionIds?: string[];
   gate?: boolean;
+  plugin?: boolean;
 }
 
 export type Cmd = [string, ...string[]];

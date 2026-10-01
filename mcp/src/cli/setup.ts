@@ -6,6 +6,8 @@ import { createInterface } from "node:readline/promises";
 import { AGENT_NAMES, type AgentName, type Packs, type Scope } from "@northstar/adapters";
 import { doctor } from "../install/doctor.js";
 import { type InstallOutcome, type OpResult, install, uninstall } from "../install/install.js";
+import { northstarPluginInstalled } from "../install/plugin.js";
+import { feedbackText } from "../lib/hook-feedback.js";
 
 interface Options {
   agents: AgentName[];
@@ -17,7 +19,6 @@ interface Options {
   home: string;
   project: string;
   bin?: string;
-  extensionIds: string[];
   gate: boolean;
 }
 
@@ -26,17 +27,20 @@ function parse(args: string[]): Options {
     agents: [],
     all: false,
     scope: "user",
-    packs: "all",
+    packs: "dynamic",
     dryRun: false,
     yes: false,
     home: homedir(),
     project: process.env.NORTHSTAR_ROOT ?? process.cwd(),
-    extensionIds: [],
     gate: true,
   };
   for (let i = 0; i < args.length; i++) {
     const arg = args[i] ?? "";
-    const value = () => args[++i] ?? "";
+    const value = () => {
+      const next = args[++i];
+      if (next === undefined) throw new Error(`${arg} needs a value`);
+      return next;
+    };
     if (arg === "--all") options.all = true;
     else if (arg === "--no-gate") options.gate = false;
     else if (arg === "--dry-run") options.dryRun = true;
@@ -58,12 +62,7 @@ function parse(args: string[]): Options {
     } else if (arg === "--home") options.home = resolve(value());
     else if (arg === "--project") options.project = resolve(value());
     else if (arg === "--bin") options.bin = resolve(value());
-    else if (arg === "--extension-id") {
-      for (const id of value().split(",")) {
-        if (!/^[a-p]{32}$/.test(id)) throw new Error(`${id} is not a Chrome extension id`);
-        options.extensionIds.push(id);
-      }
-    } else throw new Error(`unknown option ${arg}`);
+    else throw new Error(`unknown option ${arg}`);
   }
   return options;
 }
@@ -105,9 +104,14 @@ async function confirm(question: string): Promise<boolean> {
 
 function usage(message: string, name: string): number {
   process.stderr.write(
-    `${message}\nUsage: northstar ${name} [--agent a,b | --all] [--scope user|project] [--packs all|dynamic] [--dry-run] [--yes]\n`,
+    `${message}\nUsage: northstar ${name} [--agent a,b | --all] [--scope user|project] [--packs all|dynamic] [--bin path] [--no-gate] [--home dir] [--project dir] [--dry-run] [--yes]\n`,
   );
   return 2;
+}
+
+function failure(err: unknown): number {
+  process.stderr.write(`${(err as Error).message}\n`);
+  return 1;
 }
 
 function resolveAgents(options: Options): AgentName[] {
@@ -129,7 +133,19 @@ export async function installCommand(args: string[]): Promise<number> {
       "install",
     );
 
-  const preview = install({ ...options, agents, dryRun: true, run });
+  let plugin: boolean;
+  try {
+    plugin = northstarPluginInstalled(options.home);
+  } catch (err) {
+    return failure(err);
+  }
+  const request = { ...options, agents, plugin };
+  let preview: InstallOutcome;
+  try {
+    preview = install({ ...request, dryRun: true, run });
+  } catch (err) {
+    return failure(err);
+  }
   process.stdout.write(
     `Plan for ${agents.join(", ")} (${options.scope} scope, ${options.packs} packs):\n`,
   );
@@ -147,7 +163,12 @@ export async function installCommand(args: string[]): Promise<number> {
       return usage("Installing needs a terminal to confirm, or pass --yes.", "install");
     if (!(await confirm("Apply these changes?"))) return 0;
   }
-  const outcome = install({ ...options, agents, dryRun: false, run });
+  let outcome: InstallOutcome;
+  try {
+    outcome = install({ ...request, dryRun: false, run });
+  } catch (err) {
+    return failure(err);
+  }
   process.stdout.write("\n");
   print(outcome);
   return outcome.results.some((r) => r.status === "failed") ? 1 : 0;
@@ -167,13 +188,19 @@ export async function uninstallCommand(args: string[]): Promise<number> {
       return usage("Uninstalling needs a terminal to confirm, or pass --yes.", "uninstall");
     if (!(await confirm(`Remove Northstar from ${agents.join(", ")}?`))) return 0;
   }
-  const outcome = uninstall({
-    agents,
-    home: options.home,
-    project: options.project,
-    dryRun: options.dryRun,
-    run,
-  });
+  let outcome: InstallOutcome;
+  try {
+    outcome = uninstall({
+      agents,
+      scope: options.scope,
+      home: options.home,
+      project: options.project,
+      dryRun: options.dryRun,
+      run,
+    });
+  } catch (err) {
+    return failure(err);
+  }
   print(outcome);
   return outcome.results.some((r) => r.status === "failed") ? 1 : 0;
 }
@@ -185,7 +212,12 @@ export async function doctorCommand(args: string[]): Promise<number> {
   } catch (err) {
     return usage((err as Error).message, "doctor");
   }
-  const checks = await doctor({ home: options.home, project: options.project, run });
+  const checks = await doctor({
+    home: options.home,
+    project: options.project,
+    run,
+    scanHook: (input) => feedbackText("claude", input, input.cwd),
+  });
   for (const check of checks)
     process.stdout.write(`${check.status.padEnd(4)} ${check.name}: ${check.detail}\n`);
   return checks.some((c) => c.status === "fail") ? 1 : 0;

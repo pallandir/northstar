@@ -1,5 +1,6 @@
 import { MODES } from "@northstar/canon";
-import { contrastRatio, parseColor } from "./contrast.js";
+import { contrastRatio, parseColorAlpha } from "./contrast.js";
+import { primaryFamily } from "./fonts.js";
 import { DesignParseError, REF, SECTION_ORDER, lookup, parseDesign, resolveRefs } from "./parse.js";
 
 export interface Issue {
@@ -20,8 +21,9 @@ export interface ValidationResult {
   ready: boolean;
 }
 
-const STACKS = ["react", "next", "vue", "svelte", "angular", "solid", "html"];
+export const STACKS = ["react", "next", "vue", "svelte", "angular", "solid", "html"] as const;
 const DIMENSION = /^-?(\d+|\d*\.\d+)(px|rem|em|%|vw|vh|ch)?$/;
+const EXPORTABLE_UNIT = /^-?(\d+|\d*\.\d+)(px|rem)$/;
 const PLACEHOLDER = /^<[^>]*>$/;
 const MIN_CONTRAST = 4.5;
 
@@ -105,6 +107,12 @@ export function validateDesign(source: string, options: ValidateOptions): Valida
   }
 
   let placeholders = 0;
+  const warnUnit = (path: string, raw: string) => {
+    const value = resolveRefs(fm, raw).trim();
+    if (hasRef(value) || /^-?0(\.0+)?$/.test(value) || EXPORTABLE_UNIT.test(value)) return;
+    warn(path, `${value} cannot be exported to DTCG, use px or rem`);
+  };
+
   walk(fm, "", (value, path) => {
     if (PLACEHOLDER.test(value.trim())) {
       placeholders++;
@@ -130,8 +138,14 @@ export function validateDesign(source: string, options: ValidateOptions): Valida
       }
       const value = resolveRefs(fm, raw);
       if (PLACEHOLDER.test(value) || hasRef(value)) continue;
-      if (!parseColor(value)) {
+      const parsedColor = parseColorAlpha(value);
+      if (!parsedColor) {
         error(`colors.${key}`, `${value} is not a valid hex, rgb, hsl or oklch colour`);
+      } else if (parsedColor.alpha < 1) {
+        warn(
+          `colors.${key}`,
+          `${value} is translucent, its contrast depends on what is behind it and is not checked`,
+        );
       }
     }
     if (Object.keys(colors).length > 12) {
@@ -151,7 +165,7 @@ export function validateDesign(source: string, options: ValidateOptions): Valida
       if (PLACEHOLDER.test(value) || hasRef(value)) continue;
       if (!DIMENSION.test(value.trim())) {
         error(`${group}.${key}`, `${value} is not a dimension such as 8px or 0.5rem`);
-      }
+      } else warnUnit(`${group}.${key}`, value);
     }
   }
 
@@ -162,7 +176,10 @@ export function validateDesign(source: string, options: ValidateOptions): Valida
       error(`typography.${role}`, "typography role must be a mapping");
       continue;
     }
-    const family = typeof def.fontFamily === "string" ? def.fontFamily : undefined;
+    const family =
+      typeof def.fontFamily === "string" && def.fontFamily.trim()
+        ? primaryFamily(def.fontFamily)
+        : undefined;
     if (!family) error(`typography.${role}.fontFamily`, "fontFamily is required");
     else if (!PLACEHOLDER.test(family) && !/mono|code/i.test(family) && role !== "code") {
       families.add(family);
@@ -173,6 +190,8 @@ export function validateDesign(source: string, options: ValidateOptions): Valida
       !DIMENSION.test(def.fontSize.trim())
     ) {
       error(`typography.${role}.fontSize`, `${def.fontSize} is not a dimension`);
+    } else if (typeof def.fontSize === "string" && !PLACEHOLDER.test(def.fontSize)) {
+      warnUnit(`typography.${role}.fontSize`, def.fontSize);
     }
     const display = /^(display|heading|headline|title|h1)$/i.test(role);
     if (
@@ -194,11 +213,11 @@ export function validateDesign(source: string, options: ValidateOptions): Valida
   const checked = new Set<string>();
   const checkPair = (label: string, fgRaw: unknown, bgRaw: unknown) => {
     if (typeof fgRaw !== "string" || typeof bgRaw !== "string" || checked.has(label)) return;
-    const fg = parseColor(resolveRefs(fm, fgRaw));
-    const bg = parseColor(resolveRefs(fm, bgRaw));
-    if (!fg || !bg) return;
+    const fg = parseColorAlpha(resolveRefs(fm, fgRaw));
+    const bg = parseColorAlpha(resolveRefs(fm, bgRaw));
+    if (!fg || !bg || fg.alpha < 1 || bg.alpha < 1) return;
     checked.add(label);
-    const ratio = contrastRatio(fg, bg);
+    const ratio = contrastRatio(fg.rgb, bg.rgb);
     if (ratio < MIN_CONTRAST) {
       error(label, `contrast ${ratio.toFixed(2)}:1 is below ${MIN_CONTRAST}:1`, "NS-A11Y-CONTRAST");
     }
@@ -222,7 +241,7 @@ export function validateDesign(source: string, options: ValidateOptions): Valida
   if (
     typeof northstar.stack === "string" &&
     !PLACEHOLDER.test(northstar.stack) &&
-    !STACKS.includes(northstar.stack)
+    !(STACKS as readonly string[]).includes(northstar.stack)
   ) {
     warn("northstar.stack", `stack ${northstar.stack} is not one of ${STACKS.join(", ")}`);
   }

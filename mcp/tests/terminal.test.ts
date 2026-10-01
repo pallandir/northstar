@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { findControllingTty } from "../src/terminal/discover.js";
-import { TerminalHandoff } from "../src/terminal/inject.js";
+import { TerminalHandoff, awaitingAnswer, typedInput } from "../src/terminal/inject.js";
 import { type AgentKind, CLAUDE_CODE_LINE, HANDOFF_LINE } from "../src/terminal/payload.js";
 import type { DriverName, TerminalDriver } from "../src/terminal/types.js";
 
@@ -32,11 +32,12 @@ function handoffWith(
   reason?: string,
   agent: AgentKind = "other",
 ): TerminalHandoff {
-  const handoff = new TerminalHandoff(() => {}, 1200);
-  Object.assign(handoff, {
-    detection: Promise.resolve({ driver, reason }),
-    agent: Promise.resolve(agent),
-  });
+  const handoff = new TerminalHandoff(
+    () => {},
+    1200,
+    async () => agent,
+  );
+  Object.assign(handoff, { detection: { driver, reason } });
   return handoff;
 }
 
@@ -133,7 +134,8 @@ test("back-to-back sends are coalesced into one typed line", async () => {
   const handoff = handoffWith(driver);
   const [a, b] = await Promise.all([handoff.send(), handoff.send()]);
   assert.equal(a.typed, true);
-  assert.equal(b.typed, true);
+  assert.equal(b.typed, false);
+  assert.match(b.reason ?? "", /folded into the batch/);
   assert.equal(driver.writes.length, 1, "the second batch rides the first announcement");
   assert.equal(driver.enters, 1);
 });
@@ -143,4 +145,55 @@ test("a flood on loopback cannot type at the agent repeatedly", async () => {
   const handoff = handoffWith(driver);
   for (let i = 0; i < 20; i += 1) await handoff.send();
   assert.equal(driver.writes.length, 1);
+});
+
+const lines = (screen: string) => screen.split("\n").filter(Boolean);
+
+test("text already in the agent input is never typed over", async () => {
+  const driver = new FakeDriver(["> fix the hero spac\n"]);
+  const result = await handoffWith(driver).send();
+  assert.equal(result.typed, false);
+  assert.match(result.reason ?? "", /text in the agent input/);
+  assert.equal(driver.writes.length, 0);
+  assert.equal(driver.enters, 0);
+});
+
+test("a boxed empty input and a placeholder count as empty", () => {
+  assert.equal(typedInput(lines("╭──╮\n│ >   │\n╰──╯\n  ? for shortcuts")), "");
+  assert.equal(typedInput(lines('│ > Try "fix lint errors" │')), "");
+  assert.equal(typedInput(lines("│ > half a sentence │")), "half a sentence");
+  assert.equal(typedInput(lines("just output")), null);
+});
+
+test("only the last line decides a confirm prompt and a stale choice list is ignored", () => {
+  assert.equal(awaitingAnswer(lines("Overwrite? (y/n)\nthen more output")), false);
+  assert.equal(awaitingAnswer(lines("Overwrite? (y/n)")), true);
+  assert.equal(awaitingAnswer(lines("❯ 1. old option\n  2. other\nDone, all green")), false);
+  assert.equal(awaitingAnswer(lines("Pick one\n❯ 1. Yes\n  2. No")), true);
+  assert.equal(awaitingAnswer(lines("  1. just a numbered list\n  2. in the output")), false);
+});
+
+test("an agent that cannot be identified reports the reason and types nothing", async () => {
+  const driver = new FakeDriver([IDLE]);
+  const handoff = new TerminalHandoff(
+    () => {},
+    1200,
+    async () => {
+      throw new Error("ps unavailable");
+    },
+  );
+  Object.assign(handoff, { detection: { driver } });
+  const result = await handoff.send();
+  assert.equal(result.typed, false);
+  assert.match(result.reason ?? "", /ps unavailable/);
+  assert.equal(driver.writes.length, 0);
+});
+
+test("a transient detection failure is not cached", async () => {
+  const handoff = new TerminalHandoff(() => {}, 1200);
+  process.env.NORTHSTAR_TERMINAL = "none";
+  assert.equal((await handoff.describe()).available, false);
+  process.env.NORTHSTAR_TERMINAL = "tmux";
+  process.env.TMUX_PANE = "%1";
+  assert.equal((await handoff.describe()).available, false, "a definitive answer is cached");
 });

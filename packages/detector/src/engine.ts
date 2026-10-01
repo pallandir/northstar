@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { lstatSync, readFileSync, readdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { type Canon, type Rule, loadCanon, severityFor } from "@northstar/canon";
 import {
@@ -9,7 +9,7 @@ import {
   lineIndex,
 } from "./extract.js";
 import { ALL_CHECKS } from "./rules/index.js";
-import { allowedByConfig, allowedInline, matchesAny } from "./suppress.js";
+import { allowedInline, compileAllow, compileGlobs } from "./suppress.js";
 import type { Ctx, Finding, ScanConfig } from "./types.js";
 
 const SKIP_DIRS = new Set([
@@ -29,10 +29,40 @@ const SKIP_DIRS = new Set([
 ]);
 const MAX_BYTES = 512 * 1024;
 
+interface Prepared {
+  config: ScanConfig;
+  rules: Map<string, Rule>;
+  allowed: (rule: string, path: string) => boolean;
+  ignored: { test(path: string): boolean };
+}
+
+const rulesByCanon = new WeakMap<Canon, Map<string, Rule>>();
+
+function rulesOf(canon: Canon): Map<string, Rule> {
+  let rules = rulesByCanon.get(canon);
+  if (!rules) {
+    rules = new Map(canon.rules.map((rule) => [rule.id, rule]));
+    rulesByCanon.set(canon, rules);
+  }
+  return rules;
+}
+
+function prepare(config: ScanConfig, canon: Canon): Prepared {
+  return {
+    config,
+    rules: rulesOf(canon),
+    allowed: compileAllow(config.allow),
+    ignored: compileGlobs(config.ignore),
+  };
+}
+
 export function scanText(file: string, text: string, config: ScanConfig, canon: Canon): Finding[] {
+  return scanPrepared(file, text, prepare(config, canon));
+}
+
+function scanPrepared(file: string, text: string, { config, rules, allowed }: Prepared): Finding[] {
   const kind = kindOf(file);
   if (!kind) return [];
-  const rules = new Map<string, Rule>(canon.rules.map((rule) => [rule.id, rule]));
   const lineOf = lineIndex(text);
   const lines = text.split("\n");
   const findings: Finding[] = [];
@@ -54,8 +84,7 @@ export function scanText(file: string, text: string, config: ScanConfig, canon: 
       if (severity === "off") return;
       const line = lineOf(index);
       if (rule.allowable) {
-        if (allowedInline(ruleId, lines, line) || allowedByConfig(ruleId, file, config.allow))
-          return;
+        if (allowedInline(ruleId, lines, line) || allowed(ruleId, file)) return;
       }
       const key = `${ruleId}:${line}`;
       if (seen.has(key)) return;
@@ -75,21 +104,49 @@ export function scanText(file: string, text: string, config: ScanConfig, canon: 
   return findings.sort((a, b) => a.line - b.line || a.rule.localeCompare(b.rule));
 }
 
-function walk(path: string, out: string[]): void {
-  const stat = statSync(path);
-  if (stat.isDirectory()) {
-    for (const entry of readdirSync(path)) {
-      if (SKIP_DIRS.has(entry)) continue;
-      walk(join(path, entry), out);
-    }
-  } else if (stat.isFile() && stat.size <= MAX_BYTES && !/\.min\./.test(path)) {
-    out.push(path);
-  }
-}
-
 export interface ScanResult {
   findings: Finding[];
   scanned: number;
+  errors: string[];
+  skipped: string[];
+}
+
+interface Walk {
+  files: string[];
+  errors: string[];
+  skipped: string[];
+}
+
+function walk(root: string, path: string, out: Walk): void {
+  const label = relative(root, path).split("\\").join("/") || ".";
+  let stat: ReturnType<typeof lstatSync>;
+  try {
+    stat = lstatSync(path);
+  } catch (err) {
+    const missing = (err as NodeJS.ErrnoException).code === "ENOENT";
+    out.errors.push(
+      missing ? `${label} does not exist` : `${label} could not be read: ${(err as Error).message}`,
+    );
+    return;
+  }
+  if (stat.isSymbolicLink()) {
+    out.skipped.push(label);
+    return;
+  }
+  if (stat.isDirectory()) {
+    let entries: string[];
+    try {
+      entries = readdirSync(path);
+    } catch (err) {
+      out.errors.push(`${label} could not be listed: ${(err as Error).message}`);
+      return;
+    }
+    for (const entry of entries) {
+      if (!SKIP_DIRS.has(entry)) walk(root, join(path, entry), out);
+    }
+  } else if (stat.isFile() && stat.size <= MAX_BYTES && !/\.min\./.test(path)) {
+    out.files.push(path);
+  }
 }
 
 export function scanPaths(
@@ -98,18 +155,24 @@ export function scanPaths(
   config: ScanConfig,
   canon: Canon = loadCanon(),
 ): ScanResult {
-  const files: string[] = [];
-  for (const path of paths.length ? paths : ["."]) {
-    const full = resolve(root, path);
-    if (existsSync(full)) walk(full, files);
-  }
+  const found: Walk = { files: [], errors: [], skipped: [] };
+  for (const path of paths.length ? paths : ["."]) walk(root, resolve(root, path), found);
+  const prepared = prepare(config, canon);
   const findings: Finding[] = [];
+  const errors = [...found.errors];
   let scanned = 0;
-  for (const full of files) {
+  for (const full of found.files) {
     const rel = relative(root, full).split("\\").join("/");
-    if (!kindOf(rel) || matchesAny(rel, config.ignore)) continue;
+    if (!kindOf(rel) || prepared.ignored.test(rel)) continue;
+    let text: string;
+    try {
+      text = readFileSync(full, "utf8");
+    } catch (err) {
+      errors.push(`${rel} could not be read: ${(err as Error).message}`);
+      continue;
+    }
     scanned++;
-    findings.push(...scanText(rel, readFileSync(full, "utf8"), config, canon));
+    findings.push(...scanPrepared(rel, text, prepared));
   }
-  return { findings, scanned };
+  return { findings, scanned, errors, skipped: found.skipped };
 }

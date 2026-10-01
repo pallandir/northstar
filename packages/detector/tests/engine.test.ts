@@ -53,15 +53,15 @@ test("an accessibility rule cannot be allowed away", () => {
   assert.equal(scanText("a.tsx", inline, defaultConfig(), canon).length, 1);
 });
 
-test("severity follows the mode: scroll hijacking is allowed in experience, an error in persuade", () => {
+test("severity follows the mode: scroll hijacking is informational in experience, an error in persuade", () => {
   const source = 'import Lenis from "lenis";';
   assert.equal(
     scanText("a.tsx", source, { ...defaultConfig(), mode: "persuade" }, canon)[0]?.severity,
     "error",
   );
-  assert.deepEqual(
-    scanText("a.tsx", source, { ...defaultConfig(), mode: "experience" }, canon),
-    [],
+  assert.equal(
+    scanText("a.tsx", source, { ...defaultConfig(), mode: "experience" }, canon)[0]?.severity,
+    "info",
   );
 });
 
@@ -119,8 +119,26 @@ test("configFromDesign reads mode, allow entries and ignore globs, and tolerates
   assert.equal(config.allow[0]?.rule, "NS-SLOP-GRADIENT-TEXT");
   assert.deepEqual(config.ignore, ["legacy/**"]);
   assert.deepEqual(configFromDesign(undefined), defaultConfig());
-  assert.deepEqual(configFromDesign("no frontmatter"), defaultConfig());
-  assert.deepEqual(configFromDesign("---\n: : bad\n---"), defaultConfig());
+});
+
+test("configFromDesign fails loudly on a DESIGN.md it cannot read", () => {
+  assert.throws(() => configFromDesign("no frontmatter"), /no YAML frontmatter/);
+  assert.throws(() => configFromDesign("---\n: : bad\n---"), /not valid YAML/);
+  assert.throws(() => configFromDesign("---\n- a\n---"), /mapping/);
+  assert.throws(
+    () => configFromDesign("---\nname: A\nnorthstar:\n  mode: loud\n---"),
+    /northstar\.mode is "loud".*operate/,
+  );
+  assert.throws(
+    () => configFromDesign("---\nnorthstar:\n  allow: [oops]\n---"),
+    /northstar\.allow\[0\]/,
+  );
+  assert.throws(() => configFromDesign("---\nnorthstar:\n  ignore: 3\n---"), /ignore/);
+});
+
+test("configFromDesign tolerates a BOM and CRLF line endings", () => {
+  const config = configFromDesign("\uFEFF---\r\nnorthstar:\r\n  mode: read\r\n---\r\nbody");
+  assert.equal(config.mode, "read");
 });
 
 test("text, json and sarif outputs describe the same findings", () => {

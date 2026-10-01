@@ -4,6 +4,7 @@ import {
   lstatSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -159,17 +160,20 @@ test("removal is gated on an install record for the owning agent", () => {
   const shared = conflicts.find((c) => c.owner === "shared") as Conflict;
   assert.equal(installedFor(home, claudeSkill), false);
 
-  const record = {
+  const record = (agent: "claude" | "codex") => ({
+    agent,
     installedAt: "now",
     version: "2.2.0",
     scope: "user" as const,
     packs: "all" as const,
     files: [],
-  };
-  writeRecord(home, { agents: { claude: record } });
+  });
+  writeRecord(home, { installs: { "claude:user": record("claude") } });
   assert.equal(installedFor(home, claudeSkill), true);
   assert.equal(installedFor(home, shared), false);
-  writeRecord(home, { agents: { claude: record, codex: record } });
+  writeRecord(home, {
+    installs: { "claude:user": record("claude"), "codex:user": record("codex") },
+  });
   assert.equal(installedFor(home, shared), true);
 });
 
@@ -199,14 +203,18 @@ test("the conflicts command lists, refuses before an install, and removes with -
   assert.match(gated.stderr, /run northstar install first/);
   assert.ok(existsSync(join(home, ".claude/skills/impeccable")));
 
-  const record = {
-    installedAt: "now",
-    version: "2.2.0",
-    scope: "user" as const,
-    packs: "all" as const,
-    files: [],
-  };
-  writeRecord(home, { agents: { claude: record } });
+  writeRecord(home, {
+    installs: {
+      "claude:user": {
+        agent: "claude",
+        installedAt: "now",
+        version: "2.2.0",
+        scope: "user",
+        packs: "all",
+        files: [],
+      },
+    },
+  });
   const noTty = cli(home, "--remove");
   assert.equal(noTty.status, 2);
   assert.match(noTty.stderr, /needs a terminal/);
@@ -218,4 +226,55 @@ test("the conflicts command rejects unknown options and unknown restores", () =>
   const missing = cli(home, "--restore", "nothing");
   assert.equal(missing.status, 1);
   assert.match(missing.stderr, /no quarantine/);
+});
+
+test("a quarantine name that could leave the quarantine folder is refused", () => {
+  const home = fakeHome();
+  for (const stamp of ["../escape", "a/b", "..", ""]) {
+    assert.throws(() => remove(home, [], stamp, () => undefined), /not a valid quarantine name/);
+    assert.throws(() => restore(home, stamp), /not a valid quarantine name/);
+  }
+});
+
+test("the manifest lists every item moved so far even when a later one fails", () => {
+  const home = fakeHome();
+  const [first] = findConflicts(home).filter((c) => c.kind === "skill");
+  const ghost: Conflict = {
+    kind: "skill",
+    name: "ghost",
+    owner: "claude",
+    path: join(home, "nowhere/ghost"),
+    broken: false,
+  };
+  const result = remove(home, [first as Conflict, ghost], "t5", () => undefined);
+  assert.equal(result.failed.length, 1);
+  const manifest = JSON.parse(
+    readFileSync(join(home, ".northstar/quarantine/t5/manifest.json"), "utf8"),
+  );
+  assert.equal(manifest.length, 1);
+});
+
+test("a corrupt plugin list or manifest is an error naming the file, not an empty result", () => {
+  const home = fakeHome();
+  write(join(home, ".claude/plugins/installed_plugins.json"), "{ nope");
+  assert.throws(() => findConflicts(home), /installed_plugins\.json is not valid JSON/);
+  const other = fakeHome();
+  remove(other, findConflicts(other), "t6", () => undefined);
+  write(join(other, ".northstar/quarantine/t6/manifest.json"), "{ nope");
+  assert.throws(() => restore(other, "t6"), /manifest\.json is not valid JSON/);
+});
+
+test("a manifest entry that points outside the quarantine or the home is not restored", () => {
+  const home = fakeHome();
+  const dir = join(home, ".northstar/quarantine/t7");
+  write(
+    join(dir, "manifest.json"),
+    JSON.stringify([
+      { from: join(home, "x"), to: "/etc/passwd", kind: "skill", name: "a" },
+      { from: "/tmp/elsewhere", to: join(dir, "b"), kind: "skill", name: "b" },
+    ]),
+  );
+  const result = restore(home, "t7");
+  assert.equal(result.restored.length, 0);
+  assert.equal(result.failed.length, 2);
 });

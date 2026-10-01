@@ -7,7 +7,7 @@ import { afterEach, beforeEach, test } from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { claudeFeedback } from "../src/cli/hook.js";
-import { resolveInside } from "../src/detect.js";
+import { resolveInside } from "../src/lib/paths.js";
 import { createMcpServer } from "../src/server.js";
 import { CommentStore } from "../src/store.js";
 
@@ -109,6 +109,13 @@ test("the detect command validates its options", () => {
   assert.equal(cli("detect", "--format", "xml").status, 2);
   assert.equal(cli("detect", "--mode", "loud").status, 2);
   assert.equal(cli("detect", "--bogus").status, 2);
+  assert.equal(cli("detect", "--root").status, 2);
+});
+
+test("the detect command reports a failed scan with a clear message and exit code 2", () => {
+  const result = cli("detect", "--diff", "--root", root);
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /^northstar detect: git /);
 });
 
 test("the claude hook blocks on errors, stays silent on clean edits and ignores other tools", () => {
@@ -142,22 +149,31 @@ test("the claude hook blocks on errors, stays silent on clean edits and ignores 
   );
 });
 
-test("the hook command never fails an edit, even on garbage input", () => {
-  for (const input of ["not json", "", "{}", '{"tool_name":"Edit"}']) {
+test("the hook command reports unreadable input on stderr with a non blocking exit code", () => {
+  for (const input of ["not json", ""]) {
     const result = spawnSync(
       process.execPath,
       ["--import", "tsx", "src/cli.ts", "hook", "post-edit"],
-      {
-        input,
-        encoding: "utf8",
-      },
+      { input, encoding: "utf8" },
+    );
+    assert.equal(result.status, 1, input);
+    assert.equal(result.stdout, "", input);
+    assert.match(result.stderr, /^northstar hook: /, input);
+  }
+  for (const input of ["{}", '{"tool_name":"Edit"}']) {
+    const result = spawnSync(
+      process.execPath,
+      ["--import", "tsx", "src/cli.ts", "hook", "post-edit"],
+      { input, encoding: "utf8" },
     );
     assert.equal(result.status, 0, input);
     assert.equal(result.stdout, "", input);
+    assert.equal(result.stderr, "", input);
   }
 });
 
-import { feedbackText, filesFor, render } from "../src/cli/hook.js";
+import { render } from "../src/cli/hook.js";
+import { feedbackText, filesFor } from "../src/lib/hook-feedback.js";
 
 test("each agent's hook input is read and its feedback is rendered in its own dialect", () => {
   const codex = {
@@ -196,22 +212,31 @@ test("each agent's hook input is read and its feedback is rendered in its own di
   assert.equal(render("cursor", "x"), "");
 });
 
-test("the hook command accepts every agent name and ignores an unknown one", () => {
-  for (const agent of ["codex", "gemini", "opencode", "cursor", "nope"]) {
-    const result = spawnSync(
-      process.execPath,
-      ["--import", "tsx", "src/cli.ts", "hook", "post-edit", "--agent", agent],
-      {
-        input: "garbage",
-        encoding: "utf8",
-      },
-    );
-    assert.equal(result.status, 0, agent);
-    assert.equal(result.stdout, "", agent);
+test("the hook command accepts every agent name and rejects an unknown or missing one", () => {
+  const run = (...agent: string[]) =>
+    spawnSync(process.execPath, ["--import", "tsx", "src/cli.ts", "hook", "post-edit", ...agent], {
+      input: "{}",
+      encoding: "utf8",
+    });
+  for (const agent of ["claude", "codex", "gemini", "opencode", "cursor"]) {
+    assert.equal(run("--agent", agent).status, 0, agent);
   }
+  assert.equal(run().status, 0);
+  const unknown = run("--agent", "nope");
+  assert.equal(unknown.status, 1);
+  assert.match(unknown.stderr, /unknown agent nope/);
+  const missing = run("--agent");
+  assert.equal(missing.status, 1);
+  assert.match(missing.stderr, /unknown agent \(none\)/);
+  const event = spawnSync(process.execPath, ["--import", "tsx", "src/cli.ts", "hook", "bogus"], {
+    input: "{}",
+    encoding: "utf8",
+  });
+  assert.equal(event.status, 1);
+  assert.match(event.stderr, /unknown hook event bogus/);
 });
 
-import { optedIn } from "../src/cli/hook.js";
+import { optedIn } from "../src/lib/hook-feedback.js";
 
 async function project(files: Record<string, string>): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), "northstar-optin-"));
@@ -281,11 +306,14 @@ test("tests, fixtures and specs are never scanned by the hook", async () => {
   await rm(dir, { recursive: true, force: true });
 });
 
-import { designGap, gateReason, preEditReason, renderDeny } from "../src/cli/hook.js";
+import { renderDeny } from "../src/cli/hook.js";
+import { gateReason, preEditReason } from "../src/lib/hook-feedback.js";
+import { designGap, readDesign } from "../src/project.js";
 
 const CLEAN = '<h1 className="text-4xl">x</h1>';
-const READY_DESIGN =
-  '---\nname: Acme\ncolors:\n  primary: "#1D4ED8"\nnorthstar:\n  mode: operate\n---\n';
+const FULL_TOKENS =
+  'name: Acme\ncolors:\n  primary: "#1D4ED8"\ntypography:\n  body:\n    fontFamily: Geist\n    fontSize: 16px\nrounded:\n  md: 8px\nspacing:\n  md: 16px\n';
+const READY_DESIGN = `---\n${FULL_TOKENS}northstar:\n  mode: operate\n---\n`;
 
 const claudeEdit = (dir: string, file: string, tool = "Write") =>
   preEditReason(
@@ -306,17 +334,17 @@ test("the gate blocks UI edits in a UI project until DESIGN.md is ready", async 
   assert.equal(JSON.parse(renderDeny("x")).hookSpecificOutput.hookEventName, "PreToolUse");
 
   await writeFile(join(dir, "DESIGN.md"), "---\nname: X\n---\n");
-  assert.match(claudeEdit(dir, "src/Page.tsx") ?? "", /not valid yet/);
+  assert.match(claudeEdit(dir, "src/Page.tsx") ?? "", /not valid yet \(colors is required/);
   await writeFile(
     join(dir, "DESIGN.md"),
     '---\nname: X\ncolors:\n  primary: "<hex>"\nnorthstar:\n  mode: operate\n---\n',
   );
   assert.match(claudeEdit(dir, "src/Page.tsx") ?? "", /unfilled placeholders/);
-  await writeFile(join(dir, "DESIGN.md"), '---\nname: X\ncolors:\n  primary: "#111111"\n---\n');
-  assert.match(designGap(dir) ?? "", /no northstar\.mode/);
+  await writeFile(join(dir, "DESIGN.md"), `---\n${FULL_TOKENS}---\n`);
+  assert.match(designGap(readDesign(dir)) ?? "", /northstar\.mode: mode must be one of/);
 
   await writeFile(join(dir, "DESIGN.md"), READY_DESIGN);
-  assert.equal(designGap(dir), undefined);
+  assert.equal(designGap(readDesign(dir)), undefined);
   assert.equal(claudeEdit(dir, "src/Page.tsx"), undefined);
   await rm(dir, { recursive: true, force: true });
 });

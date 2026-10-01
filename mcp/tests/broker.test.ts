@@ -52,3 +52,10 @@ test("pendingNotices hands out a copy, not the live array", () => {
   broker.pendingNotices.pop();
   assert.equal(broker.pendingNotices.length, 1);
 });
+
+test("the last handoff outcome is remembered", () => {
+  const broker = new Broker();
+  assert.equal(broker.lastHandoff === null, true);
+  broker.recordHandoff({ typed: true, driver: "tmux", at: "now" });
+  assert.equal(broker.lastHandoff?.driver, "tmux");
+});
