@@ -350,3 +350,16 @@ test("an extension id is recorded, written to the server env, and validated on t
   assert.deepEqual(readRecord(w.home).agents.cursor?.extensionIds, [id]);
   assert.equal(cli(w, "install", "--agent", "cursor", "--extension-id", "not-an-id").status, 2);
 });
+
+test("the gate hook is installed by default and left out with --no-gate", () => {
+  const w = world();
+  install(base(w, ["claude"]));
+  const settings = () => JSON.parse(readFileSync(join(w.home, ".claude/settings.json"), "utf8"));
+  assert.ok(settings().hooks.PreToolUse);
+  install({ ...base(w, ["claude"]), gate: false });
+  assert.equal(settings().hooks.PreToolUse, undefined);
+  assert.ok(settings().hooks.PostToolUse);
+  assert.equal(readRecord(w.home).agents.claude?.gate, false);
+  const dry = cli(w, "install", "--agent", "claude", "--no-gate", "--dry-run");
+  assert.equal(dry.status, 0, dry.stderr);
+});

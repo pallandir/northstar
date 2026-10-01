@@ -105,3 +105,8 @@ test("reference integrations exist for every agent and map to real destinations"
   );
   assert.doesNotMatch([...outputs.values()].join("\n"), /\/Users\//);
 });
+
+test("the plugin ships the design gate hook too", () => {
+  const hooks = JSON.parse(generate(repoRoot).get("plugin/hooks/hooks.json") ?? "{}");
+  assert.match(hooks.hooks.PreToolUse[0].hooks[0].command, /hook pre-edit --agent claude/);
+});

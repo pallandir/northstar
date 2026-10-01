@@ -17,6 +17,10 @@ You bring one thing: a design direction or design system as a markdown file. Eve
 
 Refine means critique then polish. Adapt carries a design to a new target such as a theme or a breakpoint. Modernise derives a brief and a system from existing code, then proposes changes in safe increments. The agent runs these as prompts: `brief`, `direct`, `system`, `compose`, `critique`, `polish`, `adapt` and `modernise`.
 
+## DESIGN.md comes first
+
+No UI file is created or edited until `DESIGN.md` exists, parses, has no unfilled placeholders and names a mode. This applies to every task, including small edits and polish passes, because a design system that is written afterwards describes the result instead of steering it. `northstar_context` reports the state in its `gate` field and says how to open it. In Claude Code an edit hook enforces the rule by denying edits to UI source files until the gate is open, and other agents are reminded after each edit. Set `NORTHSTAR_GATE=off` to skip it for a session, or install with `--no-gate`.
+
 ## Modes
 
 The mode in `DESIGN.md` changes how strict the rules are.

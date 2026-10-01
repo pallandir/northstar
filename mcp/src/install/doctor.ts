@@ -87,6 +87,7 @@ export async function doctor(options: DoctorOptions): Promise<Check[]> {
         project: options.project,
         bin: entry.bin,
         extensionIds: entry.extensionIds,
+        gate: entry.gate,
       }),
     );
     for (const op of plan.ops) {

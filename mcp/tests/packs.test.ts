@@ -172,3 +172,23 @@ test("template placeholders keep the project at the system stage", async () => {
   assert.equal(state.stage, "system");
   assert.equal(state.design.placeholders, true);
 });
+
+test("northstar_context reports the DESIGN.md gate and how to open it", async () => {
+  await writeFile(join(root, "package.json"), JSON.stringify({ dependencies: { react: "19" } }));
+  await connect(dummyServer("dynamic"));
+  const closed = JSON.parse(
+    text(await client.callTool({ name: "northstar_context", arguments: {} })),
+  );
+  assert.equal(closed.gate.open, false);
+  assert.match(closed.gate.gap, /no DESIGN\.md/);
+  assert.match(closed.gate.next, /design_md_normalize/);
+
+  await writeFile(
+    join(root, "DESIGN.md"),
+    '---\nname: Acme\ncolors:\n  primary: "#112233"\nnorthstar:\n  mode: operate\n---\n',
+  );
+  const open = JSON.parse(
+    text(await client.callTool({ name: "northstar_context", arguments: {} })),
+  );
+  assert.deepEqual(open.gate, { open: true });
+});

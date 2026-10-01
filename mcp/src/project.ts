@@ -24,12 +24,37 @@ export interface DesignDoc {
   error?: string;
 }
 
+export interface Gate {
+  open: boolean;
+  gap?: string;
+  next?: string;
+}
+
+export function designGap(design: DesignDoc): string | undefined {
+  if (!design.exists) return "there is no DESIGN.md";
+  if (!design.valid) return "DESIGN.md is not valid yet";
+  if (design.placeholders) return "DESIGN.md still has unfilled placeholders";
+  if (!design.mode) return "DESIGN.md has no northstar.mode";
+  return undefined;
+}
+
+export function gateOf(design: DesignDoc): Gate {
+  const gap = designGap(design);
+  if (!gap) return { open: true };
+  return {
+    open: false,
+    gap,
+    next: "Write DESIGN.md before any UI code: design_md_normalize with the designer's direction and write true, or design_system_propose, then design_md_validate until it is ready.",
+  };
+}
+
 export interface ProjectState {
   root: string;
   stack: StackName;
   shadcn: boolean;
   tailwind: boolean;
   design: DesignDoc;
+  gate: Gate;
   product: boolean;
   decisions: boolean;
   stage: "brief" | "direction" | "system" | "compose";
@@ -111,6 +136,7 @@ export function inspectProject(root: string): ProjectState {
     shadcn: existsSync(join(root, "components.json")),
     tailwind: deps.has("tailwindcss"),
     design,
+    gate: gateOf(design),
     product,
     decisions: existsSync(join(root, "design", "decisions.md")),
     stage,

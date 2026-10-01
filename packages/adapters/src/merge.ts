@@ -54,7 +54,7 @@ export interface HookEntry {
   hooks: HookCommand[];
 }
 
-const OWN_COMMAND = /\bhook\s+post-edit\s+--agent\s+(claude|codex|cursor|gemini|opencode)\b/;
+const OWN_COMMAND = /\bhook\s+(pre|post)-edit\s+--agent\s+(claude|codex|cursor|gemini|opencode)\b/;
 const OWN_NAME = "northstar-scan";
 
 export function isOwnHook(hook: HookCommand): boolean {

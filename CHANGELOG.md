@@ -39,6 +39,15 @@ unchanged.
   libraries, mode and rules, and the files an agent edits are scanned when it
   resolves the comment.
 
+- **Agents now write DESIGN.md before any UI code.** The skill, the always on context
+  snippet, the server instructions and every stage prompt say so, and
+  `northstar_context` returns a `gate` field that stays closed until `DESIGN.md` exists,
+  parses, has no placeholders and names a mode. In Claude Code a `PreToolUse` hook
+  denies edits to UI source files (`.tsx`, `.jsx`, `.vue`, `.svelte`, `.astro`, `.html`
+  and CSS) in UI projects until the gate opens. Other agents are reminded after each
+  edit. Test files, plain `.ts` and `.js`, the design documents themselves and non UI
+  projects are never blocked. `NORTHSTAR_GATE=off` disables it for a session and
+  `install --no-gate` leaves the hook out.
 - **A deactivate button in the toolbar.** The power button at the end of the toolbar
   turns Northstar off for the tab and keeps your comments. It sits behind its own
   separator so it is not hit by accident next to Delete all comments.

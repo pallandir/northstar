@@ -18,6 +18,7 @@ interface Options {
   project: string;
   bin?: string;
   extensionIds: string[];
+  gate: boolean;
 }
 
 function parse(args: string[]): Options {
@@ -31,11 +32,13 @@ function parse(args: string[]): Options {
     home: homedir(),
     project: process.env.NORTHSTAR_ROOT ?? process.cwd(),
     extensionIds: [],
+    gate: true,
   };
   for (let i = 0; i < args.length; i++) {
     const arg = args[i] ?? "";
     const value = () => args[++i] ?? "";
     if (arg === "--all") options.all = true;
+    else if (arg === "--no-gate") options.gate = false;
     else if (arg === "--dry-run") options.dryRun = true;
     else if (arg === "--yes") options.yes = true;
     else if (arg === "--agent") {

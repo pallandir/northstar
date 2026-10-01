@@ -1,5 +1,17 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c '(command -v northstar >/dev/null 2>&1 && northstar hook pre-edit --agent claude) || npx -y @pallandir/northstar@2.2.0 hook pre-edit --agent claude || true'",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",

@@ -14,6 +14,7 @@ export interface PlanContext {
   critic: string;
   launch?: { command: string; args: string[] };
   extensionIds?: string[];
+  gate?: boolean;
 }
 
 export type Cmd = [string, ...string[]];

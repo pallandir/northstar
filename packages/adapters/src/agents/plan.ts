@@ -35,8 +35,9 @@ export function hookCommand(
   version: string,
   agent: string,
   launch?: PlanContext["launch"],
+  event: "pre-edit" | "post-edit" = "post-edit",
 ): string {
-  const base = `hook post-edit --agent ${agent}`;
+  const base = `hook ${event} --agent ${agent}`;
   if (launch) {
     const parts = [launch.command, ...launch.args].map((part) => `"${part}"`).join(" ");
     return `sh -c '${parts} ${base} || true'`;
@@ -111,6 +112,16 @@ function claude(ctx: PlanContext): AgentPlan {
       { type: "command", command: hookCommand(ctx.version, "claude", ctx.launch), timeout: 20 },
     ],
   };
+  const gate: HookEntry = {
+    matcher: "Edit|Write|MultiEdit",
+    hooks: [
+      {
+        type: "command",
+        command: hookCommand(ctx.version, "claude", ctx.launch, "pre-edit"),
+        timeout: 10,
+      },
+    ],
+  };
   const ops: Op[] = [];
   if (ctx.scope === "user") {
     const add: [string, ...string[]] = [
@@ -140,9 +151,16 @@ function claude(ctx: PlanContext): AgentPlan {
   ops.push(
     jsonMerge(
       join(root, "settings.json"),
-      "post edit scan hook",
-      (settings) => upsertHook(settings, "PostToolUse", entry),
-      (settings) => removeHook(settings, "PostToolUse"),
+      "design gate and post edit scan hooks",
+      (settings) => {
+        if (ctx.gate === false) removeHook(settings, "PreToolUse");
+        else upsertHook(settings, "PreToolUse", gate);
+        upsertHook(settings, "PostToolUse", entry);
+      },
+      (settings) => {
+        removeHook(settings, "PreToolUse");
+        removeHook(settings, "PostToolUse");
+      },
     ),
     {
       kind: "file",

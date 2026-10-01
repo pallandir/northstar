@@ -26,6 +26,7 @@ export interface InstallOptions {
   stamp?: string;
   bin?: string;
   extensionIds?: string[];
+  gate?: boolean;
 }
 
 export type Status = "created" | "updated" | "unchanged" | "planned" | "failed";
@@ -45,7 +46,10 @@ export interface InstallOutcome {
 
 export function contextFor(
   agent: AgentName,
-  options: Pick<InstallOptions, "scope" | "packs" | "home" | "project" | "bin" | "extensionIds">,
+  options: Pick<
+    InstallOptions,
+    "scope" | "packs" | "home" | "project" | "bin" | "extensionIds" | "gate"
+  >,
 ): PlanContext {
   const root = canonRoot();
   return {
@@ -59,6 +63,7 @@ export function contextFor(
     critic: readFileSync(join(root, "agents", "critic.md"), "utf8"),
     launch: options.bin ? { command: "node", args: [options.bin] } : undefined,
     extensionIds: options.extensionIds,
+    gate: options.gate,
   };
 }
 
@@ -185,6 +190,7 @@ export function install(options: InstallOptions): InstallOutcome {
         packs: options.packs,
         bin: options.bin,
         extensionIds: options.extensionIds,
+        gate: options.gate,
         files,
       };
     }
@@ -220,6 +226,7 @@ export function uninstall(options: UninstallOptions): InstallOutcome {
         project: options.project,
         bin: entry.bin,
         extensionIds: entry.extensionIds,
+        gate: entry.gate,
       }),
     ).ops) {
       if (op.kind === "skill") stillNeeded.add(op.path);
@@ -246,6 +253,7 @@ export function uninstall(options: UninstallOptions): InstallOutcome {
         project: options.project,
         bin: entry.bin,
         extensionIds: entry.extensionIds,
+        gate: entry.gate,
       }),
     );
     for (const op of [...plan.ops].reverse()) {

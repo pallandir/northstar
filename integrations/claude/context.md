@@ -3,7 +3,7 @@
 
 For any UI design, redesign, polish or adaptation task, use the `northstar` skill and the `northstar` MCP server.
 
-- Call `northstar_context` first. Read DESIGN.md and PRODUCT.md when they exist.
+- Call `northstar_context` first. Do not create or edit UI files until DESIGN.md exists and is valid: draft it with `design_md_normalize` or `design_system_propose`, then run `design_md_validate`.
 - Ask at most 3 questions per turn, each with a default. Never ask what the repo can answer.
 - Library first: resolve icons, fonts, components and primitives with the resolve tools. Never hand roll them unless DESIGN.md allows it.
 - Run `slop_scan` on edited UI files and fix errors before finishing.

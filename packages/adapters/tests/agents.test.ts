@@ -291,3 +291,32 @@ test("extension ids become a trusted origin list in every server entry", () => {
     undefined,
   );
 });
+
+test("claude gets a design gate before edits and a scan after, and both are removed together", () => {
+  const op = merges(planAgent(ctx("claude")).ops).find((o) =>
+    o.path.endsWith("settings.json"),
+  ) as Extract<Op, { kind: "merge" }>;
+  const written = JSON.parse(op.apply(undefined)).hooks;
+  assert.equal(written.PreToolUse[0].matcher, "Edit|Write|MultiEdit");
+  assert.match(written.PreToolUse[0].hooks[0].command, /hook pre-edit --agent claude/);
+  assert.match(written.PostToolUse[0].hooks[0].command, /hook post-edit --agent claude/);
+  assert.equal(op.remove(op.apply(undefined)).trim(), "");
+
+  const foreign = { matcher: "Bash", hooks: [{ type: "command", command: "audit.sh" }] };
+  const existing = JSON.stringify({ hooks: { PreToolUse: [foreign] } });
+  const kept = JSON.parse(op.remove(op.apply(existing)));
+  assert.deepEqual(kept.hooks.PreToolUse, [foreign]);
+});
+
+test("the gate can be left out and is removed from a config that already has it", () => {
+  const off = merges(planAgent({ ...ctx("claude"), gate: false }).ops).find((o) =>
+    o.path.endsWith("settings.json"),
+  ) as Extract<Op, { kind: "merge" }>;
+  assert.equal(JSON.parse(off.apply(undefined)).hooks.PreToolUse, undefined);
+  const on = merges(planAgent(ctx("claude")).ops).find((o) =>
+    o.path.endsWith("settings.json"),
+  ) as Extract<Op, { kind: "merge" }>;
+  const reinstalled = JSON.parse(off.apply(on.apply(undefined)));
+  assert.equal(reinstalled.hooks.PreToolUse, undefined);
+  assert.ok(reinstalled.hooks.PostToolUse);
+});

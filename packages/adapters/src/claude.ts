@@ -42,11 +42,24 @@ export function marketplaceManifest(version: string): string {
 }
 
 export function hooksManifest(version: string): string {
+  const matcher = "Edit|Write|MultiEdit";
   return formatJson({
     hooks: {
+      PreToolUse: [
+        {
+          matcher,
+          hooks: [
+            {
+              type: "command",
+              command: hookCommand(version, "claude", undefined, "pre-edit"),
+              timeout: 10,
+            },
+          ],
+        },
+      ],
       PostToolUse: [
         {
-          matcher: "Edit|Write|MultiEdit",
+          matcher,
           hooks: [{ type: "command", command: hookCommand(version, "claude"), timeout: 20 }],
         },
       ],

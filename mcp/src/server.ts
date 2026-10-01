@@ -27,7 +27,8 @@ const noteSchema = z.string().max(4000).optional();
 
 const INSTRUCTIONS = `\
 Northstar is a UI design advisory framework with a browser comment channel. For any UI design, redesign, \
-polish, adapt or review work, use the northstar skill and call northstar_context first when it is listed. Work \
+polish, adapt or review work, use the northstar skill and call northstar_context first when it is listed. Write \
+DESIGN.md before any UI code and keep the gate in northstar_context open. Work \
 library first and avoid generic AI defaults. Without the skill, read the references at northstar://canon. \
 Browser comments arrive only when the developer clicks "Send to AI", through the resolve-comments prompt: there \
 is nothing to poll or watch.`;

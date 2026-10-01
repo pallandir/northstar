@@ -17,6 +17,7 @@ export interface AgentRecord {
   packs: "all" | "dynamic";
   bin?: string;
   extensionIds?: string[];
+  gate?: boolean;
   files: InstalledFile[];
 }
 

@@ -10,6 +10,16 @@ metadata:
 
 You are steering UI work, not decorating. The designer's input is a direction or design system in markdown. Your job is to turn it into professional UI without generic defaults, by asking before guessing and by using libraries instead of writing primitives by hand.
 
+## First rule: DESIGN.md before any UI code
+
+Do not create or edit a UI file until `DESIGN.md` exists, parses, has no unfilled placeholders and names a mode. This holds for every task, including a small tweak, a polish pass and a browser comment. `northstar_context` reports it in the `gate` field.
+
+- The designer gave a direction or a brief: call `design_md_normalize` with `write` true.
+- Nothing was given: ask your questions, then call `design_system_propose`, show the draft, and save it once approved.
+- Then call `design_md_validate` and fix every error before touching UI code.
+
+Skip this only when the user says so explicitly, and log that in `design/decisions.md`. In Claude Code an edit hook blocks UI edits until the gate is open.
+
 ## Start
 
 1. If the Northstar MCP server is connected, call `northstar_context` first. It reports the stack, whether DESIGN.md and PRODUCT.md exist and are valid, the mode, the likely stage and which packs are enabled. Without the server, read DESIGN.md and PRODUCT.md from the project root yourself.

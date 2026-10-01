@@ -95,3 +95,11 @@ test("init writes the scaffolds once and never overwrites without force", async 
   assert.match(design, /^---\nname:/);
   assert.deepEqual(scaffold(root, true).skipped, []);
 });
+
+test("the stage prompts and the instructions put DESIGN.md first", async () => {
+  for (const verb of VERBS) {
+    const body = bodyOf(await client.getPrompt({ name: verb.name, arguments: {} }));
+    assert.match(body, /DESIGN\.md comes first/, verb.name);
+  }
+  assert.match(client.getInstructions() ?? "", /DESIGN\.md before any UI code/);
+});
