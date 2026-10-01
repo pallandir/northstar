@@ -253,3 +253,41 @@ test("both the global and the pinned npx form of the command are recognised as o
   assert.equal(out.length, 1);
   assert.match(out[0].hooks[0].command, /northstar@2\.2\.0/);
 });
+
+test("extension ids become a trusted origin list in every server entry", () => {
+  const withIds = {
+    ...ctx("codex"),
+    extensionIds: ["pemllnphnlcnkolginljldoejphkmbba", "abcdefghijklmnopabcdefghijklmnop"],
+  };
+  const expected =
+    "chrome-extension://pemllnphnlcnkolginljldoejphkmbba,chrome-extension://abcdefghijklmnopabcdefghijklmnop";
+  const toml = merges(planAgent(withIds).ops).find((o) =>
+    o.path.endsWith("config.toml"),
+  ) as Extract<Op, { kind: "merge" }>;
+  assert.match(toml.apply(undefined), new RegExp(`NORTHSTAR_EXTRA_ORIGINS = "${expected}"`));
+  const cursor = merges(planAgent({ ...withIds, agent: "cursor" }).ops)[0] as Extract<
+    Op,
+    { kind: "merge" }
+  >;
+  assert.equal(
+    JSON.parse(cursor.apply(undefined)).mcpServers.northstar.env.NORTHSTAR_EXTRA_ORIGINS,
+    expected,
+  );
+  const claude = planAgent({ ...withIds, agent: "claude" }).ops.find(
+    (o) => o.kind === "command",
+  ) as Extract<Op, { kind: "command" }>;
+  assert.ok(claude.run.includes(`NORTHSTAR_EXTRA_ORIGINS=${expected}`));
+  const opencode = merges(planAgent({ ...withIds, agent: "opencode" }).ops)[0] as Extract<
+    Op,
+    { kind: "merge" }
+  >;
+  assert.equal(
+    JSON.parse(opencode.apply(undefined)).mcp.northstar.environment.NORTHSTAR_EXTRA_ORIGINS,
+    expected,
+  );
+  const plain = merges(planAgent({ ...ctx("cursor") }).ops)[0] as Extract<Op, { kind: "merge" }>;
+  assert.equal(
+    JSON.parse(plain.apply(undefined)).mcpServers.northstar.env.NORTHSTAR_EXTRA_ORIGINS,
+    undefined,
+  );
+});

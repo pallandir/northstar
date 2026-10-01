@@ -25,6 +25,7 @@ export interface InstallOptions {
   run: Runner;
   stamp?: string;
   bin?: string;
+  extensionIds?: string[];
 }
 
 export type Status = "created" | "updated" | "unchanged" | "planned" | "failed";
@@ -44,7 +45,7 @@ export interface InstallOutcome {
 
 export function contextFor(
   agent: AgentName,
-  options: Pick<InstallOptions, "scope" | "packs" | "home" | "project" | "bin">,
+  options: Pick<InstallOptions, "scope" | "packs" | "home" | "project" | "bin" | "extensionIds">,
 ): PlanContext {
   const root = canonRoot();
   return {
@@ -57,11 +58,15 @@ export function contextFor(
     snippet: readFileSync(join(root, "snippets", "agents-md.md"), "utf8"),
     critic: readFileSync(join(root, "agents", "critic.md"), "utf8"),
     launch: options.bin ? { command: "node", args: [options.bin] } : undefined,
+    extensionIds: options.extensionIds,
   };
 }
 
 export function plansFor(
-  options: Pick<InstallOptions, "agents" | "scope" | "packs" | "home" | "project" | "bin">,
+  options: Pick<
+    InstallOptions,
+    "agents" | "scope" | "packs" | "home" | "project" | "bin" | "extensionIds"
+  >,
 ): AgentPlan[] {
   return options.agents.map((agent) => planAgent(contextFor(agent, options)));
 }
@@ -179,6 +184,7 @@ export function install(options: InstallOptions): InstallOutcome {
         scope: options.scope,
         packs: options.packs,
         bin: options.bin,
+        extensionIds: options.extensionIds,
         files,
       };
     }
@@ -213,6 +219,7 @@ export function uninstall(options: UninstallOptions): InstallOutcome {
         home: options.home,
         project: options.project,
         bin: entry.bin,
+        extensionIds: entry.extensionIds,
       }),
     ).ops) {
       if (op.kind === "skill") stillNeeded.add(op.path);
@@ -238,6 +245,7 @@ export function uninstall(options: UninstallOptions): InstallOutcome {
         home: options.home,
         project: options.project,
         bin: entry.bin,
+        extensionIds: entry.extensionIds,
       }),
     );
     for (const op of [...plan.ops].reverse()) {

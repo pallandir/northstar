@@ -17,6 +17,7 @@ interface Options {
   home: string;
   project: string;
   bin?: string;
+  extensionIds: string[];
 }
 
 function parse(args: string[]): Options {
@@ -29,6 +30,7 @@ function parse(args: string[]): Options {
     yes: false,
     home: homedir(),
     project: process.env.NORTHSTAR_ROOT ?? process.cwd(),
+    extensionIds: [],
   };
   for (let i = 0; i < args.length; i++) {
     const arg = args[i] ?? "";
@@ -53,7 +55,12 @@ function parse(args: string[]): Options {
     } else if (arg === "--home") options.home = resolve(value());
     else if (arg === "--project") options.project = resolve(value());
     else if (arg === "--bin") options.bin = resolve(value());
-    else throw new Error(`unknown option ${arg}`);
+    else if (arg === "--extension-id") {
+      for (const id of value().split(",")) {
+        if (!/^[a-p]{32}$/.test(id)) throw new Error(`${id} is not a Chrome extension id`);
+        options.extensionIds.push(id);
+      }
+    } else throw new Error(`unknown option ${arg}`);
   }
   return options;
 }

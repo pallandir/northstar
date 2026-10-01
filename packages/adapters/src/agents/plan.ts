@@ -19,6 +19,18 @@ export function launchOf(ctx: Pick<PlanContext, "launch">): { command: string; a
   return ctx.launch ?? { command: "npx", args: ["-y", PACKAGE] };
 }
 
+export function serverEnv(
+  ctx: Pick<PlanContext, "packs" | "extensionIds">,
+): Record<string, string> {
+  const env: Record<string, string> = { NORTHSTAR_PACKS: ctx.packs };
+  if (ctx.extensionIds?.length) {
+    env.NORTHSTAR_EXTRA_ORIGINS = ctx.extensionIds
+      .map((id) => `chrome-extension://${id}`)
+      .join(",");
+  }
+  return env;
+}
+
 export function hookCommand(
   version: string,
   agent: string,
@@ -34,7 +46,7 @@ export function hookCommand(
 
 function standardEntry(ctx: PlanContext) {
   const { command, args } = launchOf(ctx);
-  return { command, args, env: { NORTHSTAR_PACKS: ctx.packs } };
+  return { command, args, env: serverEnv(ctx) };
 }
 
 function jsonMerge(
@@ -105,8 +117,7 @@ function claude(ctx: PlanContext): AgentPlan {
       "claude",
       "mcp",
       "add",
-      "--env",
-      `NORTHSTAR_PACKS=${ctx.packs}`,
+      ...Object.entries(serverEnv(ctx)).flatMap(([key, value]) => ["--env", `${key}=${value}`]),
       "--transport",
       "stdio",
       "--scope",
@@ -156,7 +167,7 @@ function codex(ctx: PlanContext): AgentPlan {
     "startup_timeout_sec = 30",
     "",
     `[${table}.env]`,
-    `NORTHSTAR_PACKS = "${ctx.packs}"`,
+    ...Object.entries(serverEnv(ctx)).map(([key, value]) => `${key} = ${JSON.stringify(value)}`),
   ].join("\n");
   const entry: HookEntry = {
     matcher: "apply_patch|Edit|Write",
@@ -280,7 +291,7 @@ function opencode(ctx: PlanContext): AgentPlan {
             type: "local",
             command: [launchOf(ctx).command, ...launchOf(ctx).args],
             enabled: true,
-            environment: { NORTHSTAR_PACKS: ctx.packs },
+            environment: serverEnv(ctx),
             timeout: 30000,
           };
         },

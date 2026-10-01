@@ -339,3 +339,14 @@ test("a local bin is used for the server and the hook, and doctor and uninstall 
   assert.equal(existsSync(join(w.home, ".cursor/mcp.json")), false);
   assert.equal(existsSync(join(w.home, ".codex/hooks.json")), false);
 });
+
+test("an extension id is recorded, written to the server env, and validated on the command line", () => {
+  const w = world();
+  const id = "pemllnphnlcnkolginljldoejphkmbba";
+  install({ ...base(w, ["cursor"]), extensionIds: [id] });
+  const env = JSON.parse(readFileSync(join(w.home, ".cursor/mcp.json"), "utf8")).mcpServers
+    .northstar.env;
+  assert.equal(env.NORTHSTAR_EXTRA_ORIGINS, `chrome-extension://${id}`);
+  assert.deepEqual(readRecord(w.home).agents.cursor?.extensionIds, [id]);
+  assert.equal(cli(w, "install", "--agent", "cursor", "--extension-id", "not-an-id").status, 2);
+});

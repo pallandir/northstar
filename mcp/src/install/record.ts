@@ -16,6 +16,7 @@ export interface AgentRecord {
   scope: "user" | "project";
   packs: "all" | "dynamic";
   bin?: string;
+  extensionIds?: string[];
   files: InstalledFile[];
 }
 
