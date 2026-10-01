@@ -194,6 +194,9 @@
   border: 1px solid var(--ns-line);
   border-radius: var(--ns-radius-surface);
   box-shadow: var(--ns-shadow);
+}
+
+.ns-panel.ns-enter {
   animation: ns-fade-scale var(--ns-dur-enter) var(--ns-ease);
 }
 
@@ -283,15 +286,84 @@
   gap: var(--ns-s2);
 }
 
-.ns-inspector-color-controls input[type="color"] {
+.ns-inspector-color-preview {
   flex: none;
   width: 40px;
   height: 40px;
-  padding: 2px;
-  border: 1px solid var(--ns-line);
+  border: 1px solid var(--ns-line-strong);
   border-radius: var(--ns-radius-control);
-  background: var(--ns-bg);
+}
+
+.ns-cpick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ns-s3);
+  margin-bottom: var(--ns-s3);
+}
+
+.ns-cpick-area {
+  position: relative;
+  height: 132px;
+  border-radius: var(--ns-radius-control);
+  border: 1px solid var(--ns-line-strong);
+  background-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0)),
+    linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
+  cursor: crosshair;
+  touch-action: none;
+  outline: none;
+}
+
+.ns-cpick-area:focus-visible {
+  box-shadow: 0 0 0 3px var(--ns-accent-ring);
+}
+
+.ns-cpick-thumb {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.ns-cpick-hue {
+  appearance: none;
+  width: 100%;
+  height: 12px;
+  margin: 0;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    #f00 0%,
+    #ff0 17%,
+    #0f0 33%,
+    #0ff 50%,
+    #00f 67%,
+    #f0f 83%,
+    #f00 100%
+  );
   cursor: pointer;
+}
+
+.ns-cpick-hue::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.ns-cpick-hue::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .ns-inspector-hex {

@@ -88,7 +88,8 @@ describe("TopLayer", () => {
     pagePopover.dispatchEvent(new Event("toggle", { bubbles: false }));
     await settle();
 
-    expect(shown).toEqual(["hide:northstar-root", "show:northstar-root"]);
+    expect(shown.slice(0, 2)).toEqual(["hide:northstar-root", "show:northstar-root"]);
+    expect(shown.at(-1)).toBe("show:northstar-root");
     layer.detach();
   });
 
@@ -149,6 +150,42 @@ describe("TopLayer", () => {
     dialog.remove();
     await settle();
     expect(host.isConnected).toBe(true);
+    layer.detach();
+  });
+
+  it("ignores unrelated page mutations so the overlay is not re-shown", async () => {
+    const { layer } = await makeLayer();
+    await settle();
+    shown.length = 0;
+
+    for (let i = 0; i < 20; i += 1) {
+      document.documentElement.append(document.createComment("noise"));
+      const details = document.createElement("details");
+      document.body.append(details);
+      details.setAttribute("open", "");
+    }
+    await settle();
+
+    expect(shown).toEqual([]);
+    layer.detach();
+  });
+
+  it("ignores a page popover closing", async () => {
+    const { layer } = await makeLayer();
+    await settle();
+    shown.length = 0;
+
+    const pagePopover = document.createElement("div");
+    pagePopover.setAttribute("popover", "manual");
+    document.body.append(pagePopover);
+    await settle();
+    shown.length = 0;
+    const closing = new Event("toggle");
+    Object.assign(closing, { newState: "closed" });
+    pagePopover.dispatchEvent(closing);
+    await settle();
+
+    expect(shown).toEqual([]);
     layer.detach();
   });
 

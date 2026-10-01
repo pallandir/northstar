@@ -35,16 +35,35 @@ export class TopLayer {
   private shadow: ShadowRoot | null = null;
 
   private readonly onToggle = (event: Event) => {
-    if (event.target === this.host) return;
+    const target = event.target;
+    if (target === this.host || !(target instanceof Element) || !target.hasAttribute("popover")) {
+      return;
+    }
+    const state = (event as Event & { newState?: string }).newState;
+    if (state !== undefined && state !== "open") return;
     this.schedule();
   };
   private readonly onMutate = (records: MutationRecord[]) => {
     const host = this.host;
     if (!host) return;
-    const openChanged = records.some((r) => r.type === "attributes");
-    const rootChanged = records.some((r) => r.target === document.documentElement);
-    if (openChanged || !host.isConnected || rootChanged) this.schedule();
+    if (!host.isConnected || records.some((record) => this.affectsTopLayer(record, host))) {
+      this.schedule();
+    }
   };
+
+  private affectsTopLayer(record: MutationRecord, host: HTMLElement): boolean {
+    if (record.type === "attributes") return record.target instanceof HTMLDialogElement;
+    for (const node of record.removedNodes) {
+      if (node === host || (node instanceof Element && node.contains(host))) return true;
+    }
+    for (const node of record.addedNodes) {
+      if (!(node instanceof Element) || node === host) continue;
+      if (node.matches("dialog, [popover]") || node.querySelector("dialog[open], [popover]")) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   attach(host: HTMLElement, shadow: ShadowRoot): void {
     this.host = host;

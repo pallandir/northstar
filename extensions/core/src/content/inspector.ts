@@ -1,5 +1,6 @@
 import { rgbToHex, samplePageColors, toHex } from "../lib/color.js";
 import type { Operation } from "../types.js";
+import { buildColorPicker } from "./color-picker.js";
 
 export type InspectorTabId = "comment" | "text" | "color";
 
@@ -56,7 +57,10 @@ export function buildInspector(
   let attachScreenshot = opts.initialAttachScreenshot ?? false;
 
   const panel = document.createElement("div");
-  panel.className = "ns-panel ns-inspector";
+  panel.className = "ns-panel ns-inspector ns-enter";
+  panel.addEventListener("animationend", (event) => {
+    if (event.target === panel) panel.classList.remove("ns-enter");
+  });
 
   const bodyHost = document.createElement("div");
   bodyHost.className = "ns-inspector-body";
@@ -325,36 +329,43 @@ function buildColorTab(el: HTMLElement): TabController {
 
   const controlsRow = document.createElement("div");
   controlsRow.className = "ns-inspector-color-controls";
-  const colorInput = document.createElement("input");
-  colorInput.type = "color";
+  const preview = document.createElement("div");
+  preview.className = "ns-inspector-color-preview";
   const hexInput = document.createElement("input");
   hexInput.type = "text";
   hexInput.className = "ns-field ns-inspector-hex";
-  controlsRow.append(colorInput, hexInput);
+  hexInput.maxLength = 7;
+  hexInput.spellcheck = false;
+  controlsRow.append(preview, hexInput);
 
-  function syncControls(): void {
+  const picker = buildColorPicker(toHex(from.color), (hex) => applyColor(hex, true));
+
+  function syncControls(fromPicker = false): void {
     for (const [key, btn] of propertyButtons) {
       btn.classList.toggle("ns-inspector-property--active", key === property);
     }
     const value = toHex(changed[property] ?? from[property]);
-    colorInput.value = value;
-    hexInput.value = value;
+    preview.style.backgroundColor = value;
+    if (hexInput.value.toLowerCase() !== value) hexInput.value = value;
+    if (!fromPicker) picker.set(value);
   }
 
-  function applyColor(hex: string): void {
+  function applyColor(hex: string, fromPicker = false): void {
     changed[property] = hex;
     (el.style as unknown as Record<string, string>)[toCamel(property)] = hex;
-    syncControls();
+    syncControls(fromPicker);
   }
 
-  colorInput.addEventListener("input", () => applyColor(colorInput.value));
+  hexInput.addEventListener("input", () => {
+    if (/^#[0-9a-fA-F]{6}$/.test(hexInput.value)) applyColor(hexInput.value.toLowerCase());
+  });
   hexInput.addEventListener("change", () => {
-    if (/^#[0-9a-fA-F]{6}$/.test(hexInput.value)) applyColor(hexInput.value);
+    if (/^#[0-9a-fA-F]{6}$/.test(hexInput.value)) applyColor(hexInput.value.toLowerCase());
     else syncControls();
   });
 
   syncControls();
-  body.append(propertyRow, swatchRow, controlsRow);
+  body.append(propertyRow, swatchRow, picker.el, controlsRow);
 
   const revert = () => {
     for (const [key, value] of Object.entries(originals)) {
