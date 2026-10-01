@@ -24,6 +24,7 @@ export interface InstallOptions {
   dryRun: boolean;
   run: Runner;
   stamp?: string;
+  bin?: string;
 }
 
 export type Status = "created" | "updated" | "unchanged" | "planned" | "failed";
@@ -43,7 +44,7 @@ export interface InstallOutcome {
 
 export function contextFor(
   agent: AgentName,
-  options: Pick<InstallOptions, "scope" | "packs" | "home" | "project">,
+  options: Pick<InstallOptions, "scope" | "packs" | "home" | "project" | "bin">,
 ): PlanContext {
   const root = canonRoot();
   return {
@@ -55,11 +56,12 @@ export function contextFor(
     packs: options.packs,
     snippet: readFileSync(join(root, "snippets", "agents-md.md"), "utf8"),
     critic: readFileSync(join(root, "agents", "critic.md"), "utf8"),
+    launch: options.bin ? { command: "node", args: [options.bin] } : undefined,
   };
 }
 
 export function plansFor(
-  options: Pick<InstallOptions, "agents" | "scope" | "packs" | "home" | "project">,
+  options: Pick<InstallOptions, "agents" | "scope" | "packs" | "home" | "project" | "bin">,
 ): AgentPlan[] {
   return options.agents.map((agent) => planAgent(contextFor(agent, options)));
 }
@@ -176,6 +178,7 @@ export function install(options: InstallOptions): InstallOutcome {
         version: VERSION,
         scope: options.scope,
         packs: options.packs,
+        bin: options.bin,
         files,
       };
     }
@@ -209,6 +212,7 @@ export function uninstall(options: UninstallOptions): InstallOutcome {
         packs: entry.packs ?? "all",
         home: options.home,
         project: options.project,
+        bin: entry.bin,
       }),
     ).ops) {
       if (op.kind === "skill") stillNeeded.add(op.path);
@@ -233,6 +237,7 @@ export function uninstall(options: UninstallOptions): InstallOutcome {
         packs: entry.packs ?? "all",
         home: options.home,
         project: options.project,
+        bin: entry.bin,
       }),
     );
     for (const op of [...plan.ops].reverse()) {

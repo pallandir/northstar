@@ -16,6 +16,7 @@ interface Options {
   yes: boolean;
   home: string;
   project: string;
+  bin?: string;
 }
 
 function parse(args: string[]): Options {
@@ -51,6 +52,7 @@ function parse(args: string[]): Options {
       options.packs = packs;
     } else if (arg === "--home") options.home = resolve(value());
     else if (arg === "--project") options.project = resolve(value());
+    else if (arg === "--bin") options.bin = resolve(value());
     else throw new Error(`unknown option ${arg}`);
   }
   return options;

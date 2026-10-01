@@ -15,17 +15,26 @@ import {
 import { opencodePlugin } from "./opencode-plugin.js";
 import { type AgentPlan, type Op, PACKAGE, type PlanContext, SERVER } from "./types.js";
 
-export function hookCommand(version: string, agent: string): string {
+export function launchOf(ctx: Pick<PlanContext, "launch">): { command: string; args: string[] } {
+  return ctx.launch ?? { command: "npx", args: ["-y", PACKAGE] };
+}
+
+export function hookCommand(
+  version: string,
+  agent: string,
+  launch?: PlanContext["launch"],
+): string {
   const base = `hook post-edit --agent ${agent}`;
+  if (launch) {
+    const parts = [launch.command, ...launch.args].map((part) => `"${part}"`).join(" ");
+    return `sh -c '${parts} ${base} || true'`;
+  }
   return `sh -c '(command -v northstar >/dev/null 2>&1 && northstar ${base}) || npx -y ${PACKAGE}@${version} ${base} || true'`;
 }
 
 function standardEntry(ctx: PlanContext) {
-  return {
-    command: "npx",
-    args: ["-y", PACKAGE],
-    env: { NORTHSTAR_PACKS: ctx.packs },
-  };
+  const { command, args } = launchOf(ctx);
+  return { command, args, env: { NORTHSTAR_PACKS: ctx.packs } };
 }
 
 function jsonMerge(
@@ -86,7 +95,9 @@ function claude(ctx: PlanContext): AgentPlan {
   const root = ctx.scope === "user" ? join(ctx.home, ".claude") : join(ctx.project, ".claude");
   const entry: HookEntry = {
     matcher: "Edit|Write|MultiEdit",
-    hooks: [{ type: "command", command: hookCommand(ctx.version, "claude"), timeout: 20 }],
+    hooks: [
+      { type: "command", command: hookCommand(ctx.version, "claude", ctx.launch), timeout: 20 },
+    ],
   };
   const ops: Op[] = [];
   if (ctx.scope === "user") {
@@ -102,9 +113,8 @@ function claude(ctx: PlanContext): AgentPlan {
       "user",
       SERVER,
       "--",
-      "npx",
-      "-y",
-      PACKAGE,
+      launchOf(ctx).command,
+      ...launchOf(ctx).args,
     ];
     ops.push({
       kind: "command",
@@ -141,8 +151,8 @@ function codex(ctx: PlanContext): AgentPlan {
   const table = `mcp_servers.${SERVER}`;
   const body = [
     `[${table}]`,
-    'command = "npx"',
-    `args = ["-y", "${PACKAGE}"]`,
+    `command = ${JSON.stringify(launchOf(ctx).command)}`,
+    `args = ${JSON.stringify(launchOf(ctx).args)}`,
     "startup_timeout_sec = 30",
     "",
     `[${table}.env]`,
@@ -153,7 +163,7 @@ function codex(ctx: PlanContext): AgentPlan {
     hooks: [
       {
         type: "command",
-        command: hookCommand(ctx.version, "codex"),
+        command: hookCommand(ctx.version, "codex", ctx.launch),
         timeout: 30,
         statusMessage: "Northstar scan",
       },
@@ -225,7 +235,7 @@ function gemini(ctx: PlanContext): AgentPlan {
       {
         type: "command",
         name: "northstar-scan",
-        command: hookCommand(ctx.version, "gemini"),
+        command: hookCommand(ctx.version, "gemini", ctx.launch),
         timeout: 20000,
       },
     ],
@@ -268,7 +278,7 @@ function opencode(ctx: PlanContext): AgentPlan {
           config.$schema ??= "https://opencode.ai/config.json";
           child(config, "mcp")[SERVER] = {
             type: "local",
-            command: ["npx", "-y", PACKAGE],
+            command: [launchOf(ctx).command, ...launchOf(ctx).args],
             enabled: true,
             environment: { NORTHSTAR_PACKS: ctx.packs },
             timeout: 30000,
@@ -286,7 +296,7 @@ function opencode(ctx: PlanContext): AgentPlan {
         kind: "file",
         path: join(configRoot, "plugins", "northstar.ts"),
         label: "post edit scan plugin",
-        content: opencodePlugin(hookCommand(ctx.version, "opencode")),
+        content: opencodePlugin(hookCommand(ctx.version, "opencode", ctx.launch)),
       },
       skillOp(join(configRoot, "skills")),
       blockMerge(user ? join(root, "AGENTS.md") : join(ctx.project, "AGENTS.md"), ctx),

@@ -12,6 +12,7 @@ export interface PlanContext {
   packs: Packs;
   snippet: string;
   critic: string;
+  launch?: { command: string; args: string[] };
 }
 
 export type Cmd = [string, ...string[]];

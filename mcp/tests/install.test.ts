@@ -298,3 +298,44 @@ test("the setup commands validate their options and detect agents from the home 
   mkdirSync(join(w.home, ".gemini"));
   assert.match(cli(w, "install", "--dry-run").stdout, /Plan for gemini/);
 });
+
+test("a local bin is used for the server and the hook, and doctor and uninstall follow it", async () => {
+  const w = world();
+  install({ ...base(w, ["cursor", "codex", "claude"]), bin: "/opt/northstar/dist/cli.js" });
+  const cursor = JSON.parse(readFileSync(join(w.home, ".cursor/mcp.json"), "utf8")).mcpServers
+    .northstar;
+  assert.equal(cursor.command, "node");
+  assert.deepEqual(cursor.args, ["/opt/northstar/dist/cli.js"]);
+  assert.match(
+    readFileSync(join(w.home, ".codex/config.toml"), "utf8"),
+    /command = "node"\nargs = \["\/opt\/northstar\/dist\/cli\.js"\]/,
+  );
+  const hooks = readFileSync(join(w.home, ".codex/hooks.json"), "utf8");
+  assert.match(
+    hooks,
+    /\\"node\\" \\"\/opt\/northstar\/dist\/cli\.js\\" hook post-edit --agent codex/,
+  );
+  assert.ok(w.calls.some((c) => c.join(" ").endsWith("-- node /opt/northstar/dist/cli.js")));
+  assert.equal(readRecord(w.home).agents.cursor?.bin, "/opt/northstar/dist/cli.js");
+
+  const checks = await doctor({ home: w.home, project: w.project, run: w.run, probePorts: [] });
+  assert.deepEqual(
+    checks.filter((c) => c.status === "fail"),
+    [],
+  );
+  assert.ok(
+    checks
+      .filter((c) => /MCP server|hook/.test(c.name) && c.name !== "hook")
+      .every((c) => c.status !== "warn"),
+  );
+
+  uninstall({
+    agents: ["cursor", "codex", "claude"],
+    home: w.home,
+    project: w.project,
+    dryRun: false,
+    run: w.run,
+  });
+  assert.equal(existsSync(join(w.home, ".cursor/mcp.json")), false);
+  assert.equal(existsSync(join(w.home, ".codex/hooks.json")), false);
+});
