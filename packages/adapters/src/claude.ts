@@ -1,3 +1,4 @@
+import { hookCommand } from "./agents/plan.js";
 import { formatJson } from "./json.js";
 
 export const AUTHOR = { name: "pallandir", url: "https://github.com/pallandir" };
@@ -41,14 +42,12 @@ export function marketplaceManifest(version: string): string {
 }
 
 export function hooksManifest(version: string): string {
-  const base = "hook post-edit --agent claude";
-  const command = `sh -c '(command -v northstar >/dev/null 2>&1 && northstar ${base}) || npx -y @pallandir/northstar@${version} ${base} || true'`;
   return formatJson({
     hooks: {
       PostToolUse: [
         {
           matcher: "Edit|Write|MultiEdit",
-          hooks: [{ type: "command", command, timeout: 20 }],
+          hooks: [{ type: "command", command: hookCommand(version, "claude"), timeout: 20 }],
         },
       ],
     },
