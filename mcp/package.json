@@ -24,7 +24,7 @@
     "node": ">=20"
   },
   "bin": {
-    "northstar": "dist/index.js"
+    "northstar": "dist/cli.js"
   },
   "files": ["dist", "LICENSE.md", "README.md"],
   "publishConfig": {
@@ -34,7 +34,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "start": "node dist/index.js",
+    "start": "node dist/cli.js",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
     "prepack": "node -e \"require('fs').copyFileSync('../LICENSE.md','LICENSE.md')\"",
