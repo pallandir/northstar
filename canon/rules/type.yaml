@@ -1,0 +1,75 @@
+- id: NS-TYPE-DEFAULT-DISPLAY
+  title: Training data default as the display face
+  stage: [system, critique]
+  severity: warn
+  modes: { operate: info }
+  allowable: true
+  detect: static
+  params:
+    families: [Fraunces, Playfair Display, Cormorant, Lora, Crimson Text, Newsreader, Syne, Space Grotesk, IBM Plex Sans, DM Sans, DM Serif Display, Outfit, Plus Jakarta Sans, Instrument Sans, Instrument Serif, Inter]
+  rationale: These families dominate generated pages because they dominate the training data. Using one as the display voice without a stated reason means no decision was made. Inter as quiet interface body text in an operating tool is fine.
+  fix: Pick the display face from the font resolver using the subject and mood in DESIGN.md, and record why.
+  sources: [impeccable, top-design, frontend-design]
+
+- id: NS-TYPE-DISPLAY-MAX
+  title: Display size cap
+  stage: [compose, polish]
+  severity: warn
+  allowable: true
+  detect: static
+  params:
+    operate: 3rem
+    read: 3.5rem
+    persuade: 6rem
+    experience: 12rem
+  rationale: Oversized display type crushes hierarchy in working interfaces. Marketing pages can go large, and expressive brand pages may exceed the cap with a recorded reason.
+  fix: Use a clamp with the cap as the maximum, or add an allow entry for the hero.
+  sources: [impeccable, top-design]
+
+- id: NS-TYPE-MEASURE
+  title: Line length
+  stage: [compose, polish]
+  severity: warn
+  allowable: true
+  detect: static
+  params:
+    max_ch: 75
+  rationale: Body text reads best between 45 and 75 characters per line. Serif faces tolerate slightly longer lines and need slightly more line height.
+  fix: Constrain prose containers with a max width in ch.
+  sources: [impeccable, frontend-design, ui-ux-pro-max]
+
+- id: NS-TYPE-FONT-COUNT
+  title: At most two families
+  stage: [system, critique]
+  severity: warn
+  allowable: true
+  detect: static
+  params:
+    max_families: 2
+  rationale: One family, or two that are clearly distinct, give personality without noise. Monospace for code does not count.
+  fix: Collapse to one or two families and express hierarchy with weight, size and width.
+  sources: [frontend-design]
+
+- id: NS-TYPE-SCALE
+  title: Defined type scale
+  stage: [system, critique]
+  severity: warn
+  allowable: true
+  detect: advisory
+  params:
+    operate_max_ratio: 1.25
+  rationale: A visible scale with deliberate weight steps makes hierarchy legible. Working interfaces use tighter ratios, expressive pages use bolder jumps.
+  fix: Define the scale as tokens in DESIGN.md and use only those sizes.
+  sources: [impeccable, top-design, frontend-design]
+
+- id: NS-TYPE-TRACKING-FLOOR
+  title: Tracking floor
+  stage: [polish]
+  severity: warn
+  allowable: true
+  detect: static
+  params:
+    min_em: -0.04
+  rationale: Tighter letter spacing than negative 0.04em makes glyphs collide.
+  fix: Loosen the tracking, or choose a face designed for display sizes.
+  sources: [impeccable]

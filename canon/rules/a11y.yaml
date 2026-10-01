@@ -1,0 +1,50 @@
+- id: NS-A11Y-CONTRAST
+  title: Text and control contrast
+  stage: [system, critique, polish]
+  severity: error
+  allowable: false
+  detect: static
+  rationale: Body text needs 4.5:1, large text 3:1, interface components and focus indicators 3:1. On a coloured surface, tint secondary text from that hue or the foreground, never plain grey.
+  fix: Adjust the token pair in DESIGN.md until the ratio passes, then reuse the token everywhere.
+  sources: [impeccable, ui-ux-pro-max, top-design]
+
+- id: NS-A11Y-FOCUS-VISIBLE
+  title: Keyboard focus stays visible
+  stage: [compose, polish]
+  severity: error
+  allowable: false
+  detect: static
+  rationale: Removing the outline without a replacement strands keyboard users. Focus rings are part of the design and should be themed from the palette.
+  fix: Replace outline none with a focus-visible ring that uses an accent token and a 2px offset.
+  sources: [impeccable, ui-ux-pro-max]
+
+- id: NS-A11Y-TARGET-SIZE
+  title: Touch and pointer target size
+  stage: [compose, polish]
+  severity: warn
+  modes: { operate: error }
+  allowable: false
+  detect: static
+  rationale: WCAG 2.2 AA requires at least 24 by 24 CSS pixels for pointer targets, and 44 by 44 is the practical floor for touch.
+  fix: Grow the hit area with padding or a pseudo element instead of enlarging the visual.
+  sources: [ui-ux-pro-max]
+
+- id: NS-A11Y-REDUCED-MOTION
+  title: Reduced motion is honoured
+  stage: [compose, polish]
+  severity: error
+  allowable: false
+  detect: static
+  rationale: Any motion that is not a direct response to a user action needs a prefers-reduced-motion fallback.
+  fix: Wrap authored animation in a media query for no-preference, or neutralise it under reduce.
+  sources: [impeccable, frontend-design, top-design, ui-ux-pro-max]
+
+- id: NS-A11Y-SEMANTICS
+  title: Real semantics for interactive elements
+  stage: [compose, polish]
+  severity: error
+  allowable: false
+  detect: static
+  rationale: Clickable divs, unlabelled inputs and images without alternative text break assistive technology and keyboard use.
+  fix: Use button, a, label and input elements, or the library primitive that renders them.
+  sources: [ui-ux-pro-max]

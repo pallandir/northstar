@@ -5,7 +5,14 @@
   "type": "module",
   "description": "Leave real-time comments on any interface and let your local AI coding assistant act on them.",
   "license": "PolyForm-Noncommercial-1.0.0",
-  "workspaces": ["extensions/core", "extensions/chromium", "extensions/firefox", "mcp"],
+  "workspaces": [
+    "canon",
+    "packages/*",
+    "extensions/core",
+    "extensions/chromium",
+    "extensions/firefox",
+    "mcp"
+  ],
   "engines": {
     "node": ">=20"
   },
@@ -25,7 +32,9 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "gen": "npm run gen --workspace @northstar/adapters",
+    "gen:check": "npm run gen:check --workspace @northstar/adapters"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

@@ -1,0 +1,154 @@
+- id: NS-SLOP-GRADIENT-TEXT
+  title: Gradient text
+  stage: [compose, polish]
+  severity: error
+  modes: { experience: warn }
+  allowable: true
+  detect: static
+  rationale: Gradient filled headings are the most recognisable generated look. Emphasis should come from weight, size or position.
+  fix: Use a solid colour from the palette and let scale or weight carry the emphasis.
+  sources: [impeccable, top-design, frontend-design]
+
+- id: NS-SLOP-SIDE-BORDER
+  title: Thick coloured side border
+  stage: [compose, polish]
+  severity: error
+  allowable: true
+  detect: static
+  rationale: A coloured left or right border above 1px on cards, list items, callouts and alerts is a template tell.
+  fix: Use a tinted background, an icon from the library, or a 1px border all around.
+  sources: [impeccable]
+
+- id: NS-SLOP-HARD-SHADOW
+  title: Hard offset shadow
+  stage: [compose, polish]
+  severity: error
+  allowable: true
+  detect: static
+  rationale: A zero blur block shadow is a costume unless the chosen direction really is neobrutalist. Depth should come from an offset plus a soft blur.
+  fix: Use layered soft shadows from the elevation tokens, or declare the neobrutalist direction in DESIGN.md.
+  sources: [impeccable]
+
+- id: NS-SLOP-EYEBROW
+  title: Eyebrow label above a heading
+  stage: [compose, polish]
+  severity: error
+  modes: { operate: warn }
+  allowable: true
+  detect: static
+  rationale: A small tracked label above every heading adds noise. The heading should carry its own weight, and a label earns its place only when it encodes real information such as a category.
+  fix: Delete the label, or fold the information into the heading or a metadata line.
+  sources: [impeccable, frontend-design]
+
+- id: NS-SLOP-CAPS-LABELS
+  title: Tracked all caps labels as a default
+  stage: [compose, polish]
+  severity: warn
+  modes: { operate: info }
+  allowable: true
+  detect: static
+  rationale: Uppercase tracked labels appear on generated pages whatever the subject. In dense data views they can be a legitimate column or status style.
+  fix: Use sentence case at a distinct weight or size.
+  sources: [frontend-design, impeccable]
+
+- id: NS-SLOP-EMOJI-ICON
+  title: Emoji or glyphs standing in for icons
+  stage: [compose, polish]
+  severity: error
+  allowable: true
+  detect: static
+  rationale: Icons come from one icon library at one stroke and size. Emoji and Unicode glyphs vary by platform and read as unfinished.
+  fix: Import the matching icon from the library chosen in DESIGN.md.
+  sources: [impeccable, ui-ux-pro-max, top-design]
+
+- id: NS-SLOP-NESTED-CARD
+  title: Card inside a card
+  stage: [compose, polish]
+  severity: error
+  allowable: true
+  detect: static
+  rationale: Nested containers flatten hierarchy and waste space. One surface level per region is enough.
+  fix: Remove the inner container and separate with spacing, a divider or a background step.
+  sources: [impeccable]
+
+- id: NS-SLOP-CARD-GRID
+  title: Identical icon, heading and text cards as page structure
+  stage: [compose, critique]
+  severity: warn
+  allowable: true
+  detect: dom
+  rationale: Chopping content into equal rounded cards with the same shadow is the default page scaffold. Structure should follow the content, with varied scale and emphasis.
+  fix: Vary the layout by importance, use a list, table or editorial split where the content is a list.
+  sources: [impeccable, frontend-design]
+
+- id: NS-SLOP-HERO-METRIC
+  title: Big number with a small label as the hero
+  stage: [compose, critique]
+  severity: warn
+  allowable: true
+  detect: advisory
+  rationale: A large figure, a tiny caption, supporting stats and an accent is the default hero treatment, not a decision.
+  fix: Open with the most characteristic thing in the subject's world, such as the product itself, an image or a live demo.
+  sources: [impeccable, frontend-design]
+
+- id: NS-SLOP-NUMBERED-SECTIONS
+  title: Decorative section numbers
+  stage: [compose, polish]
+  severity: warn
+  allowable: true
+  detect: static
+  rationale: Markers like 01, 02, 03 are only information when the content is truly a sequence such as steps or a timeline.
+  fix: Remove the numbers, or restructure the content as a real ordered list.
+  sources: [impeccable, frontend-design]
+
+- id: NS-SLOP-MONO-COSTUME
+  title: Monospace as a costume
+  stage: [compose, polish]
+  severity: warn
+  modes: { operate: info }
+  allowable: true
+  detect: static
+  rationale: Monospace belongs to code, data and measurement. Using it for small labels to look technical is decoration.
+  fix: Use the body or display family for labels and keep monospace for code and tabular figures.
+  sources: [impeccable, frontend-design]
+
+- id: NS-SLOP-DECOR-GLASS
+  title: Glass and blur as decoration
+  stage: [compose, polish]
+  severity: error
+  modes: { experience: warn }
+  allowable: true
+  detect: static
+  rationale: Backdrop blur is justified over imagery or a map, or to separate a dismissed layer. Applied to ordinary cards it is decoration.
+  fix: Use a solid or lightly tinted surface from the tokens.
+  sources: [impeccable, ui-ux-pro-max]
+
+- id: NS-SLOP-TEMPLATE-CHROME
+  title: Template chrome
+  stage: [compose, polish]
+  severity: warn
+  allowable: true
+  detect: static
+  rationale: Middle dot metadata strings, spaced dash labels, arrows appended to every link and tracked monospace data labels appear regardless of subject.
+  fix: Write plain labels and let the link or button style signal the action.
+  sources: [frontend-design]
+
+- id: NS-SLOP-SINGLE-WORD-ACCENT
+  title: One word accented in a headline
+  stage: [compose, polish]
+  severity: info
+  allowable: true
+  detect: static
+  rationale: Colouring or italicising a single word of a headline is a common generated tell.
+  fix: Set the whole headline in one treatment.
+  sources: [frontend-design]
+
+- id: NS-LOOK-DEFAULT-PALETTE
+  title: Default generated palette
+  stage: [direction, system, critique]
+  severity: warn
+  allowable: true
+  detect: static
+  rationale: Cream with a serif and a terracotta accent, near black with one acid accent, and purple or indigo to cyan gradients cluster across generated work whatever the subject. They are fine when the brief asks for them.
+  fix: Derive the palette from the subject and record the choice in DESIGN.md. Name each colour by role.
+  sources: [frontend-design, impeccable, top-design]

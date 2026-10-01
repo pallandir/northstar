@@ -1,0 +1,73 @@
+- id: NS-MOTION-ONE-MOMENT
+  title: One authored moment
+  stage: [compose, critique]
+  severity: warn
+  modes: { operate: info, read: info, experience: off }
+  allowable: true
+  detect: advisory
+  rationale: In persuasive pages a single orchestrated page load or reveal lands better than scattered effects. Working interfaces use motion only to explain a change.
+  fix: Pick the one place motion matters and keep everything else still.
+  sources: [impeccable, frontend-design]
+
+- id: NS-MOTION-SECTION-ENTRANCE
+  title: The same entrance on every section
+  stage: [compose, polish]
+  severity: warn
+  modes: { experience: info }
+  allowable: true
+  detect: static
+  rationale: A fade and slide up on every block, and hover lifts on every card, are the generic default.
+  fix: Animate the focal element only and answer user actions with feedback motion.
+  sources: [frontend-design, impeccable]
+
+- id: NS-MOTION-TRANSITION-ALL
+  title: Transition all
+  stage: [polish]
+  severity: error
+  allowable: true
+  detect: static
+  rationale: Transitioning every property animates layout and causes jank and accidental effects.
+  fix: List the exact properties, usually opacity, transform, colour and background colour.
+  sources: [ui-ux-pro-max]
+
+- id: NS-MOTION-BOUNCE
+  title: Bounce and elastic easing
+  stage: [polish]
+  severity: warn
+  modes: { operate: error, experience: off }
+  allowable: true
+  detect: static
+  rationale: Bounce reads as playful and dated in working interfaces and slows task completion.
+  fix: Use a smooth exponential ease out curve.
+  sources: [impeccable]
+
+- id: NS-MOTION-EASING
+  title: Custom easing instead of the default keywords
+  stage: [polish]
+  severity: info
+  allowable: true
+  detect: static
+  rationale: The ease and linear keywords feel mechanical. A custom cubic bezier in the exponential ease out family feels intentional. Both agree on durations of 150 to 300ms for interface feedback.
+  fix: Define easing tokens once and reuse them.
+  sources: [impeccable, top-design, ui-ux-pro-max]
+
+- id: NS-MOTION-PROPERTIES
+  title: Animate cheap properties
+  stage: [polish]
+  severity: warn
+  allowable: true
+  detect: static
+  rationale: Transform and opacity stay on the compositor. Width, height, top and left trigger layout. Blur, clip path and mask are acceptable when they stay smooth.
+  fix: Animate transform and opacity, or measure the smoothness of the alternative.
+  sources: [impeccable, ui-ux-pro-max, top-design]
+
+- id: NS-MOTION-SCROLLJACK
+  title: Scroll hijacking
+  stage: [compose]
+  severity: error
+  modes: { experience: off }
+  allowable: true
+  detect: static
+  rationale: Smooth scroll libraries change a basic browser behaviour. They are justified only on expressive brand pages and need a reduced motion fallback.
+  fix: Use native scrolling, or opt in through DESIGN.md for an Experience page.
+  sources: [top-design, ui-ux-pro-max]

@@ -1,0 +1,28 @@
+scale: { min: 0, max: 10 }
+purpose: Score against the page's own purpose, not against an abstract ideal. A calm operating tool and a launch page are judged by different questions.
+
+dimensions:
+  hierarchy: Is the order of importance obvious in two seconds
+  typography: Do faces, scale, weight and measure carry the personality and stay readable
+  color: Is the palette coherent, purposeful and accessible
+  composition: Do layout, spacing and alignment follow the content and hold at every width
+  motion: Is motion purposeful, restrained and respectful of reduced motion
+  craft: Are states, details, icons and browser surfaces finished
+  copy: Is the language specific, plain and consistent
+  accessibility: Do contrast, focus, semantics and targets pass
+
+weights:
+  operate: { hierarchy: 20, typography: 10, color: 10, composition: 15, motion: 5, craft: 20, copy: 10, accessibility: 10 }
+  read: { hierarchy: 15, typography: 25, color: 10, composition: 15, motion: 5, craft: 10, copy: 10, accessibility: 10 }
+  persuade: { hierarchy: 15, typography: 20, color: 10, composition: 20, motion: 10, craft: 10, copy: 10, accessibility: 5 }
+  experience: { hierarchy: 5, typography: 25, color: 15, composition: 25, motion: 20, craft: 5, copy: 0, accessibility: 5 }
+
+gates:
+  accessibility_floor: Any NS-A11Y error caps the overall score at 6 whatever the weights say.
+  detector: Any unallowed error severity finding caps the overall score at 7.
+
+bands:
+  - { min: 9, label: Distinctive and finished }
+  - { min: 7, label: "Solid, minor polish left" }
+  - { min: 5, label: Competent but generic }
+  - { min: 0, label: Needs rework }
