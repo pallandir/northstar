@@ -1,5 +1,6 @@
 import { browser } from "../lib/browser.js";
 import { captureElement, captureTarget } from "../lib/fingerprint.js";
+import { buildLocate, capturePage, captureSemantics, deriveIntent } from "../lib/locate.js";
 import { resolveSource } from "../lib/source-map.js";
 import { isLocalUrl } from "../lib/transport.js";
 import { resolveXPath } from "../lib/xpath.js";
@@ -228,6 +229,12 @@ function init(): Instance {
 
     const probeResult = await probe;
 
+    const source = resolveSource(el) ?? probeResult?.source ?? null;
+    const component = probeResult?.component ?? null;
+    const route = probeResult?.route ?? null;
+    const target = captureTarget(el, rect);
+    const element = captureSemantics(el, target);
+
     const draft: DraftRequest = {
       comment: payload.comment,
       operation: payload.operation,
@@ -238,13 +245,18 @@ function init(): Instance {
         viewport: { w: window.innerWidth, h: window.innerHeight },
         elementText,
       },
-      source: resolveSource(el) ?? probeResult?.source ?? null,
-      component: probeResult?.component ?? null,
-      route: probeResult?.route ?? null,
-      target: captureTarget(el, rect),
+      source,
+      component,
+      route,
+      target,
       screenshotDataUrl: screenshot,
       attachScreenshot,
       planFirst: payload.planFirst ?? false,
+      schemaVersion: 2,
+      intent: deriveIntent(payload.operation),
+      locate: buildLocate({ source, component, route, target, semantics: element, elementText }),
+      page: capturePage(),
+      element,
     };
     await send({ type: "save-request", draft });
     await refresh();

@@ -270,8 +270,28 @@ async function flushQueue(): Promise<FlushResult> {
     return { status: statusFrom(server, 0), send: { sent: 0, typed: false } };
   }
 
-  const batch = items.map(({ cid, queuedAt: _queuedAt, ...draft }) =>
-    server.acceptsCid ? { ...draft, cid } : draft,
+  const batch = items.map(
+    ({
+      cid,
+      queuedAt: _queuedAt,
+      schemaVersion: _schemaVersion,
+      intent: _intent,
+      locate: _locate,
+      page: _page,
+      element: _element,
+      ...legacy
+    }) =>
+      server.acceptsCid
+        ? {
+            ...legacy,
+            cid,
+            schemaVersion: _schemaVersion,
+            intent: _intent,
+            locate: _locate,
+            page: _page,
+            element: _element,
+          }
+        : legacy,
   );
   let send: SendOutcome;
   let rejectedCids = new Set<string>();

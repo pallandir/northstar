@@ -67,6 +67,26 @@ export interface Target {
   outerHtml: string;
 }
 
+export type Intent = "change" | "bug" | "copy" | "style" | "question";
+
+export interface LocateHint {
+  kind: "source" | "component" | "routeFile" | "testId" | "aria" | "text" | "selector" | "xpath";
+  value: string;
+  confidence: number;
+}
+
+export interface PageInfo {
+  title: string | null;
+  colorScheme: string | null;
+}
+
+export interface SemanticInfo {
+  ariaRole: string | null;
+  ariaName: string | null;
+  landmark: string | null;
+  heading: string | null;
+}
+
 export interface DraftRequest {
   comment: string;
   operation: Operation;
@@ -80,6 +100,11 @@ export interface DraftRequest {
   screenshotDataUrl: string | null;
   attachScreenshot: boolean;
   planFirst?: boolean;
+  schemaVersion?: number;
+  intent?: Intent;
+  locate?: LocateHint[];
+  page?: PageInfo;
+  element?: SemanticInfo;
 }
 
 export interface QueuedRequest extends DraftRequest {
