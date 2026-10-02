@@ -4,7 +4,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "@pallandir/northstar@3.0.0"
+        "@pallandir/northstar@2.5.0"
       ],
       "env": {
         "NORTHSTAR_PACKS": "all"

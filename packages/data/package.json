@@ -1,6 +1,6 @@
 {
   "name": "@northstar/data",
-  "version": "3.0.0",
+  "version": "2.5.0",
   "private": true,
   "type": "module",
   "description": "Curated design data ported from ui-ux-pro-max, with BM25 search.",

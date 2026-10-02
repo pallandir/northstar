@@ -1,6 +1,6 @@
 {
   "name": "@northstar/adapters",
-  "version": "3.0.0",
+  "version": "2.5.0",
   "private": true,
   "type": "module",
   "description": "Renders the Northstar canon into per-agent distribution files.",

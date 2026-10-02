@@ -1,6 +1,6 @@
 {
   "name": "@northstar/detector",
-  "version": "3.0.0",
+  "version": "2.5.0",
   "private": true,
   "type": "module",
   "description": "Static scanner for generic AI interface patterns, driven by the Northstar canon.",

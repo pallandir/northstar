@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
-## [3.0.0] - 2026-10-02
+## [2.5.0] - 2026-10-02
 
 Send to AI no longer pushes into an agent or types into someone else's terminal.
 Northstar now starts the agent itself, in a pseudo terminal it owns, and that terminal

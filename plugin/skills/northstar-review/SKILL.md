@@ -3,7 +3,7 @@ name: northstar-review
 description: Use to review or critique built UI without changing it, when asked for a design review, a score, a pre ship check or feedback on a screen. Scores against the rubric from screenshots and the detector and returns ranked findings. Read only.
 license: MIT
 metadata:
-  version: "3.0.0"
+  version: "2.5.0"
 ---
 
 # Northstar review

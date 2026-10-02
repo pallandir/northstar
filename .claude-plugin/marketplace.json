@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "A UI design advisory framework for AI agents: brief, direction, system, compose, critique and polish, library first and free of generic AI defaults.",
-    "version": "3.0.0"
+    "version": "2.5.0"
   },
   "plugins": [
     {
       "name": "northstar",
       "source": "./plugin",
       "description": "A UI design advisory framework for AI agents: brief, direction, system, compose, critique and polish, library first and free of generic AI defaults.",
-      "version": "3.0.0",
+      "version": "2.5.0",
       "author": {
         "name": "pallandir",
         "url": "https://github.com/pallandir"
