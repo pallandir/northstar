@@ -2,18 +2,18 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "no
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
-import { planAgent } from "@northstar/adapters";
-import { validateDesign } from "@northstar/design-md";
 import { PROTOCOL_VERSION } from "@northstar/protocol";
 import { getCanon, getData } from "../assets.js";
 import { VERSION } from "../config.js";
 import { connectDaemon } from "../daemon/client.js";
 import { RpcError } from "../daemon/rpc.js";
+import { validateDesign } from "../design-md/index.js";
 import { northstarHome } from "../lib/home.js";
 import { extraExtensionIds } from "../native/host.js";
 import { type Runner, findConflicts } from "./conflicts.js";
 import { contextForRecord } from "./install.js";
 import { checkHost } from "./native-manifest.js";
+import { planAgent } from "./plans/index.js";
 import { northstarPluginInstalled } from "./plugin.js";
 import { readRecord } from "./record.js";
 import { detectShell, shellInstalled } from "./shell.js";
@@ -24,7 +24,7 @@ interface Check {
   detail: string;
 }
 
-export interface HookProbeInput {
+interface HookProbeInput {
   tool_name: string;
   tool_input: { file_path: string };
   cwd: string;

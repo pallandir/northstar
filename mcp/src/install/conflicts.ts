@@ -10,12 +10,12 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, join, sep } from "node:path";
-import type { AgentName } from "@northstar/adapters";
 import { z } from "zod";
+import type { AgentName } from "./plans/index.js";
 import { installedPluginIds } from "./plugin.js";
 import { readRecord } from "./record.js";
 
-export type ConflictKind = "skill" | "agent" | "plugin";
+type ConflictKind = "skill" | "agent" | "plugin";
 
 export interface Conflict {
   kind: ConflictKind;

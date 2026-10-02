@@ -175,23 +175,12 @@ generated or served from it.
 ```mermaid
 flowchart LR
     Canon["canon/<br/>rules, references,<br/>rubric, library map"]
-    Data["packages/data<br/>curated design data"]
-    Detector["packages/detector<br/>static scanner"]
-    DesignMd["packages/design-md<br/>parse, validate,<br/>normalise, export"]
-    Adapters["packages/adapters<br/>per agent plans,<br/>generator"]
     Plugin["plugin/<br/>skill, hook, critic agent"]
-    Integrations["integrations/<br/>reference configs"]
-    Pkg["@pallandir/northstar<br/>MCP server + CLI"]
+    Pkg["@pallandir/northstar<br/>MCP server, CLI, detector,<br/>design-md, data, install plans"]
     Agent["Claude Code, Codex, Cursor,<br/>Gemini CLI, OpenCode"]
 
-    Canon --> Adapters
-    Adapters -- "npm run gen" --> Plugin
-    Adapters -- "npm run gen" --> Integrations
+    Canon -- "npm run gen" --> Plugin
     Canon --> Pkg
-    Data --> Pkg
-    Detector --> Pkg
-    DesignMd --> Pkg
-    Adapters --> Pkg
     Pkg -- "install: configs, skill, hooks" --> Agent
     Pkg -- "MCP: tools, prompts, resources" --> Agent
 ```
@@ -199,7 +188,7 @@ flowchart LR
 ### One source, many outputs
 
 `npm run gen` renders the canon into the Claude plugin, the marketplace manifest, the
-rule index and the reference integrations. CI runs `npm run gen:check`, which fails
+rule index. CI runs `npm run gen:check`, which fails
 when a generated file has drifted from the canon. The installer imports the same
 per agent plans, so the files the repository ships and the files `install` writes
 cannot disagree.
@@ -238,7 +227,7 @@ so that reading never means loading a whole file.
 
 ### Token generation
 
-`generateTokens` in `packages/design-md` is a pure function. It builds the OKLCH
+`generateTokens` in `mcp/src/design-md` is a pure function. It builds the OKLCH
 neutral ramp, the accent and status colours for both themes by searching lightness
 until each pair passes its contrast target, the layered elevation levels, the radius
 scale, spacing, the type scale and the motion tokens. When a pair cannot pass it

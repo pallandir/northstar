@@ -3,7 +3,7 @@ import { ICON_CLOSE, icon } from "./icons.js";
 import type { Surface } from "./surface.js";
 import type { Mode } from "./toolbar.js";
 
-export interface EditOptions {
+interface EditOptions {
   planFirst?: boolean;
   attachScreenshot?: boolean;
 }

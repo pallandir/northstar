@@ -12,14 +12,29 @@ export function tail(lines: string[]): string[] {
     .slice(-TAIL_LINES);
 }
 
+const BOX_EDGE = /^[\s│|┃║]+|[\s│|┃║]+$/g;
+const RULE_LINE = /^[─━═╭╮╰╯┌┐└┘├┤\s-]*$/;
+const HINT_LINE = /^(esc\b|enter\b|tab\b|ctrl\b|press\b|use\b|[↑↓←→])/i;
+
+function content(line: string): string {
+  return line.replace(BOX_EDGE, "");
+}
+
+function isChrome(line: string): boolean {
+  return RULE_LINE.test(line) || HINT_LINE.test(line);
+}
+
 export function awaitingAnswer(lines: string[]): boolean {
-  const last = lines[lines.length - 1];
+  const body = lines.map(content);
+  let end = body.length - 1;
+  while (end >= 0 && isChrome(body[end] as string)) end -= 1;
+  const last = body[end];
   if (last === undefined) return false;
   if (CONFIRM_PROMPT.test(last)) return true;
   let selected = false;
   let options = 0;
-  for (let i = lines.length - 1; i >= 0; i -= 1) {
-    const match = CHOICE_OPTION.exec(lines[i] as string);
+  for (let i = end; i >= 0; i -= 1) {
+    const match = CHOICE_OPTION.exec(body[i] as string);
     if (!match) break;
     options += 1;
     if (match[1]) selected = true;

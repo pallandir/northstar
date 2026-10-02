@@ -1,7 +1,10 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { type Canon, renderRule } from "@northstar/canon";
-import { parseFrontmatter } from "@northstar/design-md";
+import { z } from "zod";
+import { getCanon } from "../assets.js";
+import { parseFrontmatter } from "../design-md/index.js";
+import { loadScanConfig, runScan } from "../detect.js";
 import {
   collectFiles,
   formatInventory,
@@ -9,10 +12,7 @@ import {
   inventory,
   scanPaths,
   sortFindings,
-} from "@northstar/detector";
-import { z } from "zod";
-import { getCanon } from "../assets.js";
-import { loadScanConfig, runScan } from "../detect.js";
+} from "../detector/index.js";
 import { resolveInside } from "../lib/paths.js";
 import type { PackRegistry } from "./registry.js";
 import { error, modeSchema, text } from "./util.js";

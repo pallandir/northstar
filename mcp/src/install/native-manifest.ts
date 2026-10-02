@@ -12,7 +12,7 @@ import { CHROME_EXTENSION_ID, FIREFOX_EXTENSION_ID, NATIVE_HOST_NAME } from "@no
 import { binDir, stateDir } from "../lib/home.js";
 import { EXTENSION_IDS_FILE } from "../native/host.js";
 
-export type HostStatus = "created" | "updated" | "unchanged" | "planned" | "removed" | "missing";
+type HostStatus = "created" | "updated" | "unchanged" | "planned" | "removed" | "missing";
 
 export interface HostResult {
   label: string;

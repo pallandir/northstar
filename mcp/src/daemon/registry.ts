@@ -13,7 +13,6 @@ import type { DeliverOutcome } from "../pty/deliver.js";
 
 export interface SessionHandle {
   info: SessionInfo;
-  agentPid: number;
   deliver(template: TemplateId): Promise<DeliverOutcome>;
 }
 
@@ -77,7 +76,7 @@ export class Registry {
 
   bindRoot(ancestors: readonly number[], root: string): SessionInfo | null {
     for (const handle of this.sessions.values()) {
-      if (ancestors.includes(handle.agentPid)) {
+      if (ancestors.includes(handle.info.pid)) {
         handle.info.root = root;
         this.persistSessions();
         return handle.info;

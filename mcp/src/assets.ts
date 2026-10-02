@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type Canon, loadCanon } from "@northstar/canon";
-import { type DesignData, loadData } from "@northstar/data";
+import { type DesignData, loadData } from "./data/index.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -38,7 +38,7 @@ export function getCanon(): Canon {
 function dataRoot(): string {
   return locate("design data", "NORTHSTAR_DATA_ROOT", "manifest.json", [
     join(here, "assets", "data"),
-    join(here, "..", "..", "packages", "data", "json"),
+    join(here, "..", "data", "json"),
   ]);
 }
 

@@ -1,15 +1,15 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { BLEND_PARTS, type Canon, DENSITIES, FEELS, SHAPES, TEMPERATURES } from "@northstar/canon";
-import { type DesignData, type Row, search } from "@northstar/data";
+import { z } from "zod";
+import { type DesignData, type Row, search } from "../data/index.js";
 import {
   type ExportFormat,
   type Issue,
   exportDesign,
   normalizeDirection,
   validateDesign,
-} from "@northstar/design-md";
-import { z } from "zod";
+} from "../design-md/index.js";
 import { buildSystem } from "../lib/engine.js";
 import { resolveInside } from "../lib/paths.js";
 import { SCAFFOLDS, scaffold } from "../lib/scaffold.js";

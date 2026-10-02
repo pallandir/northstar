@@ -1,5 +1,5 @@
-import { DOMAINS, type DesignData, type Row, getRow, search } from "@northstar/data";
 import { z } from "zod";
+import { DOMAINS, type DesignData, type Row, getRow, search } from "../data/index.js";
 import type { PackRegistry } from "./registry.js";
 import { error, modeSchema, text } from "./util.js";
 

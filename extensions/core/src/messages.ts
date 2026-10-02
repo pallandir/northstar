@@ -5,7 +5,7 @@ import type { DraftRequest, OperationType, QueuedRequest, Rect, Rejection } from
 
 export type PinStatus = "pending" | "processing" | "resolved" | "wontfix";
 
-export interface PinOperation {
+interface PinOperation {
   property: string | null;
   from: string | null;
   to: string | null;
@@ -35,8 +35,6 @@ export interface DeferralNotice {
   createdAt: string;
 }
 
-export type { HandoffOutcome };
-
 export interface SendOutcome {
   sent: number;
   rejected: number;
@@ -44,7 +42,7 @@ export interface SendOutcome {
   woke: HandoffOutcome | null;
 }
 
-export type Connection = "connected" | "offline" | "noproject" | "choose" | "mismatch";
+type Connection = "connected" | "offline" | "noproject" | "choose" | "mismatch";
 
 export interface ProjectChoice {
   root: string;

@@ -12,9 +12,6 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@crxjs/vite-plugin": "^2.6.1",
-    "@northstar/core": "*",
-    "@types/node": "^22.10.5",
-    "vite": "^8.0.16"
+    "@crxjs/vite-plugin": "^2.6.1"
   }
 }

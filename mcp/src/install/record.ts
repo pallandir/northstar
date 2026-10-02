@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { AGENT_NAMES, type AgentName, type Scope } from "@northstar/adapters";
 import { z } from "zod";
+import { AGENT_NAMES, type AgentName, type Scope } from "./plans/index.js";
 
 const installedFileSchema = z.object({
   path: z.string(),

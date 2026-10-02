@@ -86,6 +86,6 @@ A comment left with the extension is resolved with the same discipline. The hand
 | The core skill and the references an agent reads | `plugin/skills/northstar/` |
 | The workflow skills | `plugin/skills/northstar-build/`, `northstar-refine/`, `northstar-finish/`, `northstar-review/` |
 | The archetypes | `canon/archetypes.yaml` |
-| Curated design data | `packages/data/json/` |
-| The scanner | `packages/detector/` |
-| DESIGN.md tools and the token generator | `packages/design-md/` |
+| Curated design data | `mcp/data/json/` |
+| The scanner | `mcp/src/detector/` |
+| DESIGN.md tools and the token generator | `mcp/src/design-md/` |

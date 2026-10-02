@@ -1,5 +1,5 @@
 import { PtySession } from "../pty/pty-session.js";
-import type { QuickRunLauncher } from "./core.js";
+import type { QuickRunLauncher } from "./sending.js";
 
 const COLS = 120;
 const ROWS = 40;

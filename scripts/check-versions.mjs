@@ -14,12 +14,7 @@ const record = (label, version) => found.push({ label, version });
 const manifests = [
   "mcp/package.json",
   "canon/package.json",
-  ...readdirSync(join(root, "packages"), { withFileTypes: true })
-    .filter(
-      (entry) =>
-        entry.isDirectory() && existsSync(join(root, "packages", entry.name, "package.json")),
-    )
-    .map((entry) => `packages/${entry.name}/package.json`),
+  "protocol/package.json",
   ...readdirSync(join(root, "extensions"), { withFileTypes: true })
     .filter(
       (entry) =>

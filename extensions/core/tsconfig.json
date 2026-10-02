@@ -5,5 +5,5 @@
     "types": ["chrome", "vite/client"],
     "noEmit": true
   },
-  "include": ["src", "tests", "manifest.base.ts", "vitest.config.ts"]
+  "include": ["src", "manifest.base.ts"]
 }

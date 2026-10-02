@@ -40,6 +40,6 @@ attribution and the statement of changes.
 | Web Interface Guidelines (Vercel) | MIT | https://github.com/vercel-labs/web-interface-guidelines |
 | DESIGN.md format | Apache-2.0 | https://github.com/google-labs-code/design.md |
 
-The curated data in `packages/data/json` is derived from the ui-ux-pro-max CSV
+The curated data in `mcp/data/json` is derived from the ui-ux-pro-max CSV
 files under the MIT License, whose text ships with the data as
 `LICENSE-ui-ux-pro-max.txt`.

@@ -2,8 +2,9 @@ import { chmodSync, mkdirSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
 import { runtimeDir, socketPath } from "../lib/home.js";
 import { connectDaemon } from "./client.js";
-import { Daemon, type QuickRunLauncher } from "./core.js";
+import { Daemon } from "./core.js";
 import { RpcError } from "./rpc.js";
+import type { QuickRunLauncher } from "./sending.js";
 
 const IDLE_CHECK_MS = 30_000;
 const IDLE_EXIT_MS = 10 * 60 * 1000;

@@ -1,10 +1,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { Canon } from "@northstar/canon";
-import type { DesignData } from "@northstar/data";
 import { z } from "zod";
 import { getCanon, getData } from "./assets.js";
 import { VERSION } from "./config.js";
 import type { BridgeStatus, BrokerLink } from "./daemon/link.js";
+import type { DesignData } from "./data/index.js";
 import { designContext } from "./design-context.js";
 import { scanEdited } from "./detect.js";
 import { RESOLVE_DIRECTIVE } from "./directive.js";

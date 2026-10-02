@@ -88,7 +88,6 @@ export async function runAgent(
       command: target.file,
       cwd: process.cwd(),
       pid: process.pid,
-      agentPid: process.pid,
     });
     return peer;
   };
@@ -172,6 +171,7 @@ export async function runAgent(
     }
     const active = session;
     process.stdin.setRawMode(true);
+    process.once("exit", restore);
     process.stdin.setEncoding("utf8");
     process.stdin.on("data", (data: string) => active.userInput(data));
     process.stdin.resume();

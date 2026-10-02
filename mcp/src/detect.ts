@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Mode } from "@northstar/canon";
+import { getCanon } from "./assets.js";
 import {
   type Finding,
   type ScanConfig,
@@ -9,8 +10,7 @@ import {
   hookFeedback,
   kindOf,
   scanPaths,
-} from "@northstar/detector";
-import { getCanon } from "./assets.js";
+} from "./detector/index.js";
 import { resolveInside } from "./lib/paths.js";
 
 export const HOOK_FINDING_CAP = 5;

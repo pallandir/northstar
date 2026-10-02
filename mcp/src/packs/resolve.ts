@@ -1,6 +1,6 @@
 import type { Canon } from "@northstar/canon";
-import { type DesignData, search } from "@northstar/data";
 import { z } from "zod";
+import { type DesignData, search } from "../data/index.js";
 import { STACKS, type StackName, inspectProject } from "../project.js";
 import type { PackRegistry } from "./registry.js";
 import { error, modeSchema, text } from "./util.js";

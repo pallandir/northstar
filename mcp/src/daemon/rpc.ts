@@ -202,3 +202,7 @@ export class RpcPeer {
     for (const listener of this.closeListeners) listener();
   }
 }
+
+export function badRequest(message: string, fix: string): RpcError {
+  return new RpcError("BAD_REQUEST", message, fix);
+}

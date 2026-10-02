@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { type Issue, parseFrontmatter, validateDesign } from "@northstar/design-md";
 import { getCanon } from "./assets.js";
+import { type Issue, parseFrontmatter, validateDesign } from "./design-md/index.js";
 
 export const STACKS = ["next", "react", "vue", "svelte", "angular", "solid", "html"] as const;
 export type StackName = (typeof STACKS)[number];

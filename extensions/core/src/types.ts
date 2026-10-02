@@ -27,7 +27,7 @@ export interface CommentMetadata {
   elementText: string;
 }
 
-export interface ComponentFrame {
+interface ComponentFrame {
   name: string;
 }
 

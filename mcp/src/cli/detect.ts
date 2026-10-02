@@ -1,8 +1,8 @@
 import { resolve } from "node:path";
 import { MODES, type Mode } from "@northstar/canon";
-import { formatJson, formatSarif, formatText } from "@northstar/detector";
 import { VERSION } from "../config.js";
 import { runScan } from "../detect.js";
+import { formatJson, formatSarif, formatText } from "../detector/index.js";
 
 interface Options {
   paths: string[];

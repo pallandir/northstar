@@ -28,11 +28,11 @@ frontend-design (Anthropic skills)
 ui-ux-pro-max
   Copyright (c) 2024 Next Level Builder. Licensed under the MIT License.
   https://github.com/nextlevelbuilder/ui-ux-pro-max-skill (version 2.5.0)
-  The curated data in packages/data/json is derived from its CSV data files.
+  The curated data in mcp/data/json is derived from its CSV data files.
   Changes: parsed into typed JSON, reduced to a common row shape, rows that
   contradict the canon removed or annotated with a caution, font rows reduced
   to what the resolver needs. The MIT license text is in
-  packages/data/LICENSE-ui-ux-pro-max.txt and ships with the data.
+  mcp/data/LICENSE-ui-ux-pro-max.txt and ships with the data.
 
 top-design (wondelai skills)
   Copyright (c) 2025 Wondel.ai sp. z o.o. Licensed under the MIT License.

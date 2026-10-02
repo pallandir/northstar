@@ -1,8 +1,8 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { AGENT_NAMES, type AgentName } from "@northstar/adapters";
-import { hookFeedback, kindOf } from "@northstar/detector";
 import { HOOK_FINDING_CAP, runScan } from "../detect.js";
+import { hookFeedback, kindOf } from "../detector/index.js";
+import { AGENT_NAMES, type AgentName } from "../install/plans/index.js";
 import { designGap, readDesign, readJsonFile } from "../project.js";
 import { isInside, relativeTarget } from "./paths.js";
 

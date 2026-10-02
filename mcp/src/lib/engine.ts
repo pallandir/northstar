@@ -14,7 +14,7 @@ import {
   hueOfHex,
   renderDesign,
   validateDesign,
-} from "@northstar/design-md";
+} from "../design-md/index.js";
 
 interface SystemRequest {
   name: string;

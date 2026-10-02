@@ -40,9 +40,11 @@
     "dev": "tsup --watch",
     "start": "node dist/cli.js",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test tests/*.test.ts",
     "prepack": "node -e \"for (const f of ['LICENSE.md','NOTICE','THIRD_PARTY_LICENSES.md']) require('fs').copyFileSync('../'+f,f)\"",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "gen": "tsx scripts/gen/cli.ts",
+    "gen:check": "tsx scripts/gen/cli.ts --check",
+    "port": "tsx scripts/port-uupm.ts"
   },
   "dependencies": {
     "@lydell/node-pty": "^1.1.0",
@@ -52,15 +54,8 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@northstar/adapters": "*",
     "@northstar/canon": "*",
-    "@northstar/data": "*",
-    "@northstar/design-md": "*",
-    "@northstar/detector": "*",
     "@northstar/protocol": "*",
-    "@types/node": "^22.10.5",
-    "tsup": "^8.3.5",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "tsup": "^8.3.5"
   }
 }

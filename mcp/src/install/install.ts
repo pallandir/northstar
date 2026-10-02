@@ -9,6 +9,9 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, join, relative } from "node:path";
+import { canonRoot, skillRoot } from "../assets.js";
+import { VERSION } from "../config.js";
+import type { Runner } from "./conflicts.js";
 import {
   type AgentName,
   type AgentPlan,
@@ -17,10 +20,7 @@ import {
   type PlanContext,
   type Scope,
   planAgent,
-} from "@northstar/adapters";
-import { canonRoot, skillRoot } from "../assets.js";
-import { VERSION } from "../config.js";
-import type { Runner } from "./conflicts.js";
+} from "./plans/index.js";
 import {
   type AgentRecord,
   type InstalledFile,
@@ -43,7 +43,7 @@ interface InstallOptions {
   plugin?: boolean;
 }
 
-export type Status = "created" | "updated" | "unchanged" | "planned" | "failed";
+type Status = "created" | "updated" | "unchanged" | "planned" | "failed";
 
 export interface OpResult {
   agent: AgentName;

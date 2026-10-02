@@ -9,7 +9,7 @@ the checklist for cutting a release of all three.
 One version covers everything, and the root `package.json` is the source of truth.
 These must all equal it before a release:
 
-- every workspace `package.json`: `mcp`, `canon`, `packages/*` and `extensions/*`
+- every workspace `package.json`: `mcp`, `canon`, `protocol` and `extensions/*`
 - `plugin/.claude-plugin/plugin.json`
 - `.claude-plugin/marketplace.json`, in both the metadata and the plugin entry
 - `mcp/src/config.ts` (`VERSION`, reported by the MCP server and the daemon) and
