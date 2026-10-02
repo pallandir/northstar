@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import {
+  type AgentInfo,
   type HandoffOutcome,
   type SessionInfo,
   type TemplateId,
@@ -9,6 +10,7 @@ import {
 import type { z } from "zod";
 import {
   type AgentDefinition,
+  describeAgents,
   findExecutable,
   mergeAgents,
   quickRunArgv,
@@ -73,6 +75,14 @@ export class Sender {
     }
   }
 
+  private starter(preferred: string | null): AgentInfo | undefined {
+    const agents = describeAgents(
+      mergeAgents(loadSettings(this.workspace.home).agents),
+      userPath(this.workspace.home),
+    ).filter((a) => a.installed && a.quickRun);
+    return agents.find((a) => a.id === preferred) ?? agents[0];
+  }
+
   private async requireOpenComments(root: string): Promise<void> {
     if ((await this.workspace.store(root).list("open")).length === 0) {
       throw badRequest(
@@ -94,11 +104,16 @@ export class Sender {
       preferredAgent: settings.preferredAgent,
     });
     if (route.kind === "none") {
-      throw new RpcError(
-        "NO_SESSION",
-        "No agent session is running in this project.",
-        NO_SESSION_FIX,
-      );
+      const starter = this.starter(settings.preferredAgent);
+      if (!starter) {
+        throw new RpcError(
+          "NO_SESSION",
+          "No AI assistant is open in this project and Northstar found none it can start.",
+          NO_SESSION_FIX,
+        );
+      }
+      this.log(`session.send no session, starting ${starter.id}`);
+      return this.quickRun({ root, agent: starter.id, template: params.template });
     }
     if (route.kind === "pick") {
       throw new RpcError(

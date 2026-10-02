@@ -167,15 +167,47 @@ test("a duplicate session id is refused", async () => {
   assert.equal(error.code, "BAD_REQUEST");
 });
 
-test("a send with no session says so and how to start one", async () => {
+test("a send with no session and no assistant to start says so and how to fix it", async () => {
   const peer = await connect();
   await mcp();
   await post(peer, [draft()]);
-  const error = await failure(
-    request(peer, "session.send", { root: project, template: "resolve" }),
-  );
-  assert.equal(error.code, "NO_SESSION");
-  assert.match(error.fix, /new terminal tab/);
+  const previous = process.env.PATH;
+  process.env.PATH = join(project, "empty");
+  try {
+    const error = await failure(
+      request(peer, "session.send", { root: project, template: "resolve" }),
+    );
+    assert.equal(error.code, "NO_SESSION");
+    assert.match(error.fix, /Install an AI assistant/);
+  } finally {
+    process.env.PATH = previous;
+  }
+});
+
+test("a send with no session starts an installed assistant for the user", async () => {
+  const browser = await connect();
+  const agent = await mcp();
+  await post(browser, [draft()]);
+  const fakeBin = join(project, "bin");
+  mkdirSync(fakeBin);
+  writeFileSync(join(fakeBin, "codex"), "#!/bin/sh\n", { mode: 0o755 });
+  const previous = process.env.PATH;
+  process.env.PATH = fakeBin;
+  try {
+    const run = request<HandoffOutcome>(browser, "session.send", {
+      root: project,
+      template: "resolve",
+    });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    assert.equal(quickRuns.length, 1);
+    assert.equal(quickRuns[0]?.spec.file, join(fakeBin, "codex"));
+    await agent.call("broker.polled", {});
+    const outcome = await run;
+    assert.equal(outcome.delivered, true);
+    assert.equal(outcome.session?.agent, "codex");
+  } finally {
+    process.env.PATH = previous;
+  }
 });
 
 test("a send with one session is delivered and confirmed by the agent reading the comments", async () => {

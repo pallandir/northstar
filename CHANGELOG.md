@@ -18,6 +18,9 @@ All notable changes to this project are documented here. The format follows
   (zsh, bash, fish), so plain `claude` and `codex` start in a Northstar session in any
   terminal. `--no-shell` skips it, and `northstar agent add` extends the wrapper. An
   agent that was not started this way gets a clear message, not a silent failure.
+- **Send to AI starts an assistant when none is open.** With no session in the project,
+  Northstar runs your preferred installed assistant headless on the fixed line. With
+  none installed it says so and how to fix it.
 - The Northstar MCP server starts the daemon and reconnects when it restarts.
 - `northstar doctor` reports unpacked builds that are not allowed yet.
 

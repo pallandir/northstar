@@ -26,7 +26,7 @@ export function routeSend(all: readonly SessionInfo[], request: RouteRequest): R
 }
 
 export const NO_SESSION_FIX =
-  "Open a new terminal tab and start your AI assistant in this project. If it was already open, restart it there.";
+  "Install an AI assistant such as Claude Code or Codex, or open one in a new terminal tab in this project.";
 
 export function readinessFor(
   all: readonly SessionInfo[],
