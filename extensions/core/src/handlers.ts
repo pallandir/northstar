@@ -9,6 +9,7 @@ import {
   clearAll,
   commentsForPage,
   dismissNotice,
+  flush,
   removeComment,
   reopenComment,
   saveDraft,
@@ -138,6 +139,12 @@ async function dispatch(message: Message, sender: chrome.runtime.MessageSender):
       requireLocal(tab, "Send to AI");
       const { status: st, send } = await sendToAgent(tab.origin, { sessionId: message.sessionId });
       return { ok: true, status: st, send };
+    }
+    case "copy-line": {
+      const tab = senderTab(sender);
+      requireLocal(tab, "Copy the line");
+      const { status: st, send } = await flush(tab.origin);
+      return { ok: true, status: st, send: { ...send, woke: null } };
     }
     case "report-sources": {
       const tab = senderTab(sender);

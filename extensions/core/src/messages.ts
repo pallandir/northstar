@@ -90,6 +90,7 @@ export type Message =
       screenshotDataUrl?: string | null;
     }
   | { type: "flush"; sessionId?: string }
+  | { type: "copy-line" }
   | { type: "report-sources"; paths: string[] }
   | { type: "dismiss-notice"; commentId: string }
   | { type: "queue-status" }
@@ -174,6 +175,7 @@ export function parseMessage(raw: unknown): Message {
     case "deactivate":
     case "clear-all":
     case "queue-status":
+    case "copy-line":
       return { type: raw.type };
     case "flush": {
       const sessionId = raw.sessionId;

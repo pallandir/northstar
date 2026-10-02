@@ -399,7 +399,16 @@ function init(): Instance {
   }
 
   async function handleCopyLine(): Promise<void> {
-    const line = templateLine(st.lastStatus?.template ?? "resolve");
+    const res = await call({ type: "copy-line" });
+    const saved = field(res.status);
+    if (saved.open === 0) {
+      throw new UserError(
+        "There are no comments to send yet.",
+        "Add a comment on the page, then choose Copy the line.",
+      );
+    }
+    await refresh();
+    const line = templateLine(saved.template);
     try {
       await navigator.clipboard.writeText(line);
     } catch (err) {
