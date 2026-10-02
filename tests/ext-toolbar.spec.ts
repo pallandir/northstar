@@ -35,7 +35,6 @@ function handlers(overrides: Partial<ToolbarHandlers> = {}): ToolbarHandlers {
     onTogglePick: vi.fn(),
     onDeactivate: vi.fn(),
     onChooseProject: vi.fn(),
-    onQuickRun: vi.fn(),
     onCopyLine: vi.fn(),
     ...overrides,
   };
@@ -81,7 +80,6 @@ function reachableStatus(overrides: Partial<QueueStatus> = {}): QueueStatus {
     lastPolledAt: null,
     handoff: null,
     projects: [],
-    agents: [],
     template: "resolve",
     problem: null,
     ...overrides,
@@ -186,7 +184,7 @@ describe("Toolbar failure strip", () => {
       }),
     );
     expect(document.querySelector(".ns-setup-title")?.textContent).toBe(
-      "No agent session in this project",
+      "Northstar cannot reach your assistant",
     );
     expect(document.querySelector(".ns-setup-hint")?.textContent).toBe(
       "no session found Run it with northstar run.",
@@ -249,34 +247,21 @@ describe("Toolbar connection strips", () => {
     expect(send?.dataset.tip).toBe("Pick the session to send to below");
   });
 
-  it("offers Copy the line and a quick run for each installed agent only when there is something to send", () => {
-    const onQuickRun = vi.fn();
+  it("offers only Copy the line, and only when there is something to send", () => {
     const onCopyLine = vi.fn();
-    const toolbar = new Toolbar(fakeSurface(), handlers({ onQuickRun, onCopyLine }));
-    const agents = [
-      { id: "codex", name: "Codex", installed: true, path: "/bin/codex", quickRun: true },
-      { id: "claude", name: "Claude Code", installed: true, path: "/bin/claude", quickRun: true },
-    ];
+    const toolbar = new Toolbar(fakeSurface(), handlers({ onCopyLine }));
     toolbar.render(
-      state({ status: reachableStatus({ queued: 0, open: 0, readiness: NO_SESSION, agents }) }),
+      state({ status: reachableStatus({ queued: 0, open: 0, readiness: NO_SESSION }) }),
     );
     expect(document.querySelectorAll(".ns-setup-actions button")).toHaveLength(0);
 
-    toolbar.render(
-      state({ status: reachableStatus({ queued: 2, readiness: NO_SESSION, agents }) }),
-    );
+    toolbar.render(state({ status: reachableStatus({ queued: 2, readiness: NO_SESSION }) }));
     const buttons = Array.from(
       document.querySelectorAll<HTMLButtonElement>(".ns-setup-actions button"),
     );
-    expect(buttons.map((b) => b.textContent)).toEqual([
-      "Copy the line",
-      "Quick run with Codex",
-      "Quick run with Claude Code",
-    ]);
+    expect(buttons.map((b) => b.textContent)).toEqual(["Copy the line"]);
     buttons[0].click();
-    buttons[2].click();
     expect(onCopyLine).toHaveBeenCalledOnce();
-    expect(onQuickRun).toHaveBeenCalledWith("claude");
   });
 
   it("names the side to update on a version mismatch", () => {
@@ -472,9 +457,7 @@ describe("Toolbar tooltips", () => {
 
     toolbar.render(state({ status: offlineStatus() }));
     expect(send().disabled).toBe(true);
-    expect(send().dataset.tip).toBe(
-      "Not connected, open a new terminal tab and start your AI assistant in this project",
-    );
+    expect(send().dataset.tip).toBe("Not connected, open your AI assistant in this project");
 
     toolbar.render(state({ status: reachableStatus({ queued: 0 }) }));
     expect(send().dataset.tip).toBe("Nothing to send yet, add a comment first");

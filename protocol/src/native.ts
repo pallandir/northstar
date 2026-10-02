@@ -28,7 +28,6 @@ export const ACTIONS = [
   "agent.list",
   "session.list",
   "session.send",
-  "quickrun.execute",
   "project.list",
   "project.resolve",
   "status.get",
@@ -51,9 +50,6 @@ export const actionParams = {
   "session.list": z.object({}).strict(),
   "session.send": z
     .object({ root, template: templateSchema, sessionId: z.string().min(1).max(100).optional() })
-    .strict(),
-  "quickrun.execute": z
-    .object({ root, agent: z.string().min(1).max(64), template: templateSchema })
     .strict(),
   "project.list": z.object({}).strict(),
   "project.resolve": z
@@ -127,7 +123,6 @@ export interface AgentInfo {
   name: string;
   installed: boolean;
   path: string | null;
-  quickRun: boolean;
 }
 
 export interface SessionInfo {
@@ -140,7 +135,6 @@ export interface SessionInfo {
   pid: number;
   createdAt: string;
   lastActivityAt: string;
-  kind: "interactive" | "quick-run";
 }
 
 export interface Readiness {

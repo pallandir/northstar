@@ -18,7 +18,7 @@ import { RpcError, type RpcPeer } from "../daemon/rpc.js";
 import { northstarHome, stateDir } from "../lib/home.js";
 import { FrameError, FrameReader, encodeFrame } from "./framing.js";
 
-const SLOW_ACTIONS = new Set(["session.send", "quickrun.execute"]);
+const SLOW_ACTIONS = new Set(["session.send"]);
 const SLOW_TIMEOUT_MS = 60_000;
 const FAST_TIMEOUT_MS = 15_000;
 

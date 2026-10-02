@@ -19,7 +19,7 @@ import { ConfigError } from "../user-config.js";
 import { CommentActions } from "./comments.js";
 import { type SessionHandle, canonicalRoot } from "./registry.js";
 import { RpcError, RpcPeer, badRequest } from "./rpc.js";
-import { type QuickRunLauncher, Sender } from "./sending.js";
+import { Sender } from "./sending.js";
 import { Workspace } from "./workspace.js";
 
 const SESSION_ID = /^[A-Za-z0-9-]{8,64}$/;
@@ -28,7 +28,6 @@ interface DaemonOptions {
   home: string;
   version: string;
   log: (message: string) => void;
-  launchQuickRun: QuickRunLauncher;
   onShutdown: () => void;
   pickupTimeoutMs?: number;
 }
@@ -36,6 +35,7 @@ interface DaemonOptions {
 interface PeerContext {
   sessionIds: Set<string>;
   mcpRoot: string | null;
+  releaseAssistant: (() => void) | null;
 }
 
 const registerParams = z
@@ -116,7 +116,7 @@ export class Daemon {
   }
 
   attach(socket: Socket): RpcPeer {
-    const context: PeerContext = { sessionIds: new Set(), mcpRoot: null };
+    const context: PeerContext = { sessionIds: new Set(), mcpRoot: null, releaseAssistant: null };
     const peer: RpcPeer = new RpcPeer(
       socket,
       (method, params) => this.dispatch(peer, context, method, params),
@@ -125,6 +125,7 @@ export class Daemon {
     this.peers.add(peer);
     peer.onClose(() => {
       this.peers.delete(peer);
+      context.releaseAssistant?.();
       for (const id of context.sessionIds) {
         this.workspace.registry.remove(id);
         this.options.log(`session.closed session=${id}`);
@@ -221,7 +222,6 @@ export class Daemon {
       pid: params.pid,
       createdAt: now,
       lastActivityAt: now,
-      kind: "interactive",
     };
     const handle: SessionHandle = {
       info,
@@ -247,6 +247,8 @@ export class Daemon {
         "Start the agent in an existing project directory.",
       );
     }
+    context.releaseAssistant?.();
+    context.releaseAssistant = this.workspace.registry.attachAssistant(root);
     context.mcpRoot = root;
     this.workspace.registry.rememberRoot(root);
     const bound = this.workspace.registry.bindRoot(params.ancestors, root);
@@ -302,8 +304,6 @@ export class Daemon {
         return this.comments.status(parseParams("status.get", params));
       case "session.send":
         return this.sender.send(parseParams("session.send", params));
-      case "quickrun.execute":
-        return this.sender.quickRun(parseParams("quickrun.execute", params));
       case "comments.list":
         return this.comments.list(parseParams("comments.list", params));
       case "comments.add":

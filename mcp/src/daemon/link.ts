@@ -111,4 +111,4 @@ export class DaemonLink implements BrokerLink {
 }
 
 const UNWRAPPED_AGENT =
-  "this assistant was opened before Northstar was installed, so Send to AI cannot reach it. Restart it in a new terminal tab.";
+  "Northstar cannot type into this assistant, so Send to AI offers Copy the line in the toolbar instead.";

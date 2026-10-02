@@ -216,7 +216,6 @@ function init(): Instance {
             await call({ type: "choose-project", root });
             await refresh();
           }),
-        onQuickRun: (agent) => void run(() => handleQuickRun(agent)),
         onCopyLine: () => void run(handleCopyLine),
       });
       drawer = new Drawer(surface, {
@@ -397,10 +396,6 @@ function init(): Instance {
 
   function handleSend(sessionId?: string): Promise<void> {
     return sendWith({ type: "flush", sessionId });
-  }
-
-  function handleQuickRun(agent: string): Promise<void> {
-    return sendWith({ type: "quick-run", agent });
   }
 
   async function handleCopyLine(): Promise<void> {

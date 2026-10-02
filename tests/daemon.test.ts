@@ -20,7 +20,6 @@ import type {
 } from "@northstar/protocol";
 import { connectDaemon, ensureDaemon } from "../mcp/src/daemon/client.js";
 import { RpcError, type RpcHandler, type RpcPeer } from "../mcp/src/daemon/rpc.js";
-import type { QuickRunSpec } from "../mcp/src/daemon/sending.js";
 import { type RunningDaemon, startDaemon } from "../mcp/src/daemon/server.js";
 import { socketPath } from "../mcp/src/lib/home.js";
 import { draft } from "./helpers.js";
@@ -30,11 +29,6 @@ let project: string;
 let running: RunningDaemon;
 let peers: RpcPeer[];
 let logs: string[];
-let quickRuns: Array<{ spec: QuickRunSpec; exit: (code: number) => void }>;
-
-function callAll(listeners: Array<(code: number) => void>, code: number): void {
-  for (const listener of listeners) listener(code);
-}
 
 function shortDir(prefix: string): string {
   return mkdtempSync(join("/tmp", prefix));
@@ -47,11 +41,6 @@ async function boot(pickupTimeoutMs = 400): Promise<RunningDaemon> {
     log: (message) => logs.push(message),
     pickupTimeoutMs,
     idleExitMs: 60_000,
-    launchQuickRun: (spec) => {
-      const listeners: Array<(code: number) => void> = [];
-      quickRuns.push({ spec, exit: (code) => callAll(listeners, code) });
-      return { pid: process.pid + quickRuns.length, onExit: (cb) => listeners.push(cb) };
-    },
   });
 }
 
@@ -60,7 +49,6 @@ beforeEach(async () => {
   project = shortDir("ns-proj-");
   peers = [];
   logs = [];
-  quickRuns = [];
   running = await boot();
 });
 
@@ -144,7 +132,6 @@ test("a registered session is listed with its metadata and dropped when it disco
   const [info] = await request<SessionInfo[]>(peer, "session.list");
   assert.equal(info?.id, id);
   assert.equal(info?.agent, "claude");
-  assert.equal(info?.kind, "interactive");
   assert.equal(info?.cwd, project);
   assert.ok(existsSync(join(home, ".northstar", "state", "sessions.json")));
   wrapper.close();
@@ -167,47 +154,30 @@ test("a duplicate session id is refused", async () => {
   assert.equal(error.code, "BAD_REQUEST");
 });
 
-test("a send with no session and no assistant to start says so and how to fix it", async () => {
+test("a send with an assistant open but no session tells the designer to copy the line", async () => {
   const peer = await connect();
   await mcp();
   await post(peer, [draft()]);
-  const previous = process.env.PATH;
-  process.env.PATH = join(project, "empty");
-  try {
-    const error = await failure(
-      request(peer, "session.send", { root: project, template: "resolve" }),
-    );
-    assert.equal(error.code, "NO_SESSION");
-    assert.match(error.fix, /Install an AI assistant/);
-  } finally {
-    process.env.PATH = previous;
-  }
+  const error = await failure(
+    request(peer, "session.send", { root: project, template: "resolve" }),
+  );
+  assert.equal(error.code, "NO_SESSION");
+  assert.match(error.message, /open in this project but Northstar cannot write to it/);
+  assert.match(error.fix, /Copy the line/);
 });
 
-test("a send with no session starts an installed assistant for the user", async () => {
-  const browser = await connect();
-  const agent = await mcp();
-  await post(browser, [draft()]);
-  const fakeBin = join(project, "bin");
-  mkdirSync(fakeBin);
-  writeFileSync(join(fakeBin, "codex"), "#!/bin/sh\n", { mode: 0o755 });
-  const previous = process.env.PATH;
-  process.env.PATH = fakeBin;
-  try {
-    const run = request<HandoffOutcome>(browser, "session.send", {
-      root: project,
-      template: "resolve",
-    });
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    assert.equal(quickRuns.length, 1);
-    assert.equal(quickRuns[0]?.spec.file, join(fakeBin, "codex"));
-    await agent.call("broker.polled", {});
-    const outcome = await run;
-    assert.equal(outcome.delivered, true);
-    assert.equal(outcome.session?.agent, "codex");
-  } finally {
-    process.env.PATH = previous;
-  }
+test("a send with no assistant connected says to open one", async () => {
+  const peer = await connect();
+  const hello = await mcp();
+  await post(peer, [draft()]);
+  hello.close();
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  const error = await failure(
+    request(peer, "session.send", { root: project, template: "resolve" }),
+  );
+  assert.equal(error.code, "NO_SESSION");
+  assert.match(error.message, /No AI assistant is connected/);
+  assert.match(error.fix, /Open your AI assistant/);
 });
 
 test("a send with one session is delivered and confirmed by the agent reading the comments", async () => {
@@ -570,81 +540,6 @@ test("config round trips and an invalid file fails loudly with its path", async 
   const error = await failure(request(peer, "config.get"));
   assert.equal(error.code, "BAD_REQUEST");
   assert.match(error.message, /config\.yaml is invalid at preferences\.template/);
-});
-
-test("quick run starts the agent with the fixed line, waits for the poll and offers nothing when a session exists", async () => {
-  const browser = await connect();
-  const agent = await mcp();
-  await post(browser, [draft()]);
-  const fakeBin = join(project, "bin");
-  mkdirSync(fakeBin);
-  writeFileSync(join(fakeBin, "codex"), "#!/bin/sh\n", { mode: 0o755 });
-  const previous = process.env.PATH;
-  process.env.PATH = `${fakeBin}:${previous}`;
-  try {
-    const run = request<HandoffOutcome>(browser, "quickrun.execute", {
-      root: project,
-      agent: "codex",
-      template: "resolve",
-    });
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    assert.equal(quickRuns.length, 1);
-    const spec = quickRuns[0]?.spec as QuickRunSpec;
-    assert.equal(spec.file, join(fakeBin, "codex"));
-    assert.equal(spec.args[0], "exec");
-    assert.match(spec.args[1] ?? "", /list_comments/);
-    assert.equal(spec.cwd.endsWith(project.split("/").pop() as string), true);
-    await agent.call("broker.polled", {});
-    const outcome = await run;
-    assert.equal(outcome.delivered, true);
-    const sessions = await request<SessionInfo[]>(browser, "session.list");
-    assert.equal(sessions[0]?.kind, "quick-run");
-    quickRuns[0]?.exit(0);
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    assert.deepEqual(await request(browser, "session.list"), []);
-
-    await session("claude");
-    const busy = await failure(
-      request(browser, "quickrun.execute", { root: project, agent: "codex", template: "resolve" }),
-    );
-    assert.equal(busy.code, "BLOCKED");
-  } finally {
-    process.env.PATH = previous;
-  }
-});
-
-test("quick run reports a missing agent and an agent that exits before reading", async () => {
-  const browser = await connect();
-  await mcp();
-  await post(browser, [draft()]);
-  const missing = await failure(
-    request(browser, "quickrun.execute", { root: project, agent: "goose", template: "resolve" }),
-  );
-  assert.match(missing.message, /not installed/);
-  const unknown = await failure(
-    request(browser, "quickrun.execute", { root: project, agent: "nonesuch", template: "resolve" }),
-  );
-  assert.match(unknown.message, /does not know the agent/);
-
-  const fakeBin = join(project, "bin");
-  mkdirSync(fakeBin);
-  writeFileSync(join(fakeBin, "gemini"), "#!/bin/sh\n", { mode: 0o755 });
-  const previous = process.env.PATH;
-  process.env.PATH = `${fakeBin}:${previous}`;
-  try {
-    const run = request<HandoffOutcome>(browser, "quickrun.execute", {
-      root: project,
-      agent: "gemini",
-      template: "resolve",
-    });
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    quickRuns[0]?.exit(1);
-    const outcome = await run;
-    assert.equal(outcome.delivered, false);
-    assert.match(outcome.reason ?? "", /exited before it read the comments/);
-  } finally {
-    process.env.PATH = previous;
-  }
 });
 
 test("ensureDaemon starts a missing daemon through the supplied launcher and gives up with a fix", async () => {

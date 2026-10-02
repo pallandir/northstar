@@ -49,14 +49,8 @@ export async function sessionsCommand(): Promise<number> {
     process.stdout.write("No sessions. Start one with northstar run <agent>.\n");
     return 0;
   }
-  const rows = sessions.map((s) => [
-    s.id.slice(0, 8),
-    s.agent,
-    s.root,
-    s.kind,
-    age(s.lastActivityAt),
-  ]);
-  const header = ["ID", "AGENT", "PROJECT", "KIND", "ACTIVE"];
+  const rows = sessions.map((s) => [s.id.slice(0, 8), s.agent, s.root, age(s.lastActivityAt)]);
+  const header = ["ID", "AGENT", "PROJECT", "ACTIVE"];
   const widths = header.map((h, i) =>
     Math.max(h.length, ...rows.map((r) => (r[i] as string).length)),
   );
@@ -85,10 +79,7 @@ export async function agentCommand(args: string[]): Promise<number> {
   }
   if (sub === "add") {
     const [id, path, ...flags] = rest;
-    if (!id || !path)
-      return fail(
-        'Usage: northstar agent add <id> <path> [--name <name>] [--quick-run "-p {{prompt}}"]',
-      );
+    if (!id || !path) return fail("Usage: northstar agent add <id> <path> [--name <name>]");
     try {
       assertAgentId(id);
     } catch (error) {
@@ -100,20 +91,18 @@ export async function agentCommand(args: string[]): Promise<number> {
     const file = findExecutable(resolve(path));
     if (!file) return fail(`${path} is not an executable file.`);
     let name: string | undefined;
-    let quick: string[] | undefined;
     for (let i = 0; i < flags.length; i += 2) {
       const flag = flags[i];
       const value = flags[i + 1];
       if (value === undefined) return fail(`${flag} needs a value.`);
       if (flag === "--name") name = value;
-      else if (flag === "--quick-run") quick = value.split(/\s+/).filter(Boolean);
       else return fail(`Unknown option ${flag}.`);
     }
     try {
       updateSettings(home, {
         agent: {
           id,
-          definition: { name, executable: file, quickRun: quick ? { args: quick } : undefined },
+          definition: { name, executable: file },
         },
       });
     } catch (error) {

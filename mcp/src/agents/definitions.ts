@@ -6,18 +6,15 @@ export interface AgentDefinition {
   id: string;
   name: string;
   executable: string;
-  quickRunArgs: string[] | null;
 }
 
-const PROMPT = "{{prompt}}";
-
 export const BUILTIN_AGENTS: readonly AgentDefinition[] = [
-  { id: "claude", name: "Claude Code", executable: "claude", quickRunArgs: ["-p", PROMPT] },
-  { id: "codex", name: "Codex", executable: "codex", quickRunArgs: ["exec", PROMPT] },
-  { id: "gemini", name: "Gemini CLI", executable: "gemini", quickRunArgs: ["-p", PROMPT] },
-  { id: "opencode", name: "OpenCode", executable: "opencode", quickRunArgs: ["run", PROMPT] },
-  { id: "aider", name: "Aider", executable: "aider", quickRunArgs: ["--message", PROMPT] },
-  { id: "goose", name: "Goose", executable: "goose", quickRunArgs: ["run", "-t", PROMPT] },
+  { id: "claude", name: "Claude Code", executable: "claude" },
+  { id: "codex", name: "Codex", executable: "codex" },
+  { id: "gemini", name: "Gemini CLI", executable: "gemini" },
+  { id: "opencode", name: "OpenCode", executable: "opencode" },
+  { id: "aider", name: "Aider", executable: "aider" },
+  { id: "goose", name: "Goose", executable: "goose" },
 ];
 
 const AGENT_ID = /^[a-z0-9][a-z0-9._-]{0,63}$/i;
@@ -68,14 +65,6 @@ export function describeAgents(agents: readonly AgentDefinition[], pathEnv?: str
       name: agent.name,
       installed: path !== null,
       path,
-      quickRun: agent.quickRunArgs !== null,
     };
   });
-}
-
-export function quickRunArgv(agent: AgentDefinition, line: string): string[] {
-  if (!agent.quickRunArgs) {
-    throw new Error(`${agent.name} has no quick run command.`);
-  }
-  return agent.quickRunArgs.map((arg) => (arg === PROMPT ? line : arg));
 }

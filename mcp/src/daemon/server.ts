@@ -4,7 +4,6 @@ import { runtimeDir, socketPath } from "../lib/home.js";
 import { connectDaemon } from "./client.js";
 import { Daemon } from "./core.js";
 import { RpcError } from "./rpc.js";
-import type { QuickRunLauncher } from "./sending.js";
 
 const IDLE_CHECK_MS = 30_000;
 const IDLE_EXIT_MS = 10 * 60 * 1000;
@@ -13,7 +12,6 @@ interface DaemonServerOptions {
   home: string;
   version: string;
   log: (message: string) => void;
-  launchQuickRun: QuickRunLauncher;
   idleExitMs?: number;
   pickupTimeoutMs?: number;
 }
@@ -49,7 +47,6 @@ export async function startDaemon(options: DaemonServerOptions): Promise<Running
     home,
     version: options.version,
     log,
-    launchQuickRun: options.launchQuickRun,
     pickupTimeoutMs: options.pickupTimeoutMs,
     onShutdown: () => void close(),
   });

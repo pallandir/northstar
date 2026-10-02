@@ -1,46 +1,15 @@
-import { randomUUID } from "node:crypto";
-import {
-  type AgentInfo,
-  type HandoffOutcome,
-  type SessionInfo,
-  type TemplateId,
-  type actionParams,
-  templateLine,
-} from "@northstar/protocol";
+import type { HandoffOutcome, SessionInfo, TemplateId, actionParams } from "@northstar/protocol";
 import type { z } from "zod";
-import {
-  type AgentDefinition,
-  describeAgents,
-  findExecutable,
-  mergeAgents,
-  quickRunArgv,
-} from "../agents/definitions.js";
-import { userPath } from "../lib/user-path.js";
 import type { DeliverOutcome } from "../pty/deliver.js";
 import { loadSettings } from "../user-config.js";
 import type { SessionHandle } from "./registry.js";
-import { NO_SESSION_FIX, routeSend } from "./router.js";
+import { noSessionNotice, routeSend } from "./router.js";
 import { RpcError, badRequest } from "./rpc.js";
 import type { Workspace } from "./workspace.js";
 
 const PICKUP_TIMEOUT_MS = 20_000;
 
-export interface QuickRunSpec {
-  file: string;
-  args: string[];
-  cwd: string;
-  env: Record<string, string>;
-}
-
-interface QuickRunHandle {
-  pid: number;
-  onExit(callback: (code: number) => void): void;
-}
-
-export type QuickRunLauncher = (spec: QuickRunSpec) => QuickRunHandle;
-
 interface SenderOptions {
-  launchQuickRun: QuickRunLauncher;
   pickupTimeoutMs?: number;
 }
 
@@ -75,14 +44,6 @@ export class Sender {
     }
   }
 
-  private starter(preferred: string | null): AgentInfo | undefined {
-    const agents = describeAgents(
-      mergeAgents(loadSettings(this.workspace.home).agents),
-      userPath(this.workspace.home),
-    ).filter((a) => a.installed && a.quickRun);
-    return agents.find((a) => a.id === preferred) ?? agents[0];
-  }
-
   private async requireOpenComments(root: string): Promise<void> {
     if ((await this.workspace.store(root).list("open")).length === 0) {
       throw badRequest(
@@ -102,18 +63,11 @@ export class Sender {
       root,
       sessionId: params.sessionId,
       preferredAgent: settings.preferredAgent,
+      assistantConnected: registry.hasAssistant(root),
     });
     if (route.kind === "none") {
-      const starter = this.starter(settings.preferredAgent);
-      if (!starter) {
-        throw new RpcError(
-          "NO_SESSION",
-          "No AI assistant is open in this project and Northstar found none it can start.",
-          NO_SESSION_FIX,
-        );
-      }
-      this.log(`session.send no session, starting ${starter.id}`);
-      return this.quickRun({ root, agent: starter.id, template: params.template });
+      const { reason, fix } = noSessionNotice(registry.hasAssistant(root));
+      throw new RpcError("NO_SESSION", reason, fix);
     }
     if (route.kind === "pick") {
       throw new RpcError(
@@ -190,123 +144,5 @@ export class Sender {
       fix: `Check ${session.name} for a pending prompt or a running task, then click Send to AI again.`,
       at: new Date().toISOString(),
     };
-  }
-
-  async quickRun(params: Params<"quickrun.execute">): Promise<HandoffOutcome> {
-    const root = this.workspace.requireRoot(params.root);
-    this.begin(root);
-    const live = this.workspace.registry.list().filter((s) => s.root === root);
-    if (live.length > 0) {
-      throw new RpcError(
-        "BLOCKED",
-        "An agent session is already running in this project.",
-        "Use Send to AI, quick run is only for projects with no session.",
-      );
-    }
-    await this.requireOpenComments(root);
-    const settings = loadSettings(this.workspace.home);
-    const definition = mergeAgents(settings.agents).find((a) => a.id === params.agent);
-    if (!definition) {
-      throw badRequest(
-        `Northstar does not know the agent ${params.agent}.`,
-        "Pick one from the list.",
-      );
-    }
-    const path = userPath(this.workspace.home);
-    const file = findExecutable(definition.executable, path);
-    if (!file) {
-      throw badRequest(
-        `${definition.name} is not installed, ${definition.executable} is not on the PATH Northstar knows.`,
-        "Install it, or run northstar run once from a shell that has it on the PATH.",
-      );
-    }
-    let argv: string[];
-    try {
-      argv = quickRunArgv(definition, templateLine(params.template));
-    } catch (error) {
-      throw badRequest((error as Error).message, "Pick an agent with a quick run command.");
-    }
-    this.sending.add(root);
-    try {
-      return await this.runHeadless(root, definition, file, argv, path);
-    } finally {
-      this.sending.delete(root);
-    }
-  }
-
-  private async runHeadless(
-    root: string,
-    definition: AgentDefinition,
-    file: string,
-    argv: string[],
-    path: string,
-  ): Promise<HandoffOutcome> {
-    const env: Record<string, string> = {};
-    for (const [key, value] of Object.entries(process.env)) {
-      if (value !== undefined) env[key] = value;
-    }
-    env.PATH = path;
-    const sentAt = Date.now();
-    const handle = this.options.launchQuickRun({ file, args: argv, cwd: root, env });
-    const id = randomUUID();
-    const now = new Date().toISOString();
-    const info: SessionInfo = {
-      id,
-      agent: definition.id,
-      name: definition.name,
-      command: file,
-      cwd: root,
-      root,
-      pid: handle.pid,
-      createdAt: now,
-      lastActivityAt: now,
-      kind: "quick-run",
-    };
-    this.workspace.registry.add({
-      info,
-      deliver: async () => {
-        throw new RpcError("BLOCKED", "A quick run takes no messages.", "Wait for it to finish.");
-      },
-    });
-    const who = { id, agent: definition.id, name: definition.name };
-    const exited = new Promise<number>((resolve) => handle.onExit(resolve));
-    void exited.then((code) => {
-      this.workspace.registry.remove(id);
-      this.log(`quickrun.exited session=${id} agent=${definition.id} code=${code}`);
-    });
-    const timeout = this.timeoutMs;
-    const winner = await Promise.race([
-      this.workspace
-        .broker(root)
-        .waitForPoll(sentAt, timeout)
-        .then((polled) => (polled ? ("polled" as const) : ("timeout" as const))),
-      exited.then(() => "exited" as const),
-    ]);
-    const at = new Date().toISOString();
-    let handoff: HandoffOutcome;
-    if (winner === "polled") {
-      handoff = { delivered: true, session: who, at };
-    } else if (winner === "exited") {
-      handoff = {
-        delivered: false,
-        session: who,
-        reason: `${definition.name} exited before it read the comments.`,
-        fix: "Run it once in a terminal to see its error, then try again.",
-        at,
-      };
-    } else {
-      handoff = {
-        delivered: false,
-        session: who,
-        reason: `${definition.name} did not start on the comments within ${Math.round(timeout / 1000)} seconds.`,
-        fix: "Check that its Northstar MCP server is installed with northstar doctor.",
-        at,
-      };
-    }
-    this.workspace.broker(root).recordHandoff(handoff);
-    this.log(
-      `quickrun.started session=${id} agent=${definition.id} delivered=${handoff.delivered}`,
-    );
-    return handoff;
   }
 }

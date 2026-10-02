@@ -128,6 +128,7 @@ export class CommentActions {
       readiness: readinessFor(this.workspace.registry.list(), {
         root: canonical,
         preferredAgent: settings.preferredAgent,
+        assistantConnected: this.workspace.registry.hasAssistant(canonical),
       }),
       open: (await this.workspace.store(canonical).list("open")).length,
       lastPolledAt: broker.lastPolledAt,

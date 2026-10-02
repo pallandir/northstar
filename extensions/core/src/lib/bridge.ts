@@ -143,7 +143,7 @@ export function requireConnected(link: Link): Extract<Link, { kind: "connected" 
     case "noproject":
       throw new UserError(
         "No project is running yet.",
-        "Open a new terminal tab, start your AI assistant in the project, then try again.",
+        "Open your AI assistant in the project, then try again.",
         "offline",
       );
     case "choose":

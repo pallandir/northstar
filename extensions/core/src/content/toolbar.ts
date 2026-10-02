@@ -39,7 +39,6 @@ export interface ToolbarHandlers {
   onTogglePick: () => void;
   onDeactivate: () => void;
   onChooseProject: (root: string) => void;
-  onQuickRun: (agent: string) => void;
   onCopyLine: () => void;
 }
 
@@ -174,8 +173,7 @@ export class Toolbar {
 
   private sendTip(): string {
     if (this.sending) return "Sending to your AI assistant";
-    if (!this.reachable)
-      return "Not connected, open a new terminal tab and start your AI assistant in this project";
+    if (!this.reachable) return "Not connected, open your AI assistant in this project";
     if (this.blocked !== null) return this.blocked;
     if (this.pending === 0) return "Nothing to send yet, add a comment first";
     return this.pending === 1
@@ -264,7 +262,7 @@ export class Toolbar {
       this.showFailure(
         "noproject",
         "No project is running",
-        "Open a new terminal tab and start your AI assistant in the project you are commenting on.",
+        "Open your AI assistant in the project you are commenting on.",
       );
     } else if (send && send.rejected > 0) {
       this.showFailure(
@@ -292,18 +290,10 @@ export class Toolbar {
       );
     } else if (readiness && !readiness.ready) {
       const quick: StripAction[] =
-        this.pending > 0
-          ? [
-              { label: "Copy the line", run: () => this.handlers.onCopyLine() },
-              ...(status?.agents ?? []).map((agent) => ({
-                label: `Quick run with ${agent.name}`,
-                run: () => this.handlers.onQuickRun(agent.id),
-              })),
-            ]
-          : [];
+        this.pending > 0 ? [{ label: "Copy the line", run: () => this.handlers.onCopyLine() }] : [];
       this.showFailure(
-        `no-session:${(status?.agents ?? []).map((agent) => agent.id).join(",")}:${this.pending > 0}`,
-        "No agent session in this project",
+        `no-session:${this.pending > 0}`,
+        "Northstar cannot reach your assistant",
         `${readiness.reason ?? ""} ${readiness.fix ?? ""}`.trim(),
         quick,
       );

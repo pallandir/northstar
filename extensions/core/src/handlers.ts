@@ -9,7 +9,6 @@ import {
   clearAll,
   commentsForPage,
   dismissNotice,
-  quickRun,
   removeComment,
   reopenComment,
   saveDraft,
@@ -138,12 +137,6 @@ async function dispatch(message: Message, sender: chrome.runtime.MessageSender):
       const tab = senderTab(sender);
       requireLocal(tab, "Send to AI");
       const { status: st, send } = await sendToAgent(tab.origin, { sessionId: message.sessionId });
-      return { ok: true, status: st, send };
-    }
-    case "quick-run": {
-      const tab = senderTab(sender);
-      requireLocal(tab, "Quick run");
-      const { status: st, send } = await quickRun(tab.origin, message.agent);
       return { ok: true, status: st, send };
     }
     case "report-sources": {

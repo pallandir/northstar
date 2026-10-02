@@ -10,7 +10,7 @@ import { type FailureKind, UserError } from "./errors.js";
 
 const FAST_TIMEOUT_MS = 20_000;
 const SLOW_TIMEOUT_MS = 70_000;
-const SLOW_ACTIONS = new Set<NativeAction>(["session.send", "quickrun.execute"]);
+const SLOW_ACTIONS = new Set<NativeAction>(["session.send"]);
 
 const INSTALL_FIX =
   "Run npm install -g @pallandir/northstar, then northstar install, then reload this page.";

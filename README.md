@@ -281,10 +281,8 @@ program in any terminal, which is why Send to AI needs no terminal specific supp
 no macOS permission. It can only ever write into that terminal. `northstar run <agent>`
 does the same without the shell wrapper, and `--no-shell` skips the wrapper at install.
 
-No assistant open in the project? Click Send to AI anyway. Northstar starts your
-preferred installed assistant (Claude Code, Codex and so on) in the background for that
-send, so there is nothing to set up. An assistant that was already running before
-install has no session, so Send to AI starts a fresh one instead.
+An assistant that was already running, or that a GUI or an IDE started without your
+shell, has no session. Send to AI says so. Restart it from a new terminal.
 
 Unpacked builds of the extension are allowed automatically: when the daemon starts it
 finds the Northstar builds loaded in Chrome and allows them. Reload the page after

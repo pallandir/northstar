@@ -1,5 +1,4 @@
 import {
-  type AgentInfo,
   type HandoffOutcome,
   type PostCommentsResponse,
   type Readiness,
@@ -150,7 +149,6 @@ function baseStatus(counts: { queued: number; failed: number }): QueueStatus {
     lastPolledAt: null,
     handoff: null,
     projects: [],
-    agents: [],
     template: DEFAULT_TEMPLATE,
     problem: null,
   };
@@ -183,19 +181,13 @@ export async function status(origin: string): Promise<QueueStatus> {
   try {
     const body = parseStatusBody(await callProject(link, "status.get"));
     const config = await request<UserConfig>("config.get");
-    const agents = body.readiness.sessions.length === 0 ? await installedAgents() : [];
-    return { ...base, ...body, agents, template: config.template };
+    return { ...base, ...body, template: config.template };
   } catch (err) {
     if (err instanceof BridgeError && err.kind === "api")
       return { ...base, problem: problemOf(err) };
     if (err instanceof BridgeError) return statusFromLink(await resolveLink(origin), counts);
     throw err;
   }
-}
-
-async function installedAgents(): Promise<AgentInfo[]> {
-  const agents = await request<AgentInfo[]>("agent.list");
-  return agents.filter((a) => a.installed && a.quickRun);
 }
 
 export function saveDraft(origin: string, draft: DraftRequest): Promise<QueuedRequest> {
@@ -372,19 +364,5 @@ export async function sendToAgent(
   const woke = parseHandoff(
     await callProject(link, "session.send", { template, sessionId: options.sessionId }),
   );
-  return { status: await status(origin), send: { ...flushed.send, woke } };
-}
-
-export async function quickRun(
-  origin: string,
-  agent: string,
-): Promise<{ status: QueueStatus; send: SendOutcome }> {
-  const flushed = await flush(origin);
-  if (flushed.status.open === 0) {
-    return { status: flushed.status, send: { ...flushed.send, woke: null } };
-  }
-  const link = requireConnected(await resolveLink(origin));
-  const template = await templateFor({});
-  const woke = parseHandoff(await callProject(link, "quickrun.execute", { agent, template }));
   return { status: await status(origin), send: { ...flushed.send, woke } };
 }

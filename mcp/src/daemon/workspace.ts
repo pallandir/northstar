@@ -102,7 +102,7 @@ export class Workspace {
     return this.allRoots().map((root) => ({
       root,
       name: projectName(root),
-      sessions: sessions.filter((s) => s.root === root && s.kind === "interactive").length,
+      sessions: sessions.filter((s) => s.root === root).length,
     }));
   }
 

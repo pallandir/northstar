@@ -13,12 +13,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, test } from "node:test";
 import { CHROME_EXTENSION_ID, FIREFOX_EXTENSION_ID, NATIVE_HOST_NAME } from "@northstar/protocol";
-import {
-  BUILTIN_AGENTS,
-  findExecutable,
-  mergeAgents,
-  quickRunArgv,
-} from "../mcp/src/agents/definitions.js";
+import { BUILTIN_AGENTS, findExecutable, mergeAgents } from "../mcp/src/agents/definitions.js";
 import { DaemonLink } from "../mcp/src/daemon/link.js";
 import { RpcError } from "../mcp/src/daemon/rpc.js";
 import {
@@ -261,7 +256,6 @@ test("user settings load defaults, round trip and refuse a bad file with its pat
       id: "company-ai",
       definition: {
         executable: "/usr/local/bin/company-ai",
-        quickRun: { args: ["ask", "{{prompt}}"] },
       },
     },
   });
@@ -277,13 +271,6 @@ test("user settings load defaults, round trip and refuse a bad file with its pat
     ["company-ai"],
   );
 
-  assert.throws(
-    () =>
-      updateSettings(home, {
-        agent: { id: "bad", definition: { executable: "x", quickRun: { args: ["no prompt"] } } },
-      }),
-    /must contain \{\{prompt\}\}/,
-  );
   mkdirSync(join(home, ".northstar"), { recursive: true });
   writeFileSync(join(home, ".northstar", "config.yaml"), "agents: [");
   assert.throws(() => loadSettings(home), /config\.yaml is not valid YAML/);
@@ -291,7 +278,7 @@ test("user settings load defaults, round trip and refuse a bad file with its pat
   assert.throws(() => loadSettings(home), /config\.yaml is invalid/);
 });
 
-test("agents are found on the PATH and quick run fills the prompt without a shell", () => {
+test("agents are found on the PATH without a shell", () => {
   const home = temp();
   const bin = join(home, "bin");
   mkdirSync(bin);
@@ -300,11 +287,6 @@ test("agents are found on the PATH and quick run fills the prompt without a shel
   assert.equal(findExecutable("codex", bin), join(bin, "codex"));
   assert.equal(findExecutable("claude", bin), null);
   assert.equal(findExecutable("missing", bin), null);
-  const claude = BUILTIN_AGENTS.find((a) => a.id === "claude");
-  assert.deepEqual(quickRunArgv(claude as (typeof BUILTIN_AGENTS)[number], "the line; rm -rf ~"), [
-    "-p",
-    "the line; rm -rf ~",
-  ]);
 });
 
 test("the daemon link reports an unreachable daemon once and never throws into a tool call", async () => {

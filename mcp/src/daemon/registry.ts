@@ -43,6 +43,7 @@ export function projectName(root: string): string {
 export class Registry {
   private readonly sessions = new Map<string, SessionHandle>();
   private roots: RootEntry[] = [];
+  private readonly assistants = new Map<string, number>();
 
   constructor(
     private readonly home: string,
@@ -83,6 +84,22 @@ export class Registry {
       }
     }
     return null;
+  }
+
+  attachAssistant(root: string): () => void {
+    this.assistants.set(root, (this.assistants.get(root) ?? 0) + 1);
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      const left = (this.assistants.get(root) ?? 1) - 1;
+      if (left === 0) this.assistants.delete(root);
+      else this.assistants.set(root, left);
+    };
+  }
+
+  hasAssistant(root: string): boolean {
+    return this.assistants.has(root);
   }
 
   rememberRoot(root: string): void {

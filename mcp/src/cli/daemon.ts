@@ -1,7 +1,6 @@
 import { VERSION } from "../config.js";
 import { connectDaemon } from "../daemon/client.js";
 import { fileLogger } from "../daemon/log.js";
-import { launchQuickRun } from "../daemon/quickrun.js";
 import { RpcError } from "../daemon/rpc.js";
 import { startDaemon } from "../daemon/server.js";
 import { findLocalExtensionIds } from "../install/chrome-extensions.js";
@@ -70,7 +69,7 @@ export async function daemonCommand(args: string[]): Promise<number> {
   allowLocalExtensions(home, log);
   let running: Awaited<ReturnType<typeof startDaemon>>;
   try {
-    running = await startDaemon({ home, version: VERSION, log, launchQuickRun });
+    running = await startDaemon({ home, version: VERSION, log });
   } catch (error) {
     const message = (error as Error).message;
     if (/already running/.test(message)) {

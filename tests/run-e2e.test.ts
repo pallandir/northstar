@@ -52,9 +52,6 @@ before(async () => {
     log: () => {},
     idleExitMs: 60_000,
     pickupTimeoutMs: 5_000,
-    launchQuickRun: () => {
-      throw new Error("not used");
-    },
   });
   browser = await connectDaemon(() => {}, null, home);
   agent = await connectDaemon(() => {}, null, home);
@@ -91,7 +88,6 @@ after(async () => {
 test("northstar run registers the session, shows the agent and keeps the terminal interactive", async () => {
   await until(async () => (await ask<SessionInfo[]>("session.list")).length === 1, "the session");
   const [session] = await ask<SessionInfo[]>("session.list");
-  assert.equal(session?.kind, "interactive");
   assert.ok(session?.cwd.endsWith(project.split("/").pop() as string));
   await until(
     () => (wrapper as PtySession).lines().join("\n").includes("Test Agent"),

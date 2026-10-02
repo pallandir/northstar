@@ -257,34 +257,6 @@ describe("status", () => {
     expect(status.connection).toBe("connected");
     expect(status.readiness).toEqual(READY);
     expect(status.template).toBe("resolve");
-    expect(status.agents).toEqual([]);
-  });
-
-  it("lists the installed agents that can quick run when no session runs", async () => {
-    const mod = await import("../extensions/core/src/lib/transport.js");
-    installFakeHost((action) => {
-      if (action === "project.list") return [{ ...PROJECT, sessions: 0 }];
-      if (action === "config.get") return CONFIG;
-      if (action === "agent.list") {
-        return [
-          { id: "codex", name: "Codex", installed: true, path: "/bin/codex", quickRun: true },
-          { id: "goose", name: "Goose", installed: false, path: null, quickRun: true },
-          { id: "custom", name: "Custom", installed: true, path: "/bin/c", quickRun: false },
-        ];
-      }
-      return statusBody(1, {
-        readiness: {
-          ready: false,
-          sessions: [],
-          target: null,
-          needsPick: false,
-          reason: "none",
-          fix: "run",
-        },
-      });
-    });
-    const status = await mod.status(ORIGIN);
-    expect(status.agents.map((a) => a.id)).toEqual(["codex"]);
   });
 
   it("asks which project when more than one is known and nothing binds", async () => {
@@ -424,21 +396,6 @@ describe("sendToAgent", () => {
     await expect(mod.sendToAgent(ORIGIN)).rejects.toMatchObject({
       message: "A send to the agent is already in progress.",
       fix: "Wait for it to finish.",
-    });
-  });
-
-  it("quick run flushes and starts the chosen agent", async () => {
-    const mod = await import("../extensions/core/src/lib/transport.js");
-    const fake = host({
-      "status.get": () => statusBody(1),
-      "quickrun.execute": () => delivered,
-    });
-    const { send } = await mod.quickRun(ORIGIN, "codex");
-    expect(send.woke?.delivered).toBe(true);
-    expect(posted(fake.calls, "quickrun.execute")[0]?.params).toMatchObject({
-      root: ROOT,
-      agent: "codex",
-      template: "resolve",
     });
   });
 });

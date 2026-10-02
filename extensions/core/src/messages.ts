@@ -1,4 +1,4 @@
-import type { AgentInfo, HandoffOutcome, Readiness, TemplateId } from "@northstar/protocol";
+import type { HandoffOutcome, Readiness, TemplateId } from "@northstar/protocol";
 import { UserError } from "./lib/errors.js";
 import type { Failure } from "./lib/errors.js";
 import type { DraftRequest, OperationType, QueuedRequest, Rect, Rejection } from "./types.js";
@@ -66,7 +66,6 @@ export interface QueueStatus {
   lastPolledAt: string | null;
   handoff: HandoffOutcome | null;
   projects: ProjectChoice[];
-  agents: AgentInfo[];
   template: TemplateId;
   problem: ProblemNote | null;
 }
@@ -91,7 +90,6 @@ export type Message =
       screenshotDataUrl?: string | null;
     }
   | { type: "flush"; sessionId?: string }
-  | { type: "quick-run"; agent: string }
   | { type: "report-sources"; paths: string[] }
   | { type: "dismiss-notice"; commentId: string }
   | { type: "queue-status" }
@@ -184,8 +182,6 @@ export function parseMessage(raw: unknown): Message {
       }
       return { type: "flush", sessionId };
     }
-    case "quick-run":
-      return { type: "quick-run", agent: text(raw, "agent") };
     case "report-sources": {
       const paths = raw.paths;
       if (!Array.isArray(paths) || !paths.every((p) => typeof p === "string")) {

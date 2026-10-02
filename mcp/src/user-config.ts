@@ -6,23 +6,12 @@ import { z } from "zod";
 import { type AgentDefinition, assertAgentId } from "./agents/definitions.js";
 import { configPath, northstarHome } from "./lib/home.js";
 
-const PROMPT = "{{prompt}}";
-
 export class ConfigError extends Error {}
 
 const agentEntry = z
   .object({
     name: z.string().min(1).max(100).optional(),
     executable: z.string().min(1).max(4096),
-    quickRun: z
-      .object({
-        args: z
-          .array(z.string().max(1000))
-          .max(40)
-          .refine((args) => args.includes(PROMPT), `must contain ${PROMPT}`),
-      })
-      .strict()
-      .optional(),
   })
   .strict();
 
@@ -91,7 +80,6 @@ export function loadSettings(home: string = northstarHome()): UserSettings {
       id,
       name: entry.name ?? id,
       executable: entry.executable,
-      quickRunArgs: entry.quickRun?.args ?? null,
     };
   });
   const projects: Record<string, string> = {};

@@ -66,9 +66,6 @@ beforeEach(async () => {
     version: "9.9.9",
     log: () => {},
     idleExitMs: 60_000,
-    launchQuickRun: () => {
-      throw new Error("no quick run in this test");
-    },
   });
   const agent = await connectDaemon(() => {}, null, home);
   peers.push(agent);
