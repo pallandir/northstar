@@ -5,6 +5,11 @@ import { createMcpServer } from "./server.js";
 import { CommentStore } from "./store.js";
 
 async function main(): Promise<void> {
+  if (process.env.NORTHSTAR_PACKS !== undefined) {
+    throw new Error(
+      "NORTHSTAR_PACKS was removed, every tool is always available now. Delete NORTHSTAR_PACKS from the northstar MCP server entry, or run northstar install to rewrite it.",
+    );
+  }
   const root = process.env.NORTHSTAR_ROOT ?? process.cwd();
   const store = new CommentStore(root);
 

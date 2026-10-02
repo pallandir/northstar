@@ -1,17 +1,20 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, test } from "node:test";
+import { fileURLToPath } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { loadCanon } from "@northstar/canon";
-import { RemovedSettingError, createMcpServer } from "../mcp/src/server.js";
+import { createMcpServer } from "../mcp/src/server.js";
 import { CommentStore } from "../mcp/src/store.js";
 import { registerCore } from "../mcp/src/tools/core.js";
 import { noopLink } from "./helpers.js";
 
+const SERVER_ENTRY = fileURLToPath(new URL("../mcp/src/index.ts", import.meta.url));
 let root: string;
 let client: Client;
 
@@ -183,20 +186,14 @@ test("every tool is available from the first list, with no pack to enable", asyn
 });
 
 test("a server started with the removed NORTHSTAR_PACKS setting stops and says how to fix it", () => {
-  const before = process.env.NORTHSTAR_PACKS;
-  process.env.NORTHSTAR_PACKS = "all";
-  try {
-    assert.throws(
-      () => createMcpServer(new CommentStore(root), noopLink, undefined, { root }),
-      (error: Error) =>
-        error instanceof RemovedSettingError &&
-        /NORTHSTAR_PACKS was removed/.test(error.message) &&
-        /northstar install/.test(error.message),
-    );
-  } finally {
-    if (before === undefined) Reflect.deleteProperty(process.env, "NORTHSTAR_PACKS");
-    else process.env.NORTHSTAR_PACKS = before;
-  }
+  const started = spawnSync(process.execPath, ["--import", "tsx", SERVER_ENTRY], {
+    encoding: "utf8",
+    input: "",
+    env: { ...process.env, NORTHSTAR_PACKS: "all", NORTHSTAR_ROOT: root },
+  });
+  assert.equal(started.status, 1);
+  assert.match(started.stderr, /NORTHSTAR_PACKS was removed/);
+  assert.match(started.stderr, /northstar install/);
 });
 
 test("design_search takes either an id or a domain with a query, never a mix", async () => {

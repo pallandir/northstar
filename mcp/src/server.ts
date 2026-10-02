@@ -26,8 +26,6 @@ library first and avoid generic AI defaults. Without the skill, read the referen
 Browser comments arrive only when the developer clicks "Send to AI", through the resolve-comments prompt: there \
 is nothing to poll or watch.`;
 
-export class RemovedSettingError extends Error {}
-
 export function createMcpServer(
   store: CommentStore,
   broker: BrokerLink,
@@ -38,11 +36,6 @@ export function createMcpServer(
     bridge?: () => BridgeStatus;
   } = {},
 ): McpServer {
-  if (process.env.NORTHSTAR_PACKS !== undefined) {
-    throw new RemovedSettingError(
-      "NORTHSTAR_PACKS was removed, every tool is always available now. Delete NORTHSTAR_PACKS from the northstar MCP server entry, or run northstar install to rewrite it.",
-    );
-  }
   const server = new McpServer(
     { name: "northstar", version: VERSION },
     { instructions: INSTRUCTIONS },
