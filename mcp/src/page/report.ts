@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Direction, Reference } from "../design/store.js";
 import { diffFindings } from "./compare.js";
+import { blocks } from "./finding.js";
 import { judge } from "./judge.js";
 import type { Loop } from "./loop.js";
 import type { RunRecord } from "./runs.js";
@@ -64,7 +65,7 @@ export function buildReport({
 }: ReportInput): Report {
   const areas = AREAS.map(([name, pattern]) => {
     const mine = latest.findings.filter((f) => pattern.test(f.rule));
-    const status: "PASS" | "WARN" | "FAIL" = mine.some((f) => f.severity === "error")
+    const status: "PASS" | "WARN" | "FAIL" = mine.some(blocks)
       ? "FAIL"
       : mine.length > 0
         ? "WARN"
@@ -81,7 +82,7 @@ export function buildReport({
   return {
     createdAt: now.toISOString(),
     url: latest.url,
-    status: latest.findings.some((f) => f.severity === "error") ? "NOT READY" : "READY",
+    status: latest.findings.some(blocks) ? "NOT READY" : "READY",
     runs: loop.runs,
     iterations: { used: loop.runs.length, max: loop.maxAudits },
     areas,

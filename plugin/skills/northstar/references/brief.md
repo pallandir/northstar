@@ -3,7 +3,7 @@ Load when: starting new UI work, or when PRODUCT.md is missing or no longer matc
 
 ## Goal
 
-Produce `PRODUCT.md`, a short statement of who the UI is for and what it must achieve. Every later decision is judged against it. No packs are needed in this stage.
+Produce `PRODUCT.md`, a short statement of who the UI is for and what it must achieve. Every later decision is judged against it. No tools beyond `northstar_context` are needed in this stage.
 
 ## The six gates
 

@@ -3,7 +3,7 @@ Load when: DESIGN.md is missing, incomplete, or must be built or normalised from
 
 ## Goal
 
-Produce a valid `DESIGN.md` that holds tokens, prose rationale and the `northstar:` block. Enable the system and resolve packs.
+Produce a valid `DESIGN.md` that holds tokens, prose rationale and the `northstar:` block.
 
 ## Route
 

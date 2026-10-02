@@ -12,7 +12,7 @@ System then turns the choice into tokens with `design_tokens_generate`, and the 
 
 ## Create and refine
 
-Two people usually share a screen. An engineer builds it, a designer refines it. The `build` prompt covers the first pass: archetype, tokens, library first composition and a scan. The `refine` prompt covers the second: `ui_audit` counts what is in the code, then one lever is pulled per change in a fixed order (type, colour, states, spacing, depth and shape, motion, composition), with before and after screenshots and a rescan each time. The `finish` prompt is the last detail pass, and `critique` scores the result.
+Two people usually share a screen. An engineer builds it, a designer refines it. The `build` prompt covers the first pass: archetype, tokens, library first composition and a scan. The `refine` prompt covers the second: `slop_scan` with `inventory` true counts what is in the code, then one lever is pulled per change in a fixed order (type, colour, states, spacing, depth and shape, motion, composition), with before and after screenshots and a rescan each time. The `finish` prompt is the last detail pass, and `critique` scores the result.
 
 ## The six stages
 

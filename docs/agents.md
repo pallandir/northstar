@@ -9,7 +9,7 @@ northstar install
 
 The browser helper that `install` registers points at the installed package, so use a global install. For the design tools alone, `npx -y @pallandir/northstar install --no-host` works without one.
 
-It prints a plan, asks before changing anything and backs up every file it overwrites. `--agent claude,codex` picks agents, `--scope project` writes into the current project instead of your home folder, `--dry-run` only shows the plan, and `--packs dynamic|all` chooses which tool packs start enabled. `northstar doctor` checks the result and `northstar uninstall` removes exactly what install added. To try a local build, pass `--bin` with the path of `mcp/dist/cli.js`.
+It prints a plan, asks before changing anything and backs up every file it overwrites. `--agent claude,codex` picks agents, `--scope project` writes into the current project instead of your home folder, `--dry-run` only shows the plan. `northstar doctor` checks the result and `northstar uninstall` removes exactly what install added. To try a local build, pass `--bin` with the path of `mcp/dist/cli.js`.
 
 ## What each agent gets
 
@@ -31,9 +31,9 @@ Five skills are installed side by side: `northstar` (the core, with the method, 
 
 In Claude Code a pre edit hook blocks UI file edits until `DESIGN.md` exists, parses, has no placeholders and names a mode. The deny message says what is missing and which tool fixes it. Other agents rely on the skill text and `northstar_context`, which report the same gate. Setting `NORTHSTAR_GATE=off` opens the gate, and it is meant only for a user who asked to skip the design system.
 
-## Tool packs
+## Tools
 
-The tools are grouped into packs so that an agent only sees what the current stage needs. Core and comments are always on. The agent enables the others with `enable_packs`, or reaches any tool through `pack_call`. The full list is in [the architecture](./architecture.md).
+Every tool is always available, and the canon says which ones each stage uses. The full list is in [the architecture](./architecture.md).
 
 ## Figma
 

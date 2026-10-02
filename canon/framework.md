@@ -8,7 +8,7 @@ Agents produce competent but generic interfaces. They converge on the same palet
 
 ## One engine, many styles
 
-Northstar is the UI and UX orchestrator, so a project needs one design skill and not ten. Direction picks an archetype, or a blend of two, from twelve recipes. System turns it into contrast checked tokens with `design_tokens_generate`. Compose builds with libraries, Polish applies the finish layer, and `ui_audit` opens a refine pass on code that already exists. Two people share the loop: engineers build fast, designers refine what was built, in the editor or from the browser extension.
+Northstar is the UI and UX orchestrator, so a project needs one design skill and not ten. Direction picks an archetype, or a blend of two, from twelve recipes. System turns it into contrast checked tokens with `design_tokens_generate`. Compose builds with libraries, Polish applies the finish layer, and `slop_scan` with `inventory` true opens a refine pass on code that already exists. Two people share the loop: engineers build fast, designers refine what was built, in the editor or from the browser extension.
 
 Four workflow skills cover the common jobs, `northstar-build`, `northstar-refine`, `northstar-finish` and `northstar-review`, and they read the same canon as this one.
 
@@ -49,7 +49,7 @@ Verbs are entry points that run a subset of the stages.
 | Verb | Runs | Use when |
 |---|---|---|
 | build | Brief, Direction, System, Compose, Polish | New UI from a brief, fast |
-| refine | `ui_audit`, then Critique and Polish, one lever at a time | The UI exists and needs to get better |
+| refine | `slop_scan` with `inventory` true, then Critique and Polish, one lever at a time | The UI exists and needs to get better |
 | adapt | System, then Compose | A new target: platform, breakpoint, theme, density, locale, brand |
 | modernise | Brief derived from code, then Direction, then System | A legacy UI needs a new system without losing behaviour |
 
@@ -71,7 +71,7 @@ Before code, state a one line design read: page kind, audience, vibe words and d
 
 ## Bring your own direction
 
-The designer may supply any freeform markdown: a mood description, a brand note, a pasted style guide, a partial token list. Do not ask them to reformat it. Call `design_md_normalize` from the system pack to draft DESIGN.md from it, then ask only about the gates that remain missing (mode, stack, libraries, contrast pairs). When the system lives in Figma, `references/figma.md` explains how to read the variables through the official Figma MCP server, and what to show when it is not installed.
+The designer may supply any freeform markdown: a mood description, a brand note, a pasted style guide, a partial token list. Do not ask them to reformat it. Call `design_md_normalize` to draft DESIGN.md from it, then ask only about the gates that remain missing (mode, stack, libraries, contrast pairs). When the system lives in Figma, `references/figma.md` explains how to read the variables through the official Figma MCP server, and what to show when it is not installed.
 
 ## Question protocol
 
@@ -83,7 +83,7 @@ The designer may supply any freeform markdown: a mood description, a brand note,
 
 ## Library first
 
-Never hand roll what a library already provides. Call `resolve_library`, `resolve_font` and `resolve_icon` from the resolve pack before writing a dialog, menu, select, toast, table, form, icon or font setup. The mapping lives in `libraries.yaml` and is explained in `references/libraries.md`. Enforcement comes from three places: this text, the resolver tools and the `NS-LIB-*` detector rules. The escape hatch is an entry in `northstar.allow` in DESIGN.md, or an inline `northstar-allow <ID>: <reason>`, and both need a reason.
+Never hand roll what a library already provides. Call `resolve_library`, `resolve_font` and `resolve_icon` before writing a dialog, menu, select, toast, table, form, icon or font setup. The mapping lives in `libraries.yaml` and is explained in `references/libraries.md`. Enforcement comes from three places: this text, the resolver tools and the `NS-LIB-*` detector rules. The escape hatch is an entry in `northstar.allow` in DESIGN.md, or an inline `northstar-allow <ID>: <reason>`, and both need a reason.
 
 ## Arbitration order
 
@@ -95,29 +95,29 @@ When two rules disagree, the higher rank wins. The full table is in `arbitration
 4. Global craft floor: the anti slop defaults when the brief is silent.
 5. Data suggestions from `design_search`, which are candidates only.
 
-## Tools and packs
+## Tools
 
-Call `northstar_context` first. It reports the project, the active mode and the enabled packs. Enable only the packs the current stage needs, using `enable_packs`. Use `pack_call` when the client does not refresh its tool list.
+Every tool is always available. Call `northstar_context` first. It reports the project, the active mode, whether Chrome was started for the page tools and the state of the audit loop. Use what the current stage needs:
 
-| Stage | Packs to enable |
+| Stage | Tools |
 |---|---|
-| Brief | none |
-| Direction | research, design |
-| System | system, resolve |
-| Compose | resolve, detect, page |
-| Critique | detect, critique, page |
-| Polish | detect |
+| Brief | `northstar_context`, `canon_find`, `canon_read` |
+| Direction | `design_intent`, `references_search`, `references_add`, `references_record`, `design_direction`, `design_search` |
+| System | `design_tokens_generate`, `design_system_propose`, `design_md_normalize`, `design_md_validate`, `resolve_library`, `resolve_font`, `resolve_icon` |
+| Compose | `resolve_library`, `resolve_icon`, `slop_scan`, `page_audit` |
+| Critique | `slop_scan`, `page_audit`, `page_compare`, `critique_rubric`, `record_critique`, `design_report` |
+| Polish | `slop_scan`, `canon_read` |
 
-The comments pack is always available. Tool names by pack:
+Tool names by group:
 
-| Pack | Tools |
+| Group | Tools |
 |---|---|
-| core | `northstar_context`, `enable_packs`, `pack_call`, `canon_find`, `canon_read` |
+| core | `northstar_context`, `canon_find`, `canon_read` |
 | comments | `list_comments`, `get_comment`, `resolve_comment`, `resolve_comments`, `defer_comment`, `list_deferred`, `clear_resolved` |
-| research | `design_search`, `design_get` |
+| research | `design_search` |
 | system | `design_md_init`, `design_md_validate`, `design_md_normalize`, `design_md_export`, `design_system_propose`, `design_tokens_generate` |
 | resolve | `resolve_library`, `resolve_font`, `resolve_icon` |
-| detect | `slop_scan`, `explain_rule`, `ui_audit` |
+| detect | `slop_scan` |
 | critique | `critique_rubric`, `record_critique` |
 | page | `page_capture`, `page_audit`, `page_compare` |
 | design | `design_intent`, `references_search`, `references_add`, `references_record`, `design_direction`, `design_report` |

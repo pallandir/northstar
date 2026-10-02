@@ -27,7 +27,6 @@ beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), "northstar-resolve-"));
   const server = createMcpServer(new CommentStore(root), noopLink, undefined, {
     root,
-    packs: "all",
   });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   client = new Client({ name: "test", version: "0.0.0" });
@@ -60,13 +59,13 @@ test("design_search reports an empty result without erroring", async () => {
   assert.match(text(result), /No styles rows match/);
 });
 
-test("design_get returns one row in full and errors on an unknown id", async () => {
-  const found = text(await call("design_get", { id: "styles:glassmorphism" }));
+test("design_search with an id returns one row in full and errors on an unknown id", async () => {
+  const found = text(await call("design_search", { id: "styles:glassmorphism" }));
   assert.match(found, /^# /);
   assert.match(found, /Caution:/);
-  const missing = await call("design_get", { id: "styles:does-not-exist" });
+  const missing = await call("design_search", { id: "styles:does-not-exist" });
   assert.equal(missing.isError, true);
-  const badDomain = await call("design_get", { id: "bogus:thing" });
+  const badDomain = await call("design_search", { id: "bogus:thing" });
   assert.equal(badDomain.isError, true);
 });
 
@@ -127,7 +126,7 @@ test("design data loads on the first data tool call, not at the handshake", () =
     import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
     import { createMcpServer } from "./mcp/src/server.ts";
     import { CommentStore } from "./mcp/src/store.ts";
-    const server = createMcpServer(new CommentStore(process.env.ROOT), { polled() {}, bump() {}, notice() {} }, undefined, { root: process.env.ROOT, packs: "all" });
+    const server = createMcpServer(new CommentStore(process.env.ROOT), { polled() {}, bump() {}, notice() {} }, undefined, { root: process.env.ROOT });
     const [c, s] = InMemoryTransport.createLinkedPair();
     const client = new Client({ name: "t", version: "0" });
     await Promise.all([server.connect(s), client.connect(c)]);

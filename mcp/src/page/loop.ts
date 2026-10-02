@@ -1,10 +1,9 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
-import type { PageFinding } from "./finding.js";
+import { type PageFinding, isSignificant } from "./finding.js";
 
 const MAX_AUDITS = 4;
-const SIGNIFICANT_CONFIDENCE = 0.9;
 
 const loopSchema = z.object({
   url: z.string(),
@@ -64,10 +63,7 @@ export class LoopStore {
 }
 
 export function loopStatus(loop: Loop, findings: readonly PageFinding[]): LoopStatus {
-  const significant = findings.some(
-    (f) =>
-      f.severity === "error" || (f.severity === "warn" && f.confidence >= SIGNIFICANT_CONFIDENCE),
-  );
+  const significant = findings.some(isSignificant);
   if (!significant) return "stop";
   return loop.runs.length >= loop.maxAudits ? "stop" : "continue";
 }

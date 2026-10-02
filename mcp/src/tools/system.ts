@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { BLEND_PARTS, type Canon, DENSITIES, FEELS, SHAPES, TEMPERATURES } from "@northstar/canon";
 import { z } from "zod";
 import { type DesignData, type Row, search } from "../data/index.js";
@@ -14,7 +15,6 @@ import { buildSystem } from "../lib/engine.js";
 import { resolveInside } from "../lib/paths.js";
 import { SCAFFOLDS, scaffold } from "../lib/scaffold.js";
 import { type StackName, inspectProject } from "../project.js";
-import type { PackRegistry } from "./registry.js";
 import { findNeed, stackChoice } from "./resolve.js";
 import { error, modeSchema, text } from "./util.js";
 
@@ -41,7 +41,7 @@ function pick(rows: Row[]): Row | undefined {
 }
 
 export function registerSystem(
-  registry: PackRegistry,
+  server: McpServer,
   canon: Canon,
   data: () => DesignData,
   root: string,
@@ -55,8 +55,7 @@ export function registerSystem(
   const known = () => new Set(data().rows.fonts.map((row) => row.name.toLowerCase()));
   const designPath = join(root, "DESIGN.md");
 
-  registry.register(
-    "system",
+  server.registerTool(
     "design_md_init",
     {
       description:
@@ -71,8 +70,7 @@ export function registerSystem(
     },
   );
 
-  registry.register(
-    "system",
+  server.registerTool(
     "design_md_validate",
     {
       description:
@@ -94,8 +92,7 @@ export function registerSystem(
     },
   );
 
-  registry.register(
-    "system",
+  server.registerTool(
     "design_md_normalize",
     {
       description:
@@ -146,8 +143,7 @@ export function registerSystem(
     },
   );
 
-  registry.register(
-    "system",
+  server.registerTool(
     "design_md_export",
     {
       description:
@@ -195,8 +191,7 @@ export function registerSystem(
     })
     .optional();
 
-  registry.register(
-    "system",
+  server.registerTool(
     "design_tokens_generate",
     {
       description: `Generate a complete, contrast checked DESIGN.md from an archetype instead of picking colours by hand: tinted neutral ramp, accent and status colours, light and dark themes, layered shadows, concentric radii, spacing, type scale with tracking and motion tokens. Archetypes: ${archetypeIds}. Blend with secondary and takes (surface, type, motion). brand seeds the hue from a hex. Returns the draft, never overwrites; write true creates DESIGN.md only when none exists. format also returns css, tailwind or dtcg.`,
@@ -258,8 +253,7 @@ export function registerSystem(
     },
   );
 
-  registry.register(
-    "system",
+  server.registerTool(
     "design_system_propose",
     {
       description:

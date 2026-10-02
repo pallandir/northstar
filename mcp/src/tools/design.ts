@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { stringify } from "yaml";
 import { z } from "zod";
 import { DirectionError, buildDirection } from "../design/direction.js";
@@ -24,7 +25,6 @@ import { fetchImage, mimeOf, readLocalImage } from "../references/image.js";
 import { PROVIDERS, PROVIDER_IDS, providerById } from "../references/providers.js";
 import { intentTerms, queriesFor } from "../references/queries.js";
 import { rankCandidates } from "../references/rank.js";
-import type { PackRegistry } from "./registry.js";
 import { error, text } from "./util.js";
 
 const DEFAULT_QUERIES = 2;
@@ -60,11 +60,10 @@ function requireIntent(store: DesignStore): Intent {
   return intent;
 }
 
-export function registerDesign(registry: PackRegistry, root: string): void {
+export function registerDesign(server: McpServer, root: string): void {
   const store = new DesignStore(root);
 
-  registry.register(
-    "design",
+  server.registerTool(
     "design_intent",
     {
       description:
@@ -96,8 +95,7 @@ export function registerDesign(registry: PackRegistry, root: string): void {
     },
   );
 
-  registry.register(
-    "design",
+  server.registerTool(
     "references_search",
     {
       description:
@@ -172,8 +170,7 @@ export function registerDesign(registry: PackRegistry, root: string): void {
     },
   );
 
-  registry.register(
-    "design",
+  server.registerTool(
     "references_add",
     {
       description:
@@ -273,8 +270,7 @@ export function registerDesign(registry: PackRegistry, root: string): void {
     },
   );
 
-  registry.register(
-    "design",
+  server.registerTool(
     "references_record",
     {
       description:
@@ -315,8 +311,7 @@ export function registerDesign(registry: PackRegistry, root: string): void {
     },
   );
 
-  registry.register(
-    "design",
+  server.registerTool(
     "design_direction",
     {
       description:
@@ -338,8 +333,7 @@ export function registerDesign(registry: PackRegistry, root: string): void {
     },
   );
 
-  registry.register(
-    "design",
+  server.registerTool(
     "design_report",
     {
       description:

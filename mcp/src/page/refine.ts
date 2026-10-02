@@ -49,6 +49,12 @@ function overLayer(node: PageNode, layers: readonly Box[]): boolean {
   return layers.some((l) => x >= l.x && x <= l.x + l.width && y >= l.y && y <= l.y + l.height);
 }
 
+const DISPUTE_DISTANCE = 48;
+
+function differs(a: Rgba, b: Rgba): boolean {
+  return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]) > DISPUTE_DISTANCE;
+}
+
 function clipOf(node: PageNode, document: PageSnapshot["document"]): Box | null {
   const x = Math.max(0, node.box.x);
   const y = Math.max(0, node.box.y);
@@ -87,6 +93,7 @@ export async function refineBackgrounds(page: Page, snapshot: PageSnapshot): Pro
         continue;
       }
       const background: Rgba = [...measured.colour, 1];
+      node.style.backgroundDisputed = differs(node.style.background, background);
       node.style.background = background;
       node.style.backgroundImage = "none";
       if (measured.ink) {

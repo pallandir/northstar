@@ -1,3 +1,4 @@
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
   type Canon,
   type CatalogEntry,
@@ -9,17 +10,16 @@ import {
 } from "@northstar/canon";
 import { z } from "zod";
 import type { BridgeStatus } from "../daemon/link.js";
+import { browserState } from "../page/browser.js";
+import { LoopStore } from "../page/loop.js";
 import { inspectProject } from "../project.js";
-import { PACK_NAMES, PACK_SUMMARIES, type PackName, type PackRegistry } from "./registry.js";
 import { error, text } from "./util.js";
-
-const packSchema = z.enum(PACK_NAMES);
 
 const KINDS = ["ref", "rule", "archetype", "conflict"] as const satisfies readonly EntryKind[];
 const STAGES = ["brief", "direction", "system", "compose", "critique", "polish"] as const;
 
 export function registerCore(
-  registry: PackRegistry,
+  server: McpServer,
   root: string,
   bridge: () => BridgeStatus,
   canon: Canon,
@@ -30,8 +30,7 @@ export function registerCore(
     return catalog;
   };
 
-  registry.register(
-    "core",
+  server.registerTool(
     "canon_find",
     {
       description:
@@ -54,80 +53,58 @@ export function registerCore(
     },
   );
 
-  registry.register(
-    "core",
+  server.registerTool(
     "canon_read",
     {
       description:
-        "Read one canon entry by id from canon_find: ref:<topic>#<section>, rule:<id>, arch:<id> or conflict:<id>. A topic id returns its outline with the cost of each section, not the whole reference. Pass full true only when you need the whole reference.",
+        "Read one canon entry by id from canon_find: ref:<topic>#<section>, rule:<id> (a bare rule id such as NS-SLOP-GRADIENT-TEXT works too, with the reasoning and any resolved conflict), arch:<id> or conflict:<id>. A topic id returns its outline with the cost of each section, not the whole reference. Pass full true only when you need the whole reference.",
       inputSchema: { id: z.string().min(3).max(120), full: z.boolean().optional() },
     },
     async ({ id, full }) => {
       try {
-        const found = readEntry(entries(), id);
+        const wanted = /^NS-/i.test(id) ? `rule:${id.toUpperCase()}` : id;
+        const found = readEntry(entries(), wanted);
         if (full && found.kind === "ref" && !found.parent) {
           const reference = canon.references.find((r) => `ref:${r.topic}` === found.id);
           if (reference) return text(reference.body);
         }
-        return text(`${found.id} (~${found.tokens}t)\n${found.body}`);
+        const conflicts =
+          found.kind === "rule"
+            ? canon.arbitration.conflicts
+                .filter((c) => c.rules.includes(found.id.slice("rule:".length)))
+                .map((c) => `\nConflict resolved: ${c.topic}. ${c.resolution}`)
+            : [];
+        return text(`${found.id} (~${found.tokens}t)\n${found.body}${conflicts.join("")}`);
       } catch (err) {
         return error((err as Error).message);
       }
     },
   );
 
-  registry.register(
-    "core",
+  server.registerTool(
     "northstar_context",
     {
       description:
-        "Call this first for any UI design work. Reports the detected stack, whether PRODUCT.md and DESIGN.md exist and are valid, the mode, the likely stage, what is still missing, and which tool packs are enabled.",
+        "Call this first for any UI design work. Reports the detected stack, whether PRODUCT.md and DESIGN.md exist and are valid, the mode, the likely stage, what is still missing, whether Chrome was started for page tools, and the state of the audit loop.",
     },
     async () => {
       const state = inspectProject(root);
-      const packs = PACK_NAMES.map((name) => ({
-        name,
-        enabled: registry.isActive(name),
-        summary: PACK_SUMMARIES[name],
-        tools: registry.toolsOf(name),
-      }));
       const status = bridge();
       const bridgeState =
         status.state === "on" ? { daemon: "on" } : { daemon: "off", error: status.error };
-      return text(JSON.stringify({ ...state, bridge: bridgeState, packs }, null, 2));
-    },
-  );
-
-  registry.register(
-    "core",
-    "enable_packs",
-    {
-      description:
-        "Enable design tool packs for the current stage. Returns the newly available tools with their arguments. Packs: research, system, resolve, detect, critique.",
-      inputSchema: { packs: z.array(packSchema).min(1) },
-    },
-    async ({ packs }) => {
-      const added = registry.enable(packs as PackName[]);
-      if (!added.length) return text("Those packs were already enabled.");
-      const lines = added.map((name) => {
-        const info = registry.describe(name);
-        return `${name}(${info?.args.join(", ") ?? ""}): ${info?.description ?? ""}`;
-      });
+      const loop = new LoopStore(root).read();
       return text(
-        `Enabled ${added.length} tools. If your client does not refresh its tool list, use pack_call.\n${lines.join("\n")}`,
+        JSON.stringify(
+          {
+            ...state,
+            bridge: bridgeState,
+            browser: browserState(),
+            loop: loop ? { url: loop.url, audits: loop.runs.length, max: loop.maxAudits } : null,
+          },
+          null,
+          2,
+        ),
       );
     },
-  );
-
-  registry.register(
-    "core",
-    "pack_call",
-    {
-      description:
-        "Call a tool from any pack by name, even when its pack is not enabled or your client does not refresh tool lists.",
-      inputSchema: { tool: z.string(), args: z.record(z.unknown()).optional() },
-    },
-    async ({ tool, args }, extra) =>
-      (await registry.call(tool, args, extra)) as { content: { type: "text"; text: string }[] },
   );
 }

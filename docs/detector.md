@@ -22,7 +22,7 @@ Some rules cannot be checked from source. Contrast is checked from `DESIGN.md` t
 
 ## Auditing existing code
 
-`ui_audit` goes beyond findings. It counts the distinct colours, radii, shadows, font sizes, font families, spacing values, z indexes and durations in the code, reports how much colour goes through tokens, lists values that are not in `DESIGN.md`, and says which kinds of finding to fix first. Twenty three greys and seven radii mean the system is missing, which is a different fix from changing a colour. It is the first step of a refine pass.
+`slop_scan` with `inventory` true goes beyond findings. It counts the distinct colours, radii, shadows, font sizes, font families, spacing values, z indexes and durations in the code, reports how much colour goes through tokens, lists values that are not in `DESIGN.md`, and says which kinds of finding to fix first. Twenty three greys and seven radii mean the system is missing, which is a different fix from changing a colour. It is the first step of a refine pass.
 
 ## Severity follows the mode
 

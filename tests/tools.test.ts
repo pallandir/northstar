@@ -6,18 +6,14 @@ import { afterEach, beforeEach, test } from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { ToolListChangedNotificationSchema } from "@modelcontextprotocol/sdk/types.js";
 import { loadCanon } from "@northstar/canon";
-import { z } from "zod";
-import { registerCore } from "../mcp/src/packs/core.js";
-import { PackRegistry, parsePacks } from "../mcp/src/packs/registry.js";
-import { createMcpServer } from "../mcp/src/server.js";
+import { RemovedSettingError, createMcpServer } from "../mcp/src/server.js";
 import { CommentStore } from "../mcp/src/store.js";
+import { registerCore } from "../mcp/src/tools/core.js";
 import { noopLink } from "./helpers.js";
 
 let root: string;
 let client: Client;
-let changes: number;
 
 type CallResult = Awaited<ReturnType<Client["callTool"]>>;
 
@@ -28,108 +24,22 @@ function text(result: CallResult): string {
 async function connect(server: McpServer): Promise<void> {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   client = new Client({ name: "test", version: "0.0.0" });
-  client.setNotificationHandler(ToolListChangedNotificationSchema, () => {
-    changes += 1;
-  });
   await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
 }
 
-function dummyServer(packs: string): McpServer {
+function coreServer(): McpServer {
   const server = new McpServer({ name: "dummy", version: "0.0.0" });
-  const registry = new PackRegistry(server, parsePacks(packs));
-  registerCore(registry, root, () => ({ state: "off", error: "test server" }), loadCanon());
-  registry.register(
-    "research",
-    "echo_design",
-    { description: "Echo a word.", inputSchema: { word: z.string() } },
-    async ({ word }) => ({ content: [{ type: "text" as const, text: `echo ${word}` }] }),
-  );
+  registerCore(server, root, () => ({ state: "off", error: "test server" }), loadCanon());
   return server;
 }
 
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), "northstar-packs-"));
-  changes = 0;
 });
 
 afterEach(async () => {
   await client.close();
   await rm(root, { recursive: true, force: true });
-});
-
-test("only core and comments tools are visible by default", async () => {
-  await connect(
-    createMcpServer(new CommentStore(root), noopLink, undefined, { root, packs: "dynamic" }),
-  );
-  const names = (await client.listTools()).tools.map((t) => t.name).sort();
-  assert.deepEqual(
-    names,
-    [
-      "canon_find",
-      "canon_read",
-      "clear_resolved",
-      "defer_comment",
-      "enable_packs",
-      "get_comment",
-      "list_comments",
-      "list_deferred",
-      "northstar_context",
-      "pack_call",
-      "resolve_comment",
-      "resolve_comments",
-    ].sort(),
-  );
-});
-
-test("parsePacks keeps core and comments, understands all", () => {
-  assert.deepEqual([...parsePacks(undefined)].sort(), ["comments", "core"]);
-  assert.deepEqual([...parsePacks("detect, critique")].sort(), [
-    "comments",
-    "core",
-    "critique",
-    "detect",
-  ]);
-  assert.equal(parsePacks("all").size, 9);
-});
-
-test("enabling a pack reveals its tools and emits tools/list_changed", async () => {
-  await connect(dummyServer("dynamic"));
-  assert.ok(!(await client.listTools()).tools.some((t) => t.name === "echo_design"));
-
-  const result = await client.callTool({
-    name: "enable_packs",
-    arguments: { packs: ["research"] },
-  });
-  assert.match(text(result), /echo_design\(word\)/);
-  await new Promise((resolve) => setTimeout(resolve, 20));
-
-  assert.ok(changes >= 1, "no list_changed notification");
-  assert.ok((await client.listTools()).tools.some((t) => t.name === "echo_design"));
-
-  const again = await client.callTool({ name: "enable_packs", arguments: { packs: ["research"] } });
-  assert.match(text(again), /already enabled/);
-});
-
-test("pack_call reaches a disabled pack and validates the arguments", async () => {
-  await connect(dummyServer("dynamic"));
-  const ok = await client.callTool({
-    name: "pack_call",
-    arguments: { tool: "echo_design", args: { word: "hi" } },
-  });
-  assert.equal(text(ok), "echo hi");
-
-  const bad = await client.callTool({
-    name: "pack_call",
-    arguments: { tool: "echo_design", args: { word: 3 } },
-  });
-  assert.equal(bad.isError, true);
-  assert.match(text(bad), /invalid arguments/);
-
-  const unknown = await client.callTool({ name: "pack_call", arguments: { tool: "nope" } });
-  assert.equal(unknown.isError, true);
-
-  const core = await client.callTool({ name: "pack_call", arguments: { tool: "enable_packs" } });
-  assert.equal(core.isError, true);
 });
 
 test("northstar_context reports a fresh project as being at the brief stage", async () => {
@@ -138,7 +48,7 @@ test("northstar_context reports a fresh project as being at the brief stage", as
     JSON.stringify({ dependencies: { react: "19.0.0", tailwindcss: "4.0.0" } }),
   );
   await writeFile(join(root, "components.json"), "{}");
-  await connect(dummyServer("dynamic"));
+  await connect(coreServer());
   const state = JSON.parse(
     text(await client.callTool({ name: "northstar_context", arguments: {} })),
   );
@@ -147,9 +57,9 @@ test("northstar_context reports a fresh project as being at the brief stage", as
   assert.equal(state.tailwind, true);
   assert.equal(state.stage, "brief");
   assert.ok(state.missing.some((m: string) => m.startsWith("PRODUCT.md")));
-  const research = state.packs.find((p: { name: string }) => p.name === "research");
-  assert.equal(research.enabled, false);
-  assert.deepEqual(research.tools, ["echo_design"]);
+  assert.equal(state.browser, "not tried yet");
+  assert.equal(state.loop, null);
+  assert.equal(state.packs, undefined);
 });
 
 test("northstar_context moves to compose once PRODUCT.md and a filled DESIGN.md exist", async () => {
@@ -159,7 +69,7 @@ test("northstar_context moves to compose once PRODUCT.md and a filled DESIGN.md 
     join(root, "DESIGN.md"),
     '---\nname: Acme\ncolors:\n  primary: "#112233"\ntypography:\n  body:\n    fontFamily: Geist\n    fontSize: 16px\nrounded:\n  md: 8px\nspacing:\n  md: 16px\nnorthstar:\n  mode: operate\n---\n# Acme',
   );
-  await connect(dummyServer("dynamic"));
+  await connect(coreServer());
   const state = JSON.parse(
     text(await client.callTool({ name: "northstar_context", arguments: {} })),
   );
@@ -174,7 +84,7 @@ test("template placeholders keep the project at the system stage", async () => {
     join(root, "DESIGN.md"),
     '---\nname: "<Product name>"\ncolors:\n  primary: "<hex>"\nnorthstar:\n  mode: "<operate | read>"\n---\n',
   );
-  await connect(dummyServer("dynamic"));
+  await connect(coreServer());
   const state = JSON.parse(
     text(await client.callTool({ name: "northstar_context", arguments: {} })),
   );
@@ -185,7 +95,7 @@ test("template placeholders keep the project at the system stage", async () => {
 
 test("northstar_context reports the DESIGN.md gate and how to open it", async () => {
   await writeFile(join(root, "package.json"), JSON.stringify({ dependencies: { react: "19" } }));
-  await connect(dummyServer("dynamic"));
+  await connect(coreServer());
   const closed = JSON.parse(
     text(await client.callTool({ name: "northstar_context", arguments: {} })),
   );
@@ -215,7 +125,7 @@ test("northstar_context reports the DESIGN.md gate and how to open it", async ()
 
 test("northstar_context surfaces a DESIGN.md that cannot be parsed and a broken package.json", async () => {
   await writeFile(join(root, "DESIGN.md"), "no frontmatter");
-  await connect(dummyServer("dynamic"));
+  await connect(coreServer());
   const state = JSON.parse(
     text(await client.callTool({ name: "northstar_context", arguments: {} })),
   );
@@ -227,7 +137,77 @@ test("northstar_context surfaces a DESIGN.md that cannot be parsed and a broken 
   assert.match(text(broken), /package\.json is not valid JSON/);
 });
 
-test("an unknown pack name is an error naming the valid packs", () => {
-  assert.throws(() => parsePacks("research,nope"), /unknown pack "nope".*critique/);
-  assert.deepEqual([...parsePacks("research")].sort(), ["comments", "core", "research"]);
+const TOOLS = [
+  "canon_find",
+  "canon_read",
+  "clear_resolved",
+  "critique_rubric",
+  "defer_comment",
+  "design_direction",
+  "design_intent",
+  "design_md_export",
+  "design_md_init",
+  "design_md_normalize",
+  "design_md_validate",
+  "design_report",
+  "design_search",
+  "design_system_propose",
+  "design_tokens_generate",
+  "get_comment",
+  "list_comments",
+  "list_deferred",
+  "northstar_context",
+  "page_audit",
+  "page_capture",
+  "page_compare",
+  "record_critique",
+  "references_add",
+  "references_record",
+  "references_search",
+  "resolve_comment",
+  "resolve_comments",
+  "resolve_font",
+  "resolve_icon",
+  "resolve_library",
+  "slop_scan",
+];
+
+async function fullServer(): Promise<void> {
+  await connect(createMcpServer(new CommentStore(root), noopLink, undefined, { root }));
+}
+
+test("every tool is available from the first list, with no pack to enable", async () => {
+  await fullServer();
+  const names = (await client.listTools()).tools.map((t) => t.name).sort();
+  assert.deepEqual(names, TOOLS);
+});
+
+test("a server started with the removed NORTHSTAR_PACKS setting stops and says how to fix it", () => {
+  const before = process.env.NORTHSTAR_PACKS;
+  process.env.NORTHSTAR_PACKS = "all";
+  try {
+    assert.throws(
+      () => createMcpServer(new CommentStore(root), noopLink, undefined, { root }),
+      (error: Error) =>
+        error instanceof RemovedSettingError &&
+        /NORTHSTAR_PACKS was removed/.test(error.message) &&
+        /northstar install/.test(error.message),
+    );
+  } finally {
+    if (before === undefined) Reflect.deleteProperty(process.env, "NORTHSTAR_PACKS");
+    else process.env.NORTHSTAR_PACKS = before;
+  }
+});
+
+test("design_search takes either an id or a domain with a query, never a mix", async () => {
+  await fullServer();
+  const both = await client.callTool({
+    name: "design_search",
+    arguments: { id: "styles:glassmorphism", domain: "styles", query: "x y" },
+  });
+  assert.equal(both.isError, true);
+  assert.match(text(both), /either id, or domain with query/);
+  const neither = await client.callTool({ name: "design_search", arguments: { domain: "styles" } });
+  assert.equal(neither.isError, true);
+  assert.match(text(neither), /Pass domain and query to search, or id/);
 });

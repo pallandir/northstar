@@ -3,7 +3,7 @@ Load when: DESIGN.md exists and a screen, page or component is about to be plann
 
 ## Goal
 
-Turn the brief and system into code in two passes: a plan, then a library first build. Enable the resolve and detect packs.
+Turn the brief and system into code in two passes: a plan, then a library first build.
 
 ## Pass 1: the plan
 

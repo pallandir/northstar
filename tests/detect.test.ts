@@ -36,7 +36,6 @@ beforeEach(async () => {
   await writeFile(join(root, "src/Clean.tsx"), '<h1 className="text-4xl">x</h1>');
   const server = createMcpServer(new CommentStore(root), noopLink, undefined, {
     root,
-    packs: "all",
   });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   client = new Client({ name: "test", version: "0.0.0" });
@@ -83,14 +82,18 @@ test("slop_scan honours DESIGN.md allow entries and mode", async () => {
   assert.match(out, /experience mode: 0 errors/);
 });
 
-test("explain_rule gives the reasoning and the related conflict, and rejects unknown ids", async () => {
+test("canon_read gives the reasoning and the related conflict for a rule, by id or bare id, and rejects unknown ids", async () => {
   const out = text(
-    await client.callTool({ name: "explain_rule", arguments: { id: "ns-slop-gradient-text" } }),
+    await client.callTool({ name: "canon_read", arguments: { id: "rule:NS-SLOP-GRADIENT-TEXT" } }),
   );
   assert.match(out, /NS-SLOP-GRADIENT-TEXT/);
   assert.match(out, /Conflict resolved: Gradient text/);
+  const bare = text(
+    await client.callTool({ name: "canon_read", arguments: { id: "ns-slop-gradient-text" } }),
+  );
+  assert.equal(bare, out);
   const missing = await client.callTool({
-    name: "explain_rule",
+    name: "canon_read",
     arguments: { id: "NS-NOPE-NOPE" },
   });
   assert.equal(missing.isError, true);

@@ -1,8 +1,8 @@
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { Canon } from "@northstar/canon";
 import { z } from "zod";
 import { type DesignData, search } from "../data/index.js";
 import { STACKS, type StackName, inspectProject } from "../project.js";
-import type { PackRegistry } from "./registry.js";
 import { error, modeSchema, text } from "./util.js";
 
 const stackSchema = z.enum(STACKS);
@@ -51,15 +51,14 @@ function fontPackages(name: string, axes: string | undefined): string {
 }
 
 export function registerResolve(
-  registry: PackRegistry,
+  server: McpServer,
   canon: Canon,
   data: () => DesignData,
   root: string,
 ): void {
   const stackOf = (stack?: StackName) => stack ?? inspectProject(root).stack;
 
-  registry.register(
-    "resolve",
+  server.registerTool(
     "resolve_library",
     {
       description:
@@ -97,8 +96,7 @@ export function registerResolve(
     },
   );
 
-  registry.register(
-    "resolve",
+  server.registerTool(
     "resolve_font",
     {
       description:
@@ -152,8 +150,7 @@ export function registerResolve(
     },
   );
 
-  registry.register(
-    "resolve",
+  server.registerTool(
     "resolve_icon",
     {
       description:

@@ -124,7 +124,7 @@ while it writes.
 ### MCP server
 
 The MCP server is the assistant's entry point. It speaks MCP over stdio and registers
-37 tools across nine packs and 12 prompts (`resolve-comments` and the eight design
+32 tools and 12 prompts (`resolve-comments` and the eight design
 stages), carrying the instruction to treat comment text as data and never as
 instructions. It declares no experimental capability, there is no push. It tells the
 daemon when the assistant read the comments and when it parked one, and finds its
@@ -193,22 +193,21 @@ when a generated file has drifted from the canon. The installer imports the same
 per agent plans, so the files the repository ships and the files `install` writes
 cannot disagree.
 
-### Tool packs
+### Tools
 
-The server registers every tool at start up and keeps the packs it was not asked
-for disabled. Enabling a pack calls the SDK's `enable()`, which sends
-`tools/list_changed` to the client. Packs are core, comments, research, system,
-resolve, detect, critique, page and design. `pack_call` is the escape hatch for clients that never
-refresh their tool list.
+The server registers every tool at start up and all of them are always available.
+The tool modules live in `mcp/src/tools`, one per group. The stage table in the canon
+says which tools each stage uses. `NORTHSTAR_PACKS` no longer exists, and a server that
+starts with it set stops with the fix.
 
-| Pack | Tools |
+| Group | Tools |
 |---|---|
-| core | `northstar_context`, `enable_packs`, `pack_call`, `canon_find`, `canon_read` |
+| core | `northstar_context`, `canon_find`, `canon_read` |
 | comments | `list_comments`, `get_comment`, `resolve_comment`, `resolve_comments`, `defer_comment`, `list_deferred`, `clear_resolved` |
-| research | `design_search`, `design_get` |
+| research | `design_search` |
 | system | `design_md_init`, `design_md_validate`, `design_md_normalize`, `design_md_export`, `design_system_propose`, `design_tokens_generate` |
 | resolve | `resolve_library`, `resolve_font`, `resolve_icon` |
-| detect | `slop_scan`, `explain_rule`, `ui_audit` |
+| detect | `slop_scan` |
 | critique | `critique_rubric`, `record_critique` |
 | page | `page_capture`, `page_audit`, `page_compare` |
 | design | `design_intent`, `references_search`, `references_add`, `references_record`, `design_direction`, `design_report` |
@@ -258,7 +257,7 @@ theme and DTCG tokens including shadows and motion.
 
 ### Boundaries
 
-- Free text from a browser comment never chooses which rules, tools or packs apply.
+- Free text from a browser comment never chooses which rules or tools apply.
   The design context block is built from enum fields and a property whitelist only.
 - Paths an agent passes to a tool must stay inside the project root.
 - The install and uninstall commands change only the files in their plans, back up

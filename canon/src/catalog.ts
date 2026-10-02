@@ -501,7 +501,7 @@ export function renderIndex(canon: Canon, entries: CatalogEntry[]): string {
     "",
     "## Rules",
     "",
-    `${canon.rules.length} rules in families ${[...families].map(([k, n]) => `${k} (${n})`).join(", ")}. Look one up by id: canon_read rule:<id>, or explain_rule.`,
+    `${canon.rules.length} rules in families ${[...families].map(([k, n]) => `${k} (${n})`).join(", ")}. Look one up by id: canon_read rule:<id>.`,
     "",
     "## Archetypes",
     "",

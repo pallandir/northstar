@@ -24,7 +24,6 @@ beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), "northstar-engine-"));
   const server = createMcpServer(new CommentStore(root), noopLink, undefined, {
     root,
-    packs: "all",
   });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   client = new Client({ name: "test", version: "0.0.0" });
@@ -63,20 +62,20 @@ test("canon_read returns an outline for a topic, a section on request and a fix 
   assert.match(text(bad), /Did you mean/);
 });
 
-test("ui_audit counts the mess, lists drift and orders the levers", async () => {
+test("slop_scan with inventory counts the mess, lists drift and orders the levers", async () => {
   await mkdir(join(root, "src"), { recursive: true });
   await writeFile(
     join(root, "src", "a.css"),
     ".a{color:#1e40af;border-radius:3px;box-shadow:0 2px 4px rgba(0,0,0,.2);min-height:100vh}.a:hover{opacity:.9}.button:hover{opacity:.9}",
   );
-  const out = text(await call("ui_audit"));
+  const out = text(await call("slop_scan", { inventory: true }));
   assert.match(out, /Inventory of 1 files/);
   assert.match(out, /colors: \d+ distinct/);
   assert.match(out, /Levers in order:/);
 });
 
-test("ui_audit fails clearly when there is no UI to read", async () => {
-  const result = await call("ui_audit");
+test("slop_scan with inventory fails clearly when there is no UI to read", async () => {
+  const result = await call("slop_scan", { inventory: true });
   assert.equal(result.isError, true);
   assert.match(text(result), /No UI files found/);
 });

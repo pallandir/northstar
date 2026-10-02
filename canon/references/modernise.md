@@ -3,7 +3,7 @@ Load when: an existing UI built without a design system needs a coherent system,
 
 ## Goal
 
-Derive a brief and a design system from the code that exists, then upgrade in safe increments while behaviour stays the same. Modernise is a Brief derived from code, then Direction, then System, followed by incremental Compose. Enable the research, system, resolve and detect packs as the stages require.
+Derive a brief and a design system from the code that exists, then upgrade in safe increments while behaviour stays the same. Modernise is a Brief derived from code, then Direction, then System, followed by incremental Compose.
 
 ## Redesign audit
 

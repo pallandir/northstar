@@ -3,7 +3,7 @@ Load when: a screen has been built or changed and needs an honest evaluation bef
 
 ## Goal
 
-Judge the work against its own purpose, rank what to fix and record the result. Enable the detect and critique packs.
+Judge the work against its own purpose, rank what to fix and record the result.
 
 ## The loop
 
@@ -11,7 +11,7 @@ Judge the work against its own purpose, rank what to fix and record the result. 
 2. Look before reading code. Write down the first impression in one sentence, and what the eye reads first.
 3. Call `critique_rubric` to get the dimensions and the weights for the current mode.
 4. Score each dimension from 0 to 10, with one line of evidence each.
-5. Run `slop_scan` on the changed files, and `ui_audit` when the screen was refined from existing code. Use `explain_rule` for any id you do not recognise.
+5. Run `slop_scan` on the changed files, and `slop_scan` with `inventory` true when the screen was refined from existing code. Use `canon_read` with `rule:<id>` for any id you do not recognise.
 6. Apply the gates, rank the findings, and record.
 
 ## Rubric

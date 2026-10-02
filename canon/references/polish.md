@@ -3,7 +3,7 @@ Load when: a screen works and has been critiqued, and needs finishing or a focus
 
 ## Goal
 
-Close the gap between competent and finished. The exit condition is a clean detector run, or every remaining finding allow listed with a reason. Enable the detect pack.
+Close the gap between competent and finished. The exit condition is a clean detector run, or every remaining finding allow listed with a reason.
 
 ## Polish checklist
 
@@ -39,7 +39,7 @@ Run through this once before declaring a screen finished. Each line is a yes or 
 ## Detector loop
 
 1. Run `slop_scan` on the changed files.
-2. Fix every error. Use `explain_rule` for the reasoning and the suggested fix.
+2. Fix every error. Use `canon_read` with `rule:<id>` for the reasoning and the suggested fix.
 3. Review warnings and fix those that serve the brief.
 4. If a finding is right for this project, allow it with a reason: an entry in `northstar.allow`, or an inline `northstar-allow <ID>: <reason>`. Rules marked not allowable cannot be allowed.
 5. Rerun until clean.

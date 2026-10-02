@@ -23,6 +23,7 @@ const SETTLE_SCRIPT = String.raw`(async () => {
 })()`;
 
 let launching: Promise<Browser> | null = null;
+let lastLaunch: "not tried yet" | "available" | { unavailable: string } = "not tried yet";
 let idleTimer: NodeJS.Timeout | null = null;
 let active = 0;
 
@@ -43,8 +44,10 @@ async function launch(): Promise<Browser> {
     browser.once("disconnected", () => {
       launching = null;
     });
+    lastLaunch = "available";
     return browser;
   } catch (error) {
+    lastLaunch = { unavailable: firstLine(error) };
     throw new BrowserUnavailable(
       `Northstar cannot use this function, Google Chrome could not be started (${firstLine(error)}). Install Google Chrome to enable screenshots, page audits and reference search.`,
     );
@@ -57,6 +60,10 @@ function scheduleIdleClose(): void {
     if (active === 0) void closeBrowser();
   }, IDLE_MS);
   idleTimer.unref();
+}
+
+export function browserState(): typeof lastLaunch {
+  return lastLaunch;
 }
 
 export async function closeBrowser(): Promise<void> {

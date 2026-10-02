@@ -1,7 +1,6 @@
 export const AGENT_NAMES = ["claude", "codex", "cursor", "gemini", "opencode"] as const;
 export type AgentName = (typeof AGENT_NAMES)[number];
 export type Scope = "user" | "project";
-export type Packs = "all" | "dynamic";
 
 export interface PlanContext {
   agent: AgentName;
@@ -9,7 +8,6 @@ export interface PlanContext {
   home: string;
   project: string;
   version: string;
-  packs: Packs;
   snippet: string;
   critic: string;
   launch?: { command: string; args: string[] };

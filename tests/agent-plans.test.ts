@@ -26,7 +26,6 @@ function ctx(agent: PlanContext["agent"], scope: PlanContext["scope"] = "user"):
     home: "/home/u",
     project: "/work/app",
     version: "2.2.0",
-    packs: "all",
     snippet: "## Northstar UI design\n\nUse the skill.",
     critic: "---\nname: northstar-critic\n---\n",
   };
@@ -64,7 +63,7 @@ test("json merges keep foreign keys and other servers through install and remova
     assert.deepEqual(merged.mcpServers.other, { command: "x" });
     assert.equal(merged.mcpServers.northstar.command, "npx");
     assert.deepEqual(merged.mcpServers.northstar.args, ["-y", "@pallandir/northstar@2.2.0"]);
-    assert.equal(merged.mcpServers.northstar.env.NORTHSTAR_PACKS, "all");
+    assert.equal(merged.mcpServers.northstar.env, undefined);
     const removed = JSON.parse(op.remove(op.apply(existing)));
     assert.equal(removed.theme, "dark");
     assert.deepEqual(removed.mcpServers, { other: { command: "x" } });
@@ -119,7 +118,7 @@ test("the codex toml table is replaced in place and other tables survive", () =>
     'command = "old"',
     "",
     "[mcp_servers.northstar.env]",
-    'NORTHSTAR_PACKS = "dynamic"',
+    'OLD_SETTING = "x"',
     "",
     "[mcp_servers.other]",
     'command = "keep"',
@@ -129,7 +128,7 @@ test("the codex toml table is replaced in place and other tables survive", () =>
   assert.match(out, /model = "gpt-5"/);
   assert.match(out, /\[mcp_servers\.other\]\ncommand = "keep"/);
   assert.equal(out.match(/\[mcp_servers\.northstar\]/g)?.length, 1);
-  assert.match(out, /NORTHSTAR_PACKS = "all"/);
+  assert.doesNotMatch(out, /OLD_SETTING|mcp_servers\.northstar\.env/);
   assert.doesNotMatch(out, /command = "old"/);
   assert.match(out, /startup_timeout_sec = 30/);
   const removed = op.remove(out);
@@ -175,8 +174,8 @@ test("claude registers the server through its own cli at user scope and a file a
     Op,
     { kind: "command" }
   >;
-  assert.deepEqual(user.run.slice(0, 4), ["claude", "mcp", "add", "--env"]);
-  assert.ok(user.run.includes("NORTHSTAR_PACKS=all"));
+  assert.deepEqual(user.run.slice(0, 4), ["claude", "mcp", "add", "--transport"]);
+  assert.ok(!user.run.includes("--env"));
   assert.deepEqual(user.undo, ["claude", "mcp", "remove", "northstar", "--scope", "user"]);
   const project = merges(planAgent(ctx("claude", "project")).ops).find(
     (o) => o.path === "/work/app/.mcp.json",
@@ -207,7 +206,7 @@ test("opencode installs a plugin that appends scan feedback and pins the hook co
   const config = merges(planAgent(ctx("opencode")).ops)[0] as Extract<Op, { kind: "merge" }>;
   const parsed = JSON.parse(config.apply(undefined));
   assert.deepEqual(parsed.mcp.northstar.command, ["npx", "-y", "@pallandir/northstar@2.2.0"]);
-  assert.equal(parsed.mcp.northstar.environment.NORTHSTAR_PACKS, "all");
+  assert.equal(parsed.mcp.northstar.environment, undefined);
 });
 
 const scratch = mkdtempSync(join(tmpdir(), "northstar-hook-"));
@@ -400,11 +399,9 @@ test("an older command form of our hook is recognised and replaced", () => {
   assert.match(out[0].hooks[0].command, /northstar@2\.2\.0 hook post-edit --agent codex/);
 });
 
-test("the server env carries only the pack choice", () => {
+test("the server entry carries no environment at all", () => {
   const cursor = merges(planAgent(ctx("cursor")).ops)[0] as Extract<Op, { kind: "merge" }>;
-  assert.deepEqual(JSON.parse(cursor.apply(undefined)).mcpServers.northstar.env, {
-    NORTHSTAR_PACKS: "all",
-  });
+  assert.equal(JSON.parse(cursor.apply(undefined)).mcpServers.northstar.env, undefined);
 });
 
 test("claude gets a design gate before edits and a scan after, and both are removed together", () => {

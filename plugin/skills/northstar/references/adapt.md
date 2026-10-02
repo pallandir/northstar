@@ -3,7 +3,7 @@ Load when: an existing design must serve a new target such as a platform, breakp
 
 ## Goal
 
-Extend the existing DESIGN.md for the new target, then compose the changes, without breaking what already works. Adapt is System then Compose. Enable the system, resolve and detect packs.
+Extend the existing DESIGN.md for the new target, then compose the changes, without breaking what already works. Adapt is System then Compose.
 
 ## Principle
 

@@ -6,7 +6,7 @@ import { createInterface } from "node:readline/promises";
 import { doctor } from "../install/doctor.js";
 import { type InstallOutcome, type OpResult, install, uninstall } from "../install/install.js";
 import { type HostResult, installHost, uninstallHost } from "../install/native-manifest.js";
-import { AGENT_NAMES, type AgentName, type Packs, type Scope } from "../install/plans/index.js";
+import { AGENT_NAMES, type AgentName, type Scope } from "../install/plans/index.js";
 import { northstarPluginInstalled } from "../install/plugin.js";
 import { readRecord } from "../install/record.js";
 import { feedbackText } from "../lib/hook-feedback.js";
@@ -16,7 +16,6 @@ interface Options {
   agents: AgentName[];
   all: boolean;
   scope: Scope;
-  packs: Packs;
   dryRun: boolean;
   yes: boolean;
   home: string;
@@ -32,7 +31,6 @@ function parse(args: string[]): Options {
     agents: [],
     all: false,
     scope: "user",
-    packs: "dynamic",
     dryRun: false,
     yes: false,
     home: homedir(),
@@ -65,9 +63,7 @@ function parse(args: string[]): Options {
       if (scope !== "user" && scope !== "project") throw new Error(`unknown scope ${scope}`);
       options.scope = scope;
     } else if (arg === "--packs") {
-      const packs = value();
-      if (packs !== "all" && packs !== "dynamic") throw new Error(`unknown packs ${packs}`);
-      options.packs = packs;
+      throw new Error("--packs was removed, every tool is always available");
     } else if (arg === "--home") options.home = resolve(value());
     else if (arg === "--project") options.project = resolve(value());
     else if (arg === "--bin") options.bin = resolve(value());
@@ -137,7 +133,7 @@ async function confirm(question: string): Promise<boolean> {
 
 function usage(message: string, name: string): number {
   process.stderr.write(
-    `${message}\nUsage: northstar ${name} [--agent a,b | --all] [--scope user|project] [--packs all|dynamic] [--bin path] [--no-gate] [--no-host] [--allow-extension id] [--home dir] [--project dir] [--dry-run] [--yes]\n`,
+    `${message}\nUsage: northstar ${name} [--agent a,b | --all] [--scope user|project] [--bin path] [--no-gate] [--no-host] [--allow-extension id] [--home dir] [--project dir] [--dry-run] [--yes]\n`,
   );
   return 2;
 }
@@ -181,9 +177,7 @@ export async function installCommand(args: string[]): Promise<number> {
   } catch (err) {
     return failure(err);
   }
-  process.stdout.write(
-    `Plan for ${agents.join(", ")} (${options.scope} scope, ${options.packs} packs):\n`,
-  );
+  process.stdout.write(`Plan for ${agents.join(", ")} (${options.scope} scope):\n`);
   print(preview);
   printHost(hostPreview);
   const failed = preview.results.filter((r: OpResult) => r.status === "failed");

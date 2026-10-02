@@ -7,7 +7,7 @@ Never hand roll what a library already provides. The mapping from need to librar
 
 ## Resolve first
 
-Enable the resolve pack, then call the resolver before writing code.
+Call the resolver before writing code.
 
 | Need | Tool | Input |
 |---|---|---|

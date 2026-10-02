@@ -129,7 +129,8 @@ test("the loop says stop on a clean page and when the budget is spent, continue 
   assert.equal(loopStatus(loop, []), "stop");
   assert.equal(loopStatus(loop, [finding({ confidence: 0.5 })]), "stop");
   assert.equal(loopStatus(loop, [finding({ confidence: 0.95 })]), "continue");
-  assert.equal(loopStatus(loop, [finding({ severity: "error", confidence: 0.5 })]), "continue");
+  assert.equal(loopStatus(loop, [finding({ severity: "error", confidence: 0.7 })]), "stop");
+  assert.equal(loopStatus(loop, [finding({ severity: "error", confidence: 0.8 })]), "continue");
   assert.equal(
     loopStatus({ ...loop, runs: ["a", "b", "c", "d"] }, [finding({ severity: "error" })]),
     "stop",
@@ -174,5 +175,15 @@ test("the report gives evidence per area and READY only when no error remains", 
     references: [],
   });
   assert.equal(blocked.status, "NOT READY");
+  const disputed = buildReport({
+    loop: { url: "u", runs: ["a"], maxAudits: 4 },
+    first,
+    latest: run("c", [finding({ rule: "NS-A11Y-CONTRAST", severity: "error", confidence: 0.7 })]),
+    direction: undefined,
+    references: [],
+  });
+  assert.equal(disputed.status, "READY");
+  assert.equal(disputed.areas.find((a) => a.name === "Accessibility")?.status, "WARN");
+  assert.match(describeReport(disputed), /low confidence/);
   assert.equal(blocked.areas.find((a) => a.name === "Accessibility")?.status, "FAIL");
 });

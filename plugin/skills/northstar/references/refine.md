@@ -3,7 +3,7 @@ Load when: a UI already exists, an engineer built it and it needs to look cleane
 
 ## Goal
 
-Turn what exists into something polished with small, reviewable changes. Engineers build fast, designers refine what was built. Refine keeps both honest: it starts from numbers, changes one thing at a time and proves each change with a screenshot and a scan. Enable the detect and system packs.
+Turn what exists into something polished with small, reviewable changes. Engineers build fast, designers refine what was built. Refine keeps both honest: it starts from numbers, changes one thing at a time and proves each change with a screenshot and a scan.
 
 ## Gate and scope
 
@@ -14,7 +14,7 @@ Turn what exists into something polished with small, reviewable changes. Enginee
 
 ## Inventory first
 
-Call `ui_audit` on the screens in scope. It returns the distinct colours, radii, shadows, font sizes, spacing values, z indexes and durations, the drift from DESIGN.md, the detector findings and the order of levers. Read it as a diagnosis: 23 greys and 7 radii mean the system is missing, not that the colours are wrong.
+Call `slop_scan` with `inventory` true on the screens in scope. It returns the distinct colours, radii, shadows, font sizes, spacing values, z indexes and durations, the drift from DESIGN.md, the detector findings and the order of levers. Read it as a diagnosis: 23 greys and 7 radii mean the system is missing, not that the colours are wrong.
 
 Open the running UI at 1440 and 390 wide and save the screenshots. They are the before picture, and no refine pass is judged without them.
 

@@ -1,7 +1,7 @@
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { type Canon, MODES, type Mode } from "@northstar/canon";
 import { z } from "zod";
 import { appendDecision, oneLine } from "../lib/decisions.js";
-import type { PackRegistry } from "./registry.js";
 import { error, modeSchema, text } from "./util.js";
 
 export function bandFor(canon: Canon, score: number): string {
@@ -32,9 +32,8 @@ export function weightedScore(
   return { overall, capped };
 }
 
-export function registerCritique(registry: PackRegistry, canon: Canon, root: string): void {
-  registry.register(
-    "critique",
+export function registerCritique(server: McpServer, canon: Canon, root: string): void {
+  server.registerTool(
     "critique_rubric",
     {
       description:
@@ -70,8 +69,7 @@ export function registerCritique(registry: PackRegistry, canon: Canon, root: str
     },
   );
 
-  registry.register(
-    "critique",
+  server.registerTool(
     "record_critique",
     {
       description:

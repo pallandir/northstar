@@ -34,6 +34,19 @@ and everything else works as before.
 - `northstar audit <url>` and `northstar capture <url>`, and a `chrome` line in
   `northstar doctor` that is information, never a failure.
 
+### Changed (breaking)
+
+- **Every tool is always available.** The tool packs, `enable_packs`, `pack_call`,
+  `NORTHSTAR_PACKS` and `northstar install --packs` are gone. A server started with
+  `NORTHSTAR_PACKS` set stops and says to delete it, and `northstar install` rewrites the
+  server entry without it.
+- **Three tools merged into their neighbours.** `explain_rule` is `canon_read` with
+  `rule:<id>` (a bare rule id works too), `design_get` is `design_search` with `id`, and
+  `ui_audit` is `slop_scan` with `inventory` true. `resolve_*`, `design_md_*`,
+  `critique_rubric` and `record_critique` keep their own tools because their inputs differ.
+- `northstar_context` reports whether Chrome was started for the page tools and the
+  state of the audit loop, and no longer lists packs.
+
 ### Changed
 
 - **Internal layout.** The `packages/` workspaces are folded into `mcp/` (detector,
@@ -50,6 +63,8 @@ and everything else works as before.
   dialog, was not recognised as a prompt, so Send to AI could write into it.
 - The terminal is restored to cooked mode whenever the wrapper process exits.
 - Dead exports and files found by knip are removed, and `knip` runs from the root.
+- A contrast failure whose background was read from the pixels and disagrees with the page's own styles is reported with lower confidence, and only a confident error blocks the audit loop or turns the report to NOT READY.
+- Page audits no longer keep the command line alive for two minutes after the answer.
 
 ## [2.5.0] - 2026-10-02
 

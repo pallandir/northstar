@@ -23,9 +23,9 @@ Skip this only when the user says so explicitly, and log that in `design/decisio
 
 ## Start
 
-1. If the Northstar MCP server is connected, call `northstar_context` first. It reports the stack, whether DESIGN.md and PRODUCT.md exist and are valid, the mode, the likely stage and which packs are enabled. Without the server, read DESIGN.md and PRODUCT.md from the project root yourself.
+1. If the Northstar MCP server is connected, call `northstar_context` first. It reports the stack, whether DESIGN.md and PRODUCT.md exist and are valid, the mode, the likely stage, whether Chrome was started for the page tools and the audit loop state. Without the server, read DESIGN.md and PRODUCT.md from the project root yourself.
 2. Load only what the current stage needs. Read one reference file at a time from `references/`, listed below.
-3. When the designer supplied freeform markdown instead of DESIGN.md, call `design_md_normalize` (system pack) to draft it, then ask only about the gates that are still missing.
+3. When the designer supplied freeform markdown instead of DESIGN.md, call `design_md_normalize` to draft it, then ask only about the gates that are still missing.
 
 ## Method
 
@@ -38,7 +38,7 @@ Skip this only when the user says so explicitly, and log that in `design/decisio
 | Critique | critique entry in the decisions log | `references/critique.md` |
 | Polish | detector clean or allow listed | `references/polish.md` |
 
-Verbs map onto stages. Refine starts with `ui_audit`, then critique and polish. Adapt is system then compose for a new target. Modernise derives a brief from the existing code, then direction and system, and proposes diffs in safe increments.
+Verbs map onto stages. Refine starts with `slop_scan` with `inventory` true, then critique and polish. Adapt is system then compose for a new target. Modernise derives a brief from the existing code, then direction and system, and proposes diffs in safe increments.
 
 ## Find, do not load
 
@@ -71,7 +71,7 @@ Never hand roll icons, overlays, fonts, notifications, tables, forms or other pr
 
 ## Craft floor
 
-Refused unless the brief asks for it. Details and fixes via `explain_rule` or `references/`.
+Refused unless the brief asks for it. Details and fixes via `canon_read` with `rule:<id>` or `references/`.
 
 - `NS-LAYOUT-RESPONSIVE`: Works from 360px up
 - `NS-LIB-ICON`: Hand drawn icons
@@ -90,9 +90,9 @@ Refused unless the brief asks for it. Details and fixes via `explain_rule` or `r
 
 When the page runs, look at it. `page_audit` renders it in headless Chrome, measures the real DOM and styles and returns the top findings with crops and a repair plan. Repair, audit again, then `page_compare`. It stops after four audits, then `design_report` gives the evidence. For the look itself, `design_intent`, `references_search` and `design_direction` turn references into principles, never a copy. These need Google Chrome and say so when it is missing. Everything else works without it.
 
-## Packs
+## Tools
 
-Core tools are always on. Enable others per stage with `enable_packs`: direction needs research and design, system needs system and resolve, compose needs resolve, detect and page, critique needs detect, critique and page, polish needs detect. If a tool is not listed, call it through `pack_call`.
+Every tool is always available. `references/INDEX.md` and `canon_find` map what to read, and the stage table in `northstar://canon/framework` says which tools each stage uses.
 
 ## Browser comments
 

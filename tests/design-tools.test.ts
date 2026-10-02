@@ -30,7 +30,6 @@ before(async () => {
   root = mkdtempSync(join(tmpdir(), "northstar-design-tools-"));
   const server = createMcpServer(new CommentStore(root), noopLink, undefined, {
     root,
-    packs: "all",
   });
   const [c, s] = InMemoryTransport.createLinkedPair();
   client = new Client({ name: "t", version: "0" });

@@ -15,7 +15,6 @@ const agentRecordSchema = z.object({
   version: z.string(),
   scope: z.enum(["user", "project"]),
   project: z.string().optional(),
-  packs: z.enum(["all", "dynamic"]),
   bin: z.string().optional(),
   gate: z.boolean().optional(),
   files: z.array(installedFileSchema),

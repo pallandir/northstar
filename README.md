@@ -118,7 +118,7 @@ normally would.
 | Token generator | `design_tokens_generate` builds a whole system from an archetype and an optional brand colour: a neutral ramp tinted toward the hue, an accent and status colours, light and dark themes, layered shadows, nested radii, a type scale with tracking, and motion tokens. Every colour pair is checked for contrast, and it stops with a fix if one cannot pass |
 | Finish layer | The details that make a screen feel done: depth from a ring plus soft layers, concentric corners, balanced headings, tabular figures, hit areas, and a full set of states for every control |
 | Detector | `northstar detect`, the `slop_scan` tool and an edit hook flag generic patterns and missing finish, such as `100vh`, a single black shadow, a button with no pressed state, `ease-in`, or a palette taken straight from the Tailwind defaults |
-| Audit | `ui_audit` counts the colours, radii, shadows, sizes and spacing in existing code, shows the drift from `DESIGN.md` and says which thing to fix first |
+| Audit | `slop_scan` with `inventory` true counts the colours, radii, shadows, sizes and spacing in existing code, shows the drift from `DESIGN.md` and says which thing to fix first |
 | Library first | `resolve_library`, `resolve_font` and `resolve_icon` pick shadcn, an icon set, Fontsource and friends for your stack, so nothing gets hand rolled |
 | Your direction | `design_md_normalize` turns any markdown into a valid `DESIGN.md`. It also reads a Figma design system when the official Figma MCP server is installed |
 | Rubric | `critique_rubric` scores a built screen on nine dimensions, with weights per mode and caps for accessibility and detector failures |
@@ -495,8 +495,7 @@ the project root the MCP server stores comments in.
 
 ### MCP tools
 
-The server exposes 37 tools in nine packs and 12 prompts. Core and comment tools
-are always on, the rest are enabled per stage with `enable_packs`. The prompts are
+The server exposes 32 tools and 12 prompts, all always available. The prompts are
 `resolve-comments`, the stage prompts (`brief`, `direct`, `system`, `compose`,
 `critique`, `polish`) and the workflow prompts (`build`, `refine`, `finish`,
 `adapt`, `modernise`). The comment tools:
@@ -511,17 +510,17 @@ are always on, the rest are enabled per stage with `enable_packs`. The prompts a
 | `list_deferred` | List comments that were deferred with their reasons |
 | `clear_resolved` | Remove all resolved and wontfix comments from the store |
 
-The design tools, by pack:
+The design tools, by group:
 
-| Pack | Tools | Purpose |
+| Group | Tools | Purpose |
 |---|---|---|
-| core | `northstar_context`, `enable_packs`, `pack_call` | Project state, the gate, and tool pack control |
-| core | `canon_find`, `canon_read` | Search the canon within a token budget, read one section |
-| research | `design_search`, `design_get` | Curated styles, palettes, pairings and UX guidance, as candidates |
+| core | `northstar_context` | Project state, the gate, Chrome availability and the audit loop |
+| core | `canon_find`, `canon_read` | Search the canon within a token budget, read one section or the reasoning for a rule |
+| research | `design_search` | Curated styles, palettes, pairings and UX guidance as candidates, or one row in full by id |
 | system | `design_tokens_generate`, `design_system_propose` | A generated, validated `DESIGN.md` from an archetype or a short brief |
 | system | `design_md_init`, `design_md_normalize`, `design_md_validate`, `design_md_export` | Create, import, check and export `DESIGN.md` as CSS, Tailwind or DTCG |
 | resolve | `resolve_library`, `resolve_font`, `resolve_icon` | Pick libraries, fonts and icons for the stack |
-| detect | `slop_scan`, `explain_rule`, `ui_audit` | Scan, explain a rule, audit existing UI |
+| detect | `slop_scan` | Scan UI files, or with `inventory` true audit existing UI |
 | critique | `critique_rubric`, `record_critique` | Score a screen and keep the decisions log |
 | page | `page_capture`, `page_audit`, `page_compare` | Screenshot and audit the running page in headless Chrome, then compare two runs |
 | design | `design_intent`, `references_search`, `references_add`, `references_record`, `design_direction`, `design_report` | Intent, references, direction and the final evidence report |

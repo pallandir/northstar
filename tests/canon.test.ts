@@ -61,18 +61,11 @@ test("every rule id named in the framework, skill and references exists", () => 
 const externalTools = new Set(["get_variable_defs", "get_design_context", "search_design_system"]);
 
 function registeredTools(): Set<string> {
-  const src = join(canon.root, "..", "mcp", "src");
-  const packs = join(src, "packs");
-  const files = [
-    join(src, "server.ts"),
-    ...readdirSync(packs)
-      .filter((name) => name.endsWith(".ts"))
-      .map((name) => join(packs, name)),
-  ];
+  const tools = join(canon.root, "..", "mcp", "src", "tools");
   const names = new Set<string>();
-  for (const file of files) {
-    for (const match of readFileSync(file, "utf8").matchAll(
-      /\.register\(\s*"[a-z]+",\s*"([a-z_]+)"/g,
+  for (const name of readdirSync(tools).filter((f) => f.endsWith(".ts"))) {
+    for (const match of readFileSync(join(tools, name), "utf8").matchAll(
+      /registerTool\(\s*"([a-z_]+)"/g,
     )) {
       if (match[1]) names.add(match[1]);
     }

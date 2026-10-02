@@ -37,7 +37,6 @@ function world() {
 const base = (w: ReturnType<typeof world>, agents: AgentName[] = [...AGENT_NAMES]) => ({
   agents,
   scope: "user" as const,
-  packs: "all" as const,
   home: w.home,
   project: w.project,
   dryRun: false,
@@ -129,7 +128,6 @@ test("installing every agent writes each config, the skills and the record", () 
       .sort(),
     [...AGENT_NAMES].sort(),
   );
-  assert.equal(entryOf(w.home, "codex")?.packs, "all");
   assert.equal(entryOf(w.home, "claude")?.version, VERSION);
 });
 
@@ -313,7 +311,9 @@ test("the setup commands validate their options and detect agents from the home 
   const w = world();
   assert.equal(cli(w, "install", "--agent", "vim").status, 2);
   assert.equal(cli(w, "install", "--scope", "galaxy").status, 2);
-  assert.equal(cli(w, "install", "--packs", "some").status, 2);
+  const removed = cli(w, "install", "--packs", "all");
+  assert.equal(removed.status, 2);
+  assert.match(removed.stderr, /--packs was removed, every tool is always available/);
   assert.match(cli(w, "install").stderr, /No agent found/);
   mkdirSync(join(w.home, ".gemini"));
   assert.match(cli(w, "install", "--dry-run").stdout, /Plan for gemini/);
@@ -364,7 +364,7 @@ test("the old extension id flag no longer exists", () => {
   install(base(w, ["cursor"]));
   const env = JSON.parse(readFileSync(join(w.home, ".cursor/mcp.json"), "utf8")).mcpServers
     .northstar.env;
-  assert.deepEqual(env, { NORTHSTAR_PACKS: "all" });
+  assert.equal(env, undefined);
 });
 
 test("the gate hook is installed by default and left out with --no-gate", () => {
@@ -380,9 +380,9 @@ test("the gate hook is installed by default and left out with --no-gate", () => 
   assert.equal(dry.status, 0, dry.stderr);
 });
 
-test("the default packs are dynamic and an option without a value is refused", () => {
+test("the plan names the scope and an option without a value is refused", () => {
   const w = world();
-  assert.match(cli(w, "install", "--agent", "cursor", "--dry-run").stdout, /dynamic packs/);
+  assert.match(cli(w, "install", "--agent", "cursor", "--dry-run").stdout, /user scope\)/);
   const missing = spawnSync(process.execPath, ["--import", "tsx", CLI_ENTRY, "install", "--bin"], {
     encoding: "utf8",
     input: "",
@@ -412,7 +412,7 @@ test("a created flag survives a re-run so uninstall still removes what install m
   const w = world();
   const path = join(w.home, ".cursor/mcp.json");
   install(base(w, ["cursor"]));
-  install({ ...base(w, ["cursor"]), packs: "dynamic" });
+  install({ ...base(w, ["cursor"]) });
   assert.equal(entryOf(w.home, "cursor")?.files.find((f) => f.path === path)?.created, true);
   uninstallOf(w, ["cursor"]);
   assert.equal(existsSync(path), false);

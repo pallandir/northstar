@@ -3,7 +3,7 @@ Load when: PRODUCT.md exists and the visual and interaction approach has not bee
 
 ## Goal
 
-Choose a mode and one named design direction, and log the choice in `design/decisions.md`. Enable the research pack for this stage.
+Choose a mode and one named design direction, and log the choice in `design/decisions.md`. `design_search` and the references tools help with this stage.
 
 ## 1. Choose the mode
 
@@ -63,7 +63,7 @@ Nudge the defaults from the brief: trust first or regulated work lowers variance
 
 ## 4. Avoid the default looks
 
-Check every direction against `NS-LOOK-DEFAULT-PALETTE`: cream with a serif and a terracotta accent, near black with one acid accent, and purple to cyan gradients. These are warnings unless the brief asks for them. Also avoid choosing a display face because it is the usual pick (`NS-TYPE-DEFAULT-DISPLAY`). Use `explain_rule` when you need the full reasoning.
+Check every direction against `NS-LOOK-DEFAULT-PALETTE`: cream with a serif and a terracotta accent, near black with one acid accent, and purple to cyan gradients. These are warnings unless the brief asks for them. Also avoid choosing a display face because it is the usual pick (`NS-TYPE-DEFAULT-DISPLAY`). Use `canon_read` with `rule:<id>` when you need the full reasoning.
 
 ## 5. Ask and record
 

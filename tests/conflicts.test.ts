@@ -166,7 +166,6 @@ test("removal is gated on an install record for the owning agent", () => {
     installedAt: "now",
     version: "2.2.0",
     scope: "user" as const,
-    packs: "all" as const,
     files: [],
   });
   writeRecord(home, { installs: { "claude:user": record("claude") } });
@@ -211,7 +210,6 @@ test("the conflicts command lists, refuses before an install, and removes with -
         installedAt: "now",
         version: "2.2.0",
         scope: "user",
-        packs: "all",
         files: [],
       },
     },

@@ -16,7 +16,6 @@ import {
   type AgentName,
   type AgentPlan,
   type Op,
-  type Packs,
   type PlanContext,
   type Scope,
   planAgent,
@@ -32,7 +31,6 @@ import {
 interface InstallOptions {
   agents: AgentName[];
   scope: Scope;
-  packs: Packs;
   home: string;
   project: string;
   dryRun: boolean;
@@ -60,7 +58,7 @@ export interface InstallOutcome {
 
 function contextFor(
   agent: AgentName,
-  options: Pick<InstallOptions, "scope" | "packs" | "home" | "project" | "bin" | "gate" | "plugin">,
+  options: Pick<InstallOptions, "scope" | "home" | "project" | "bin" | "gate" | "plugin">,
 ): PlanContext {
   const root = canonRoot();
   return {
@@ -69,7 +67,6 @@ function contextFor(
     home: options.home,
     project: options.project,
     version: VERSION,
-    packs: options.packs,
     snippet: readFileSync(join(root, "snippets", "agents-md.md"), "utf8"),
     critic: readFileSync(join(root, "agents", "critic.md"), "utf8"),
     launch: options.bin ? { command: "node", args: [options.bin] } : undefined,
@@ -86,7 +83,6 @@ export function contextForRecord(
 ): PlanContext {
   return contextFor(entry.agent, {
     scope: entry.scope,
-    packs: entry.packs,
     home,
     project: entry.project ?? project,
     bin: entry.bin,
@@ -238,7 +234,6 @@ export function install(options: InstallOptions): InstallOutcome {
         version: VERSION,
         scope: options.scope,
         project: options.scope === "project" ? options.project : undefined,
-        packs: options.packs,
         bin: options.bin,
         gate: options.gate,
         files,

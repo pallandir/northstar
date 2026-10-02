@@ -1,3 +1,4 @@
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { Canon, Mode } from "@northstar/canon";
 import { z } from "zod";
 import type { Crop } from "../page/capture.js";
@@ -6,7 +7,6 @@ import { cropCaption, describeRun, imageContent } from "../page/format.js";
 import { LoopStore } from "../page/loop.js";
 import { auditProject, captureProject } from "../page/service.js";
 import { VIEWPORT_NAMES, type ViewportName } from "../page/viewports.js";
-import type { PackRegistry } from "./registry.js";
 import { error, modeSchema } from "./util.js";
 
 const viewportsSchema = z
@@ -25,9 +25,8 @@ function response(body: string, crops: Crop[]) {
   return { content };
 }
 
-export function registerPage(registry: PackRegistry, canon: Canon, root: string): void {
-  registry.register(
-    "page",
+export function registerPage(server: McpServer, canon: Canon, root: string): void {
+  server.registerTool(
     "page_capture",
     {
       description:
@@ -48,8 +47,7 @@ export function registerPage(registry: PackRegistry, canon: Canon, root: string)
     },
   );
 
-  registry.register(
-    "page",
+  server.registerTool(
     "page_audit",
     {
       description:
@@ -78,8 +76,7 @@ export function registerPage(registry: PackRegistry, canon: Canon, root: string)
     },
   );
 
-  registry.register(
-    "page",
+  server.registerTool(
     "page_compare",
     {
       description:

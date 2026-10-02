@@ -113,3 +113,12 @@ test("messages read correctly for a single element", async (t) => {
   const contrast = findings.find((f) => f.rule === "NS-A11Y-CONTRAST");
   assert.match(contrast?.message ?? "", /Contrast fails on 1 text block, the worst is/);
 });
+
+test("contrast measured from pixels against the page styles is reported with lower confidence", async (t) => {
+  if (unavailable) return t.skip(unavailable);
+  const finding = (await audit("painted-low")).find((f) => f.rule === "NS-A11Y-CONTRAST");
+  assert.ok(finding && finding.confidence < 0.8, `got ${finding?.confidence}`);
+  assert.match(finding?.message ?? "", /read from the pixels/);
+  const plain = (await audit("inaccessible")).find((f) => f.rule === "NS-A11Y-CONTRAST");
+  assert.ok(plain && plain.confidence >= 0.9);
+});

@@ -10,6 +10,8 @@ const LARGE_SIZE = 24;
 const LARGE_BOLD_SIZE = 18.66;
 const BOLD = 700;
 const EVIDENCE_CAP = 6;
+const CONFIDENT = 0.95;
+const DISPUTED = 0.7;
 const GREY_SATURATION = 0.12;
 const SURFACE_SATURATION = 0.25;
 const ACCENT_SATURATION = 0.4;
@@ -55,10 +57,10 @@ export function contrast(ctx: RuleContext): RawFinding[] {
     const worst = items.reduce((a, b) => (b.value < a.value ? b : a));
     return {
       rule: "NS-A11Y-CONTRAST",
-      confidence: 0.95,
+      confidence: items.some((i) => i.node.style.backgroundDisputed) ? DISPUTED : CONFIDENT,
       region,
       evidence: items.slice(0, EVIDENCE_CAP).map((i) => i.node.selector),
-      message: `Contrast fails on ${plural(items.length, "text block")}, the worst is ${worst.value.toFixed(1)}:1 for ${hex(worst.node.style.color)} on ${hex(worst.node.style.background)}.`,
+      message: `Contrast fails on ${plural(items.length, "text block")}, the worst is ${worst.value.toFixed(1)}:1 for ${hex(worst.node.style.color)} on ${hex(worst.node.style.background)}.${items.some((i) => i.node.style.backgroundDisputed) ? " The background was read from the pixels and differs from the page styles, check the crop." : ""}`,
     };
   });
 }

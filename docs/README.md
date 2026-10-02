@@ -19,7 +19,7 @@ The design framework has its own pages:
    design direction.
 6. [The detector](./detector.md) covers the scanner, its rules and how to allow
    something on purpose.
-7. [Setting up your agent](./agents.md) covers install, the tool packs and the
+7. [Setting up your agent](./agents.md) covers install, the tools and the
    limits of each supported agent.
 8. [Rule index](./canon.md) lists every rule, generated from the canon.
 

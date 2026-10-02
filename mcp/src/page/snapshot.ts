@@ -26,6 +26,7 @@ interface NodeStyle {
   shadow: boolean;
   gradientText: boolean;
   outline: boolean;
+  backgroundDisputed: boolean;
 }
 
 export interface PageNode {

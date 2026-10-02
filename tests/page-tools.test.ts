@@ -19,7 +19,6 @@ before(async () => {
   root = mkdtempSync(join(tmpdir(), "northstar-page-"));
   const server = createMcpServer(new CommentStore(root), noopLink, undefined, {
     root,
-    packs: "all",
   });
   const [c, s] = InMemoryTransport.createLinkedPair();
   client = new Client({ name: "t", version: "0" });
@@ -157,7 +156,6 @@ test("compare and report refuse to guess when there is nothing to work from", as
   const fresh = mkdtempSync(join(tmpdir(), "northstar-empty-"));
   const server = createMcpServer(new CommentStore(fresh), noopLink, undefined, {
     root: fresh,
-    packs: "all",
   });
   const [c, s] = InMemoryTransport.createLinkedPair();
   const empty = new Client({ name: "t", version: "0" });

@@ -161,6 +161,7 @@ export const COLLECTOR = String.raw`(() => {
       shadow: cs.boxShadow !== "none",
       gradientText,
       outline: cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0,
+      backgroundDisputed: false,
       differsFromParent: ownBackground[3] > 0.02 && (Math.abs(ownBackground[0] - parentBackground[0]) + Math.abs(ownBackground[1] - parentBackground[1]) + Math.abs(ownBackground[2] - parentBackground[2]) > 12 || ownBackground[3] < 1),
     };
   };

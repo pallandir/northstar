@@ -55,7 +55,7 @@ export const VERBS: Verb[] = [
     name: "refine",
     topic: "refine",
     title: "Refine",
-    task: "Elevate existing UI: run ui_audit, pull one lever at a time and rescan after each change.",
+    task: "Elevate existing UI: run slop_scan with inventory true, pull one lever at a time and rescan after each change.",
   },
   {
     name: "finish",

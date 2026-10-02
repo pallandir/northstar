@@ -38,7 +38,7 @@ installed package, so use a global install rather than `npx` for it. Other comma
 
 | Command | Purpose |
 | --- | --- |
-| `northstar install [--agent a,b] [--all] [--scope user\|project] [--packs all\|dynamic] [--bin path] [--no-gate] [--no-host] [--allow-extension id] [--home dir] [--project dir] [--dry-run] [--yes]` | Register the server, install the five skills and the edit hooks. `--packs` defaults to `dynamic`. `--bin` points the server and hooks at a local build, `--no-gate` leaves out the design gate hook. |
+| `northstar install [--agent a,b] [--all] [--scope user\|project] [--bin path] [--no-gate] [--no-host] [--allow-extension id] [--home dir] [--project dir] [--dry-run] [--yes]` | Register the server, install the five skills and the edit hooks. `--bin` points the server and hooks at a local build, `--no-gate` leaves out the design gate hook. |
 | `northstar uninstall [--agent a,b] [--scope user\|project]` | Remove exactly what install added and restore what it replaced, including the browser helper once no agent is left. |
 | `northstar doctor` | Check installs, assets, hooks, the browser helper, the pseudo terminal module, the daemon, the shell integration, DESIGN.md and conflicts. |
 | `northstar run <agent> [args]` | Start an agent in a session Northstar owns, so Send to AI can write into it. Any terminal program works. |
@@ -60,12 +60,10 @@ claude mcp add northstar -- npx -y @pallandir/northstar
 
 ## Tools
 
-The server must be registered under the name `northstar`. Tools are grouped into
-packs. Core and comments are always on, the others are enabled with `enable_packs`
-or reached through `pack_call`. `NORTHSTAR_PACKS` sets the starting packs: `dynamic`
-for core and comments, `all`, or a comma separated list. The page and design packs
-render and research in headless Chrome and say so when Google Chrome is not installed. See
-[architecture](../docs/architecture.md) for the full list of packs and tools.
+The server must be registered under the name `northstar`. Every tool is always
+available. The page and design tools render and research in headless Chrome and say so
+when Google Chrome is not installed. See [architecture](../docs/architecture.md) for
+the full list of tools.
 
 ### Comment tools
 
@@ -87,17 +85,17 @@ with a small map at `northstar://canon/index`.
 
 ### Design tools
 
-| Tool | Pack | Purpose |
+| Tool | Group | Purpose |
 |---|---|---|
 | `canon_find(query, kind?, stage?, limit?, budget?)` | core | Search reference sections, rules, archetypes and conflicts within a token budget. |
 | `canon_read(id, full?)` | core | Read one section, or an outline for a topic. |
 | `design_tokens_generate(archetype, mode, name, description, ...)` | system | Generate a validated `DESIGN.md` from an archetype, with an optional blend and brand colour. |
 | `design_system_propose(product, mood?, mode?, archetype?, brand?)` | system | Draft a system from a short brief. |
-| `ui_audit(paths?)` | detect | Count the values in existing UI, list drift and order the fixes. |
+| `slop_scan(paths?, diff?, mode?, inventory?)` | detect | Scan UI files, or with `inventory` true count the values in existing UI, list drift and order the fixes. |
 
 The other design tools are `design_md_init`, `design_md_normalize`, `design_md_validate`,
-`design_md_export`, `design_search`, `design_get`, `resolve_library`, `resolve_font`,
-`resolve_icon`, `slop_scan`, `explain_rule`, `critique_rubric` and `record_critique`.
+`design_md_export`, `design_search`, `resolve_library`, `resolve_font`, `resolve_icon`,
+`critique_rubric`, `record_critique`, and the page and design tools described in the README.
 
 There is no tool to start the work and no watch mode. When the developer clicks
 **Send to AI**, the extension sends `session.send` through the native host and the
@@ -137,7 +135,6 @@ Replies are kept under 900 KB and requests under 16 MB. See
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `NORTHSTAR_ROOT` | `process.cwd()` | Where the store is written and DESIGN.md is read. |
-| `NORTHSTAR_PACKS` | `dynamic` | Starting tool packs: `dynamic`, `all`, or a comma list. |
 | `NORTHSTAR_GATE` | on | Set to `off` to disable the design gate hook. |
 | `NORTHSTAR_HOME` | the home directory | Parent of the `.northstar` folder that holds the config, the session state, the logs and the daemon socket. Keep it short, Unix sockets allow about 100 characters. |
 
