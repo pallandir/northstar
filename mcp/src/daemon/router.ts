@@ -12,6 +12,7 @@ interface RouteRequest {
   preferredAgent: string | null;
   assistantConnected: boolean;
   assistantWorking: boolean;
+  assistantListening: boolean;
 }
 
 export function routeSend(all: readonly SessionInfo[], request: RouteRequest): Route {
@@ -66,6 +67,9 @@ export function readinessFor(
       reason: "More than one agent session is running in this project.",
       fix: "Pick the session to send to.",
     };
+  }
+  if (request.assistantListening) {
+    return { ready: true, sessions, target: null, needsPick: false };
   }
   return {
     ready: false,

@@ -3,10 +3,8 @@ import { connectDaemon } from "../daemon/client.js";
 import { fileLogger } from "../daemon/log.js";
 import { RpcError } from "../daemon/rpc.js";
 import { startDaemon } from "../daemon/server.js";
-import { findLocalExtensionIds } from "../install/chrome-extensions.js";
-import { syncAllowedExtensions } from "../install/native-manifest.js";
+import { allowLocalExtensions } from "../install/native-manifest.js";
 import { northstarHome } from "../lib/home.js";
-import { extraExtensionIds } from "../native/host.js";
 
 async function stop(home: string): Promise<number> {
   try {
@@ -41,18 +39,6 @@ async function status(home: string): Promise<number> {
       "not running, it starts on demand when an agent or the browser needs it\n",
     );
     return 0;
-  }
-}
-
-function allowLocalExtensions(home: string, log: (message: string) => void): void {
-  try {
-    const ids = [...new Set([...extraExtensionIds(home), ...findLocalExtensionIds(home)])];
-    for (const result of syncAllowedExtensions({ home, extensionIds: ids })) {
-      if (result.status === "updated")
-        log(`allowed extensions ${ids.join(", ")} in ${result.target}`);
-    }
-  } catch (error) {
-    log(`could not allow local extension builds: ${(error as Error).message}`);
   }
 }
 

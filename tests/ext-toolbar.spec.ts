@@ -247,20 +247,19 @@ describe("Toolbar connection strips", () => {
     expect(send?.dataset.tip).toBe("Pick the session to send to below");
   });
 
-  it("offers only Copy the line, and only when there is something to send", () => {
+  it("offers only Copy the line, with or without comments, so the connection can come first", () => {
     const onCopyLine = vi.fn();
     const toolbar = new Toolbar(fakeSurface(), handlers({ onCopyLine }));
-    toolbar.render(
-      state({ status: reachableStatus({ queued: 0, open: 0, readiness: NO_SESSION }) }),
-    );
-    expect(document.querySelectorAll(".ns-setup-actions button")).toHaveLength(0);
-
-    toolbar.render(state({ status: reachableStatus({ queued: 2, readiness: NO_SESSION }) }));
-    const buttons = Array.from(
-      document.querySelectorAll<HTMLButtonElement>(".ns-setup-actions button"),
-    );
-    expect(buttons.map((b) => b.textContent)).toEqual(["Copy the line"]);
-    buttons[0].click();
+    for (const queued of [0, 2]) {
+      toolbar.render(
+        state({ status: reachableStatus({ queued, open: queued, readiness: NO_SESSION }) }),
+      );
+      const buttons = Array.from(
+        document.querySelectorAll<HTMLButtonElement>(".ns-setup-actions button"),
+      );
+      expect(buttons.map((b) => b.textContent)).toEqual(["Copy the line"]);
+    }
+    document.querySelector<HTMLButtonElement>(".ns-setup-actions button")?.click();
     expect(onCopyLine).toHaveBeenCalledOnce();
   });
 

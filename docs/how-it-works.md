@@ -114,7 +114,9 @@ Nothing in that path is specific to one assistant. Claude Code, Codex, Gemini, O
 Aider, Goose and any other terminal program receive the same bytes.
 
 When Northstar cannot write to your assistant, the toolbar offers **Copy the line**. It
-copies the same fixed line, and nothing happens unless you click it.
+copies a start line that makes the assistant run `northstar listen`, which blocks until
+Send to AI is clicked, as Impeccable's live mode does with its poll command. Nothing
+happens unless you click it.
 
 ## What gets written
 

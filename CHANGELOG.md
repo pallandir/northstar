@@ -16,6 +16,18 @@ All notable changes to this project are documented here. The format follows
 - Send to AI no longer fails with "the agent did not start" for an assistant it cannot
   write to. It says the assistant is open but not writable and offers **Copy the line**.
 
+### Added
+
+- **`northstar listen`**, a command that blocks until Send to AI is clicked, then prints
+  the template line and the open comment summaries. It is how any assistant, in any
+  terminal or editor, connects without the PTY wrapper, the way Impeccable's live mode
+  polls. Claude Code runs it as a background task. A send while the assistant is busy is
+  queued and returned by the next listen.
+
+- An assistant starting now also allows an unpacked extension build, so a running daemon
+  no longer keeps refusing a newly loaded build. The design gate exemption also finds
+  open comments in the project folder when the hook root is the repository root.
+
 ### Changed
 
 - **Two MCP servers.** `northstar` carries the design tools and `northstar-comments`
@@ -24,8 +36,10 @@ All notable changes to this project are documented here. The format follows
   `clear_resolved`). `northstar install` registers both for every agent, and
   `northstar serve comments` starts the second one. Restart an open assistant once to
   pick up the second server.
-- **One action when Northstar cannot write to your assistant: Copy the line.** It works
-  with any assistant in any terminal or editor, with nothing to restart.
+- **One action when Northstar cannot write to your assistant: Copy the line.** It copies
+  a start line that makes the assistant run `northstar listen`, saves your queued comments
+  first, and works before the first comment too. Send to AI is enabled once an assistant
+  listens, and says "Your assistant is working" while it handles a batch.
 - `northstar install` wraps every known agent in your shell (zsh, bash, fish) so plain
   `claude` and `codex` start in a session Send to AI can write to. `--no-shell` skips it
   and `northstar agent add` extends it.

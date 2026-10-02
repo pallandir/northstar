@@ -56,7 +56,7 @@ function disconnectError(message: string | undefined): BridgeError {
   if (message && /forbidden/i.test(message)) {
     return new BridgeError(
       "The Northstar helper does not allow this extension.",
-      "Reload this page. Northstar allows unpacked builds it finds in Chrome when its helper starts, so if this persists run northstar doctor. A Web Store build older than this package also needs updating.",
+      "Reload this page. If it still fails, start your AI assistant once in the project, which allows this build, then reload again. Run northstar doctor to check.",
       "offline",
       "NO_HELPER",
     );

@@ -1,4 +1,4 @@
-import type { DeferralNotice, HandoffOutcome } from "@northstar/protocol";
+import type { DeferralNotice, HandoffOutcome, TemplateId } from "@northstar/protocol";
 
 const MAX_NOTICES = 20;
 
@@ -12,6 +12,9 @@ export class Broker {
   private notices: DeferralNotice[] = [];
   private handoff: HandoffOutcome | null = null;
   private pollWaiters = new Set<() => void>();
+  private listeners = new Set<(template: TemplateId) => void>();
+  private queuedTemplate: TemplateId | null = null;
+  private lastListenTime = 0;
 
   get currentVersion(): number {
     return this.version;
@@ -23,6 +26,47 @@ export class Broker {
 
   get lastPolledMs(): number {
     return this.lastPolledTime;
+  }
+
+  get listening(): boolean {
+    return this.listeners.size > 0;
+  }
+
+  listenerSeenWithin(ms: number): boolean {
+    return this.listening || (this.lastListenTime > 0 && Date.now() - this.lastListenTime < ms);
+  }
+
+  listen(timeoutMs: number, aborted: AbortSignal): Promise<{ template: TemplateId | null }> {
+    this.lastListenTime = Date.now();
+    if (this.queuedTemplate) {
+      const template = this.queuedTemplate;
+      this.queuedTemplate = null;
+      return Promise.resolve({ template });
+    }
+    return new Promise((resolve) => {
+      const done = (template: TemplateId | null) => {
+        clearTimeout(timer);
+        aborted.removeEventListener("abort", onAbort);
+        this.listeners.delete(wake);
+        this.lastListenTime = Date.now();
+        resolve({ template });
+      };
+      const wake = (template: TemplateId) => done(template);
+      const onAbort = () => done(null);
+      const timer = setTimeout(() => done(null), timeoutMs);
+      aborted.addEventListener("abort", onAbort);
+      this.listeners.add(wake);
+    });
+  }
+
+  signalHandoff(template: TemplateId): boolean {
+    const [first] = this.listeners;
+    if (first) {
+      first(template);
+      return true;
+    }
+    this.queuedTemplate = template;
+    return false;
   }
 
   activeWithin(ms: number): boolean {

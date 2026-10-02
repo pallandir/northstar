@@ -66,7 +66,14 @@ export class Sender {
       preferredAgent: settings.preferredAgent,
       assistantConnected: registry.hasAssistant(root),
       assistantWorking: this.workspace.broker(root).activeWithin(ASSISTANT_ACTIVE_MS),
+      assistantListening: this.workspace.broker(root).listenerSeenWithin(ASSISTANT_ACTIVE_MS),
     });
+    if (
+      route.kind === "none" &&
+      this.workspace.broker(root).listenerSeenWithin(ASSISTANT_ACTIVE_MS)
+    ) {
+      return this.handOffToListener(root, params.template);
+    }
     if (route.kind === "none") {
       const { reason, fix } = noSessionNotice(
         registry.hasAssistant(root),
@@ -98,6 +105,31 @@ export class Sender {
       this.log(
         `session.send session=${handle.info.id} agent=${handle.info.agent} delivered=${handoff.delivered} duration=${Date.now() - started}ms`,
       );
+      return handoff;
+    } finally {
+      this.sending.delete(root);
+    }
+  }
+
+  private async handOffToListener(root: string, template: TemplateId): Promise<HandoffOutcome> {
+    const broker = this.workspace.broker(root);
+    this.sending.add(root);
+    try {
+      const woke = broker.signalHandoff(template);
+      const at = new Date().toISOString();
+      const handoff: HandoffOutcome = woke
+        ? { delivered: true, session: null, at }
+        : {
+            delivered: false,
+            session: null,
+            blocked: "busy",
+            reason:
+              "Your assistant is busy. The comments are saved and queued, it picks them up when it runs northstar listen again.",
+            fix: "If it stopped listening, click Copy the line and paste it again.",
+            at,
+          };
+      broker.recordHandoff(handoff);
+      this.log(`session.send listener delivered=${handoff.delivered}`);
       return handoff;
     } finally {
       this.sending.delete(root);

@@ -12,6 +12,7 @@ import {
 } from "@northstar/protocol";
 import { z } from "zod";
 import { describeAgents, mergeAgents } from "../agents/definitions.js";
+import { allowLocalExtensions } from "../install/native-manifest.js";
 import { userPath } from "../lib/user-path.js";
 import type { DeliverOutcome } from "../pty/deliver.js";
 import { loadSettings, updateSettings } from "../user-config.js";
@@ -36,6 +37,7 @@ interface PeerContext {
   sessionIds: Set<string>;
   mcpRoot: string | null;
   releaseAssistant: (() => void) | null;
+  aborts: AbortController;
 }
 
 const registerParams = z
@@ -62,6 +64,10 @@ const noticeParams = z
     summary: z.string().max(500),
     createdAt: z.string().max(64),
   })
+  .strict();
+
+const listenParams = z
+  .object({ root: z.string().min(1).max(4096), timeoutMs: z.number().int().min(1).max(3_600_000) })
   .strict();
 
 const activityParams = z.object({ id: z.string().regex(SESSION_ID) }).strict();
@@ -116,7 +122,12 @@ export class Daemon {
   }
 
   attach(socket: Socket): RpcPeer {
-    const context: PeerContext = { sessionIds: new Set(), mcpRoot: null, releaseAssistant: null };
+    const context: PeerContext = {
+      sessionIds: new Set(),
+      mcpRoot: null,
+      releaseAssistant: null,
+      aborts: new AbortController(),
+    };
     const peer: RpcPeer = new RpcPeer(
       socket,
       (method, params) => this.dispatch(peer, context, method, params),
@@ -126,6 +137,7 @@ export class Daemon {
     peer.onClose(() => {
       this.peers.delete(peer);
       context.releaseAssistant?.();
+      context.aborts.abort();
       for (const id of context.sessionIds) {
         this.workspace.registry.remove(id);
         this.options.log(`session.closed session=${id}`);
@@ -154,6 +166,11 @@ export class Daemon {
       }
       case "mcp.hello":
         return this.hello(context, parseInternal(helloParams, method, params));
+      case "listen.wait": {
+        const { root, timeoutMs } = parseInternal(listenParams, method, params);
+        const canonical = this.listenRoot(root);
+        return this.workspace.broker(canonical).listen(timeoutMs, context.aborts.signal);
+      }
       case "broker.polled":
         this.brokerOf(context).markPolled();
         return {};
@@ -234,6 +251,20 @@ export class Daemon {
     return { id, version: this.options.version, protocol: PROTOCOL_VERSION };
   }
 
+  private listenRoot(root: string): string {
+    let canonical: string;
+    try {
+      canonical = canonicalRoot(root);
+    } catch (error) {
+      throw badRequest(
+        `The project root ${root} cannot be read: ${(error as Error).message}.`,
+        "Run northstar listen from the project folder.",
+      );
+    }
+    this.workspace.registry.rememberRoot(canonical);
+    return canonical;
+  }
+
   private hello(
     context: PeerContext,
     params: z.infer<typeof helloParams>,
@@ -247,6 +278,7 @@ export class Daemon {
         "Start the agent in an existing project directory.",
       );
     }
+    allowLocalExtensions(this.options.home, this.options.log);
     context.releaseAssistant?.();
     context.releaseAssistant = this.workspace.registry.attachAssistant(root);
     context.mcpRoot = root;

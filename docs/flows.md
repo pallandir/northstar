@@ -125,9 +125,15 @@ sequenceDiagram
     participant U as You
     participant T as Toolbar
     participant D as Daemon
+    participant A as Assistant
 
     T->>D: status.get
     D-->>T: no session, connected but not writable
     U->>T: Copy the line
-    T->>U: the fixed line on the clipboard
+    T->>U: the start line on the clipboard
+    U->>A: paste it into the assistant
+    A->>D: northstar listen, blocks
+    U->>T: Send to AI
+    T->>D: session.send
+    D-->>A: the template line and the open comments, listen returns
 ```

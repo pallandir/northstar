@@ -13,6 +13,7 @@ const commands: Record<string, () => Promise<Command>> = {
   uninstall: async () => (await import("./cli/setup.js")).uninstallCommand,
   doctor: async () => (await import("./cli/setup.js")).doctorCommand,
   run: async () => (await import("./cli/run.js")).run,
+  listen: async () => (await import("./cli/listen.js")).listen,
   daemon: async () => (await import("./cli/daemon.js")).daemonCommand,
   "native-host": async () => (await import("./cli/native-host.js")).nativeHostCommand,
   sessions: async () => (await import("./cli/bridge.js")).sessionsCommand,
@@ -37,6 +38,7 @@ Commands:
   uninstall   remove what install added
   doctor      check the install, hooks, assets, browser helper and shell integration
   run <agent> start an agent in a Northstar session so Send to AI can reach it
+  listen      wait until Send to AI is clicked in the browser, then print what to do
   sessions    list the running agent sessions
   agent       list the agents Northstar knows, or add your own
   shell       install or uninstall shell functions so claude, codex and the rest start through run

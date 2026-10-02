@@ -88,6 +88,7 @@ describe("the native port", () => {
     fake.disconnect("Access to the specified native messaging host is forbidden.");
     await expect(pending).rejects.toMatchObject({
       message: "The Northstar helper does not allow this extension.",
+      fix: expect.stringContaining("start your AI assistant once"),
       code: "NO_HELPER",
     });
   });

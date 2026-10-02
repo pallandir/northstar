@@ -131,6 +131,7 @@ export class CommentActions {
         preferredAgent: settings.preferredAgent,
         assistantConnected: this.workspace.registry.hasAssistant(canonical),
         assistantWorking: broker.activeWithin(ASSISTANT_ACTIVE_MS),
+        assistantListening: broker.listenerSeenWithin(ASSISTANT_ACTIVE_MS),
       }),
       open: (await this.workspace.store(canonical).list("open")).length,
       lastPolledAt: broker.lastPolledAt,

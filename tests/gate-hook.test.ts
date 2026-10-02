@@ -207,3 +207,19 @@ test("an edit that answers an open browser comment is never gated, and the gate 
   assert.throws(() => preEditReason("claude", input, dir), /comment store .* is corrupt/);
   await rm(dir, { recursive: true, force: true });
 });
+
+test("open comments in the project folder exempt an edit even when the hook root is the repository root", async () => {
+  const dir = await project({
+    "package.json": REACT,
+    "apps/web/src/Page.tsx": CLEAN,
+    "apps/web/.northstar/design-comments.json": JSON.stringify([{ id: "c1", status: "open" }]),
+  });
+  const input = {
+    tool_name: "Edit",
+    tool_input: { file_path: join(dir, "apps/web/src/Page.tsx") },
+  };
+  assert.equal(preEditReason("claude", input, dir), undefined);
+  await rm(join(dir, "apps/web/.northstar"), { recursive: true });
+  assert.match(preEditReason("claude", input, dir) ?? "", /write DESIGN\.md before any UI code/);
+  await rm(dir, { recursive: true, force: true });
+});

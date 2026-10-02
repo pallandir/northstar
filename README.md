@@ -282,7 +282,7 @@ no macOS permission. It can only ever write into that terminal. `northstar run <
 does the same without the shell wrapper, and `--no-shell` skips the wrapper at install.
 
 An assistant that was already running, or that a GUI or an IDE started without your
-shell, has no session. Send to AI says so. Restart it from a new terminal.
+shell, has no session. Choose **Copy the line** once and it connects without a restart.
 
 Unpacked builds of the extension are allowed automatically: when the daemon starts it
 finds the Northstar builds loaded in Chrome and allows them. Reload the page after
@@ -306,11 +306,16 @@ toolbar, with the reason and the fix, only when it must not go on:
 | The assistant did not read the comments within 20 seconds | Check it for a pending prompt or a running task |
 | More than one session runs in the project | Pick the session to send to |
 | A comment was parked because it needs a plan | A notice with the comment, so you can plan it |
-| Northstar cannot write to your assistant | Choose **Copy the line** and paste it into the assistant |
+| Northstar cannot write to your assistant | Choose **Copy the line**, paste it into the assistant once, and Send to AI works from then on |
 
-**Copy the line** copies the fixed line to the clipboard so you can paste it into any
-assistant, in any terminal or editor, with nothing to start or restart. It never runs on
-its own, you choose it.
+**Copy the line** copies a start line. Paste it into any assistant, in any terminal or
+editor, and it runs `northstar listen`, a command that waits until you click **Send to
+AI**. Claude Code runs it as a background task, so waiting costs no tokens and the
+click wakes the assistant. Other assistants run it in the shell. After each batch the
+assistant runs it again, until you tell it to stop. Comments you send while it is busy
+are saved and queued, and the next `northstar listen` returns them at once. The command
+never writes into a terminal, and the comment text only ever reaches the assistant
+through the saved store. It works even before you have added a comment.
 
 ### The resolve-comments prompt
 

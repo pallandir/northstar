@@ -1,4 +1,4 @@
-import { pageKey, templateLine } from "@northstar/protocol";
+import { START_LINE, pageKey } from "@northstar/protocol";
 import { browser } from "../lib/browser.js";
 import { UserError } from "../lib/errors.js";
 import { isLocalUrl } from "../lib/origins.js";
@@ -399,18 +399,10 @@ function init(): Instance {
   }
 
   async function handleCopyLine(): Promise<void> {
-    const res = await call({ type: "copy-line" });
-    const saved = field(res.status);
-    if (saved.open === 0) {
-      throw new UserError(
-        "There are no comments to send yet.",
-        "Add a comment on the page, then choose Copy the line.",
-      );
-    }
+    await call({ type: "copy-line" });
     await refresh();
-    const line = templateLine(saved.template);
     try {
-      await navigator.clipboard.writeText(line);
+      await navigator.clipboard.writeText(START_LINE);
     } catch (err) {
       console.error("[northstar] clipboard write failed", err);
       throw new UserError(

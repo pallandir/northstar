@@ -21,6 +21,8 @@ import type {
 import { connectDaemon, ensureDaemon } from "../mcp/src/daemon/client.js";
 import { RpcError, type RpcHandler, type RpcPeer } from "../mcp/src/daemon/rpc.js";
 import { type RunningDaemon, startDaemon } from "../mcp/src/daemon/server.js";
+import { chromeUserDataDir } from "../mcp/src/install/chrome-extensions.js";
+import { installHost } from "../mcp/src/install/native-manifest.js";
 import { socketPath } from "../mcp/src/lib/home.js";
 import { draft } from "./helpers.js";
 
@@ -187,6 +189,96 @@ test("an assistant that is working on comments is reported as working, not as un
     request(peer, "session.send", { root: project, template: "resolve" }),
   );
   assert.match(error.message, /working on your comments/);
+});
+
+const listenOnce = (peer: RpcPeer, timeoutMs: number) =>
+  peer.call<{ template: string | null }>("listen.wait", { root: project, timeoutMs }, 10_000);
+
+test("a listening assistant is ready, receives the send and the toolbar learns it was delivered", async () => {
+  const browser = await connect();
+  await mcp();
+  await post(browser, [draft()]);
+  const listener = await connect();
+  const waiting = listenOnce(listener, 8_000);
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  const status = await request<{ readiness: { ready: boolean } }>(browser, "status.get", {
+    root: project,
+  });
+  assert.equal(status.readiness.ready, true);
+  const outcome = await request<HandoffOutcome>(browser, "session.send", {
+    root: project,
+    template: "implement",
+  });
+  assert.equal(outcome.delivered, true);
+  assert.equal(outcome.session, null);
+  assert.deepEqual(await waiting, { template: "implement" });
+});
+
+test("a send while the assistant is between listens is queued and the next listen returns it at once", async () => {
+  const browser = await connect();
+  await mcp();
+  await post(browser, [draft()]);
+  const first = await connect();
+  assert.deepEqual(await listenOnce(first, 50), { template: null });
+  const outcome = await request<HandoffOutcome>(browser, "session.send", {
+    root: project,
+    template: "resolve",
+  });
+  assert.equal(outcome.delivered, false);
+  assert.equal(outcome.blocked, "busy");
+  assert.match(outcome.reason ?? "", /queued/);
+  const second = await connect();
+  const started = Date.now();
+  assert.deepEqual(await listenOnce(second, 8_000), { template: "resolve" });
+  assert.ok(Date.now() - started < 2_000);
+});
+
+test("a listener that disconnects frees the wait and a session still wins over a listener", async () => {
+  const browser = await connect();
+  await mcp();
+  await post(browser, [draft()]);
+  const listener = await connect();
+  const waiting = listenOnce(listener, 8_000).catch(() => null);
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  listener.close();
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  const received: unknown[] = [];
+  await session("codex", async (_method, params) => {
+    received.push(params);
+    return { delivered: true };
+  });
+  const agent = await mcp();
+  setTimeout(() => void agent.call("broker.polled", {}), 20);
+  const outcome = await request<HandoffOutcome>(browser, "session.send", {
+    root: project,
+    template: "fix",
+  });
+  assert.equal(outcome.delivered, true);
+  assert.deepEqual(received, [{ template: "fix" }]);
+  assert.equal(await waiting, null);
+});
+
+test("an assistant starting allows an unpacked extension build the helper already refuses", async () => {
+  installHost({ home, node: "/usr/bin/node", script: "/opt/northstar/cli.js", extensionIds: [] });
+  const id = "p".repeat(32);
+  const build = join(project, "ext");
+  mkdirSync(build, { recursive: true });
+  writeFileSync(join(build, "manifest.json"), JSON.stringify({ name: "Northstar" }));
+  const profile = join(chromeUserDataDir(home, process.platform) as string, "Default");
+  mkdirSync(profile, { recursive: true });
+  writeFileSync(
+    join(profile, "Secure Preferences"),
+    JSON.stringify({ extensions: { settings: { [id]: { location: 4, path: build } } } }),
+  );
+  await mcp();
+  const manifest = join(
+    process.platform === "darwin"
+      ? join(home, "Library", "Application Support", "Google", "Chrome", "NativeMessagingHosts")
+      : join(home, ".config", "google-chrome", "NativeMessagingHosts"),
+    "com.northstar.bridge.json",
+  );
+  const origins = JSON.parse(readFileSync(manifest, "utf8")).allowed_origins as string[];
+  assert.ok(origins.includes(`chrome-extension://${id}/`));
 });
 
 test("a send with no assistant connected says to open one", async () => {

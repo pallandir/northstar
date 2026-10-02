@@ -73,8 +73,10 @@ and to an assistant session that Northstar itself started.
   moments, or when the output never goes quiet. Your own keystrokes are held while a
   line is written and released after, so they cannot interleave with it. Each refusal
   is shown in the toolbar with the reason and the fix.
-- **Copy the line is explicit too.** It copies the same fixed line to the clipboard
-  when you press it.
+- **Copy the line is explicit too.** It copies a fixed start line to the clipboard when
+  you press it. `northstar listen` only waits and prints one of the fixed template lines
+  with the saved comment summaries. It writes into no terminal, and the daemon accepts
+  the listen call only on its user only socket.
 - **Least-privilege extension.** The extension requests `activeTab`, `scripting`,
   `storage`, `unlimitedStorage`, `nativeMessaging` and `contextMenus`, plus the
   loopback host permissions above. It requests no `debugger` permission and holds no

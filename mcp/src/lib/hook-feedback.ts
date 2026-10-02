@@ -96,12 +96,23 @@ export function findProjectRoot(
   return chain.find((dir) => existsSync(join(dir, "package.json")));
 }
 
+function hasOpenCommentsAbove(root: string, path: string): boolean {
+  const base = resolve(root);
+  let dir = resolve(base, dirname(path));
+  while (isInside(base, dir)) {
+    if (hasOpenComments(dir)) return true;
+    if (dir === base) return false;
+    dir = dirname(dir);
+  }
+  return false;
+}
+
 export function gateReason(root: string, path: string): string | undefined {
   if (process.env.NORTHSTAR_GATE === "off") return undefined;
   if (!GATED_SOURCE.test(path) || NOT_UI_SOURCE.test(path) || !hasUiAncestor(root, path)) {
     return undefined;
   }
-  if (hasOpenComments(root)) return undefined;
+  if (hasOpenCommentsAbove(root, path)) return undefined;
   const gap = designGap(readDesign(root));
   if (!gap) return undefined;
   return `Northstar: write DESIGN.md before any UI code, ${gap}. Call design_md_normalize with the designer's direction file and write true, or design_system_propose, then design_md_validate until it is ready, then continue. If the designer wants the system from Figma, follow northstar://canon/references/figma first. Do not edit UI files first. Only set NORTHSTAR_GATE=off if the user asked to skip the design system.`;

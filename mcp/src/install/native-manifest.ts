@@ -10,7 +10,8 @@ import {
 import { dirname, join } from "node:path";
 import { CHROME_EXTENSION_ID, FIREFOX_EXTENSION_ID, NATIVE_HOST_NAME } from "@northstar/protocol";
 import { binDir, stateDir } from "../lib/home.js";
-import { EXTENSION_IDS_FILE } from "../native/host.js";
+import { EXTENSION_IDS_FILE, extraExtensionIds } from "../native/host.js";
+import { findLocalExtensionIds } from "./chrome-extensions.js";
 
 type HostStatus = "created" | "updated" | "unchanged" | "planned" | "removed" | "missing";
 
@@ -279,4 +280,16 @@ export function checkHost(options: Omit<HostOptions, "dryRun">): HostCheck[] {
     });
   }
   return checks;
+}
+
+export function allowLocalExtensions(home: string, log: (message: string) => void): void {
+  try {
+    const ids = [...new Set([...extraExtensionIds(home), ...findLocalExtensionIds(home)])];
+    for (const result of syncAllowedExtensions({ home, extensionIds: ids })) {
+      if (result.status === "updated")
+        log(`allowed extensions ${ids.join(", ")} in ${result.target}`);
+    }
+  } catch (error) {
+    log(`could not allow local extension builds: ${(error as Error).message}`);
+  }
 }

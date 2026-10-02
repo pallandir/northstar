@@ -273,9 +273,11 @@ export class Toolbar {
     } else if (handoff && !handoff.delivered && handoff.reason) {
       this.showFailure(
         `handoff:${handoff.at}`,
-        handoff.blocked
-          ? "Comments saved, the agent needs you first"
-          : "Comments saved, the agent did not start",
+        handoff.blocked === "busy"
+          ? "Comments queued, your assistant is busy"
+          : handoff.blocked
+            ? "Comments saved, the agent needs you first"
+            : "Comments saved, the agent did not start",
         `${handoff.reason} ${handoff.fix ?? ""}`.trim(),
       );
     } else if (readiness?.needsPick && this.pending > 0) {
@@ -289,10 +291,11 @@ export class Toolbar {
         })),
       );
     } else if (readiness && !readiness.ready) {
-      const quick: StripAction[] =
-        this.pending > 0 ? [{ label: "Copy the line", run: () => this.handlers.onCopyLine() }] : [];
+      const quick: StripAction[] = [
+        { label: "Copy the line", run: () => this.handlers.onCopyLine() },
+      ];
       this.showFailure(
-        `no-session:${readiness.working === true}:${this.pending > 0}`,
+        `no-session:${readiness.working === true}`,
         readiness.working ? "Your assistant is working" : "Northstar cannot reach your assistant",
         `${readiness.reason ?? ""} ${readiness.fix ?? ""}`.trim(),
         quick,
