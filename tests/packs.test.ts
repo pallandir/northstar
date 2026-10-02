@@ -89,7 +89,7 @@ test("parsePacks keeps core and comments, understands all", () => {
     "critique",
     "detect",
   ]);
-  assert.equal(parsePacks("all").size, 8);
+  assert.equal(parsePacks("all").size, 9);
 });
 
 test("enabling a pack reveals its tools and emits tools/list_changed", async () => {

@@ -1,3 +1,4 @@
+import type { Dna } from "../design/dna.js";
 import { type Region, regionNameOf, regionsOf } from "./regions.js";
 import type { PageNode, PageSnapshot, Rgba } from "./snapshot.js";
 import type { ViewportName } from "./viewports.js";
@@ -8,6 +9,7 @@ const PAGE_BACKGROUND: Rgba = [255, 255, 255, 1];
 
 export interface RuleContext {
   snapshot: PageSnapshot;
+  direction: Dna | undefined;
   viewport: ViewportName;
   regions: Region[];
   isMobile: boolean;
@@ -25,7 +27,11 @@ const FULL_BLEED = 0.95;
 const MIN_CARD_AREA = 4000;
 const CARD_KINDS: ReadonlySet<string> = new Set(["surface", "text", "landmark"]);
 
-export function createContext(snapshot: PageSnapshot, viewport: ViewportName): RuleContext {
+export function createContext(
+  snapshot: PageSnapshot,
+  viewport: ViewportName,
+  direction?: Dna,
+): RuleContext {
   const byId = new Map(snapshot.nodes.map((n) => [n.id, n]));
   const children = new Map<number, PageNode[]>();
   for (const node of snapshot.nodes) {
@@ -41,6 +47,7 @@ export function createContext(snapshot: PageSnapshot, viewport: ViewportName): R
     isFilled(node, parentOf(node)?.style.background ?? PAGE_BACKGROUND);
   return {
     snapshot,
+    direction,
     viewport,
     regions,
     isMobile: snapshot.viewport.width < MOBILE_MAX_WIDTH,

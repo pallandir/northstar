@@ -14,6 +14,7 @@ export const PACK_NAMES = [
   "detect",
   "critique",
   "page",
+  "design",
 ] as const;
 
 export type PackName = (typeof PACK_NAMES)[number];
@@ -27,6 +28,7 @@ export const PACK_SUMMARIES: Record<PackName, string> = {
   detect: "Scan UI files for generic AI patterns and explain the rules.",
   critique: "Score a built result against the rubric and keep the decisions log.",
   page: "Render a URL in Chrome, screenshot it and audit the real page.",
+  design: "Set the design intent, find and record references, build the direction.",
 };
 
 const ALWAYS_ON: ReadonlySet<PackName> = new Set(["core", "comments"]);

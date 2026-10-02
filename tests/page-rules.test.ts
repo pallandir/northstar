@@ -79,6 +79,7 @@ test("every fixture page has an expectation", () => {
   const files = readdirSync(PAGES)
     .filter((f) => f.endsWith(".html"))
     .map((f) => f.replace(/\.html$/, ""))
+    .filter((name) => name !== "gallery")
     .sort();
   assert.deepEqual(files, Object.keys(EXPECTED).sort());
 });

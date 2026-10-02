@@ -7,6 +7,7 @@ class PageError extends Error {}
 const IDLE_MS = 120_000;
 const NAVIGATION_TIMEOUT_MS = 30_000;
 const SETTLE_MS = 400;
+const POLL_MS = 250;
 const MOBILE_MAX_WIDTH = 600;
 const ALLOWED_PROTOCOLS: ReadonlySet<string> = new Set(["http:", "https:", "file:"]);
 
@@ -64,6 +65,23 @@ export async function closeBrowser(): Promise<void> {
   const pending = launching;
   launching = null;
   if (pending) await (await pending).close();
+}
+
+export async function waitUntil(
+  page: Page,
+  expression: string,
+  timeoutMs: number,
+): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      if ((await page.evaluate(expression)) === true) return true;
+    } catch (error) {
+      if (!/Execution context was destroyed/.test((error as Error).message)) throw error;
+    }
+    await page.waitForTimeout(POLL_MS);
+  }
+  return false;
 }
 
 export async function probeChrome(): Promise<void> {

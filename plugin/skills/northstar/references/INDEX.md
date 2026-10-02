@@ -28,7 +28,7 @@ Search first, read one section. With the server: canon_find with what you need, 
 
 ## Rules
 
-76 rules in families NS-A11Y (5), NS-COLOR (6), NS-COPY (5), NS-FINISH (8), NS-LAYOUT (8), NS-LIB (5), NS-MOTION (10), NS-PAGE (8), NS-SLOP (14), NS-LOOK (1), NS-TYPE (6). Look one up by id: canon_read rule:<id>, or explain_rule.
+77 rules in families NS-A11Y (5), NS-COLOR (6), NS-COPY (5), NS-FINISH (8), NS-LAYOUT (8), NS-LIB (5), NS-MOTION (10), NS-PAGE (9), NS-SLOP (14), NS-LOOK (1), NS-TYPE (6). Look one up by id: canon_read rule:<id>, or explain_rule.
 
 ## Archetypes
 

@@ -1,4 +1,5 @@
 import type { Canon, Mode } from "@northstar/canon";
+import type { Dna } from "../design/dna.js";
 import { type AuditPolicy, auditSnapshot, mergeViewports } from "./audit.js";
 import { captureViewport } from "./capture.js";
 import type { Crop } from "./capture.js";
@@ -14,6 +15,7 @@ export interface AuditRequest {
   canon: Canon;
   mode: Mode;
   allowed: AuditPolicy["allowed"];
+  direction?: Dna;
   crops: (findings: PageFinding[], viewport: ViewportName) => string[];
 }
 

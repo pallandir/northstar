@@ -10,6 +10,7 @@ import { scanEdited } from "./detect.js";
 import { RESOLVE_DIRECTIVE } from "./directive.js";
 import { registerCore } from "./packs/core.js";
 import { registerCritique } from "./packs/critique.js";
+import { registerDesign } from "./packs/design.js";
 import { registerDetect } from "./packs/detect.js";
 import { registerPage } from "./packs/page.js";
 import { PackRegistry, parsePacks } from "./packs/registry.js";
@@ -82,6 +83,7 @@ export function createMcpServer(
   registerSystem(packs, canon, data, root);
   registerCritique(packs, canon, root);
   registerPage(packs, canon, root);
+  registerDesign(packs, root);
 
   packs.register(
     "comments",

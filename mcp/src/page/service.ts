@@ -1,4 +1,5 @@
 import type { Canon, Mode } from "@northstar/canon";
+import { DesignStore } from "../design/store.js";
 import { loadScanConfig } from "../detect.js";
 import { compileAllow } from "../detector/suppress.js";
 import { auditPage } from "./audit-run.js";
@@ -32,6 +33,7 @@ export async function auditProject(options: {
     canon: options.canon,
     mode: config.mode,
     allowed: compileAllow(config.allow),
+    direction: new DesignStore(options.root).readDirection()?.dna,
     crops: (findings, viewport) => {
       const regions = judge(findings.filter((f) => f.viewports.includes(viewport)))
         .map((f) => f.region)

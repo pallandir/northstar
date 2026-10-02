@@ -78,3 +78,13 @@
   rationale: Gradient headings and large gradient fills are the most recognisable generated look. A flat colour with strong type does more.
   fix: Use a solid palette colour for the text and let scale or weight carry the emphasis. Keep gradients to one deliberate moment.
   sources: [impeccable, frontend-design, taste-skill]
+
+- id: NS-PAGE-DRIFT
+  title: The build drifts from the chosen direction
+  stage: [compose, critique]
+  severity: warn
+  allowable: true
+  detect: dom
+  rationale: The direction was chosen from intent and references. A build that measures differently on composition, density, colour, type or corners has lost the idea it was meant to carry.
+  fix: Compare the measured values with the direction, and move the build back, or update the direction on purpose and record why in design/decisions.md.
+  sources: [northstar]

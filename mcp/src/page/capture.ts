@@ -40,7 +40,7 @@ async function cropRegion(
   return { viewport, region: region.name, data, truncated: region.box.height > MAX_EDGE };
 }
 
-async function firstView(page: Page, viewport: ViewportName): Promise<Crop> {
+export async function firstView(page: Page, viewport: ViewportName): Promise<Crop> {
   const { height } = VIEWPORTS[viewport];
   return cropRegion(page, viewport, { name: "first view", box: { x: 0, y: 0, width: 0, height } });
 }

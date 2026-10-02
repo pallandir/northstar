@@ -2,7 +2,7 @@
 
 Generated from `canon/rules`. Do not edit by hand.
 
-76 rules. Severity is the default, modes can raise or lower it.
+77 rules. Severity is the default, modes can raise or lower it.
 
 ## Accessibility floor
 
@@ -98,6 +98,7 @@ Generated from `canon/rules`. Do not edit by hand.
 | `NS-PAGE-GENERIC-HERO` | The default centred SaaS hero | warn | yes | dom |
 | `NS-PAGE-ICON-SQUARES` | Icons in identical rounded tiles | warn | yes | dom |
 | `NS-PAGE-GRADIENT` | Gradient text and gradient filled surfaces | warn | yes | dom |
+| `NS-PAGE-DRIFT` | The build drifts from the chosen direction | warn | yes | dom |
 
 ## Anti slop
 

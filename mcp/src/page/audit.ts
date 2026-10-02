@@ -1,4 +1,5 @@
 import { type Canon, type Mode, severityFor } from "@northstar/canon";
+import type { Dna } from "../design/dna.js";
 import { createContext } from "./context.js";
 import { type PageFinding, findingKey } from "./finding.js";
 import { PAGE_RULES } from "./rules/index.js";
@@ -9,6 +10,7 @@ export interface AuditPolicy {
   canon: Canon;
   mode: Mode;
   allowed: (rule: string, path: string) => boolean;
+  direction?: Dna;
 }
 
 export function auditSnapshot(
@@ -16,7 +18,7 @@ export function auditSnapshot(
   viewport: ViewportName,
   policy: AuditPolicy,
 ): PageFinding[] {
-  const ctx = createContext(snapshot, viewport);
+  const ctx = createContext(snapshot, viewport, policy.direction);
   const path = new URL(snapshot.url).pathname;
   const out: PageFinding[] = [];
   for (const rule of PAGE_RULES) {

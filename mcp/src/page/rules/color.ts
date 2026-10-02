@@ -75,7 +75,7 @@ export function greyOnColour(ctx: RuleContext): RawFinding[] {
   ];
 }
 
-export function accents(ctx: RuleContext): RawFinding[] {
+export function accentBuckets(ctx: RuleContext): Map<number, PageNode[]> {
   const buckets = new Map<number, PageNode[]>();
   const note = (colour: PageNode["style"]["color"], node: PageNode) => {
     const lightness = lightnessOf(colour);
@@ -88,6 +88,11 @@ export function accents(ctx: RuleContext): RawFinding[] {
     if (node.style.backgroundImage === "none") note(node.style.ownBackground, node);
     if (node.kind === "link" || node.kind === "heading") note(node.style.color, node);
   }
+  return buckets;
+}
+
+export function accents(ctx: RuleContext): RawFinding[] {
+  const buckets = accentBuckets(ctx);
   if (buckets.size <= MAX_ACCENTS) return [];
   const evidence = [...buckets.values()].map((nodes) => (nodes[0] as PageNode).selector);
   return [
