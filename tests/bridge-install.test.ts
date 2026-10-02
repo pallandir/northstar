@@ -189,7 +189,7 @@ test("shell functions start each agent through northstar run and fall back with 
   assert.equal(rc.match(/>>> northstar >>>/g)?.length, 1);
 
   const out = execFileSync(
-    "/bin/sh",
+    "bash",
     [
       "-c",
       `. '${join(home, ".northstar/shell/northstar.sh")}'; PATH=/nonexistent; claude --version 2>&1 || true`,
