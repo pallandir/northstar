@@ -87,9 +87,15 @@ function proseLines(lines: string[]): string[] {
       else if (marker.startsWith(fence)) fence = null;
       continue;
     }
-    if (!fence && !/^\s*(---+|<!--.*--!?>)\s*$/.test(line)) prose.push(line);
+    if (!fence && !isRuleOrCommentLine(line)) prose.push(line);
   }
   return prose;
+}
+
+function isRuleOrCommentLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (/^---+$/.test(trimmed)) return true;
+  return trimmed.startsWith("<!--") && (trimmed.endsWith("-->") || trimmed.endsWith("--!>"));
 }
 
 function cleanLabel(text: string): string {
