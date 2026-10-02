@@ -1,11 +1,18 @@
 {
   "name": "northstar",
-  "version": "2.0.0",
+  "version": "2.6.1",
   "private": true,
   "type": "module",
-  "description": "Leave real-time comments on any interface and let your local AI coding assistant act on them.",
-  "license": "PolyForm-Noncommercial-1.0.0",
-  "workspaces": ["extension/core", "extension/chromium", "extension/firefox", "mcp"],
+  "description": "A UI design advisory framework for AI coding agents, with a browser extension to leave comments on the running UI.",
+  "license": "MIT",
+  "workspaces": [
+    "canon",
+    "protocol",
+    "extensions/core",
+    "extensions/chromium",
+    "extensions/firefox",
+    "mcp"
+  ],
   "engines": {
     "node": ">=20"
   },
@@ -20,19 +27,35 @@
     "package:chromium": "npm run package --workspace @northstar/chromium",
     "package:firefox": "npm run package --workspace @northstar/firefox",
     "lint:amo": "npm run lint:amo --workspace @northstar/firefox",
-    "dev": "npm run dev --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "dev": "node scripts/dev.mjs",
+    "test": "npm run test:node && npm run test:ext",
+    "typecheck": "npm run typecheck --workspaces --if-present && tsc --noEmit -p tests",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "gen": "npm run gen --workspace @pallandir/northstar",
+    "gen:check": "npm run gen:check --workspace @pallandir/northstar",
+    "check:pack": "node scripts/check-pack-size.mjs",
+    "check:versions": "node scripts/check-versions.mjs",
+    "test:node": "node --import tsx --test tests/*.test.ts",
+    "test:ext": "vitest run",
+    "knip": "knip"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@commitlint/cli": "^19.6.1",
     "@commitlint/config-conventional": "^19.6.0",
+    "@emnapi/core": "^1.11.3",
+    "@emnapi/runtime": "^1.11.3",
+    "@types/chrome": "^0.0.287",
+    "@types/node": "^22.10.5",
+    "happy-dom": "^17.6.3",
     "husky": "^9.1.7",
+    "knip": "^6.39.0",
     "lint-staged": "^15.3.0",
-    "typescript": "~5.9.3"
+    "tsx": "^4.19.2",
+    "typescript": "~5.9.3",
+    "vite": "^8.0.16",
+    "vitest": "^3.2.6"
   }
 }

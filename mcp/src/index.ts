@@ -1,59 +1,67 @@
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { Broker } from "./broker.js";
-import { startIngestServer } from "./http.js";
-import { createMcpServer } from "./server.js";
+import { getCanon } from "./assets.js";
+import { DaemonLink } from "./daemon/link.js";
+import { SURFACES, type Surface, createCommentsServer, createDesignServer } from "./server.js";
 import { CommentStore } from "./store.js";
-import { TerminalHandoff } from "./terminal/index.js";
 
-const DEFAULT_PORTS = [7474, 7475, 7476];
-
-function parsePorts(): number[] {
-  const fromEnv = process.env.NORTHSTAR_PORT;
-  if (!fromEnv) return DEFAULT_PORTS;
-  const port = Number(fromEnv);
-  return Number.isInteger(port) ? [port, ...DEFAULT_PORTS] : DEFAULT_PORTS;
+export function parseSurface(value: string | undefined): Surface {
+  if (value === undefined) return "design";
+  if ((SURFACES as readonly string[]).includes(value)) return value as Surface;
+  throw new Error(
+    `Unknown server ${value}. Use northstar serve design or northstar serve comments.`,
+  );
 }
 
-async function main(): Promise<void> {
+async function main(surface: Surface): Promise<void> {
+  if (process.env.NORTHSTAR_PACKS !== undefined) {
+    throw new Error(
+      "NORTHSTAR_PACKS was removed, every tool is always available now. Delete NORTHSTAR_PACKS from the northstar MCP server entry, or run northstar install to rewrite it.",
+    );
+  }
   const root = process.env.NORTHSTAR_ROOT ?? process.cwd();
-  const store = new CommentStore(root);
-  const broker = new Broker();
-
   const log = (msg: string) => process.stderr.write(`[northstar] ${msg}\n`);
-  const handoff = new TerminalHandoff(log);
+  process.on("unhandledRejection", (reason) => {
+    log(
+      `unhandled rejection: ${reason instanceof Error ? (reason.stack ?? reason.message) : String(reason)}`,
+    );
+  });
 
-  const ingest = await startIngestServer(store, parsePorts(), log, broker, handoff);
-  log(`ingest listening on http://127.0.0.1:${ingest.port}, store root ${root}`);
-
-  const terminal = await handoff.describe();
-  log(
-    terminal.available
-      ? `terminal handoff via ${terminal.driver}`
-      : `no handoff: ${terminal.reason}`,
-  );
-
-  const server = createMcpServer(store, broker);
-  const transport = new StdioServerTransport();
+  const link = surface === "comments" ? new DaemonLink({ root, log }) : null;
+  const server =
+    link === null
+      ? createDesignServer(getCanon(), { root })
+      : createCommentsServer(new CommentStore(root), link, getCanon(), { root });
 
   let closing = false;
-  const shutdown = async () => {
+  const shutdown = () => {
     if (closing) return;
     closing = true;
-    await ingest.close();
     process.exit(0);
   };
 
-  transport.onclose = () => void shutdown();
-  process.stdin.on("end", () => void shutdown());
-  process.stdin.on("close", () => void shutdown());
-  process.on("SIGINT", () => void shutdown());
-  process.on("SIGTERM", () => void shutdown());
-  process.on("SIGHUP", () => void shutdown());
+  const transport = new StdioServerTransport();
+  transport.onclose = shutdown;
+  process.stdin.on("end", shutdown);
+  process.stdin.on("close", shutdown);
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
+  process.on("SIGHUP", shutdown);
 
   await server.connect(transport);
+
+  if (link) {
+    const status = await link.start();
+    log(
+      status.state === "on"
+        ? `Send to AI is linked to the Northstar daemon, store root ${root}`
+        : `Send to AI is unavailable: ${status.error}. Run northstar doctor.`,
+    );
+  }
 }
 
-main().catch((err) => {
-  process.stderr.write(`[northstar] fatal: ${(err as Error).message}\n`);
-  process.exit(1);
-});
+export function serve(surface: Surface): void {
+  main(surface).catch((err) => {
+    process.stderr.write(`[northstar] fatal: ${(err as Error).message}\n`);
+    process.exit(1);
+  });
+}

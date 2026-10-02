@@ -1,0 +1,27 @@
+policies:
+  gradient-text:
+    action: drop
+    reason: The row prescribes gradient text, which the canon refuses.
+  emoji-icon:
+    action: drop
+    reason: Emoji and glyphs are not an icon system.
+  glass:
+    action: caution
+    caution: Only over imagery or maps, never as decoration.
+  ai-gradient:
+    action: caution
+    caution: Purple or indigo gradients are a default generated look, choose it only when the brief asks.
+  default-display-font:
+    action: caution
+    caution: Fine as quiet body text in operate. As a display face it is a default, confirm with the font resolver.
+  caps-labels:
+    action: caution
+    caution: Tracked uppercase labels are a default, use sparingly and mainly for dense data.
+  hard-shadow:
+    action: caution
+    caution: Hard offset shadows only fit a declared neobrutalist direction.
+  eyebrow:
+    action: caution
+    caution: Eyebrow labels are refused outside real category information.
+
+overrides: []

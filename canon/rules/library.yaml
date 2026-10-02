@@ -1,0 +1,49 @@
+- id: NS-LIB-ICON
+  title: Hand drawn icons
+  stage: [compose, polish]
+  severity: error
+  allowable: true
+  detect: static
+  rationale: Icons come from the icon library chosen in DESIGN.md. Inline path data written by hand varies in stroke, grid and quality.
+  fix: Install the library package and import the icon by name, for example lucide-react or material symbols.
+  sources: [northstar, impeccable, ui-ux-pro-max, taste-skill]
+
+- id: NS-LIB-OVERLAY
+  title: Hand rolled dialog, menu, popover, tooltip or select
+  stage: [compose]
+  severity: error
+  allowable: true
+  detect: static
+  rationale: Overlays need focus trapping, dismissal, positioning and keyboard handling that accessible primitives already solve.
+  fix: Use the resolved library primitive, or the native dialog and popover elements in plain HTML.
+  sources: [northstar, shadcn-lint]
+
+- id: NS-LIB-FONT
+  title: Manually managed font files
+  stage: [system, compose]
+  severity: warn
+  allowable: true
+  detect: static
+  rationale: Fonts should come from a package or a font service so that subsetting, display swapping and licensing are handled.
+  fix: Use Fontsource or the framework font loader, and set display swap.
+  sources: [northstar, ui-ux-pro-max]
+
+- id: NS-LIB-TOAST
+  title: Hand rolled notifications
+  stage: [compose]
+  severity: warn
+  allowable: true
+  detect: static
+  rationale: Toasts and notifications need queuing, stacking and live region announcements.
+  fix: Use the resolved notification library.
+  sources: [northstar]
+
+- id: NS-LIB-PRIMITIVE
+  title: Hand rolled primitive that the stack already provides
+  stage: [compose]
+  severity: warn
+  allowable: true
+  detect: advisory
+  rationale: Tabs, accordions, comboboxes, date pickers, tables, carousels and command palettes all have mature accessible implementations.
+  fix: Call resolve_library for the need and install what it returns.
+  sources: [northstar]

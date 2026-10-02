@@ -1,0 +1,1682 @@
+[
+  {
+    "id": "icons:list",
+    "domain": "icons",
+    "name": "list",
+    "keywords": "hamburger menu navigation toggle bars Navigation",
+    "summary": "Phosphor Navigation. Mobile navigation drawer toggle sidebar",
+    "modes": [],
+    "fields": {
+      "category": "Navigation",
+      "library": "Phosphor",
+      "importCode": "import { List } from '@phosphor-icons/react'",
+      "usage": "<List size={20} weight=regular />",
+      "bestFor": "Mobile navigation drawer toggle sidebar",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:arrow-left",
+    "domain": "icons",
+    "name": "arrow-left",
+    "keywords": "back previous return navigate Navigation",
+    "summary": "Phosphor Navigation. Back button breadcrumb navigation",
+    "modes": [],
+    "fields": {
+      "category": "Navigation",
+      "library": "Phosphor",
+      "importCode": "import { ArrowLeft } from '@phosphor-icons/react'",
+      "usage": "<ArrowLeft size={20} weight=regular />",
+      "bestFor": "Back button breadcrumb navigation",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:arrow-right",
+    "domain": "icons",
+    "name": "arrow-right",
+    "keywords": "next forward continue navigate Navigation",
+    "summary": "Phosphor Navigation. Forward button next step CTA",
+    "modes": [],
+    "fields": {
+      "category": "Navigation",
+      "library": "Phosphor",
+      "importCode": "import { ArrowRight } from '@phosphor-icons/react'",
+      "usage": "<ArrowRight size={20} weight=regular />",
+      "bestFor": "Forward button next step CTA",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:caret-down",
+    "domain": "icons",
+    "name": "caret-down",
+    "keywords": "dropdown expand accordion select Navigation",
+    "summary": "Phosphor Navigation. Dropdown toggle accordion header",
+    "modes": [],
+    "fields": {
+      "category": "Navigation",
+      "library": "Phosphor",
+      "importCode": "import { CaretDown } from '@phosphor-icons/react'",
+      "usage": "<CaretDown size={20} weight=regular />",
+      "bestFor": "Dropdown toggle accordion header",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:caret-up",
+    "domain": "icons",
+    "name": "caret-up",
+    "keywords": "collapse close accordion minimize Navigation",
+    "summary": "Phosphor Navigation. Accordion collapse minimize",
+    "modes": [],
+    "fields": {
+      "category": "Navigation",
+      "library": "Phosphor",
+      "importCode": "import { CaretUp } from '@phosphor-icons/react'",
+      "usage": "<CaretUp size={20} weight=regular />",
+      "bestFor": "Accordion collapse minimize",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:house",
+    "domain": "icons",
+    "name": "house",
+    "keywords": "homepage main dashboard start Navigation",
+    "summary": "Phosphor Navigation. Home navigation main page",
+    "modes": [],
+    "fields": {
+      "category": "Navigation",
+      "library": "Phosphor",
+      "importCode": "import { House } from '@phosphor-icons/react'",
+      "usage": "<House size={20} weight=regular />",
+      "bestFor": "Home navigation main page",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:x",
+    "domain": "icons",
+    "name": "x",
+    "keywords": "close cancel dismiss remove exit Navigation",
+    "summary": "Phosphor Navigation. Modal close dismiss button",
+    "modes": [],
+    "fields": {
+      "category": "Navigation",
+      "library": "Phosphor",
+      "importCode": "import { X } from '@phosphor-icons/react'",
+      "usage": "<X size={20} weight=regular />",
+      "bestFor": "Modal close dismiss button",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:arrow-square-out",
+    "domain": "icons",
+    "name": "arrow-square-out",
+    "keywords": "open new tab external link Navigation",
+    "summary": "Phosphor Navigation. External link indicator",
+    "modes": [],
+    "fields": {
+      "category": "Navigation",
+      "library": "Phosphor",
+      "importCode": "import { ArrowSquareOut } from '@phosphor-icons/react'",
+      "usage": "<ArrowSquareOut size={20} weight=regular />",
+      "bestFor": "External link indicator",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:plus",
+    "domain": "icons",
+    "name": "plus",
+    "keywords": "add create new insert Action",
+    "summary": "Phosphor Action. Add button create new item",
+    "modes": [],
+    "fields": {
+      "category": "Action",
+      "library": "Phosphor",
+      "importCode": "import { Plus } from '@phosphor-icons/react'",
+      "usage": "<Plus size={20} weight=regular />",
+      "bestFor": "Add button create new item",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:minus",
+    "domain": "icons",
+    "name": "minus",
+    "keywords": "remove subtract decrease delete Action",
+    "summary": "Phosphor Action. Remove item quantity decrease",
+    "modes": [],
+    "fields": {
+      "category": "Action",
+      "library": "Phosphor",
+      "importCode": "import { Minus } from '@phosphor-icons/react'",
+      "usage": "<Minus size={20} weight=regular />",
+      "bestFor": "Remove item quantity decrease",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:trash",
+    "domain": "icons",
+    "name": "trash",
+    "keywords": "delete remove discard bin Action",
+    "summary": "Phosphor Action. Delete action destructive",
+    "modes": [],
+    "fields": {
+      "category": "Action",
+      "library": "Phosphor",
+      "importCode": "import { Trash } from '@phosphor-icons/react'",
+      "usage": "<Trash size={20} weight=regular />",
+      "bestFor": "Delete action destructive",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:pencil-simple",
+    "domain": "icons",
+    "name": "pencil-simple",
+    "keywords": "pencil modify change update Action",
+    "summary": "Phosphor Action. Edit button modify content",
+    "modes": [],
+    "fields": {
+      "category": "Action",
+      "library": "Phosphor",
+      "importCode": "import { PencilSimple } from '@phosphor-icons/react'",
+      "usage": "<PencilSimple size={20} weight=regular />",
+      "bestFor": "Edit button modify content",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:floppy-disk",
+    "domain": "icons",
+    "name": "floppy-disk",
+    "keywords": "disk store persist save Action",
+    "summary": "Phosphor Action. Save button persist changes",
+    "modes": [],
+    "fields": {
+      "category": "Action",
+      "library": "Phosphor",
+      "importCode": "import { FloppyDisk } from '@phosphor-icons/react'",
+      "usage": "<FloppyDisk size={20} weight=regular />",
+      "bestFor": "Save button persist changes",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:download-simple",
+    "domain": "icons",
+    "name": "download-simple",
+    "keywords": "export save file download Action",
+    "summary": "Phosphor Action. Download file export",
+    "modes": [],
+    "fields": {
+      "category": "Action",
+      "library": "Phosphor",
+      "importCode": "import { DownloadSimple } from '@phosphor-icons/react'",
+      "usage": "<DownloadSimple size={20} weight=regular />",
+      "bestFor": "Download file export",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:upload-simple",
+    "domain": "icons",
+    "name": "upload-simple",
+    "keywords": "import file attach upload Action",
+    "summary": "Phosphor Action. Upload file import",
+    "modes": [],
+    "fields": {
+      "category": "Action",
+      "library": "Phosphor",
+      "importCode": "import { UploadSimple } from '@phosphor-icons/react'",
+      "usage": "<UploadSimple size={20} weight=regular />",
+      "bestFor": "Upload file import",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:copy",
+    "domain": "icons",
+    "name": "copy",
+    "keywords": "duplicate clipboard paste Action",
+    "summary": "Phosphor Action. Copy to clipboard",
+    "modes": [],
+    "fields": {
+      "category": "Action",
+      "library": "Phosphor",
+      "importCode": "import { Copy } from '@phosphor-icons/react'",
+      "usage": "<Copy size={20} weight=regular />",
+      "bestFor": "Copy to clipboard",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:share",
+    "domain": "icons",
+    "name": "share",
+    "keywords": "social distribute send Action",
+    "summary": "Phosphor Action. Share button social",
+    "modes": [],
+    "fields": {
+      "category": "Action",
+      "library": "Phosphor",
+      "importCode": "import { Share } from '@phosphor-icons/react'",
+      "usage": "<Share size={20} weight=regular />",
+      "bestFor": "Share button social",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:magnifying-glass",
+    "domain": "icons",
+    "name": "magnifying-glass",
+    "keywords": "find lookup filter query Action",
+    "summary": "Phosphor Action. Search input bar",
+    "modes": [],
+    "fields": {
+      "category": "Action",
+      "library": "Phosphor",
+      "importCode": "import { MagnifyingGlass } from '@phosphor-icons/react'",
+      "usage": "<MagnifyingGlass size={20} weight=regular />",
+      "bestFor": "Search input bar",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:funnel",
+    "domain": "icons",
+    "name": "funnel",
+    "keywords": "sort refine narrow options Action",
+    "summary": "Phosphor Action. Filter dropdown sort",
+    "modes": [],
+    "fields": {
+      "category": "Action",
+      "library": "Phosphor",
+      "importCode": "import { Funnel } from '@phosphor-icons/react'",
+      "usage": "<Funnel size={20} weight=regular />",
+      "bestFor": "Filter dropdown sort",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:gear",
+    "domain": "icons",
+    "name": "gear",
+    "keywords": "gear cog preferences config Action",
+    "summary": "Phosphor Action. Settings page configuration",
+    "modes": [],
+    "fields": {
+      "category": "Action",
+      "library": "Phosphor",
+      "importCode": "import { Gear } from '@phosphor-icons/react'",
+      "usage": "<Gear size={20} weight=regular />",
+      "bestFor": "Settings page configuration",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:check",
+    "domain": "icons",
+    "name": "check",
+    "keywords": "success done complete verified Status",
+    "summary": "Phosphor Status. Success state checkmark",
+    "modes": [],
+    "fields": {
+      "category": "Status",
+      "library": "Phosphor",
+      "importCode": "import { Check } from '@phosphor-icons/react'",
+      "usage": "<Check size={20} weight=regular />",
+      "bestFor": "Success state checkmark",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:check-circle",
+    "domain": "icons",
+    "name": "check-circle",
+    "keywords": "success verified approved complete Status",
+    "summary": "Phosphor Status. Success badge verified",
+    "modes": [],
+    "fields": {
+      "category": "Status",
+      "library": "Phosphor",
+      "importCode": "import { CheckCircle } from '@phosphor-icons/react'",
+      "usage": "<CheckCircle size={20} weight=regular />",
+      "bestFor": "Success badge verified",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:x-circle",
+    "domain": "icons",
+    "name": "x-circle",
+    "keywords": "error failed cancel rejected Status",
+    "summary": "Phosphor Status. Error state failed",
+    "modes": [],
+    "fields": {
+      "category": "Status",
+      "library": "Phosphor",
+      "importCode": "import { XCircle } from '@phosphor-icons/react'",
+      "usage": "<XCircle size={20} weight=regular />",
+      "bestFor": "Error state failed",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:warning",
+    "domain": "icons",
+    "name": "warning",
+    "keywords": "warning caution attention danger Status",
+    "summary": "Phosphor Status. Warning message caution",
+    "modes": [],
+    "fields": {
+      "category": "Status",
+      "library": "Phosphor",
+      "importCode": "import { Warning } from '@phosphor-icons/react'",
+      "usage": "<Warning size={20} weight=regular />",
+      "bestFor": "Warning message caution",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:warning-circle",
+    "domain": "icons",
+    "name": "warning-circle",
+    "keywords": "info notice information help Status",
+    "summary": "Phosphor Status. Info notice alert",
+    "modes": [],
+    "fields": {
+      "category": "Status",
+      "library": "Phosphor",
+      "importCode": "import { WarningCircle } from '@phosphor-icons/react'",
+      "usage": "<WarningCircle size={20} weight=regular />",
+      "bestFor": "Info notice alert",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:info",
+    "domain": "icons",
+    "name": "info",
+    "keywords": "information help tooltip details Status",
+    "summary": "Phosphor Status. Information tooltip help",
+    "modes": [],
+    "fields": {
+      "category": "Status",
+      "library": "Phosphor",
+      "importCode": "import { Info } from '@phosphor-icons/react'",
+      "usage": "<Info size={20} weight=regular />",
+      "bestFor": "Information tooltip help",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:circle-notch",
+    "domain": "icons",
+    "name": "circle-notch",
+    "keywords": "loading spinner processing wait Status",
+    "summary": "Phosphor Status. Loading state spinner",
+    "modes": [],
+    "fields": {
+      "category": "Status",
+      "library": "Phosphor",
+      "importCode": "import { CircleNotch } from '@phosphor-icons/react'",
+      "usage": "<CircleNotch size={20} weight=regular className=animate-spin />",
+      "bestFor": "Loading state spinner",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:clock",
+    "domain": "icons",
+    "name": "clock",
+    "keywords": "time schedule pending wait Status",
+    "summary": "Phosphor Status. Pending time schedule",
+    "modes": [],
+    "fields": {
+      "category": "Status",
+      "library": "Phosphor",
+      "importCode": "import { Clock } from '@phosphor-icons/react'",
+      "usage": "<Clock size={20} weight=regular />",
+      "bestFor": "Pending time schedule",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:envelope",
+    "domain": "icons",
+    "name": "envelope",
+    "keywords": "email message inbox letter Communication",
+    "summary": "Phosphor Communication. Email contact inbox",
+    "modes": [],
+    "fields": {
+      "category": "Communication",
+      "library": "Phosphor",
+      "importCode": "import { Envelope } from '@phosphor-icons/react'",
+      "usage": "<Envelope size={20} weight=regular />",
+      "bestFor": "Email contact inbox",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:chat-circle",
+    "domain": "icons",
+    "name": "chat-circle",
+    "keywords": "chat comment bubble conversation Communication",
+    "summary": "Phosphor Communication. Chat comment message",
+    "modes": [],
+    "fields": {
+      "category": "Communication",
+      "library": "Phosphor",
+      "importCode": "import { ChatCircle } from '@phosphor-icons/react'",
+      "usage": "<ChatCircle size={20} weight=regular />",
+      "bestFor": "Chat comment message",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:phone",
+    "domain": "icons",
+    "name": "phone",
+    "keywords": "call mobile telephone contact Communication",
+    "summary": "Phosphor Communication. Phone contact call",
+    "modes": [],
+    "fields": {
+      "category": "Communication",
+      "library": "Phosphor",
+      "importCode": "import { Phone } from '@phosphor-icons/react'",
+      "usage": "<Phone size={20} weight=regular />",
+      "bestFor": "Phone contact call",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:paper-plane-tilt",
+    "domain": "icons",
+    "name": "paper-plane-tilt",
+    "keywords": "submit dispatch message airplane Communication",
+    "summary": "Phosphor Communication. Send message submit",
+    "modes": [],
+    "fields": {
+      "category": "Communication",
+      "library": "Phosphor",
+      "importCode": "import { PaperPlaneTilt } from '@phosphor-icons/react'",
+      "usage": "<PaperPlaneTilt size={20} weight=regular />",
+      "bestFor": "Send message submit",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:bell",
+    "domain": "icons",
+    "name": "bell",
+    "keywords": "notification alert ring reminder Communication",
+    "summary": "Phosphor Communication. Notification bell alert",
+    "modes": [],
+    "fields": {
+      "category": "Communication",
+      "library": "Phosphor",
+      "importCode": "import { Bell } from '@phosphor-icons/react'",
+      "usage": "<Bell size={20} weight=regular />",
+      "bestFor": "Notification bell alert",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:user",
+    "domain": "icons",
+    "name": "user",
+    "keywords": "profile account person avatar User",
+    "summary": "Phosphor User. User profile account",
+    "modes": [],
+    "fields": {
+      "category": "User",
+      "library": "Phosphor",
+      "importCode": "import { User } from '@phosphor-icons/react'",
+      "usage": "<User size={20} weight=regular />",
+      "bestFor": "User profile account",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:users",
+    "domain": "icons",
+    "name": "users",
+    "keywords": "team group people members User",
+    "summary": "Phosphor User. Team group members",
+    "modes": [],
+    "fields": {
+      "category": "User",
+      "library": "Phosphor",
+      "importCode": "import { Users } from '@phosphor-icons/react'",
+      "usage": "<Users size={20} weight=regular />",
+      "bestFor": "Team group members",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:user-plus",
+    "domain": "icons",
+    "name": "user-plus",
+    "keywords": "add invite new member User",
+    "summary": "Phosphor User. Add user invite",
+    "modes": [],
+    "fields": {
+      "category": "User",
+      "library": "Phosphor",
+      "importCode": "import { UserPlus } from '@phosphor-icons/react'",
+      "usage": "<UserPlus size={20} weight=regular />",
+      "bestFor": "Add user invite",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:sign-in",
+    "domain": "icons",
+    "name": "sign-in",
+    "keywords": "signin authenticate enter User",
+    "summary": "Phosphor User. Login signin",
+    "modes": [],
+    "fields": {
+      "category": "User",
+      "library": "Phosphor",
+      "importCode": "import { SignIn } from '@phosphor-icons/react'",
+      "usage": "<SignIn size={20} weight=regular />",
+      "bestFor": "Login signin",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:sign-out",
+    "domain": "icons",
+    "name": "sign-out",
+    "keywords": "signout exit leave logout User",
+    "summary": "Phosphor User. Logout signout",
+    "modes": [],
+    "fields": {
+      "category": "User",
+      "library": "Phosphor",
+      "importCode": "import { SignOut } from '@phosphor-icons/react'",
+      "usage": "<SignOut size={20} weight=regular />",
+      "bestFor": "Logout signout",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:image",
+    "domain": "icons",
+    "name": "image",
+    "keywords": "photo picture gallery thumbnail Media",
+    "summary": "Phosphor Media. Image photo gallery",
+    "modes": ["experience"],
+    "fields": {
+      "category": "Media",
+      "library": "Phosphor",
+      "importCode": "import { Image } from '@phosphor-icons/react'",
+      "usage": "<Image size={20} weight=regular />",
+      "bestFor": "Image photo gallery",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:video",
+    "domain": "icons",
+    "name": "video",
+    "keywords": "movie film play record Media",
+    "summary": "Phosphor Media. Video player media",
+    "modes": [],
+    "fields": {
+      "category": "Media",
+      "library": "Phosphor",
+      "importCode": "import { Video } from '@phosphor-icons/react'",
+      "usage": "<Video size={20} weight=regular />",
+      "bestFor": "Video player media",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:play",
+    "domain": "icons",
+    "name": "play",
+    "keywords": "start video audio media Media",
+    "summary": "Phosphor Media. Play button video audio",
+    "modes": [],
+    "fields": {
+      "category": "Media",
+      "library": "Phosphor",
+      "importCode": "import { Play } from '@phosphor-icons/react'",
+      "usage": "<Play size={20} weight=regular />",
+      "bestFor": "Play button video audio",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:pause",
+    "domain": "icons",
+    "name": "pause",
+    "keywords": "stop halt video audio Media",
+    "summary": "Phosphor Media. Pause button media",
+    "modes": [],
+    "fields": {
+      "category": "Media",
+      "library": "Phosphor",
+      "importCode": "import { Pause } from '@phosphor-icons/react'",
+      "usage": "<Pause size={20} weight=regular />",
+      "bestFor": "Pause button media",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:speaker-high",
+    "domain": "icons",
+    "name": "speaker-high",
+    "keywords": "sound audio speaker music Media",
+    "summary": "Phosphor Media. Volume audio sound",
+    "modes": [],
+    "fields": {
+      "category": "Media",
+      "library": "Phosphor",
+      "importCode": "import { SpeakerHigh } from '@phosphor-icons/react'",
+      "usage": "<SpeakerHigh size={20} weight=regular />",
+      "bestFor": "Volume audio sound",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:microphone",
+    "domain": "icons",
+    "name": "microphone",
+    "keywords": "microphone record voice audio Media",
+    "summary": "Phosphor Media. Microphone voice record",
+    "modes": [],
+    "fields": {
+      "category": "Media",
+      "library": "Phosphor",
+      "importCode": "import { Microphone } from '@phosphor-icons/react'",
+      "usage": "<Microphone size={20} weight=regular />",
+      "bestFor": "Microphone voice record",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:camera",
+    "domain": "icons",
+    "name": "camera",
+    "keywords": "photo capture snapshot picture Media",
+    "summary": "Phosphor Media. Camera photo capture",
+    "modes": [],
+    "fields": {
+      "category": "Media",
+      "library": "Phosphor",
+      "importCode": "import { Camera } from '@phosphor-icons/react'",
+      "usage": "<Camera size={20} weight=regular />",
+      "bestFor": "Camera photo capture",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:shopping-cart",
+    "domain": "icons",
+    "name": "shopping-cart",
+    "keywords": "cart checkout basket buy Commerce",
+    "summary": "Phosphor Commerce. Shopping cart e-commerce",
+    "modes": ["persuade", "experience"],
+    "fields": {
+      "category": "Commerce",
+      "library": "Phosphor",
+      "importCode": "import { ShoppingCart } from '@phosphor-icons/react'",
+      "usage": "<ShoppingCart size={20} weight=regular />",
+      "bestFor": "Shopping cart e-commerce",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:shopping-bag",
+    "domain": "icons",
+    "name": "shopping-bag",
+    "keywords": "purchase buy store bag Commerce",
+    "summary": "Phosphor Commerce. Shopping bag purchase",
+    "modes": [],
+    "fields": {
+      "category": "Commerce",
+      "library": "Phosphor",
+      "importCode": "import { ShoppingBag } from '@phosphor-icons/react'",
+      "usage": "<ShoppingBag size={20} weight=regular />",
+      "bestFor": "Shopping bag purchase",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:credit-card",
+    "domain": "icons",
+    "name": "credit-card",
+    "keywords": "payment card checkout stripe Commerce",
+    "summary": "Phosphor Commerce. Payment credit card",
+    "modes": [],
+    "fields": {
+      "category": "Commerce",
+      "library": "Phosphor",
+      "importCode": "import { CreditCard } from '@phosphor-icons/react'",
+      "usage": "<CreditCard size={20} weight=regular />",
+      "bestFor": "Payment credit card",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:currency-dollar",
+    "domain": "icons",
+    "name": "currency-dollar",
+    "keywords": "money price currency cost Commerce",
+    "summary": "Phosphor Commerce. Price money currency",
+    "modes": [],
+    "fields": {
+      "category": "Commerce",
+      "library": "Phosphor",
+      "importCode": "import { CurrencyDollar } from '@phosphor-icons/react'",
+      "usage": "<CurrencyDollar size={20} weight=regular />",
+      "bestFor": "Price money currency",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:tag",
+    "domain": "icons",
+    "name": "tag",
+    "keywords": "label price discount sale Commerce",
+    "summary": "Phosphor Commerce. Price tag label",
+    "modes": [],
+    "fields": {
+      "category": "Commerce",
+      "library": "Phosphor",
+      "importCode": "import { Tag } from '@phosphor-icons/react'",
+      "usage": "<Tag size={20} weight=regular />",
+      "bestFor": "Price tag label",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:gift",
+    "domain": "icons",
+    "name": "gift",
+    "keywords": "present reward bonus offer Commerce",
+    "summary": "Phosphor Commerce. Gift reward offer",
+    "modes": [],
+    "fields": {
+      "category": "Commerce",
+      "library": "Phosphor",
+      "importCode": "import { Gift } from '@phosphor-icons/react'",
+      "usage": "<Gift size={20} weight=regular />",
+      "bestFor": "Gift reward offer",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:percent",
+    "domain": "icons",
+    "name": "percent",
+    "keywords": "discount sale offer promo Commerce",
+    "summary": "Phosphor Commerce. Discount percentage sale",
+    "modes": [],
+    "fields": {
+      "category": "Commerce",
+      "library": "Phosphor",
+      "importCode": "import { Percent } from '@phosphor-icons/react'",
+      "usage": "<Percent size={20} weight=regular />",
+      "bestFor": "Discount percentage sale",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:chart-bar",
+    "domain": "icons",
+    "name": "chart-bar",
+    "keywords": "analytics statistics graph metrics Data",
+    "summary": "Phosphor Data. Bar chart analytics",
+    "modes": ["operate", "experience"],
+    "fields": {
+      "category": "Data",
+      "library": "Phosphor",
+      "importCode": "import { ChartBar } from '@phosphor-icons/react'",
+      "usage": "<ChartBar size={20} weight=regular />",
+      "bestFor": "Bar chart analytics",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:chart-pie",
+    "domain": "icons",
+    "name": "chart-pie",
+    "keywords": "statistics distribution breakdown Data",
+    "summary": "Phosphor Data. Pie chart distribution",
+    "modes": ["operate", "experience"],
+    "fields": {
+      "category": "Data",
+      "library": "Phosphor",
+      "importCode": "import { ChartPie } from '@phosphor-icons/react'",
+      "usage": "<ChartPie size={20} weight=regular />",
+      "bestFor": "Pie chart distribution",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:trend-up",
+    "domain": "icons",
+    "name": "trend-up",
+    "keywords": "growth increase positive trend Data",
+    "summary": "Phosphor Data. Growth trend positive",
+    "modes": ["operate"],
+    "fields": {
+      "category": "Data",
+      "library": "Phosphor",
+      "importCode": "import { TrendUp } from '@phosphor-icons/react'",
+      "usage": "<TrendUp size={20} weight=regular />",
+      "bestFor": "Growth trend positive",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:trend-down",
+    "domain": "icons",
+    "name": "trend-down",
+    "keywords": "decline decrease negative trend Data",
+    "summary": "Phosphor Data. Decline trend negative",
+    "modes": ["operate"],
+    "fields": {
+      "category": "Data",
+      "library": "Phosphor",
+      "importCode": "import { TrendDown } from '@phosphor-icons/react'",
+      "usage": "<TrendDown size={20} weight=regular />",
+      "bestFor": "Decline trend negative",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:activity",
+    "domain": "icons",
+    "name": "activity",
+    "keywords": "pulse heartbeat monitor live Data",
+    "summary": "Phosphor Data. Activity monitor pulse",
+    "modes": ["operate"],
+    "fields": {
+      "category": "Data",
+      "library": "Phosphor",
+      "importCode": "import { Activity } from '@phosphor-icons/react'",
+      "usage": "<Activity size={20} weight=regular />",
+      "bestFor": "Activity monitor pulse",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:database",
+    "domain": "icons",
+    "name": "database",
+    "keywords": "storage server data backend Data",
+    "summary": "Phosphor Data. Database storage",
+    "modes": ["operate"],
+    "fields": {
+      "category": "Data",
+      "library": "Phosphor",
+      "importCode": "import { Database } from '@phosphor-icons/react'",
+      "usage": "<Database size={20} weight=regular />",
+      "bestFor": "Database storage",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:file",
+    "domain": "icons",
+    "name": "file",
+    "keywords": "document page paper doc Files",
+    "summary": "Phosphor Files. File document",
+    "modes": [],
+    "fields": {
+      "category": "Files",
+      "library": "Phosphor",
+      "importCode": "import { File } from '@phosphor-icons/react'",
+      "usage": "<File size={20} weight=regular />",
+      "bestFor": "File document",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:file-text",
+    "domain": "icons",
+    "name": "file-text",
+    "keywords": "document text page article Files",
+    "summary": "Phosphor Files. Text document article",
+    "modes": ["read"],
+    "fields": {
+      "category": "Files",
+      "library": "Phosphor",
+      "importCode": "import { FileText } from '@phosphor-icons/react'",
+      "usage": "<FileText size={20} weight=regular />",
+      "bestFor": "Text document article",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:folder",
+    "domain": "icons",
+    "name": "folder",
+    "keywords": "directory organize group files Files",
+    "summary": "Phosphor Files. Folder directory",
+    "modes": [],
+    "fields": {
+      "category": "Files",
+      "library": "Phosphor",
+      "importCode": "import { Folder } from '@phosphor-icons/react'",
+      "usage": "<Folder size={20} weight=regular />",
+      "bestFor": "Folder directory",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:folder-open",
+    "domain": "icons",
+    "name": "folder-open",
+    "keywords": "expanded browse files view Files",
+    "summary": "Phosphor Files. Open folder browse",
+    "modes": [],
+    "fields": {
+      "category": "Files",
+      "library": "Phosphor",
+      "importCode": "import { FolderOpen } from '@phosphor-icons/react'",
+      "usage": "<FolderOpen size={20} weight=regular />",
+      "bestFor": "Open folder browse",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:paperclip",
+    "domain": "icons",
+    "name": "paperclip",
+    "keywords": "attachment attach file link Files",
+    "summary": "Phosphor Files. Attachment paperclip",
+    "modes": [],
+    "fields": {
+      "category": "Files",
+      "library": "Phosphor",
+      "importCode": "import { Paperclip } from '@phosphor-icons/react'",
+      "usage": "<Paperclip size={20} weight=regular />",
+      "bestFor": "Attachment paperclip",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:link",
+    "domain": "icons",
+    "name": "link",
+    "keywords": "url hyperlink chain connect Files",
+    "summary": "Phosphor Files. Link URL hyperlink",
+    "modes": [],
+    "fields": {
+      "category": "Files",
+      "library": "Phosphor",
+      "importCode": "import { Link } from '@phosphor-icons/react'",
+      "usage": "<Link size={20} weight=regular />",
+      "bestFor": "Link URL hyperlink",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:clipboard",
+    "domain": "icons",
+    "name": "clipboard",
+    "keywords": "paste copy buffer notes Files",
+    "summary": "Phosphor Files. Clipboard paste",
+    "modes": [],
+    "fields": {
+      "category": "Files",
+      "library": "Phosphor",
+      "importCode": "import { Clipboard } from '@phosphor-icons/react'",
+      "usage": "<Clipboard size={20} weight=regular />",
+      "bestFor": "Clipboard paste",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:grid-four",
+    "domain": "icons",
+    "name": "grid-four",
+    "keywords": "tiles gallery layout dashboard Layout",
+    "summary": "Phosphor Layout. Grid layout gallery",
+    "modes": ["experience"],
+    "fields": {
+      "category": "Layout",
+      "library": "Phosphor",
+      "importCode": "import { GridFour } from '@phosphor-icons/react'",
+      "usage": "<GridFour size={20} weight=regular />",
+      "bestFor": "Grid layout gallery",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:list-bullets",
+    "domain": "icons",
+    "name": "list-bullets",
+    "keywords": "rows table lines items Layout",
+    "summary": "Phosphor Layout. List view rows",
+    "modes": [],
+    "fields": {
+      "category": "Layout",
+      "library": "Phosphor",
+      "importCode": "import { ListBullets } from '@phosphor-icons/react'",
+      "usage": "<ListBullets size={20} weight=regular />",
+      "bestFor": "List view rows",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:columns",
+    "domain": "icons",
+    "name": "columns",
+    "keywords": "layout split dual sidebar Layout",
+    "summary": "Phosphor Layout. Column layout split",
+    "modes": [],
+    "fields": {
+      "category": "Layout",
+      "library": "Phosphor",
+      "importCode": "import { Columns } from '@phosphor-icons/react'",
+      "usage": "<Columns size={20} weight=regular />",
+      "bestFor": "Column layout split",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:arrows-out",
+    "domain": "icons",
+    "name": "arrows-out",
+    "keywords": "fullscreen expand enlarge zoom Layout",
+    "summary": "Phosphor Layout. Fullscreen maximize",
+    "modes": [],
+    "fields": {
+      "category": "Layout",
+      "library": "Phosphor",
+      "importCode": "import { ArrowsOut } from '@phosphor-icons/react'",
+      "usage": "<ArrowsOut size={20} weight=regular />",
+      "bestFor": "Fullscreen maximize",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:arrows-in",
+    "domain": "icons",
+    "name": "arrows-in",
+    "keywords": "reduce shrink collapse exit Layout",
+    "summary": "Phosphor Layout. Minimize reduce",
+    "modes": [],
+    "fields": {
+      "category": "Layout",
+      "library": "Phosphor",
+      "importCode": "import { ArrowsIn } from '@phosphor-icons/react'",
+      "usage": "<ArrowsIn size={20} weight=regular />",
+      "bestFor": "Minimize reduce",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:sidebar",
+    "domain": "icons",
+    "name": "sidebar",
+    "keywords": "panel drawer navigation menu Layout",
+    "summary": "Phosphor Layout. Sidebar panel",
+    "modes": [],
+    "fields": {
+      "category": "Layout",
+      "library": "Phosphor",
+      "importCode": "import { Sidebar } from '@phosphor-icons/react'",
+      "usage": "<Sidebar size={20} weight=regular />",
+      "bestFor": "Sidebar panel",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:heart",
+    "domain": "icons",
+    "name": "heart",
+    "keywords": "like love favorite wishlist Social",
+    "summary": "Phosphor Social. Like favorite love",
+    "modes": ["experience"],
+    "fields": {
+      "category": "Social",
+      "library": "Phosphor",
+      "importCode": "import { Heart } from '@phosphor-icons/react'",
+      "usage": "<Heart size={20} weight=regular />",
+      "bestFor": "Like favorite love",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:star",
+    "domain": "icons",
+    "name": "star",
+    "keywords": "rating review favorite bookmark Social",
+    "summary": "Phosphor Social. Star rating favorite",
+    "modes": [],
+    "fields": {
+      "category": "Social",
+      "library": "Phosphor",
+      "importCode": "import { Star } from '@phosphor-icons/react'",
+      "usage": "<Star size={20} weight=regular />",
+      "bestFor": "Star rating favorite",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:thumbs-up",
+    "domain": "icons",
+    "name": "thumbs-up",
+    "keywords": "like approve agree positive Social",
+    "summary": "Phosphor Social. Like approve thumb",
+    "modes": [],
+    "fields": {
+      "category": "Social",
+      "library": "Phosphor",
+      "importCode": "import { ThumbsUp } from '@phosphor-icons/react'",
+      "usage": "<ThumbsUp size={20} weight=regular />",
+      "bestFor": "Like approve thumb",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:thumbs-down",
+    "domain": "icons",
+    "name": "thumbs-down",
+    "keywords": "dislike disapprove disagree negative Social",
+    "summary": "Phosphor Social. Dislike disapprove",
+    "modes": [],
+    "fields": {
+      "category": "Social",
+      "library": "Phosphor",
+      "importCode": "import { ThumbsDown } from '@phosphor-icons/react'",
+      "usage": "<ThumbsDown size={20} weight=regular />",
+      "bestFor": "Dislike disapprove",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:bookmark",
+    "domain": "icons",
+    "name": "bookmark",
+    "keywords": "save later favorite mark Social",
+    "summary": "Phosphor Social. Bookmark save",
+    "modes": [],
+    "fields": {
+      "category": "Social",
+      "library": "Phosphor",
+      "importCode": "import { Bookmark } from '@phosphor-icons/react'",
+      "usage": "<Bookmark size={20} weight=regular />",
+      "bestFor": "Bookmark save",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:flag",
+    "domain": "icons",
+    "name": "flag",
+    "keywords": "report mark important highlight Social",
+    "summary": "Phosphor Social. Flag report",
+    "modes": [],
+    "fields": {
+      "category": "Social",
+      "library": "Phosphor",
+      "importCode": "import { Flag } from '@phosphor-icons/react'",
+      "usage": "<Flag size={20} weight=regular />",
+      "bestFor": "Flag report",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:device-mobile",
+    "domain": "icons",
+    "name": "device-mobile",
+    "keywords": "mobile phone device touch Device",
+    "summary": "Phosphor Device. Mobile smartphone",
+    "modes": [],
+    "fields": {
+      "category": "Device",
+      "library": "Phosphor",
+      "importCode": "import { DeviceMobile } from '@phosphor-icons/react'",
+      "usage": "<DeviceMobile size={20} weight=regular />",
+      "bestFor": "Mobile smartphone",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:device-tablet",
+    "domain": "icons",
+    "name": "device-tablet",
+    "keywords": "ipad device touch screen Device",
+    "summary": "Phosphor Device. Tablet device",
+    "modes": [],
+    "fields": {
+      "category": "Device",
+      "library": "Phosphor",
+      "importCode": "import { DeviceTablet } from '@phosphor-icons/react'",
+      "usage": "<DeviceTablet size={20} weight=regular />",
+      "bestFor": "Tablet device",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:monitor",
+    "domain": "icons",
+    "name": "monitor",
+    "keywords": "desktop screen computer display Device",
+    "summary": "Phosphor Device. Desktop monitor",
+    "modes": [],
+    "fields": {
+      "category": "Device",
+      "library": "Phosphor",
+      "importCode": "import { Monitor } from '@phosphor-icons/react'",
+      "usage": "<Monitor size={20} weight=regular />",
+      "bestFor": "Desktop monitor",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:laptop",
+    "domain": "icons",
+    "name": "laptop",
+    "keywords": "notebook computer portable device Device",
+    "summary": "Phosphor Device. Laptop computer",
+    "modes": [],
+    "fields": {
+      "category": "Device",
+      "library": "Phosphor",
+      "importCode": "import { Laptop } from '@phosphor-icons/react'",
+      "usage": "<Laptop size={20} weight=regular />",
+      "bestFor": "Laptop computer",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:printer",
+    "domain": "icons",
+    "name": "printer",
+    "keywords": "print document output paper Device",
+    "summary": "Phosphor Device. Printer print",
+    "modes": [],
+    "fields": {
+      "category": "Device",
+      "library": "Phosphor",
+      "importCode": "import { Printer } from '@phosphor-icons/react'",
+      "usage": "<Printer size={20} weight=regular />",
+      "bestFor": "Printer print",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:lock",
+    "domain": "icons",
+    "name": "lock",
+    "keywords": "secure password protected private Security",
+    "summary": "Phosphor Security. Lock secure",
+    "modes": [],
+    "fields": {
+      "category": "Security",
+      "library": "Phosphor",
+      "importCode": "import { Lock } from '@phosphor-icons/react'",
+      "usage": "<Lock size={20} weight=regular />",
+      "bestFor": "Lock secure",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:lock-open",
+    "domain": "icons",
+    "name": "lock-open",
+    "keywords": "open access unsecure public Security",
+    "summary": "Phosphor Security. Unlock open",
+    "modes": [],
+    "fields": {
+      "category": "Security",
+      "library": "Phosphor",
+      "importCode": "import { LockOpen } from '@phosphor-icons/react'",
+      "usage": "<LockOpen size={20} weight=regular />",
+      "bestFor": "Unlock open",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:shield",
+    "domain": "icons",
+    "name": "shield",
+    "keywords": "protection security safe guard Security",
+    "summary": "Phosphor Security. Shield protection",
+    "modes": [],
+    "fields": {
+      "category": "Security",
+      "library": "Phosphor",
+      "importCode": "import { Shield } from '@phosphor-icons/react'",
+      "usage": "<Shield size={20} weight=regular />",
+      "bestFor": "Shield protection",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:key",
+    "domain": "icons",
+    "name": "key",
+    "keywords": "password access unlock login Security",
+    "summary": "Phosphor Security. Key password",
+    "modes": [],
+    "fields": {
+      "category": "Security",
+      "library": "Phosphor",
+      "importCode": "import { Key } from '@phosphor-icons/react'",
+      "usage": "<Key size={20} weight=regular />",
+      "bestFor": "Key password",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:eye",
+    "domain": "icons",
+    "name": "eye",
+    "keywords": "view show visible password Security",
+    "summary": "Phosphor Security. Show password view",
+    "modes": [],
+    "fields": {
+      "category": "Security",
+      "library": "Phosphor",
+      "importCode": "import { Eye } from '@phosphor-icons/react'",
+      "usage": "<Eye size={20} weight=regular />",
+      "bestFor": "Show password view",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:eye-slash",
+    "domain": "icons",
+    "name": "eye-slash",
+    "keywords": "hide invisible password hidden Security",
+    "summary": "Phosphor Security. Hide password",
+    "modes": [],
+    "fields": {
+      "category": "Security",
+      "library": "Phosphor",
+      "importCode": "import { EyeSlash } from '@phosphor-icons/react'",
+      "usage": "<EyeSlash size={20} weight=regular />",
+      "bestFor": "Hide password",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:map-pin",
+    "domain": "icons",
+    "name": "map-pin",
+    "keywords": "location marker place address Location",
+    "summary": "Phosphor Location. Location pin marker",
+    "modes": [],
+    "fields": {
+      "category": "Location",
+      "library": "Phosphor",
+      "importCode": "import { MapPin } from '@phosphor-icons/react'",
+      "usage": "<MapPin size={20} weight=regular />",
+      "bestFor": "Location pin marker",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:map",
+    "domain": "icons",
+    "name": "map",
+    "keywords": "directions navigate geography location Location",
+    "summary": "Phosphor Location. Map directions",
+    "modes": [],
+    "fields": {
+      "category": "Location",
+      "library": "Phosphor",
+      "importCode": "import { Map } from '@phosphor-icons/react'",
+      "usage": "<Map size={20} weight=regular />",
+      "bestFor": "Map directions",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:compass",
+    "domain": "icons",
+    "name": "compass",
+    "keywords": "compass direction pointer arrow Location",
+    "summary": "Phosphor Location. Navigation compass",
+    "modes": [],
+    "fields": {
+      "category": "Location",
+      "library": "Phosphor",
+      "importCode": "import { Compass } from '@phosphor-icons/react'",
+      "usage": "<Compass size={20} weight=regular />",
+      "bestFor": "Navigation compass",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:globe",
+    "domain": "icons",
+    "name": "globe",
+    "keywords": "world international global web Location",
+    "summary": "Phosphor Location. Globe world",
+    "modes": [],
+    "fields": {
+      "category": "Location",
+      "library": "Phosphor",
+      "importCode": "import { Globe } from '@phosphor-icons/react'",
+      "usage": "<Globe size={20} weight=regular />",
+      "bestFor": "Globe world",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:calendar",
+    "domain": "icons",
+    "name": "calendar",
+    "keywords": "date schedule event appointment Time",
+    "summary": "Phosphor Time. Calendar date",
+    "modes": [],
+    "fields": {
+      "category": "Time",
+      "library": "Phosphor",
+      "importCode": "import { Calendar } from '@phosphor-icons/react'",
+      "usage": "<Calendar size={20} weight=regular />",
+      "bestFor": "Calendar date",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:arrows-clockwise",
+    "domain": "icons",
+    "name": "arrows-clockwise",
+    "keywords": "reload sync update refresh Time",
+    "summary": "Phosphor Time. Refresh reload",
+    "modes": [],
+    "fields": {
+      "category": "Time",
+      "library": "Phosphor",
+      "importCode": "import { ArrowsClockwise } from '@phosphor-icons/react'",
+      "usage": "<ArrowsClockwise size={20} weight=regular />",
+      "bestFor": "Refresh reload",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:arrow-counter-clockwise",
+    "domain": "icons",
+    "name": "arrow-counter-clockwise",
+    "keywords": "undo back revert history Time",
+    "summary": "Phosphor Time. Undo revert",
+    "modes": [],
+    "fields": {
+      "category": "Time",
+      "library": "Phosphor",
+      "importCode": "import { ArrowCounterClockwise } from '@phosphor-icons/react'",
+      "usage": "<ArrowCounterClockwise size={20} weight=regular />",
+      "bestFor": "Undo revert",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:arrow-clockwise",
+    "domain": "icons",
+    "name": "arrow-clockwise",
+    "keywords": "redo forward repeat history Time",
+    "summary": "Phosphor Time. Redo forward",
+    "modes": [],
+    "fields": {
+      "category": "Time",
+      "library": "Phosphor",
+      "importCode": "import { ArrowClockwise } from '@phosphor-icons/react'",
+      "usage": "<ArrowClockwise size={20} weight=regular />",
+      "bestFor": "Redo forward",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:code",
+    "domain": "icons",
+    "name": "code",
+    "keywords": "develop programming syntax html Development",
+    "summary": "Phosphor Development. Code development",
+    "modes": [],
+    "fields": {
+      "category": "Development",
+      "library": "Phosphor",
+      "importCode": "import { Code } from '@phosphor-icons/react'",
+      "usage": "<Code size={20} weight=regular />",
+      "bestFor": "Code development",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:terminal",
+    "domain": "icons",
+    "name": "terminal",
+    "keywords": "console cli command shell Development",
+    "summary": "Phosphor Development. Terminal console",
+    "modes": [],
+    "fields": {
+      "category": "Development",
+      "library": "Phosphor",
+      "importCode": "import { Terminal } from '@phosphor-icons/react'",
+      "usage": "<Terminal size={20} weight=regular />",
+      "bestFor": "Terminal console",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:git-branch",
+    "domain": "icons",
+    "name": "git-branch",
+    "keywords": "version control branch merge Development",
+    "summary": "Phosphor Development. Git branch",
+    "modes": [],
+    "fields": {
+      "category": "Development",
+      "library": "Phosphor",
+      "importCode": "import { GitBranch } from '@phosphor-icons/react'",
+      "usage": "<GitBranch size={20} weight=regular />",
+      "bestFor": "Git branch",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:github-logo",
+    "domain": "icons",
+    "name": "github-logo",
+    "keywords": "repository code open source Development",
+    "summary": "Phosphor Development. GitHub repository",
+    "modes": [],
+    "fields": {
+      "category": "Development",
+      "library": "Phosphor",
+      "importCode": "import { GithubLogo } from '@phosphor-icons/react'",
+      "usage": "<GithubLogo size={20} weight=regular />",
+      "bestFor": "GitHub repository",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:bold-typography-icon-system",
+    "domain": "icons",
+    "name": "bold-typography-icon-system",
+    "keywords": "bold typography, editorial, mono label, phosphor, weight regular, minimal, icon+label required, size 20–32 Style Config",
+    "summary": "Phosphor (react-native) Style Config. Bold Typography Mobile style: weight=\"regular\". Size 20px for UI controls, 32px for feature anchors. Icons MUST be paired with a Mono-stack text label (JetBrains Mono). Standalone icons only allowed for standard navigation (e.g., Back arrow). Accent color #FF3D00 only.",
+    "modes": [],
+    "fields": {
+      "category": "Style Config",
+      "library": "Phosphor (react-native)",
+      "importCode": "import { ArrowRight } from 'phosphor-react-native'",
+      "usage": "<ArrowRight size={20} weight=\"regular\" color={colors.accent} />",
+      "bestFor": "Bold Typography Mobile style: weight=\"regular\". Size 20px for UI controls, 32px for feature anchors. Icons MUST be paired with a Mono-stack text label (JetBrains Mono). Standalone icons only allowed for standard navigation (e.g., Back arrow). Accent color #FF3D00 only.",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:cyberpunk-icon-system",
+    "domain": "icons",
+    "name": "cyberpunk-icon-system",
+    "keywords": "cyberpunk, neon, glow, hud, phosphor, weight regular, accent glow, dark, angular, react native Style Config",
+    "summary": "Phosphor (react-native) Style Config. Cyberpunk Mobile HUD style: weight=\"regular\", color={colors.accent} (#00FF88 Matrix Green). Wrap every icon in a View with shadowColor: colors.accent / shadowOpacity: 0.6 / shadowRadius: 8 to simulate neon glow. Use borderRadius: 0 on wrapper. Avoid rounded icon containers. Always pair icon with data label in JetBrains …",
+    "modes": ["operate"],
+    "fields": {
+      "category": "Style Config",
+      "library": "Phosphor (react-native)",
+      "importCode": "import { Lightning } from 'phosphor-react-native'",
+      "usage": "<Lightning size={24} weight=\"regular\" color={colors.accent} />",
+      "bestFor": "Cyberpunk Mobile HUD style: weight=\"regular\", color={colors.accent} (#00FF88 Matrix Green). Wrap every icon in a View with shadowColor: colors.accent / shadowOpacity: 0.6 / shadowRadius: 8 to simulate neon glow. Use borderRadius: 0 on wrapper. Avoid rounded icon containers. Always pair icon with data label in JetBrains Mono.",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:academia-icon-system",
+    "domain": "icons",
+    "name": "academia-icon-system",
+    "keywords": "academia, library, brass, ornate, phosphor, weight thin, muted warm, scholarly, mobile Style Config",
+    "summary": "Phosphor (react-native) Style Config. Academia (Scholarly Mobile) style: weight=\"thin\" (thin engraved feel), color={colors.brass} (#C9A962). No sharp geometric or tech-inspired icons. Prefer book, scroll, key, quill-type icon metaphors. Wrap in circular View with 1px brass border. Avoid neon or saturated colored icons. All icon-only navigation must have an …",
+    "modes": [],
+    "fields": {
+      "category": "Style Config",
+      "library": "Phosphor (react-native)",
+      "importCode": "import { BookOpen } from 'phosphor-react-native'",
+      "usage": "<BookOpen size={22} weight=\"thin\" color={colors.brass} />",
+      "bestFor": "Academia (Scholarly Mobile) style: weight=\"thin\" (thin engraved feel), color={colors.brass} (#C9A962). No sharp geometric or tech-inspired icons. Prefer book, scroll, key, quill-type icon metaphors. Wrap in circular View with 1px brass border. Avoid neon or saturated colored icons. All icon-only navigation must have an accessibilityLabel.",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:web3-bitcoin-icon-system",
+    "domain": "icons",
+    "name": "web3-bitcoin-icon-system",
+    "keywords": "web3, bitcoin, defi, crypto, neon orange, holographic, blurview, phosphor, glow, fintech mobile Style Config",
+    "summary": "Phosphor (react-native) Style Config. Bitcoin DeFi Mobile style: weight=\"regular\", color={colors.bitcoinOrange} (#F7931A). Wrap icons in circular BlurView (intensity: 20) with 1px borderColor: '#F7931A' border (Holographic Node effect). shadowColor: '#F7931A' / shadowOpacity: 0.4 / shadowRadius: 8. Prefer finance/data icons (TrendUp, Wallet, Shield, Layers)…",
+    "modes": ["operate"],
+    "fields": {
+      "category": "Style Config",
+      "library": "Phosphor (react-native)",
+      "importCode": "import { TrendUp } from 'phosphor-react-native'",
+      "usage": "<TrendUp size={24} weight=\"regular\" color={colors.bitcoinOrange} />",
+      "bestFor": "Bitcoin DeFi Mobile style: weight=\"regular\", color={colors.bitcoinOrange} (#F7931A). Wrap icons in circular BlurView (intensity: 20) with 1px borderColor: '#F7931A' border (Holographic Node effect). shadowColor: '#F7931A' / shadowOpacity: 0.4 / shadowRadius: 8. Prefer finance/data icons (TrendUp, Wallet, Shield, Layers). All data icons use JetBrains Mono la…",
+      "style": "Outline"
+    }
+  },
+  {
+    "id": "icons:icon-fallback-rules",
+    "domain": "icons",
+    "name": "icon-fallback-rules",
+    "keywords": "icon fallback, phosphor, heroicons, any icon, extended set Guideline",
+    "summary": "Phosphor (primary) + Heroicons (fallback) Guideline. Icon library strategy and fallback rules",
+    "modes": [],
+    "fields": {
+      "category": "Guideline",
+      "library": "Phosphor (primary) + Heroicons (fallback)",
+      "importCode": "Primary: import { IconName } from '@phosphor-icons/react'. Fallback: import { IconName } from '@heroicons/react/24/outline' or '@heroicons/react/24/solid'.",
+      "usage": "当默认列表中没有合适图标时：优先继续从 Phosphor 中选择任何语义更贴切的图标（不必局限于本表列出的图标）。若 Phosphor 也无合适图标，可以改用 Heroicons，并在 UI 代码中保持风格统一（线性或填充、圆角程度、笔画粗细等）。",
+      "bestFor": "Icon library strategy and fallback rules",
+      "style": "Outline"
+    }
+  }
+]

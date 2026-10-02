@@ -1,0 +1,60 @@
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --shadow-sm: 0 0 0 1px oklch(0.3 0.02 250 / 0.06), 0 1px 2px oklch(0.3 0.02 250 / 0.08);
+  --color-border: oklch(0.9 0.008 250);
+  --color-text: oklch(0.2 0.02 250);
+}
+
+.page {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.page-title {
+  font-size: 2rem;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.plan-price {
+  font-size: 2.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.card {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(20, 24, 40, 0.06), 0 2px 6px rgba(20, 24, 40, 0.08);
+}
+
+.button {
+  transition: transform 160ms var(--ease-out), background-color 160ms var(--ease-out);
+}
+
+.button:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button:hover {
+    background-color: oklch(0.45 0.15 250);
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.menu {
+  z-index: 50;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .menu {
+    transition: none;
+  }
+}

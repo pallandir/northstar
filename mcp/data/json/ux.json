@@ -1,0 +1,1685 @@
+[
+  {
+    "id": "ux:smooth-scroll",
+    "domain": "ux",
+    "name": "Smooth Scroll",
+    "keywords": "Navigation Smooth Scroll Web",
+    "summary": "Anchor links should scroll smoothly to target section",
+    "modes": [],
+    "fields": {
+      "category": "Navigation",
+      "platform": "Web",
+      "do": "Use scroll-behavior: smooth on html element",
+      "dont": "Jump directly without transition",
+      "good": "html { scroll-behavior: smooth; }",
+      "bad": "<a href='#section'> without CSS",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:sticky-navigation",
+    "domain": "ux",
+    "name": "Sticky Navigation",
+    "keywords": "Navigation Sticky Navigation Web",
+    "summary": "Fixed nav should not obscure content",
+    "modes": [],
+    "fields": {
+      "category": "Navigation",
+      "platform": "Web",
+      "do": "Add padding-top to body equal to nav height",
+      "dont": "Let nav overlap first section content",
+      "good": "pt-20 (if nav is h-20)",
+      "bad": "No padding compensation",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:active-state",
+    "domain": "ux",
+    "name": "Active State",
+    "keywords": "Navigation Active State All",
+    "summary": "Current page/section should be visually indicated",
+    "modes": [],
+    "fields": {
+      "category": "Navigation",
+      "platform": "All",
+      "do": "Highlight active nav item with color/underline",
+      "dont": "No visual feedback on current location",
+      "good": "text-primary border-b-2",
+      "bad": "All links same style",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:back-button",
+    "domain": "ux",
+    "name": "Back Button",
+    "keywords": "Navigation Back Button Mobile",
+    "summary": "Users expect back to work predictably",
+    "modes": [],
+    "fields": {
+      "category": "Navigation",
+      "platform": "Mobile",
+      "do": "Preserve navigation history properly",
+      "dont": "Break browser/app back button behavior",
+      "good": "history.pushState()",
+      "bad": "location.replace()",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:deep-linking",
+    "domain": "ux",
+    "name": "Deep Linking",
+    "keywords": "Navigation Deep Linking All",
+    "summary": "URLs should reflect current state for sharing",
+    "modes": [],
+    "fields": {
+      "category": "Navigation",
+      "platform": "All",
+      "do": "Update URL on state/view changes",
+      "dont": "Static URLs for dynamic content",
+      "good": "Use query params or hash",
+      "bad": "Single URL for all states",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:breadcrumbs",
+    "domain": "ux",
+    "name": "Breadcrumbs",
+    "keywords": "Navigation Breadcrumbs Web",
+    "summary": "Show user location in site hierarchy",
+    "modes": [],
+    "fields": {
+      "category": "Navigation",
+      "platform": "Web",
+      "do": "Use for sites with 3+ levels of depth",
+      "dont": "Use for flat single-level sites",
+      "good": "Home > Category > Product",
+      "bad": "Only on deep nested pages",
+      "severity": "Low"
+    }
+  },
+  {
+    "id": "ux:excessive-motion",
+    "domain": "ux",
+    "name": "Excessive Motion",
+    "keywords": "Animation Excessive Motion All",
+    "summary": "Too many animations cause distraction and motion sickness",
+    "modes": [],
+    "fields": {
+      "category": "Animation",
+      "platform": "All",
+      "do": "Animate 1-2 key elements per view maximum",
+      "dont": "Animate everything that moves",
+      "good": "Single hero animation",
+      "bad": "animate-bounce on 5+ elements",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:duration-timing",
+    "domain": "ux",
+    "name": "Duration Timing",
+    "keywords": "Animation Duration Timing All",
+    "summary": "Animations should feel responsive not sluggish",
+    "modes": [],
+    "fields": {
+      "category": "Animation",
+      "platform": "All",
+      "do": "Use 150-300ms for micro-interactions",
+      "dont": "Use animations longer than 500ms for UI",
+      "good": "transition-all duration-200",
+      "bad": "duration-1000",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:reduced-motion",
+    "domain": "ux",
+    "name": "Reduced Motion",
+    "keywords": "Animation Reduced Motion All",
+    "summary": "Respect user's motion preferences",
+    "modes": [],
+    "fields": {
+      "category": "Animation",
+      "platform": "All",
+      "do": "Check prefers-reduced-motion media query",
+      "dont": "Ignore accessibility motion settings",
+      "good": "@media (prefers-reduced-motion: reduce)",
+      "bad": "No motion query check",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:loading-states",
+    "domain": "ux",
+    "name": "Loading States",
+    "keywords": "Animation Loading States All",
+    "summary": "Show feedback during async operations",
+    "modes": [],
+    "fields": {
+      "category": "Animation",
+      "platform": "All",
+      "do": "Use skeleton screens or spinners",
+      "dont": "Leave UI frozen with no feedback",
+      "good": "animate-pulse skeleton",
+      "bad": "Blank screen while loading",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:hover-vs-tap",
+    "domain": "ux",
+    "name": "Hover vs Tap",
+    "keywords": "Animation Hover vs Tap All",
+    "summary": "Hover effects don't work on touch devices",
+    "modes": [],
+    "fields": {
+      "category": "Animation",
+      "platform": "All",
+      "do": "Use click/tap for primary interactions",
+      "dont": "Rely only on hover for important actions",
+      "good": "onClick handler",
+      "bad": "onMouseEnter only",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:continuous-animation",
+    "domain": "ux",
+    "name": "Continuous Animation",
+    "keywords": "Animation Continuous Animation All",
+    "summary": "Infinite animations are distracting",
+    "modes": [],
+    "fields": {
+      "category": "Animation",
+      "platform": "All",
+      "do": "Use for loading indicators only",
+      "dont": "Use for decorative elements",
+      "good": "animate-spin on loader",
+      "bad": "animate-bounce on icons",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:transform-performance",
+    "domain": "ux",
+    "name": "Transform Performance",
+    "keywords": "Animation Transform Performance Web",
+    "summary": "Some CSS properties trigger expensive repaints",
+    "modes": [],
+    "fields": {
+      "category": "Animation",
+      "platform": "Web",
+      "do": "Use transform and opacity for animations",
+      "dont": "Animate width/height/top/left properties",
+      "good": "transform: translateY()",
+      "bad": "top: 10px animation",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:easing-functions",
+    "domain": "ux",
+    "name": "Easing Functions",
+    "keywords": "Animation Easing Functions All",
+    "summary": "Linear motion feels robotic",
+    "modes": [],
+    "fields": {
+      "category": "Animation",
+      "platform": "All",
+      "do": "Use ease-out for entering ease-in for exiting",
+      "dont": "Use linear for UI transitions",
+      "good": "ease-out",
+      "bad": "linear",
+      "severity": "Low"
+    }
+  },
+  {
+    "id": "ux:z-index-management",
+    "domain": "ux",
+    "name": "Z-Index Management",
+    "keywords": "Layout Z-Index Management Web",
+    "summary": "Stacking context conflicts cause hidden elements",
+    "modes": [],
+    "fields": {
+      "category": "Layout",
+      "platform": "Web",
+      "do": "Define z-index scale system (10 20 30 50)",
+      "dont": "Use arbitrary large z-index values",
+      "good": "z-10 z-20 z-50",
+      "bad": "z-[9999]",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:overflow-hidden",
+    "domain": "ux",
+    "name": "Overflow Hidden",
+    "keywords": "Layout Overflow Hidden Web",
+    "summary": "Hidden overflow can clip important content",
+    "modes": [],
+    "fields": {
+      "category": "Layout",
+      "platform": "Web",
+      "do": "Test all content fits within containers",
+      "dont": "Blindly apply overflow-hidden",
+      "good": "overflow-auto with scroll",
+      "bad": "overflow-hidden truncating content",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:fixed-positioning",
+    "domain": "ux",
+    "name": "Fixed Positioning",
+    "keywords": "Layout Fixed Positioning Web",
+    "summary": "Fixed elements can overlap or be inaccessible",
+    "modes": [],
+    "fields": {
+      "category": "Layout",
+      "platform": "Web",
+      "do": "Account for safe areas and other fixed elements",
+      "dont": "Stack multiple fixed elements carelessly",
+      "good": "Fixed nav + fixed bottom with gap",
+      "bad": "Multiple overlapping fixed elements",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:stacking-context",
+    "domain": "ux",
+    "name": "Stacking Context",
+    "keywords": "Layout Stacking Context Web",
+    "summary": "New stacking contexts reset z-index",
+    "modes": [],
+    "fields": {
+      "category": "Layout",
+      "platform": "Web",
+      "do": "Understand what creates new stacking context",
+      "dont": "Expect z-index to work across contexts",
+      "good": "Parent with z-index isolates children",
+      "bad": "z-index: 9999 not working",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:content-jumping",
+    "domain": "ux",
+    "name": "Content Jumping",
+    "keywords": "Layout Content Jumping Web",
+    "summary": "Layout shift when content loads is jarring",
+    "modes": [],
+    "fields": {
+      "category": "Layout",
+      "platform": "Web",
+      "do": "Reserve space for async content",
+      "dont": "Let images/content push layout around",
+      "good": "aspect-ratio or fixed height",
+      "bad": "No dimensions on images",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:viewport-units",
+    "domain": "ux",
+    "name": "Viewport Units",
+    "keywords": "Layout Viewport Units Web",
+    "summary": "100vh can be problematic on mobile browsers",
+    "modes": [],
+    "fields": {
+      "category": "Layout",
+      "platform": "Web",
+      "do": "Use dvh or account for mobile browser chrome",
+      "dont": "Use 100vh for full-screen mobile layouts",
+      "good": "min-h-dvh or min-h-screen",
+      "bad": "h-screen on mobile",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:container-width",
+    "domain": "ux",
+    "name": "Container Width",
+    "keywords": "Layout Container Width Web",
+    "summary": "Content too wide is hard to read",
+    "modes": [],
+    "fields": {
+      "category": "Layout",
+      "platform": "Web",
+      "do": "Limit max-width for text content (65-75ch)",
+      "dont": "Let text span full viewport width",
+      "good": "max-w-prose or max-w-3xl",
+      "bad": "Full width paragraphs",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:touch-target-size",
+    "domain": "ux",
+    "name": "Touch Target Size",
+    "keywords": "Touch Touch Target Size Mobile",
+    "summary": "Small buttons are hard to tap accurately",
+    "modes": [],
+    "fields": {
+      "category": "Touch",
+      "platform": "Mobile",
+      "do": "Minimum 44x44px touch targets",
+      "dont": "Tiny clickable areas",
+      "good": "min-h-[44px] min-w-[44px]",
+      "bad": "w-6 h-6 buttons",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:touch-spacing",
+    "domain": "ux",
+    "name": "Touch Spacing",
+    "keywords": "Touch Touch Spacing Mobile",
+    "summary": "Adjacent touch targets need adequate spacing",
+    "modes": [],
+    "fields": {
+      "category": "Touch",
+      "platform": "Mobile",
+      "do": "Minimum 8px gap between touch targets",
+      "dont": "Tightly packed clickable elements",
+      "good": "gap-2 between buttons",
+      "bad": "gap-0 or gap-1",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:gesture-conflicts",
+    "domain": "ux",
+    "name": "Gesture Conflicts",
+    "keywords": "Touch Gesture Conflicts Mobile",
+    "summary": "Custom gestures can conflict with system",
+    "modes": [],
+    "fields": {
+      "category": "Touch",
+      "platform": "Mobile",
+      "do": "Avoid horizontal swipe on main content",
+      "dont": "Override system gestures",
+      "good": "Vertical scroll primary",
+      "bad": "Horizontal swipe carousel only",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:tap-delay",
+    "domain": "ux",
+    "name": "Tap Delay",
+    "keywords": "Touch Tap Delay Mobile",
+    "summary": "300ms tap delay feels laggy",
+    "modes": [],
+    "fields": {
+      "category": "Touch",
+      "platform": "Mobile",
+      "do": "Use touch-action CSS or fastclick",
+      "dont": "Default mobile tap handling",
+      "good": "touch-action: manipulation",
+      "bad": "No touch optimization",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:pull-to-refresh",
+    "domain": "ux",
+    "name": "Pull to Refresh",
+    "keywords": "Touch Pull to Refresh Mobile",
+    "summary": "Accidental refresh is frustrating",
+    "modes": [],
+    "fields": {
+      "category": "Touch",
+      "platform": "Mobile",
+      "do": "Disable where not needed",
+      "dont": "Enable by default everywhere",
+      "good": "overscroll-behavior: contain",
+      "bad": "Default overscroll",
+      "severity": "Low"
+    }
+  },
+  {
+    "id": "ux:haptic-feedback",
+    "domain": "ux",
+    "name": "Haptic Feedback",
+    "keywords": "Touch Haptic Feedback Mobile",
+    "summary": "Tactile feedback improves interaction feel",
+    "modes": [],
+    "fields": {
+      "category": "Touch",
+      "platform": "Mobile",
+      "do": "Use for confirmations and important actions",
+      "dont": "Overuse vibration feedback",
+      "good": "navigator.vibrate(10)",
+      "bad": "Vibrate on every tap",
+      "severity": "Low"
+    }
+  },
+  {
+    "id": "ux:focus-states",
+    "domain": "ux",
+    "name": "Focus States",
+    "keywords": "Interaction Focus States All",
+    "summary": "Keyboard users need visible focus indicators",
+    "modes": [],
+    "fields": {
+      "category": "Interaction",
+      "platform": "All",
+      "do": "Use visible focus rings on interactive elements",
+      "dont": "Remove focus outline without replacement",
+      "good": "focus:ring-2 focus:ring-blue-500",
+      "bad": "outline-none without alternative",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:hover-states",
+    "domain": "ux",
+    "name": "Hover States",
+    "keywords": "Interaction Hover States Web",
+    "summary": "Visual feedback on interactive elements",
+    "modes": [],
+    "fields": {
+      "category": "Interaction",
+      "platform": "Web",
+      "do": "Change cursor and add subtle visual change",
+      "dont": "No hover feedback on clickable elements",
+      "good": "hover:bg-gray-100 cursor-pointer",
+      "bad": "No hover style",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:active-states",
+    "domain": "ux",
+    "name": "Active States",
+    "keywords": "Interaction Active States All",
+    "summary": "Show immediate feedback on press/click",
+    "modes": [],
+    "fields": {
+      "category": "Interaction",
+      "platform": "All",
+      "do": "Add pressed/active state visual change",
+      "dont": "No feedback during interaction",
+      "good": "active:scale-95",
+      "bad": "No active state",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:disabled-states",
+    "domain": "ux",
+    "name": "Disabled States",
+    "keywords": "Interaction Disabled States All",
+    "summary": "Clearly indicate non-interactive elements",
+    "modes": [],
+    "fields": {
+      "category": "Interaction",
+      "platform": "All",
+      "do": "Reduce opacity and change cursor",
+      "dont": "Confuse disabled with normal state",
+      "good": "opacity-50 cursor-not-allowed",
+      "bad": "Same style as enabled",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:loading-buttons",
+    "domain": "ux",
+    "name": "Loading Buttons",
+    "keywords": "Interaction Loading Buttons All",
+    "summary": "Prevent double submission during async actions",
+    "modes": [],
+    "fields": {
+      "category": "Interaction",
+      "platform": "All",
+      "do": "Disable button and show loading state",
+      "dont": "Allow multiple clicks during processing",
+      "good": "disabled={loading} spinner",
+      "bad": "Button clickable while loading",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:error-feedback",
+    "domain": "ux",
+    "name": "Error Feedback",
+    "keywords": "Interaction Error Feedback All",
+    "summary": "Users need to know when something fails",
+    "modes": [],
+    "fields": {
+      "category": "Interaction",
+      "platform": "All",
+      "do": "Show clear error messages near problem",
+      "dont": "Silent failures with no feedback",
+      "good": "Red border + error message",
+      "bad": "No indication of error",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:success-feedback",
+    "domain": "ux",
+    "name": "Success Feedback",
+    "keywords": "Interaction Success Feedback All",
+    "summary": "Confirm successful actions to users",
+    "modes": [],
+    "fields": {
+      "category": "Interaction",
+      "platform": "All",
+      "do": "Show success message or visual change",
+      "dont": "No confirmation of completed action",
+      "good": "Toast notification or checkmark",
+      "bad": "Action completes silently",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:confirmation-dialogs",
+    "domain": "ux",
+    "name": "Confirmation Dialogs",
+    "keywords": "Interaction Confirmation Dialogs All",
+    "summary": "Prevent accidental destructive actions",
+    "modes": [],
+    "fields": {
+      "category": "Interaction",
+      "platform": "All",
+      "do": "Confirm before delete/irreversible actions",
+      "dont": "Delete without confirmation",
+      "good": "Are you sure modal",
+      "bad": "Direct delete on click",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:color-contrast",
+    "domain": "ux",
+    "name": "Color Contrast",
+    "keywords": "Accessibility Color Contrast All",
+    "summary": "Text must be readable against background",
+    "modes": [],
+    "fields": {
+      "category": "Accessibility",
+      "platform": "All",
+      "do": "Minimum 4.5:1 ratio for normal text",
+      "dont": "Low contrast text",
+      "good": "#333 on white (7:1)",
+      "bad": "#999 on white (2.8:1)",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:color-only",
+    "domain": "ux",
+    "name": "Color Only",
+    "keywords": "Accessibility Color Only All",
+    "summary": "Don't convey information by color alone",
+    "modes": [],
+    "fields": {
+      "category": "Accessibility",
+      "platform": "All",
+      "do": "Use icons/text in addition to color",
+      "dont": "Red/green only for error/success",
+      "good": "Red text + error icon",
+      "bad": "Red border only for error",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:alt-text",
+    "domain": "ux",
+    "name": "Alt Text",
+    "keywords": "Accessibility Alt Text All",
+    "summary": "Images need text alternatives",
+    "modes": [],
+    "fields": {
+      "category": "Accessibility",
+      "platform": "All",
+      "do": "Descriptive alt text for meaningful images",
+      "dont": "Empty or missing alt attributes",
+      "good": "alt='Dog playing in park'",
+      "bad": "alt='' for content images",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:heading-hierarchy",
+    "domain": "ux",
+    "name": "Heading Hierarchy",
+    "keywords": "Accessibility Heading Hierarchy Web",
+    "summary": "Screen readers use headings for navigation",
+    "modes": [],
+    "fields": {
+      "category": "Accessibility",
+      "platform": "Web",
+      "do": "Use sequential heading levels h1-h6",
+      "dont": "Skip heading levels or misuse for styling",
+      "good": "h1 then h2 then h3",
+      "bad": "h1 then h4",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:aria-labels",
+    "domain": "ux",
+    "name": "ARIA Labels",
+    "keywords": "Accessibility ARIA Labels All",
+    "summary": "Interactive elements need accessible names",
+    "modes": [],
+    "fields": {
+      "category": "Accessibility",
+      "platform": "All",
+      "do": "Add aria-label for icon-only buttons",
+      "dont": "Icon buttons without labels",
+      "good": "aria-label='Close menu'",
+      "bad": "<button><Icon/></button>",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:keyboard-navigation",
+    "domain": "ux",
+    "name": "Keyboard Navigation",
+    "keywords": "Accessibility Keyboard Navigation Web",
+    "summary": "All functionality accessible via keyboard",
+    "modes": [],
+    "fields": {
+      "category": "Accessibility",
+      "platform": "Web",
+      "do": "Tab order matches visual order",
+      "dont": "Keyboard traps or illogical tab order",
+      "good": "tabIndex for custom order",
+      "bad": "Unreachable elements",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:screen-reader",
+    "domain": "ux",
+    "name": "Screen Reader",
+    "keywords": "Accessibility Screen Reader All",
+    "summary": "Content should make sense when read aloud",
+    "modes": [],
+    "fields": {
+      "category": "Accessibility",
+      "platform": "All",
+      "do": "Use semantic HTML and ARIA properly",
+      "dont": "Div soup with no semantics",
+      "good": "<nav> <main> <article>",
+      "bad": "<div> for everything",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:form-labels",
+    "domain": "ux",
+    "name": "Form Labels",
+    "keywords": "Accessibility Form Labels All",
+    "summary": "Inputs must have associated labels",
+    "modes": [],
+    "fields": {
+      "category": "Accessibility",
+      "platform": "All",
+      "do": "Use label with for attribute or wrap input",
+      "dont": "Placeholder-only inputs",
+      "good": "<label for='email'>",
+      "bad": "placeholder='Email' only",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:error-messages",
+    "domain": "ux",
+    "name": "Error Messages",
+    "keywords": "Accessibility Error Messages All",
+    "summary": "Error messages must be announced",
+    "modes": [],
+    "fields": {
+      "category": "Accessibility",
+      "platform": "All",
+      "do": "Use aria-live or role=alert for errors",
+      "dont": "Visual-only error indication",
+      "good": "role='alert'",
+      "bad": "Red border only",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:skip-links",
+    "domain": "ux",
+    "name": "Skip Links",
+    "keywords": "Accessibility Skip Links Web",
+    "summary": "Allow keyboard users to skip navigation",
+    "modes": [],
+    "fields": {
+      "category": "Accessibility",
+      "platform": "Web",
+      "do": "Provide skip to main content link",
+      "dont": "No skip link on nav-heavy pages",
+      "good": "Skip to main content link",
+      "bad": "100 tabs to reach content",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:image-optimization",
+    "domain": "ux",
+    "name": "Image Optimization",
+    "keywords": "Performance Image Optimization All",
+    "summary": "Large images slow page load",
+    "modes": [],
+    "fields": {
+      "category": "Performance",
+      "platform": "All",
+      "do": "Use appropriate size and format (WebP)",
+      "dont": "Unoptimized full-size images",
+      "good": "srcset with multiple sizes",
+      "bad": "4000px image for 400px display",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:lazy-loading",
+    "domain": "ux",
+    "name": "Lazy Loading",
+    "keywords": "Performance Lazy Loading All",
+    "summary": "Load content as needed",
+    "modes": [],
+    "fields": {
+      "category": "Performance",
+      "platform": "All",
+      "do": "Lazy load below-fold images and content",
+      "dont": "Load everything upfront",
+      "good": "loading='lazy'",
+      "bad": "All images eager load",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:code-splitting",
+    "domain": "ux",
+    "name": "Code Splitting",
+    "keywords": "Performance Code Splitting Web",
+    "summary": "Large bundles slow initial load",
+    "modes": [],
+    "fields": {
+      "category": "Performance",
+      "platform": "Web",
+      "do": "Split code by route/feature",
+      "dont": "Single large bundle",
+      "good": "dynamic import()",
+      "bad": "All code in main bundle",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:caching",
+    "domain": "ux",
+    "name": "Caching",
+    "keywords": "Performance Caching Web",
+    "summary": "Repeat visits should be fast",
+    "modes": [],
+    "fields": {
+      "category": "Performance",
+      "platform": "Web",
+      "do": "Set appropriate cache headers",
+      "dont": "No caching strategy",
+      "good": "Cache-Control headers",
+      "bad": "Every request hits server",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:font-loading",
+    "domain": "ux",
+    "name": "Font Loading",
+    "keywords": "Performance Font Loading Web",
+    "summary": "Web fonts can block rendering",
+    "modes": [],
+    "fields": {
+      "category": "Performance",
+      "platform": "Web",
+      "do": "Use font-display swap or optional",
+      "dont": "Invisible text during font load",
+      "good": "font-display: swap",
+      "bad": "FOIT (Flash of Invisible Text)",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:third-party-scripts",
+    "domain": "ux",
+    "name": "Third Party Scripts",
+    "keywords": "Performance Third Party Scripts Web",
+    "summary": "External scripts can block rendering",
+    "modes": [],
+    "fields": {
+      "category": "Performance",
+      "platform": "Web",
+      "do": "Load non-critical scripts async/defer",
+      "dont": "Synchronous third-party scripts",
+      "good": "async or defer attribute",
+      "bad": "<script src='...'> in head",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:bundle-size",
+    "domain": "ux",
+    "name": "Bundle Size",
+    "keywords": "Performance Bundle Size Web",
+    "summary": "Large JavaScript slows interaction",
+    "modes": [],
+    "fields": {
+      "category": "Performance",
+      "platform": "Web",
+      "do": "Monitor and minimize bundle size",
+      "dont": "Ignore bundle size growth",
+      "good": "Bundle analyzer",
+      "bad": "No size monitoring",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:render-blocking",
+    "domain": "ux",
+    "name": "Render Blocking",
+    "keywords": "Performance Render Blocking Web",
+    "summary": "CSS/JS can block first paint",
+    "modes": [],
+    "fields": {
+      "category": "Performance",
+      "platform": "Web",
+      "do": "Inline critical CSS defer non-critical",
+      "dont": "Large blocking CSS files",
+      "good": "Critical CSS inline",
+      "bad": "All CSS in head",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:input-labels",
+    "domain": "ux",
+    "name": "Input Labels",
+    "keywords": "Forms Input Labels All",
+    "summary": "Every input needs a visible label",
+    "modes": [],
+    "fields": {
+      "category": "Forms",
+      "platform": "All",
+      "do": "Always show label above or beside input",
+      "dont": "Placeholder as only label",
+      "good": "<label>Email</label><input>",
+      "bad": "placeholder='Email' only",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:error-placement",
+    "domain": "ux",
+    "name": "Error Placement",
+    "keywords": "Forms Error Placement All",
+    "summary": "Errors should appear near the problem",
+    "modes": [],
+    "fields": {
+      "category": "Forms",
+      "platform": "All",
+      "do": "Show error below related input",
+      "dont": "Single error message at top of form",
+      "good": "Error under each field",
+      "bad": "All errors at form top",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:inline-validation",
+    "domain": "ux",
+    "name": "Inline Validation",
+    "keywords": "Forms Inline Validation All",
+    "summary": "Validate as user types or on blur",
+    "modes": [],
+    "fields": {
+      "category": "Forms",
+      "platform": "All",
+      "do": "Validate on blur for most fields",
+      "dont": "Validate only on submit",
+      "good": "onBlur validation",
+      "bad": "Submit-only validation",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:input-types",
+    "domain": "ux",
+    "name": "Input Types",
+    "keywords": "Forms Input Types All",
+    "summary": "Use appropriate input types",
+    "modes": [],
+    "fields": {
+      "category": "Forms",
+      "platform": "All",
+      "do": "Use email tel number url etc",
+      "dont": "Text input for everything",
+      "good": "type='email'",
+      "bad": "type='text' for email",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:autofill-support",
+    "domain": "ux",
+    "name": "Autofill Support",
+    "keywords": "Forms Autofill Support Web",
+    "summary": "Help browsers autofill correctly",
+    "modes": [],
+    "fields": {
+      "category": "Forms",
+      "platform": "Web",
+      "do": "Use autocomplete attribute properly",
+      "dont": "Block or ignore autofill",
+      "good": "autocomplete='email'",
+      "bad": "autocomplete='off' everywhere",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:required-indicators",
+    "domain": "ux",
+    "name": "Required Indicators",
+    "keywords": "Forms Required Indicators All",
+    "summary": "Mark required fields clearly",
+    "modes": [],
+    "fields": {
+      "category": "Forms",
+      "platform": "All",
+      "do": "Use asterisk or (required) text",
+      "dont": "No indication of required fields",
+      "good": "* required indicator",
+      "bad": "Guess which are required",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:password-visibility",
+    "domain": "ux",
+    "name": "Password Visibility",
+    "keywords": "Forms Password Visibility All",
+    "summary": "Let users see password while typing",
+    "modes": [],
+    "fields": {
+      "category": "Forms",
+      "platform": "All",
+      "do": "Toggle to show/hide password",
+      "dont": "No visibility toggle",
+      "good": "Show/hide password button",
+      "bad": "Password always hidden",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:submit-feedback",
+    "domain": "ux",
+    "name": "Submit Feedback",
+    "keywords": "Forms Submit Feedback All",
+    "summary": "Confirm form submission status",
+    "modes": [],
+    "fields": {
+      "category": "Forms",
+      "platform": "All",
+      "do": "Show loading then success/error state",
+      "dont": "No feedback after submit",
+      "good": "Loading -> Success message",
+      "bad": "Button click with no response",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:input-affordance",
+    "domain": "ux",
+    "name": "Input Affordance",
+    "keywords": "Forms Input Affordance All",
+    "summary": "Inputs should look interactive",
+    "modes": [],
+    "fields": {
+      "category": "Forms",
+      "platform": "All",
+      "do": "Use distinct input styling",
+      "dont": "Inputs that look like plain text",
+      "good": "Border/background on inputs",
+      "bad": "Borderless inputs",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:mobile-keyboards",
+    "domain": "ux",
+    "name": "Mobile Keyboards",
+    "keywords": "Forms Mobile Keyboards Mobile",
+    "summary": "Show appropriate keyboard for input type",
+    "modes": [],
+    "fields": {
+      "category": "Forms",
+      "platform": "Mobile",
+      "do": "Use inputmode attribute",
+      "dont": "Default keyboard for all inputs",
+      "good": "inputmode='numeric'",
+      "bad": "Text keyboard for numbers",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:mobile-first",
+    "domain": "ux",
+    "name": "Mobile First",
+    "keywords": "Responsive Mobile First Web",
+    "summary": "Design for mobile then enhance for larger",
+    "modes": [],
+    "fields": {
+      "category": "Responsive",
+      "platform": "Web",
+      "do": "Start with mobile styles then add breakpoints",
+      "dont": "Desktop-first causing mobile issues",
+      "good": "Default mobile + md: lg: xl:",
+      "bad": "Desktop default + max-width queries",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:breakpoint-testing",
+    "domain": "ux",
+    "name": "Breakpoint Testing",
+    "keywords": "Responsive Breakpoint Testing Web",
+    "summary": "Test at all common screen sizes",
+    "modes": [],
+    "fields": {
+      "category": "Responsive",
+      "platform": "Web",
+      "do": "Test at 320 375 414 768 1024 1440",
+      "dont": "Only test on your device",
+      "good": "Multiple device testing",
+      "bad": "Single device development",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:touch-friendly",
+    "domain": "ux",
+    "name": "Touch Friendly",
+    "keywords": "Responsive Touch Friendly Web",
+    "summary": "Mobile layouts need touch-sized targets",
+    "modes": [],
+    "fields": {
+      "category": "Responsive",
+      "platform": "Web",
+      "do": "Increase touch targets on mobile",
+      "dont": "Same tiny buttons on mobile",
+      "good": "Larger buttons on mobile",
+      "bad": "Desktop-sized targets on mobile",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:readable-font-size",
+    "domain": "ux",
+    "name": "Readable Font Size",
+    "keywords": "Responsive Readable Font Size All",
+    "summary": "Text must be readable on all devices",
+    "modes": [],
+    "fields": {
+      "category": "Responsive",
+      "platform": "All",
+      "do": "Minimum 16px body text on mobile",
+      "dont": "Tiny text on mobile",
+      "good": "text-base or larger",
+      "bad": "text-xs for body text",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:viewport-meta",
+    "domain": "ux",
+    "name": "Viewport Meta",
+    "keywords": "Responsive Viewport Meta Web",
+    "summary": "Set viewport for mobile devices",
+    "modes": [],
+    "fields": {
+      "category": "Responsive",
+      "platform": "Web",
+      "do": "Use width=device-width initial-scale=1",
+      "dont": "Missing or incorrect viewport",
+      "good": "<meta name='viewport'...>",
+      "bad": "No viewport meta tag",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:horizontal-scroll",
+    "domain": "ux",
+    "name": "Horizontal Scroll",
+    "keywords": "Responsive Horizontal Scroll Web",
+    "summary": "Avoid horizontal scrolling",
+    "modes": [],
+    "fields": {
+      "category": "Responsive",
+      "platform": "Web",
+      "do": "Ensure content fits viewport width",
+      "dont": "Content wider than viewport",
+      "good": "max-w-full overflow-x-hidden",
+      "bad": "Horizontal scrollbar on mobile",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:image-scaling",
+    "domain": "ux",
+    "name": "Image Scaling",
+    "keywords": "Responsive Image Scaling Web",
+    "summary": "Images should scale with container",
+    "modes": [],
+    "fields": {
+      "category": "Responsive",
+      "platform": "Web",
+      "do": "Use max-width: 100% on images",
+      "dont": "Fixed width images overflow",
+      "good": "max-w-full h-auto",
+      "bad": "width='800' fixed",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:table-handling",
+    "domain": "ux",
+    "name": "Table Handling",
+    "keywords": "Responsive Table Handling Web",
+    "summary": "Tables can overflow on mobile",
+    "modes": [],
+    "fields": {
+      "category": "Responsive",
+      "platform": "Web",
+      "do": "Use horizontal scroll or card layout",
+      "dont": "Wide tables breaking layout",
+      "good": "overflow-x-auto wrapper",
+      "bad": "Table overflows viewport",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:line-height",
+    "domain": "ux",
+    "name": "Line Height",
+    "keywords": "Typography Line Height All",
+    "summary": "Adequate line height improves readability",
+    "modes": [],
+    "fields": {
+      "category": "Typography",
+      "platform": "All",
+      "do": "Use 1.5-1.75 for body text",
+      "dont": "Cramped or excessive line height",
+      "good": "leading-relaxed (1.625)",
+      "bad": "leading-none (1)",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:line-length",
+    "domain": "ux",
+    "name": "Line Length",
+    "keywords": "Typography Line Length Web",
+    "summary": "Long lines are hard to read",
+    "modes": [],
+    "fields": {
+      "category": "Typography",
+      "platform": "Web",
+      "do": "Limit to 65-75 characters per line",
+      "dont": "Full-width text on large screens",
+      "good": "max-w-prose",
+      "bad": "Full viewport width text",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:font-size-scale",
+    "domain": "ux",
+    "name": "Font Size Scale",
+    "keywords": "Typography Font Size Scale All",
+    "summary": "Consistent type hierarchy aids scanning",
+    "modes": [],
+    "fields": {
+      "category": "Typography",
+      "platform": "All",
+      "do": "Use consistent modular scale",
+      "dont": "Random font sizes",
+      "good": "Type scale (12 14 16 18 24 32)",
+      "bad": "Arbitrary sizes",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:font-loading-2",
+    "domain": "ux",
+    "name": "Font Loading",
+    "keywords": "Typography Font Loading Web",
+    "summary": "Fonts should load without layout shift",
+    "modes": [],
+    "fields": {
+      "category": "Typography",
+      "platform": "Web",
+      "do": "Reserve space with fallback font",
+      "dont": "Layout shift when fonts load",
+      "good": "font-display: swap + similar fallback",
+      "bad": "No fallback font",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:contrast-readability",
+    "domain": "ux",
+    "name": "Contrast Readability",
+    "keywords": "Typography Contrast Readability All",
+    "summary": "Body text needs good contrast",
+    "modes": [],
+    "fields": {
+      "category": "Typography",
+      "platform": "All",
+      "do": "Use darker text on light backgrounds",
+      "dont": "Gray text on gray background",
+      "good": "text-gray-900 on white",
+      "bad": "text-gray-400 on gray-100",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:heading-clarity",
+    "domain": "ux",
+    "name": "Heading Clarity",
+    "keywords": "Typography Heading Clarity All",
+    "summary": "Headings should stand out from body",
+    "modes": [],
+    "fields": {
+      "category": "Typography",
+      "platform": "All",
+      "do": "Clear size/weight difference",
+      "dont": "Headings similar to body text",
+      "good": "Bold + larger size",
+      "bad": "Same size as body",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:loading-indicators",
+    "domain": "ux",
+    "name": "Loading Indicators",
+    "keywords": "Feedback Loading Indicators All",
+    "summary": "Show system status during waits",
+    "modes": [],
+    "fields": {
+      "category": "Feedback",
+      "platform": "All",
+      "do": "Show spinner/skeleton for operations > 300ms",
+      "dont": "No feedback during loading",
+      "good": "Skeleton or spinner",
+      "bad": "Frozen UI",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:empty-states",
+    "domain": "ux",
+    "name": "Empty States",
+    "keywords": "Feedback Empty States All",
+    "summary": "Guide users when no content exists",
+    "modes": [],
+    "fields": {
+      "category": "Feedback",
+      "platform": "All",
+      "do": "Show helpful message and action",
+      "dont": "Blank empty screens",
+      "good": "No items yet. Create one!",
+      "bad": "Empty white space",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:error-recovery",
+    "domain": "ux",
+    "name": "Error Recovery",
+    "keywords": "Feedback Error Recovery All",
+    "summary": "Help users recover from errors",
+    "modes": [],
+    "fields": {
+      "category": "Feedback",
+      "platform": "All",
+      "do": "Provide clear next steps",
+      "dont": "Error without recovery path",
+      "good": "Try again button + help link",
+      "bad": "Error message only",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:progress-indicators",
+    "domain": "ux",
+    "name": "Progress Indicators",
+    "keywords": "Feedback Progress Indicators All",
+    "summary": "Show progress for multi-step processes",
+    "modes": [],
+    "fields": {
+      "category": "Feedback",
+      "platform": "All",
+      "do": "Step indicators or progress bar",
+      "dont": "No indication of progress",
+      "good": "Step 2 of 4 indicator",
+      "bad": "No step information",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:toast-notifications",
+    "domain": "ux",
+    "name": "Toast Notifications",
+    "keywords": "Feedback Toast Notifications All",
+    "summary": "Transient messages for non-critical info",
+    "modes": [],
+    "fields": {
+      "category": "Feedback",
+      "platform": "All",
+      "do": "Auto-dismiss after 3-5 seconds",
+      "dont": "Toasts that never disappear",
+      "good": "Auto-dismiss toast",
+      "bad": "Persistent toast",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:confirmation-messages",
+    "domain": "ux",
+    "name": "Confirmation Messages",
+    "keywords": "Feedback Confirmation Messages All",
+    "summary": "Confirm successful actions",
+    "modes": [],
+    "fields": {
+      "category": "Feedback",
+      "platform": "All",
+      "do": "Brief success message",
+      "dont": "Silent success",
+      "good": "Saved successfully toast",
+      "bad": "No confirmation",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:truncation",
+    "domain": "ux",
+    "name": "Truncation",
+    "keywords": "Content Truncation All",
+    "summary": "Handle long content gracefully",
+    "modes": [],
+    "fields": {
+      "category": "Content",
+      "platform": "All",
+      "do": "Truncate with ellipsis and expand option",
+      "dont": "Overflow or broken layout",
+      "good": "line-clamp-2 with expand",
+      "bad": "Overflow or cut off",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:date-formatting",
+    "domain": "ux",
+    "name": "Date Formatting",
+    "keywords": "Content Date Formatting All",
+    "summary": "Use locale-appropriate date formats",
+    "modes": [],
+    "fields": {
+      "category": "Content",
+      "platform": "All",
+      "do": "Use relative or locale-aware dates",
+      "dont": "Ambiguous date formats",
+      "good": "2 hours ago or locale format",
+      "bad": "01/02/03",
+      "severity": "Low"
+    }
+  },
+  {
+    "id": "ux:number-formatting",
+    "domain": "ux",
+    "name": "Number Formatting",
+    "keywords": "Content Number Formatting All",
+    "summary": "Format large numbers for readability",
+    "modes": [],
+    "fields": {
+      "category": "Content",
+      "platform": "All",
+      "do": "Use thousand separators or abbreviations",
+      "dont": "Long unformatted numbers",
+      "good": "1.2K or 1,234",
+      "bad": "1234567",
+      "severity": "Low"
+    }
+  },
+  {
+    "id": "ux:placeholder-content",
+    "domain": "ux",
+    "name": "Placeholder Content",
+    "keywords": "Content Placeholder Content All",
+    "summary": "Show realistic placeholders during dev",
+    "modes": [],
+    "fields": {
+      "category": "Content",
+      "platform": "All",
+      "do": "Use realistic sample data",
+      "dont": "Lorem ipsum everywhere",
+      "good": "Real sample content",
+      "bad": "Lorem ipsum",
+      "severity": "Low"
+    }
+  },
+  {
+    "id": "ux:user-freedom",
+    "domain": "ux",
+    "name": "User Freedom",
+    "keywords": "Onboarding User Freedom All",
+    "summary": "Users should be able to skip tutorials",
+    "modes": [],
+    "fields": {
+      "category": "Onboarding",
+      "platform": "All",
+      "do": "Provide Skip and Back buttons",
+      "dont": "Force linear unskippable tour",
+      "good": "Skip Tutorial button",
+      "bad": "Locked overlay until finished",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:autocomplete",
+    "domain": "ux",
+    "name": "Autocomplete",
+    "keywords": "Search Autocomplete Web",
+    "summary": "Help users find results faster",
+    "modes": [],
+    "fields": {
+      "category": "Search",
+      "platform": "Web",
+      "do": "Show predictions as user types",
+      "dont": "Require full type and enter",
+      "good": "Debounced fetch + dropdown",
+      "bad": "No suggestions",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:no-results",
+    "domain": "ux",
+    "name": "No Results",
+    "keywords": "Search No Results Web",
+    "summary": "Dead ends frustrate users",
+    "modes": [],
+    "fields": {
+      "category": "Search",
+      "platform": "Web",
+      "do": "Show 'No results' with suggestions",
+      "dont": "Blank screen or '0 results'",
+      "good": "Try searching for X instead",
+      "bad": "No results found.",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:bulk-actions",
+    "domain": "ux",
+    "name": "Bulk Actions",
+    "keywords": "Data Entry Bulk Actions Web",
+    "summary": "Editing one by one is tedious",
+    "modes": [],
+    "fields": {
+      "category": "Data Entry",
+      "platform": "Web",
+      "do": "Allow multi-select and bulk edit",
+      "dont": "Single row actions only",
+      "good": "Checkbox column + Action bar",
+      "bad": "Repeated actions per row",
+      "severity": "Low"
+    }
+  },
+  {
+    "id": "ux:disclaimer",
+    "domain": "ux",
+    "name": "Disclaimer",
+    "keywords": "AI Interaction Disclaimer All",
+    "summary": "Users need to know they talk to AI",
+    "modes": [],
+    "fields": {
+      "category": "AI Interaction",
+      "platform": "All",
+      "do": "Clearly label AI generated content",
+      "dont": "Present AI as human",
+      "good": "AI Assistant label",
+      "bad": "Fake human name without label",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:streaming",
+    "domain": "ux",
+    "name": "Streaming",
+    "keywords": "AI Interaction Streaming All",
+    "summary": "Waiting for full text is slow",
+    "modes": [],
+    "fields": {
+      "category": "AI Interaction",
+      "platform": "All",
+      "do": "Stream text response token by token",
+      "dont": "Show loading spinner for 10s+",
+      "good": "Typewriter effect",
+      "bad": "Spinner until 100% complete",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:gaze-hover",
+    "domain": "ux",
+    "name": "Gaze Hover",
+    "keywords": "Spatial UI Gaze Hover VisionOS",
+    "summary": "Elements should respond to eye tracking before pinch",
+    "modes": [],
+    "fields": {
+      "category": "Spatial UI",
+      "platform": "VisionOS",
+      "do": "Scale/highlight element on look",
+      "dont": "Static element until pinch",
+      "good": "hoverEffect()",
+      "bad": "onTap only",
+      "severity": "High"
+    }
+  },
+  {
+    "id": "ux:depth-layering",
+    "domain": "ux",
+    "name": "Depth Layering",
+    "keywords": "Spatial UI Depth Layering VisionOS",
+    "summary": "UI needs Z-depth to separate content from environment",
+    "modes": [],
+    "fields": {
+      "category": "Spatial UI",
+      "platform": "VisionOS",
+      "do": "Use glass material and z-offset",
+      "dont": "Flat opaque panels blocking view",
+      "good": ".glassBackgroundEffect()",
+      "bad": "bg-white",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:auto-play-video",
+    "domain": "ux",
+    "name": "Auto-Play Video",
+    "keywords": "Sustainability Auto-Play Video Web",
+    "summary": "Video consumes massive data and energy",
+    "modes": ["operate"],
+    "fields": {
+      "category": "Sustainability",
+      "platform": "Web",
+      "do": "Click-to-play or pause when off-screen",
+      "dont": "Auto-play high-res video loops",
+      "good": "playsInline muted preload='none'",
+      "bad": "autoplay loop",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:asset-weight",
+    "domain": "ux",
+    "name": "Asset Weight",
+    "keywords": "Sustainability Asset Weight Web",
+    "summary": "Heavy 3D/Image assets increase carbon footprint",
+    "modes": [],
+    "fields": {
+      "category": "Sustainability",
+      "platform": "Web",
+      "do": "Compress and lazy load 3D models",
+      "dont": "Load 50MB textures",
+      "good": "Draco compression",
+      "bad": "Raw .obj files",
+      "severity": "Medium"
+    }
+  },
+  {
+    "id": "ux:feedback-loop",
+    "domain": "ux",
+    "name": "Feedback Loop",
+    "keywords": "AI Interaction Feedback Loop All",
+    "summary": "AI needs user feedback to improve",
+    "modes": [],
+    "fields": {
+      "category": "AI Interaction",
+      "platform": "All",
+      "do": "Thumps up/down or 'Regenerate'",
+      "dont": "Static output only",
+      "good": "Feedback component",
+      "bad": "Read-only text",
+      "severity": "Low"
+    }
+  },
+  {
+    "id": "ux:motion-sensitivity",
+    "domain": "ux",
+    "name": "Motion Sensitivity",
+    "keywords": "Accessibility Motion Sensitivity All",
+    "summary": "Parallax/Scroll-jacking causes nausea",
+    "modes": [],
+    "fields": {
+      "category": "Accessibility",
+      "platform": "All",
+      "do": "Respect prefers-reduced-motion",
+      "dont": "Force scroll effects",
+      "good": "@media (prefers-reduced-motion)",
+      "bad": "ScrollTrigger.create()",
+      "severity": "High"
+    }
+  }
+]

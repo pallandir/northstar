@@ -15,6 +15,8 @@ build/
 *.pem
 # Copied into the package at pack/publish time by the prepack script
 mcp/LICENSE.md
+mcp/NOTICE
+mcp/THIRD_PARTY_LICENSES.md
 
 # Firefox signing artifacts (web-ext writes these into the source dir)
 web-ext-artifacts/
@@ -49,12 +51,12 @@ yarn-error.log*
 .jensen/
 
 # Claude / AI assistant files and directories
-CLAUDE.md
+/CLAUDE.md
 CLAUDE.local.md
 .claude/
 .claudesync/
 .anthropic/
-.cursor/
+/.cursor/
 .cursorrules
 .cursorignore
 .aider*
@@ -63,9 +65,16 @@ CLAUDE.local.md
 .windsurfrules
 .codeium/
 .github/copilot-instructions.md
-AGENTS.md
-.mcp.json
+/AGENTS.md
+/.mcp.json
+!plugin/.mcp.json
 *.local.md
-DESIGN.md
+/DESIGN.md
 .playwright-mcp/
-examples/
+
+# Demo app local state and build output
+examples/**/.northstar/
+examples/**/dist/
+examples/**/node_modules/
+
+.codex/hooks.json.jensen.*.bak

@@ -1,8 +1,10 @@
+import { Globe } from "lucide-react";
+
 const sources = [
-  { id: "direct", label: "Direct", pct: 38, color: "#0d99ff" },
-  { id: "organic", label: "Organic search", pct: 27, color: "#14ae5c" },
-  { id: "social", label: "Social", pct: 21, color: "#d97757" },
-  { id: "referral", label: "Referral", pct: 14, color: "#9b7cf6" },
+  { id: "direct", label: "Direct", pct: 38, color: "#8839ef" },
+  { id: "organic", label: "Organic search", pct: 27, color: "#40a02b" },
+  { id: "social", label: "Social", pct: 21, color: "#fe640b" },
+  { id: "referral", label: "Referral", pct: 14, color: "#1e66f5" },
 ];
 
 // Nested one level inside DashboardPage, so a click here exercises a real component stack
@@ -11,7 +13,10 @@ export function TrafficSources() {
   return (
     <article className="card sources-card">
       <div className="card-head">
-        <h2 className="card-title">Traffic sources</h2>
+        <h2 className="card-title">
+          <Globe className="card-icon" size={16} aria-hidden="true" />
+          Traffic sources
+        </h2>
       </div>
       <table className="table sources-table">
         <thead>

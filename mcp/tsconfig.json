@@ -3,5 +3,5 @@
   "compilerOptions": {
     "types": ["node"]
   },
-  "include": ["src", "tests"]
+  "include": ["src", "scripts/*.ts", "scripts/gen"]
 }

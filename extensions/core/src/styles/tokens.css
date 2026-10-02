@@ -1,0 +1,77 @@
+:host {
+  color-scheme: light;
+
+  --latte-base: #eff1f5;
+  --latte-mantle: #e6e9ef;
+  --latte-crust: #dce0e8;
+  --latte-panel: #ffffff;
+  --latte-text: #4c4f69;
+  --latte-subtext0: #6c6f85;
+  --latte-overlay0: #9ca0b0;
+  --latte-surface0: #ccd0da;
+  --latte-surface1: #bcc0cc;
+  --latte-blue: #1e66f5;
+  --latte-green: #40a02b;
+  --latte-red: #d20f39;
+  --latte-peach: #fe640b;
+
+  --ns-bg: var(--latte-panel);
+  --ns-bg-sunken: var(--latte-base);
+  --ns-bg-hover: var(--latte-mantle);
+  --ns-bg-press: var(--latte-crust);
+  --ns-text: var(--latte-text);
+  --ns-text-muted: var(--latte-subtext0);
+  --ns-text-faint: var(--latte-overlay0);
+  --ns-line: var(--latte-surface0);
+  --ns-line-strong: var(--latte-surface1);
+
+  --ns-accent: var(--latte-blue);
+  --ns-accent-strong: #1a5ae0;
+  --ns-accent-soft: rgba(30, 102, 245, 0.1);
+  --ns-accent-fill: rgba(30, 102, 245, 0.08);
+  --ns-accent-ring: rgba(30, 102, 245, 0.15);
+  --ns-on-accent: #ffffff;
+
+  --ns-success: var(--latte-green);
+  --ns-warn: var(--latte-peach);
+  --ns-danger: var(--latte-red);
+  --ns-danger-strong: #b80d32;
+  --ns-danger-soft: rgba(210, 15, 57, 0.1);
+  --ns-scrim: rgba(76, 79, 105, 0.38);
+
+  --ns-shadow-sm: 0 1px 2px rgba(76, 79, 105, 0.12);
+  --ns-shadow: 0 0 0 1px rgba(76, 79, 105, 0.06), 0 4px 12px rgba(76, 79, 105, 0.12), 0 16px 36px
+    rgba(76, 79, 105, 0.16);
+  --ns-shadow-pin: 0 1px 3px rgba(76, 79, 105, 0.35), 0 4px 10px rgba(76, 79, 105, 0.2);
+  --ns-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ns-dur-state: 120ms;
+  --ns-dur-enter: 160ms;
+
+  --ns-s1: 4px;
+  --ns-s2: 8px;
+  --ns-s3: 12px;
+  --ns-s4: 16px;
+  --ns-s5: 20px;
+  --ns-s6: 24px;
+
+  --ns-radius-control: 8px;
+  --ns-radius-surface: 12px;
+  --ns-radius-pill: 999px;
+  --ns-control-h: 34px;
+
+  --ns-z-leader: 10;
+  --ns-z-hover: 20;
+  --ns-z-pin: 30;
+  --ns-z-toolbar: 40;
+  --ns-z-drawer: 50;
+  --ns-z-panel: 60;
+  --ns-z-modal: 70;
+
+  --ns-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ns-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ns-fs-xs: 12px;
+  --ns-fs-sm: 13px;
+  --ns-fs-md: 14px;
+  --ns-fs-base: 15px;
+  --ns-fs-lg: 16px;
+}

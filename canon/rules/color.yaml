@@ -1,0 +1,64 @@
+- id: NS-COLOR-PURE-BLACK
+  title: Pure black or white surfaces
+  stage: [system, polish]
+  severity: warn
+  allowable: true
+  detect: static
+  rationale: Pure black and pure white surfaces feel harsh. Neutrals tinted from the brand hue read as designed. A tint chosen arbitrarily for every subject is its own default, so derive it from the palette.
+  fix: Tint the neutral scale from the primary hue and reference tokens.
+  sources: [top-design, impeccable, frontend-design, taste-skill]
+
+- id: NS-COLOR-GRAY-ON-COLOR
+  title: Grey text on a coloured surface
+  stage: [polish]
+  severity: warn
+  allowable: true
+  detect: dom
+  rationale: Neutral grey over a coloured background looks washed out and often fails contrast.
+  fix: Tint the secondary text from the surface hue or the foreground colour.
+  sources: [impeccable]
+
+- id: NS-COLOR-PALETTE-SIZE
+  title: A small named palette with one accent
+  stage: [system, critique]
+  severity: warn
+  allowable: true
+  detect: advisory
+  params:
+    min_roles: 4
+    max_roles: 6
+  rationale: A compact palette of four to six named roles keeps the interface coherent. One accent carries emphasis, status colours are separate.
+  fix: Name each colour by role in DESIGN.md and remove one-off values.
+  sources: [frontend-design, impeccable, taste-skill]
+
+- id: NS-COLOR-RAW-VALUES
+  title: Raw colour values instead of tokens
+  stage: [compose, polish]
+  severity: warn
+  modes: { operate: error }
+  allowable: true
+  detect: static
+  rationale: When a design system exists, components use its tokens. Raw hex, rgb and arbitrary utility colours drift from the system.
+  fix: Replace the literal with the matching token or semantic utility.
+  sources: [shadcn-lint, ui-ux-pro-max]
+
+- id: NS-COLOR-THEME-CHOICE
+  title: Light or dark chosen from the use scene
+  stage: [direction]
+  severity: info
+  allowable: true
+  detect: advisory
+  rationale: Theme should follow who uses the product, where and under what light, not the product category.
+  fix: State the use scene in PRODUCT.md and derive the default theme from it. Support both when the audience varies.
+  sources: [impeccable]
+
+- id: NS-COLOR-DARK-PARITY
+  title: Light and dark themes keep the same hierarchy
+  stage: [system, critique]
+  severity: warn
+  modes: { read: info }
+  allowable: true
+  detect: advisory
+  rationale: A call to action that stands out in light must stand out in dark, and the brand colour must stay recognisable. A page that flips a few sections or was only checked in one theme looks broken in the other.
+  fix: Define semantic tokens with a value per theme, pick one theme strategy for the project, set the theme once at the root, and check every screen in both.
+  sources: [taste-skill, impeccable]

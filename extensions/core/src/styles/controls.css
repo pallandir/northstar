@@ -1,0 +1,229 @@
+@import "./tokens.css";
+
+.ns-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ns-s2);
+  box-sizing: border-box;
+  height: var(--ns-control-h);
+  padding: 0 14px;
+  border: 1px solid var(--ns-line);
+  border-radius: var(--ns-radius-control);
+  background: var(--ns-bg);
+  color: var(--ns-text);
+  font: inherit;
+  font-size: var(--ns-fs-md);
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: var(--ns-shadow-sm);
+  transition: background var(--ns-dur-state) var(--ns-ease), border-color var(--ns-dur-state)
+    var(--ns-ease), color var(--ns-dur-state) var(--ns-ease), transform 100ms var(--ns-ease);
+}
+.ns-btn:hover {
+  background: var(--ns-bg-hover);
+  border-color: var(--ns-line-strong);
+}
+.ns-btn:active {
+  background: var(--ns-bg-press);
+  transform: scale(0.98);
+}
+.ns-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ns-accent-ring);
+  border-color: var(--ns-accent);
+}
+.ns-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
+.ns-btn--primary {
+  background: var(--ns-accent);
+  border-color: var(--ns-accent);
+  color: var(--ns-on-accent);
+}
+.ns-btn--primary:hover {
+  background: var(--ns-accent-strong);
+  border-color: var(--ns-accent-strong);
+}
+.ns-btn--primary:active {
+  background: var(--ns-accent-strong);
+}
+
+.ns-btn--secondary {
+  background: var(--ns-accent-soft);
+  border-color: transparent;
+  color: var(--ns-accent);
+  box-shadow: none;
+}
+.ns-btn--secondary:hover {
+  background: var(--ns-accent-ring);
+  border-color: transparent;
+}
+
+.ns-btn--danger {
+  background: var(--ns-danger);
+  border-color: var(--ns-danger);
+  color: var(--ns-on-accent);
+}
+.ns-btn--danger:hover {
+  background: var(--ns-danger-strong);
+  border-color: var(--ns-danger-strong);
+}
+
+.ns-btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ns-text-muted);
+  box-shadow: none;
+}
+.ns-btn--ghost:hover {
+  background: var(--ns-bg-hover);
+  border-color: transparent;
+  color: var(--ns-text);
+}
+
+.ns-field {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--ns-line);
+  border-radius: var(--ns-radius-control);
+  background: var(--ns-bg);
+  color: var(--ns-text);
+  font: inherit;
+  font-size: var(--ns-fs-base);
+  line-height: 1.5;
+  outline: none;
+  transition: border-color var(--ns-dur-state) var(--ns-ease), box-shadow var(--ns-dur-state)
+    var(--ns-ease);
+}
+.ns-field::placeholder {
+  color: var(--ns-text-faint);
+}
+.ns-field:hover {
+  border-color: var(--ns-line-strong);
+}
+.ns-field:focus {
+  border-color: var(--ns-accent);
+  box-shadow: 0 0 0 3px var(--ns-accent-ring);
+}
+.ns-field:disabled {
+  background: var(--ns-bg-sunken);
+  color: var(--ns-text-faint);
+  cursor: not-allowed;
+}
+
+.ns-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--ns-bg-hover);
+}
+.ns-tab {
+  flex: 1;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ns-text-muted);
+  font: inherit;
+  font-size: var(--ns-fs-lg);
+  font-weight: 500;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: background var(--ns-dur-state) var(--ns-ease), color var(--ns-dur-state)
+    var(--ns-ease), box-shadow var(--ns-dur-state) var(--ns-ease);
+}
+.ns-tab:hover {
+  color: var(--ns-text);
+}
+.ns-tab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ns-accent-ring);
+}
+.ns-tab--active {
+  background: var(--ns-bg);
+  color: var(--ns-text);
+  box-shadow: var(--ns-shadow-sm), 0 0 0 1px var(--ns-line);
+}
+
+.ns-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ns-s3);
+  width: 100%;
+  padding: 6px 0;
+  border: none;
+  background: transparent;
+  color: var(--ns-text);
+  font: inherit;
+  font-size: var(--ns-fs-md);
+  text-align: left;
+  cursor: pointer;
+}
+.ns-switch-row:focus-visible {
+  outline: none;
+}
+.ns-switch-row:focus-visible .ns-switch {
+  box-shadow: 0 0 0 3px var(--ns-accent-ring);
+}
+.ns-switch {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 20px;
+  border-radius: var(--ns-radius-pill);
+  background: var(--ns-line-strong);
+  transition: background var(--ns-dur-state) var(--ns-ease), box-shadow var(--ns-dur-state)
+    var(--ns-ease);
+}
+.ns-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(76, 79, 105, 0.35);
+  transition: transform var(--ns-dur-state) var(--ns-ease);
+}
+.ns-switch-row[aria-pressed="true"] .ns-switch {
+  background: var(--ns-accent);
+}
+.ns-switch-row[aria-pressed="true"] .ns-switch::after {
+  transform: translateX(16px);
+}
+
+.ns-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--ns-radius-control);
+  background: transparent;
+  color: var(--ns-text-muted);
+  cursor: pointer;
+  transition: background var(--ns-dur-state) var(--ns-ease), color var(--ns-dur-state)
+    var(--ns-ease);
+}
+.ns-icon-btn:hover {
+  background: var(--ns-bg-hover);
+  color: var(--ns-text);
+}
+.ns-icon-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ns-accent-ring);
+}

@@ -1,0 +1,53 @@
+- id: NS-COPY-CTA-VERB
+  title: Vague action labels
+  stage: [polish]
+  severity: warn
+  allowable: true
+  detect: static
+  params:
+    vague: [Submit, Click here, OK, Go, Learn more]
+  rationale: A control names exactly what happens when it is used, and keeps that name through the flow, so Publish leads to a message that says Published.
+  fix: Use a plain verb phrase that names the outcome, in sentence case.
+  sources: [frontend-design]
+
+- id: NS-COPY-ERROR
+  title: Errors that do not name the problem and the recovery
+  stage: [polish]
+  severity: warn
+  allowable: true
+  detect: advisory
+  rationale: Failure states explain what went wrong and how to fix it, in the interface's voice and without apology.
+  fix: State the problem, the cause if known, and the next action.
+  sources: [frontend-design, impeccable]
+
+- id: NS-COPY-FILLER
+  title: Generic marketing filler and placeholder text
+  stage: [compose, polish]
+  severity: warn
+  allowable: true
+  detect: static
+  params:
+    phrases: [Lorem ipsum, Unlock the power, Seamless, Supercharge, Elevate your, Revolutionize, Next generation, All in one platform, Unleash, Cutting edge, Game changing]
+  rationale: Copy makes a design feel templated as much as the visuals do. Write what the product is and does in plain, specific words.
+  fix: Replace with real content from PRODUCT.md, or ask for it.
+  sources: [frontend-design, impeccable, taste-skill]
+
+- id: NS-COPY-EMPTY-STATE
+  title: Empty screens without direction
+  stage: [compose, polish]
+  severity: warn
+  allowable: true
+  detect: advisory
+  rationale: An empty state is an invitation to act and should say what belongs here and how to add it.
+  fix: Add a short explanation and a primary action.
+  sources: [frontend-design, impeccable, taste-skill]
+
+- id: NS-COPY-PLACEHOLDER-DATA
+  title: Placeholder names and fake round statistics
+  stage: [compose, polish]
+  severity: warn
+  allowable: true
+  detect: advisory
+  rationale: John Doe, Acme, a person icon as an avatar and perfect figures such as 99.99% or 50% mark a page as generated. Real or realistically messy data makes a design believable and exposes layout problems that tidy samples hide.
+  fix: Use real data from PRODUCT.md or realistic, locale appropriate names and uneven figures, and label anything invented as sample data.
+  sources: [taste-skill]

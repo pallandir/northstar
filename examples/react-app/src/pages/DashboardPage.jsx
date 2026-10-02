@@ -1,10 +1,25 @@
+import { Activity, BadgePercent, DollarSign, Receipt, TrendingUp, Users } from "lucide-react";
 import { TrafficSources } from "../components/TrafficSources.jsx";
 
 const kpis = [
-  { id: "revenue", label: "Total revenue", value: "$48,200", delta: "+12.4%", up: true },
-  { id: "users", label: "Active users", value: "1,284", delta: "+3.1%", up: true },
-  { id: "churn", label: "Churn rate", value: "2.1%", delta: "-0.4%", up: true },
-  { id: "convert", label: "Conversion", value: "4.7%", delta: "-1.2%", up: false },
+  {
+    id: "revenue",
+    icon: DollarSign,
+    label: "Total revenue",
+    value: "$48,200",
+    delta: "+12.4%",
+    up: true,
+  },
+  { id: "users", icon: Users, label: "Active users", value: "1,284", delta: "+3.1%", up: true },
+  { id: "churn", icon: Activity, label: "Churn rate", value: "2.1%", delta: "-0.4%", up: true },
+  {
+    id: "convert",
+    icon: BadgePercent,
+    label: "Conversion",
+    value: "4.7%",
+    delta: "-1.2%",
+    up: false,
+  },
 ];
 
 const months = [
@@ -42,9 +57,12 @@ export function DashboardPage() {
       </header>
 
       <section className="kpis">
-        {kpis.map((kpi) => (
+        {kpis.map(({ icon: Icon, ...kpi }) => (
           <article key={kpi.id} className="card kpi">
-            <span className="kpi-label">{kpi.label}</span>
+            <span className="kpi-label">
+              <Icon className="card-icon" size={16} aria-hidden="true" />
+              {kpi.label}
+            </span>
             <strong className="kpi-value">{kpi.value}</strong>
             <span className={`kpi-delta${kpi.up ? " kpi-delta--up" : " kpi-delta--down"}`}>
               {kpi.delta}
@@ -56,7 +74,10 @@ export function DashboardPage() {
       <section className="panels">
         <article className="card chart-card">
           <div className="card-head">
-            <h2 className="card-title">Revenue by month</h2>
+            <h2 className="card-title">
+              <TrendingUp className="card-icon" size={16} aria-hidden="true" />
+              Revenue by month
+            </h2>
             <span className="card-hint">Last 6 months</span>
           </div>
           <div className="chart">
@@ -84,7 +105,10 @@ export function DashboardPage() {
 
       <section className="card table-card">
         <div className="card-head">
-          <h2 className="card-title">Recent orders</h2>
+          <h2 className="card-title">
+            <Receipt className="card-icon" size={16} aria-hidden="true" />
+            Recent orders
+          </h2>
           <button className="link-btn" type="button">
             View all
           </button>

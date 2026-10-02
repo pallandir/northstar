@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Northstar options</title>
+    <link rel="stylesheet" href="./options.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Northstar</h1>
+      <p id="helper" class="status" role="status">Checking the Northstar helper.</p>
+
+      <section>
+        <h2>Send to AI</h2>
+        <label for="agent">Preferred agent</label>
+        <select id="agent"></select>
+        <p class="hint">Used when more than one session runs in the same project.</p>
+
+        <label for="template">What the agent is asked to do</label>
+        <select id="template"></select>
+        <p class="hint">Northstar types one fixed line for the template you pick. Your comments are read by the agent through MCP, never typed.</p>
+      </section>
+
+      <section>
+        <h2>Sites and projects</h2>
+        <p class="hint">Map a site to the project that should receive what you send from it. Use a host with an optional port or path, for example localhost:5173 or github.com/acme/backend.</p>
+        <ul id="projects"></ul>
+        <form id="add" autocomplete="off">
+          <input id="key" name="key" placeholder="localhost:5173" aria-label="Site" required />
+          <input id="directory" name="directory" placeholder="/Users/you/projects/app" aria-label="Project directory" required />
+          <button type="submit">Add mapping</button>
+        </form>
+      </section>
+
+      <p id="message" class="status" role="alert" hidden></p>
+    </main>
+    <script type="module" src="./options.ts"></script>
+  </body>
+</html>

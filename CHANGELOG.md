@@ -4,6 +4,444 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.6.1] - 2026-10-02
+
+### Fixed
+
+- The toolbar no longer says the helper does not allow the extension for an unpacked
+  build. Northstar finds the Northstar builds loaded in Chrome and allows them when
+  the daemon starts and on install. The helper launcher is never rewritten at runtime.
+- The design gate no longer blocks an edit that answers an open browser comment. It
+  still blocks every other UI edit until DESIGN.md is ready.
+- Send to AI no longer fails with "the agent did not start" for an assistant it cannot
+  write to. It says the assistant is open but not writable and offers **Copy the line**.
+
+### Added
+
+- **`northstar listen`**, a command that blocks until Send to AI is clicked, then prints
+  the template line and the open comment summaries. It is how any assistant, in any
+  terminal or editor, connects without the PTY wrapper, the way Impeccable's live mode
+  polls. Claude Code runs it as a background task. A send while the assistant is busy is
+  queued and returned by the next listen.
+
+- An assistant starting now also allows an unpacked extension build, so a running daemon
+  no longer keeps refusing a newly loaded build. The design gate exemption also finds
+  open comments in the project folder when the hook root is the repository root.
+
+### Changed
+
+- **Two MCP servers.** `northstar` carries the design tools and `northstar-comments`
+  carries the tools that apply browser comments (`list_comments`, `get_comment`,
+  `resolve_comment`, `resolve_comments`, `defer_comment`, `list_deferred`,
+  `clear_resolved`). `northstar install` registers both for every agent, and
+  `northstar serve comments` starts the second one. Restart an open assistant once to
+  pick up the second server.
+- **One action when Northstar cannot write to your assistant: Copy the line.** It copies
+  a start line that makes the assistant run `northstar listen`, saves your queued comments
+  first, and works before the first comment too. Send to AI is enabled once an assistant
+  listens, and says "Your assistant is working" while it handles a batch.
+- `northstar install` wraps every known agent in your shell (zsh, bash, fish) so plain
+  `claude` and `codex` start in a session Send to AI can write to. `--no-shell` skips it
+  and `northstar agent add` extends it.
+- The comments server starts the daemon and reconnects when it restarts.
+- `northstar doctor` reports unpacked builds that are not allowed yet.
+
+### Removed
+
+- The markdown mirrors `design-comments.md` and `northstar-deferred.md`. The store is
+  JSON only, and the old mirror files are deleted the next time the store writes.
+- **Quick run**, the `quickrun.execute` action, `--quick-run` and the session kind. It
+  started a headless assistant that never loaded the comments.
+
+## [2.6.0] - 2026-10-02
+
+Northstar can now look at the page it helps design. It renders your running app in
+headless Chrome, measures the real DOM and styles, ranks what is wrong, plans the
+repair and checks that the repair helped. It can also find references and turn them
+into a direction. All of it is optional: without Google Chrome the new tools say so
+and everything else works as before.
+
+### Added
+
+- **`page_audit`**: renders a URL at mobile and desktop, runs 20 page rules against
+  the real page (competing primary actions, nested cards, card grids, contrast, focus,
+  target size, semantics, overflow, type scale, heading order, line length, small
+  text, alignment, centred layouts, the default centred hero, icon tiles, gradients,
+  palette size and drift from the direction), ranks the findings by impact, returns
+  crops and saves a run with a repair plan.
+- **`page_capture`** and **`page_compare`**: screenshots by region, and a comparison of
+  two runs with resolved and introduced findings, changed pixels and moved regions.
+  A repair that introduces a worse finding than it resolved is reported as regressed.
+- **A bounded audit loop**: four audits per page, then `design_report` writes the
+  evidence (areas, unresolved observations with confidence, changes, iterations and
+  READY or NOT READY) and logs it in `design/decisions.md`.
+- **References and direction**: `design_intent`, `references_search` (Dribbble,
+  Pinterest, Awwwards, with sign in walls reported and never bypassed),
+  `references_add`, `references_record` and `design_direction`. Design DNA is measured
+  from a page or recorded from an image, and the direction takes each dimension from the
+  reference that fits the intent.
+- `northstar audit <url>` and `northstar capture <url>`, and a `chrome` line in
+  `northstar doctor` that is information, never a failure.
+
+### Changed (breaking)
+
+- **Every tool is always available.** The tool packs, `enable_packs`, `pack_call`,
+  `NORTHSTAR_PACKS` and `northstar install --packs` are gone. A server started with
+  `NORTHSTAR_PACKS` set stops and says to delete it, and `northstar install` rewrites the
+  server entry without it.
+- **Three tools merged into their neighbours.** `explain_rule` is `canon_read` with
+  `rule:<id>` (a bare rule id works too), `design_get` is `design_search` with `id`, and
+  `ui_audit` is `slop_scan` with `inventory` true. `resolve_*`, `design_md_*`,
+  `critique_rubric` and `record_critique` keep their own tools because their inputs differ.
+- `northstar_context` reports whether Chrome was started for the page tools and the
+  state of the audit loop, and no longer lists packs.
+
+### Changed
+
+- **Internal layout.** The `packages/` workspaces are folded into `mcp/` (detector,
+  design-md, data and the install plans) and the wire contract moved to `protocol/`.
+  Every test now lives in the root `tests/` folder, `*.test.ts` on node:test and
+  `*.spec.ts` on vitest, and shared dev dependencies are installed once at the root.
+- The hand copied `integrations/` folder is removed. `northstar install` is the way to
+  configure an agent.
+- The daemon core is split into workspace, comment actions and sending modules.
+
+### Fixed
+
+- A choice prompt drawn inside a box and followed by a hint line, such as a permission
+  dialog, was not recognised as a prompt, so Send to AI could write into it.
+- The terminal is restored to cooked mode whenever the wrapper process exits.
+- Dead exports and files found by knip are removed, and `knip` runs from the root.
+- A contrast failure whose background was read from the pixels and disagrees with the page's own styles is reported with lower confidence, and only a confident error blocks the audit loop or turns the report to NOT READY.
+- Page audits no longer keep the command line alive for two minutes after the answer.
+
+## [2.5.0] - 2026-10-02
+
+Send to AI no longer pushes into an agent or types into someone else's terminal.
+Northstar now starts the agent itself, in a pseudo terminal it owns, and that terminal
+is the only thing a send can write into. The browser reaches Northstar through Chrome
+and Firefox Native Messaging, so there is no local web server and no pairing.
+
+### Changed (breaking)
+
+- **Start your agent with `northstar run <agent>`**, or run `northstar shell install`
+  once so plain `claude`, `codex` and the rest do it for you. An agent started any other
+  way has no session, and Send to AI says so and how to fix it.
+- **Delivery is automatic.** Northstar waits until the agent is idle, writes one fixed
+  line and presses Enter. It stops and tells you in the toolbar, with the reason and the
+  fix, when the agent is waiting on a prompt, has text in its input, never goes quiet,
+  or did not read the comments in 20 seconds.
+- **Protocol 5.** The extension talks to `northstar native-host` over a single
+  Native Messaging port, the host talks to a new daemon over a Unix socket that only the
+  user can open, and every message is checked against a fixed list of actions.
+- The extension asks for two new permissions, `nativeMessaging` and `contextMenus`.
+  Chrome disables an installed extension on update until the user accepts the new
+  warning.
+- `northstar install` also registers the browser helper for Chrome and Firefox, so the
+  package should be installed globally. Pass `--no-host` to skip it and
+  `--allow-extension <id>` for an unpacked Chrome build.
+- Only Chrome and Firefox are supported. Edge, Brave and Arc are not registered.
+
+### Added
+
+- `northstar run`, `sessions`, `agent`, `shell`, `config` and `daemon`, and a
+  local daemon that keeps the sessions, routes a send and holds the broker state.
+- Any terminal program works as an agent. Claude Code, Codex, Gemini CLI, OpenCode,
+  Aider and Goose are built in, and `northstar agent add` registers your own.
+- Several sessions at once, with a picker in the toolbar, a preferred agent, and site to
+  project mappings set on the new extension options page.
+- A right click menu and a keyboard shortcut (`Alt+Shift+A`, changeable in the
+  browser's extension shortcut settings) that send selected text, stored as a comment, to
+  the mapped project.
+- Six fixed templates (resolve, implement, explain, fix, review, add to task) that
+  change what the agent is asked to do. The line written is always one of them.
+- **Copy the line** and **Quick run**, offered, never automatic, when no session runs.
+- `northstar doctor` checks the browser helper, the pseudo terminal module, the daemon
+  and the shell integration.
+
+### Removed
+
+- The Claude Code channel and the `--dangerously-load-development-channels` flag.
+- The tmux, WezTerm, kitty, iTerm2 and Terminal.app drivers, and with them the
+  Accessibility and Automation permissions and `NORTHSTAR_TERMINAL` and
+  `NORTHSTAR_INJECT`.
+- The local HTTP server, the three ports, `NORTHSTAR_PORT`, the pairing page, the
+  pairing token and the **Connect** button.
+
+## [2.4.1] - 2026-10-01
+
+### Changed
+
+- **Protocol 4.** Send to AI wakes the assistant by exactly one path, with no
+  fallback. Claude Code gets a channel event and Codex and Gemini CLI get one fixed
+  line typed into their terminal. The server confirms the agent called
+  `list_comments` within 20 seconds and reports the real outcome, with a reason and a
+  fix when it did not. `POST /comments` no longer triggers a handoff, `POST /handoff`
+  does, and `/status` reports agent readiness and the open comment count. Send is
+  disabled with the exact fix when the agent cannot be woken, and works whenever
+  comments are open on the server.
+- The extension binds a page to the running server whose project root contains the
+  page's source files, through the new token protected `POST /owns`, and ignores
+  servers on another protocol version.
+
+### Added
+
+- WezTerm and kitty terminal drivers, so typing works on Linux and macOS.
+- Every pane, window and tty id is validated before use, and drivers accept only the
+  fixed handoff line.
+
+### Removed
+
+- The 8 second typed fallback after a channel push, and the Claude Code slash command
+  typing path.
+
+## [2.4.0] - 2026-10-01
+
+Northstar becomes a design engine. The first test of the framework produced a clean
+pricing page that still looked like a default: Tailwind slate and blue, one flat
+radius, no depth, no pressed states. This release changes what gets proposed, not
+only what gets banned.
+
+### Added
+
+- **Archetypes.** Twelve style recipes in `canon/archetypes.yaml`: minimalist, soft,
+  warm, precise, technical, dense data, editorial, swiss, brutalist, bold, playful and
+  luxury. Each sets hue, neutral temperature, shape, density, motion feel, fonts, a
+  depth model and layout moves. Two can be blended, and the secondary may lend its
+  surfaces, type or motion but never the mode, density or accessibility floor.
+- **Token generator.** `design_tokens_generate` builds a complete `DESIGN.md` from an
+  archetype and an optional brand colour: a tinted OKLCH neutral ramp, accent and
+  status colours, light and dark themes, layered shadows, radii that nest, spacing, a
+  type scale with tracking and motion tokens. Contrast is solved for every pair, and
+  a pair that cannot pass stops the run with a fix. A supplied brand colour is kept
+  exactly as given when it passes contrast, and only derived, with a note saying why,
+  when it does not. The accent stays out of the purple band.
+- **Exports.** CSS, Tailwind and DTCG output now carries shadows, motion tokens and
+  the dark theme.
+- **Finish layer.** New references for finish and interaction, a rewritten motion
+  reference with duration and easing values, `refine` as a full protocol, and
+  `archetypes`. A new `finish` dimension in the critique rubric, with the weights
+  rebalanced for every mode.
+- **Eleven detector checks.** `100vh` for full height, a single black shadow, a
+  button with a hover and no pressed state, ungated hover transforms, prices without
+  tabular numerals, headings without balanced wrapping, huge `z-index` values, pale
+  saturated borders, `ease-in`, `scale(0)` entrances and transitions over 300ms. The
+  default palette rule now spots colours taken straight from the Tailwind defaults.
+  All of them are warnings or notes. The canon has 68 rules and 13 resolved conflicts.
+- **`ui_audit`.** Counts the colours, radii, shadows, sizes, spacing, z indexes and
+  durations in existing code, lists the drift from `DESIGN.md` and orders the fixes.
+- **Smart search.** `canon_find` and `canon_read` search 178 reference sections, the
+  rules, archetypes and conflicts inside a token budget, with synonyms, typo
+  correction and a boost for the current stage. A small index is served as
+  `northstar://canon/index` and shipped as `references/INDEX.md`.
+- **Skill family.** Four short workflow skills join the core skill:
+  `northstar-build`, `northstar-refine`, `northstar-finish` and `northstar-review`.
+  The new prompts are `build`, `refine` and `finish`.
+- Attribution for make-interfaces-feel-better, Emil Kowalski's skills and the Vercel
+  Web Interface Guidelines, all MIT, in `NOTICE`.
+
+### Changed
+
+- `design_system_propose` now picks an archetype from the brief and generates the
+  tokens instead of seeding a draft from the first palette it finds.
+- The core skill no longer lists every reference. It points to the index and to
+  `canon_find`, which keeps the context small.
+- `northstar install` writes five skill folders, and `doctor` and `uninstall` handle
+  each one. `northstar conflicts` also finds taste, make-interfaces-feel-better and
+  emil-design-eng style skills.
+- The `NS-LAYOUT-VIEWPORT-HEIGHT` rule moved from advisory to a static check.
+- The README is rewritten around the engine and the loop between engineers and
+  designers.
+
+## [2.3.0] - 2026-10-01
+
+A production hardening release. It fixes Save, pins that leaked between pages and pins
+that vanished on reload, makes every failure visible, and pairs the browser with the
+server through a token.
+
+### Breaking
+
+- **The browser pairs with the server through a token.** The server creates a random
+  secret at `~/.northstar/token` on first start. The toolbar shows **Connect** when it
+  has no token or the server answers 401. One click opens a page served by your own
+  server, **Allow** hands the token to the extension, and the tab closes. Every route
+  except the health check and the pairing page now needs it. Every existing user
+  connects once after upgrading.
+- **Removed extension id pinning.** The `NORTHSTAR_EXTRA_ORIGINS` environment variable
+  and the `--extension-id` option of `northstar install` are gone. Any
+  `chrome-extension://` or `moz-extension://` origin is accepted once it has the
+  token, so locally built extensions need no configuration.
+- **Protocol 3.** `/health` reports `protocol: 3`, and the extension and the server
+  refuse each other on a mismatch with a message naming the older side. Every comment
+  must carry a `cid`, and `GET /comments` requires a `page` key. The legacy
+  acceptance paths are removed.
+
+### Fixed
+
+- **Save now stores the comment.** The page probe could throw while answering
+  synchronously, which left the save waiting forever. The probe is fixed and the save
+  result is checked, so the toolbar says Saved or shows the error.
+- **Pins stay on the page they belong to.** They are cleared when the URL changes and
+  matched by a page key, so pins from one route no longer snap onto another in a
+  single page app.
+- **Pins survive a reload.** A tab that was on stays on after a reload. Loopback pages
+  are restored without a click, and remote pages show that a click restores them.
+- Send, the queued count and Delete all are scoped to the tab's own site.
+
+### Changed
+
+- **Failures are loud.** Fallbacks and swallowed errors were removed across the server,
+  the detector, the installer and the extension. A rejected comment stays queued with
+  its reason, a corrupt store stops with an error that names the file, a failing hook
+  exits non zero with a message, and when every port is busy the server says so.
+  Every HTTP error is JSON with an `error` sentence and a `fix` sentence.
+- **Strict validation.** A bad field rejects the comment with a reason naming the
+  field, with no stripping and no nulling.
+- **The design canon gained taste-skill.** A one line design read before code, three
+  taste dials for design variance, motion intensity and visual density, asked as one
+  question and recorded in the `DESIGN.md` prose, soft, minimalist and brutalist
+  direction archetypes, a redesign audit order, a pre flight checklist and dark mode
+  parity. New rules cover dynamic viewport height, placeholder names and fake round
+  statistics, and dark mode parity, and the cliche copy list grew. Scroll hijacking is
+  informational in Experience mode so the opt in can be enforced. The canon has 57
+  rules and 10 resolved conflicts, with attribution in `NOTICE`.
+- **A Figma guide.** When the designer wants the system from Figma and the official
+  Figma MCP tools are not installed, the agent stops and shows the install commands for
+  Claude Code, Codex, Cursor and VS Code. With them, it reads the variables and passes
+  them to `design_md_normalize`.
+- The tool count in the docs is now 24 tools and 9 prompts, `docs/agents.md` exists,
+  and the security, releasing, contributing and store texts describe the current model.
+
+### Tooling
+
+- `scripts/check-versions.mjs` fails when versions differ across the repo. CI and the
+  npm publish workflow run it, and publishing also runs the typecheck, tests,
+  `gen:check` and `check:pack` first.
+- CI tests on Node 20 and 22 and builds the Chromium extension.
+- Root `npm run dev` runs every watcher in parallel.
+- Commit scopes now include `packages`, `protocol`, `integrations` and `scripts`.
+
+## [2.2.0] - 2026-10-01
+
+Northstar is now a UI design advisory framework for AI agents, with the browser
+comment channel as its feedback loop. The extension and the comment tools are
+unchanged.
+
+### Added
+
+- **The Northstar method and canon.** Six stages (brief, direction, system, compose,
+  critique, polish), four modes, 53 rules and an arbitration order that settles the
+  conflicts between impeccable, ui-ux-pro-max, frontend-design and top-design. The
+  canon is distilled, not copied, with attribution in `NOTICE`.
+- **A router skill and references that load on demand**, a read only critic agent,
+  and prompts for each stage. The canon is also served as MCP resources.
+- **Tool packs.** The core and comments packs are always on. Research, system,
+  resolve, detect and critique are enabled per stage, with `tools/list_changed` and a
+  `pack_call` fallback. New tools include `northstar_context`, `design_search`,
+  `design_md_normalize`, `design_md_validate`, `design_md_export`,
+  `design_system_propose`, `resolve_library`, `resolve_font`, `resolve_icon`,
+  `slop_scan`, `explain_rule`, `critique_rubric` and `record_critique`.
+- **DESIGN.md tooling.** Turn any freeform direction into a validated `DESIGN.md`,
+  check WCAG contrast, and export to CSS variables, a Tailwind v4 theme or DTCG.
+- **Curated design data** ported from ui-ux-pro-max with BM25 search, with rows that
+  contradict the canon removed or annotated.
+- **A static detector** with 34 checks, available as `northstar detect`, as the
+  `slop_scan` tool and as an edit hook. It outputs text, JSON or SARIF.
+- **`northstar install`, `uninstall` and `doctor`** for Claude Code, Codex, Cursor,
+  Gemini CLI and OpenCode, with dry runs, backups and exact reversal.
+- **`northstar conflicts`** finds overlapping design skills and moves them to a
+  quarantine you can restore.
+- **`northstar init`** scaffolds `DESIGN.md`, `PRODUCT.md` and `design/decisions.md`.
+- **Design aware comment handoffs.** A comment now carries the relevant tokens,
+  libraries, mode and rules, and the files an agent edits are scanned when it
+  resolves the comment.
+
+- **Agents now write DESIGN.md before any UI code.** The skill, the always on context
+  snippet, the server instructions and every stage prompt say so, and
+  `northstar_context` returns a `gate` field that stays closed until `DESIGN.md` exists,
+  parses, has no placeholders and names a mode. In Claude Code a `PreToolUse` hook
+  denies edits to UI source files (`.tsx`, `.jsx`, `.vue`, `.svelte`, `.astro`, `.html`
+  and CSS) in UI projects until the gate opens. Other agents are reminded after each
+  edit. Test files, plain `.ts` and `.js`, the design documents themselves and non UI
+  projects are never blocked. `NORTHSTAR_GATE=off` disables it for a session and
+  `install --no-gate` leaves the hook out.
+- **A deactivate button in the toolbar.** The power button at the end of the toolbar
+  turns Northstar off for the tab and keeps your comments. It sits behind its own
+  separator so it is not hit by accident next to Delete all comments.
+- **Clearer tooltips on every toolbar control.** The pick toggle and the comments button
+  say what the next click does, Send explains why it is disabled and counts what it
+  will send, icon only buttons have accessible names, and the tooltips at either end of
+  the toolbar no longer run off screen or get cut off near the top of the window.
+
+### Changed
+
+- **The project is now MIT licensed**, previously PolyForm Noncommercial. Versions
+  published before this release keep the license they were published under.
+- The server's always on instructions are about 90 words. The comment handling steps
+  moved into the `resolve-comments` prompt.
+- The MCP SDK requirement is `^1.29.0` and tools use `registerTool`.
+
+### Fixed
+
+- **Pressing Enter in the comment box now saves the comment.** It used to do nothing
+  unless Cmd or Ctrl was held, so a typed comment was lost when the popover closed.
+  Shift+Enter adds a new line, and the popover hint now says how to save.
+- **The comment popover no longer runs off the right edge of the window.** Its padding
+  was not counted in its width, so it overflowed by 32 pixels and could hide the Save
+  button and the Colour tab near the edge.
+- The server no longer exits when all of ports 7474 to 7476 are busy. It keeps
+  serving MCP and logs that ingest is disabled.
+
+## [2.1.0] - 2026-10-01
+
+A new overlay and a tighter agent loop. **Send to AI** still starts all work, and
+the assistant still sits idle until then: no watch mode and no polling.
+
+### Added
+
+- **A `resolve-comments` MCP prompt.** In Claude Code, `/mcp__northstar__resolve-comments`
+  lists the open comments, fetches each one, implements it at the located place and
+  resolves it with a note and the files it changed. The typed fallback now sends
+  exactly that line to Claude Code. The server must be registered as `northstar`.
+- **A `get_comment` tool that claims a comment.** An open comment becomes
+  `in_progress` when fetched, so a repeated trigger finds nothing open and says so.
+- **Optional Claude Code channel push.** The server declares the `claude/channel`
+  capability and pushes the resolve request when the client supports it. If no
+  `list_comments` or `get_comment` call follows within 8 seconds, the terminal
+  handoff runs instead.
+- **A "Where to look" list per comment.** Each comment now lists its locations in
+  order of reliability, with suggested `rg` searches, and its text is fenced and
+  labelled as data. The ingest schema accepts optional v2 fields: `schemaVersion`,
+  `intent`, `locate`, `page` and `element`.
+- **Per item results from `POST /comments`.** The reply carries `accepted`,
+  `rejected` and `typed`, an optional per item `cid` makes retries idempotent, and
+  the legacy `ids` field is still returned so a 2.0 extension keeps working.
+- **Resolution records.** `resolve_comment` and `resolve_comments` accept a `note`
+  and `files`, stored with the time of resolution.
+
+### Changed
+
+- **`list_comments` is compact by default.** It returns one line per open comment
+  unless a status is given. Use `get_comment` for full detail.
+- **Clicking the toolbar icon toggles the overlay.** The popup is gone.
+- **Origin checks are stricter.** A `null` Origin is rejected, a missing Origin is
+  allowed only for `GET /health`, and Chrome extension origins must be the published
+  extension id or listed in `NORTHSTAR_EXTRA_ORIGINS`, comma separated. Any
+  `moz-extension://` origin is still allowed.
+- **Oversized or malformed values are trimmed instead of rejected.** Long text is
+  truncated, array route params are joined and non finite numbers are dropped.
+- **The release guide lists all seven version sites** and documents that pushing a
+  `v*` tag submits to AMO and publishes to npm.
+
+### Fixed
+
+- **The AMO workflow never ran.** `publish-firefox.yml` had invalid indentation.
+- **A corrupt `design-comments.json` was silently wiped.** It is now backed up to
+  `design-comments.json.bak-<timestamp>`.
+- **Screenshots were left behind** when comments were cleared. They are now deleted.
+- **A stray backup file leaked into the AMO source archive.** It is untracked and
+  ignored.
+
 ## [2.0.0] - 2026-09-15
 
 A rework around a single idea: **Send to AI** is the only thing that starts work.
@@ -31,9 +469,9 @@ comment now names its own route, component and source.
   `component`, `route` and `target` alongside `source`, validated by strict zod
   schemas server-side; a client sending the old shape gets a clean `400` rather
   than a comment that silently lacks them.
-- **BREAKING: the repo splits into `mcp/` and `extension/{core,chromium,firefox}`.**
+- **BREAKING: the repo splits into `mcp/` and `extensions/{core,chromium,firefox}`.**
   `mcp-server/` becomes `mcp/`. The extension's source lives once, in
-  `extension/core/`; `extension/chromium/` and `extension/firefox/` hold only a
+  `extensions/core/`; `extensions/chromium/` and `extensions/firefox/` hold only a
   manifest, a Vite config and a store listing each, so a fix lands in both
   builds together instead of drifting between two copies.
 - **The three-chip action menu becomes one popover.** Clicking an element used to

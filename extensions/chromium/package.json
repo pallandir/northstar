@@ -1,0 +1,17 @@
+{
+  "name": "@northstar/chromium",
+  "version": "2.6.1",
+  "description": "Chromium MV3 build target for the Northstar extension.",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "package": "npm run build && cd dist && zip -qr -FS ../northstar-chrome.zip . -x '*.DS_Store' '*.map' && cd ..",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.6.1"
+  }
+}

@@ -1,0 +1,45 @@
+export const AGENT_NAMES = ["claude", "codex", "cursor", "gemini", "opencode"] as const;
+export type AgentName = (typeof AGENT_NAMES)[number];
+export type Scope = "user" | "project";
+
+export interface PlanContext {
+  agent: AgentName;
+  scope: Scope;
+  home: string;
+  project: string;
+  version: string;
+  snippet: string;
+  critic: string;
+  launch?: { command: string; args: string[] };
+  gate?: boolean;
+  plugin?: boolean;
+}
+
+type Cmd = [string, ...string[]];
+
+export type Op =
+  | {
+      kind: "merge";
+      path: string;
+      label: string;
+      apply(existing: string | undefined): string;
+      remove(existing: string): string;
+    }
+  | { kind: "file"; path: string; label: string; content: string }
+  | { kind: "skill"; name: string; path: string; label: string }
+  | { kind: "command"; label: string; reset?: Cmd; run: Cmd; undo: Cmd };
+
+export interface AgentPlan {
+  agent: AgentName;
+  ops: Op[];
+  notes: string[];
+}
+
+export const PACKAGE = "@pallandir/northstar";
+export const SERVERS = [
+  { name: "northstar", serve: [] as string[] },
+  { name: "northstar-comments", serve: ["serve", "comments"] },
+] as const;
+
+export const serverLabel = (name: string): string =>
+  name === "northstar" ? "MCP server" : `MCP server ${name}`;

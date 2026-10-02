@@ -1,0 +1,2903 @@
+[
+  {
+    "id": "reasoning:saas-general",
+    "domain": "reasoning",
+    "name": "SaaS (General)",
+    "keywords": "Hero + Features + CTA Trust blue + Accent contrast Professional + Hierarchy",
+    "summary": "Hero + Features + CTA. {\"if_ux_focused\": \"prioritize-minimalism\", \"if_data_heavy\": \"add-glassmorphism\"}",
+    "modes": ["operate"],
+    "fields": {
+      "pattern": "Hero + Features + CTA",
+      "stylePriority": "Glassmorphism + Flat Design",
+      "colorMood": "Trust blue + Accent contrast",
+      "typographyMood": "Professional + Hierarchy",
+      "effects": "Subtle hover (200-250ms) + Smooth transitions",
+      "rules": "{\"if_ux_focused\": \"prioritize-minimalism\", \"if_data_heavy\": \"add-glassmorphism\"}",
+      "antiPatterns": "Excessive animation + Dark mode by default",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:micro-saas",
+    "domain": "reasoning",
+    "name": "Micro SaaS",
+    "keywords": "Hero-Centric + Trust Bold primaries + Accent contrast Modern + Energetic typography",
+    "summary": "Hero-Centric + Trust. {\"if_pre_launch\": \"use-waitlist-pattern\", \"if_video_ready\": \"add-hero-video\"}",
+    "modes": ["operate", "persuade"],
+    "fields": {
+      "pattern": "Hero-Centric + Trust",
+      "stylePriority": "Motion-Driven + Vibrant & Block",
+      "colorMood": "Bold primaries + Accent contrast",
+      "typographyMood": "Modern + Energetic typography",
+      "effects": "Scroll-triggered animations + Parallax",
+      "rules": "{\"if_pre_launch\": \"use-waitlist-pattern\", \"if_video_ready\": \"add-hero-video\"}",
+      "antiPatterns": "Static design + No video + Poor mobile",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:e-commerce",
+    "domain": "reasoning",
+    "name": "E-commerce",
+    "keywords": "Feature-Rich Showcase Brand primary + Success green Engaging + Clear hierarchy",
+    "summary": "Feature-Rich Showcase. {\"if_luxury\": \"switch-to-liquid-glass\", \"if_conversion_focused\": \"add-urgency-colors\"}",
+    "modes": ["persuade", "experience"],
+    "fields": {
+      "pattern": "Feature-Rich Showcase",
+      "stylePriority": "Vibrant & Block-based",
+      "colorMood": "Brand primary + Success green",
+      "typographyMood": "Engaging + Clear hierarchy",
+      "effects": "Card hover lift (200ms) + Scale effect",
+      "rules": "{\"if_luxury\": \"switch-to-liquid-glass\", \"if_conversion_focused\": \"add-urgency-colors\"}",
+      "antiPatterns": "Flat design without depth + Text-heavy pages",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:e-commerce-luxury",
+    "domain": "reasoning",
+    "name": "E-commerce Luxury",
+    "keywords": "Feature-Rich Showcase Premium colors + Minimal accent Elegant + Refined typography",
+    "summary": "Feature-Rich Showcase. {\"if_checkout\": \"emphasize-trust\", \"if_hero_needed\": \"use-3d-hyperrealism\"}",
+    "modes": ["persuade", "experience"],
+    "fields": {
+      "pattern": "Feature-Rich Showcase",
+      "stylePriority": "Liquid Glass + Glassmorphism",
+      "colorMood": "Premium colors + Minimal accent",
+      "typographyMood": "Elegant + Refined typography",
+      "effects": "Chromatic aberration + Fluid animations (400-600ms)",
+      "rules": "{\"if_checkout\": \"emphasize-trust\", \"if_hero_needed\": \"use-3d-hyperrealism\"}",
+      "antiPatterns": "Vibrant & Block-based + Playful colors",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:b2b-service",
+    "domain": "reasoning",
+    "name": "B2B Service",
+    "keywords": "Feature-Rich Showcase + Trust Professional blue + Neutral grey Formal + Clear typography",
+    "summary": "Feature-Rich Showcase + Trust. {\"must_have\": \"case-studies\", \"must_have\": \"roi-messaging\"}",
+    "modes": ["operate"],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Trust",
+      "stylePriority": "Trust & Authority + Minimalism",
+      "colorMood": "Professional blue + Neutral grey",
+      "typographyMood": "Formal + Clear typography",
+      "effects": "Section transitions + Feature reveals",
+      "rules": "{\"must_have\": \"case-studies\", \"must_have\": \"roi-messaging\"}",
+      "antiPatterns": "Playful design + Hidden credentials + AI purple/pink gradients",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:financial-dashboard",
+    "domain": "reasoning",
+    "name": "Financial Dashboard",
+    "keywords": "Data-Dense Dashboard Dark bg + Red/Green alerts + Trust blue Clear + Readable typography",
+    "summary": "Data-Dense Dashboard. {\"must_have\": \"real-time-updates\", \"must_have\": \"high-contrast\"}",
+    "modes": ["operate"],
+    "fields": {
+      "pattern": "Data-Dense Dashboard",
+      "stylePriority": "Dark Mode (OLED) + Data-Dense",
+      "colorMood": "Dark bg + Red/Green alerts + Trust blue",
+      "typographyMood": "Clear + Readable typography",
+      "effects": "Real-time number animations + Alert pulse",
+      "rules": "{\"must_have\": \"real-time-updates\", \"must_have\": \"high-contrast\"}",
+      "antiPatterns": "Light mode default + Slow rendering",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:analytics-dashboard",
+    "domain": "reasoning",
+    "name": "Analytics Dashboard",
+    "keywords": "Data-Dense + Drill-Down Cool→Hot gradients + Neutral grey Clear + Functional typography",
+    "summary": "Data-Dense + Drill-Down. {\"must_have\": \"data-export\", \"if_large_dataset\": \"virtualize-lists\"}",
+    "modes": ["operate"],
+    "fields": {
+      "pattern": "Data-Dense + Drill-Down",
+      "stylePriority": "Data-Dense + Heat Map",
+      "colorMood": "Cool→Hot gradients + Neutral grey",
+      "typographyMood": "Clear + Functional typography",
+      "effects": "Hover tooltips + Chart zoom + Filter animations",
+      "rules": "{\"must_have\": \"data-export\", \"if_large_dataset\": \"virtualize-lists\"}",
+      "antiPatterns": "Ornate design + No filtering",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:healthcare-app",
+    "domain": "reasoning",
+    "name": "Healthcare App",
+    "keywords": "Social Proof-Focused Calm blue + Health green Readable + Large type (16px+)",
+    "summary": "Social Proof-Focused. {\"must_have\": \"wcag-aaa-compliance\", \"if_medication\": \"red-alert-colors\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Social Proof-Focused",
+      "stylePriority": "Neumorphism + Accessible & Ethical",
+      "colorMood": "Calm blue + Health green",
+      "typographyMood": "Readable + Large type (16px+)",
+      "effects": "Soft box-shadow + Smooth press (150ms)",
+      "rules": "{\"must_have\": \"wcag-aaa-compliance\", \"if_medication\": \"red-alert-colors\"}",
+      "antiPatterns": "Bright neon colors + Motion-heavy animations + AI purple/pink gradients",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:educational-app",
+    "domain": "reasoning",
+    "name": "Educational App",
+    "keywords": "Feature-Rich Showcase Playful colors + Clear hierarchy Friendly + Engaging typography",
+    "summary": "Feature-Rich Showcase. {\"if_gamification\": \"add-progress-animation\", \"if_children\": \"increase-playfulness\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase",
+      "stylePriority": "Claymorphism + Micro-interactions",
+      "colorMood": "Playful colors + Clear hierarchy",
+      "typographyMood": "Friendly + Engaging typography",
+      "effects": "Soft press (200ms) + Fluffy elements",
+      "rules": "{\"if_gamification\": \"add-progress-animation\", \"if_children\": \"increase-playfulness\"}",
+      "antiPatterns": "Dark modes + Complex jargon",
+      "severity": "MEDIUM"
+    }
+  },
+  {
+    "id": "reasoning:creative-agency",
+    "domain": "reasoning",
+    "name": "Creative Agency",
+    "keywords": "Storytelling-Driven Bold primaries + Artistic freedom Bold + Expressive typography",
+    "summary": "Storytelling-Driven. {\"must_have\": \"case-studies\", \"if_boutique\": \"increase-artistic-freedom\"}",
+    "modes": ["experience"],
+    "fields": {
+      "pattern": "Storytelling-Driven",
+      "stylePriority": "Brutalism + Motion-Driven",
+      "colorMood": "Bold primaries + Artistic freedom",
+      "typographyMood": "Bold + Expressive typography",
+      "effects": "CRT scanlines + Neon glow + Glitch effects",
+      "rules": "{\"must_have\": \"case-studies\", \"if_boutique\": \"increase-artistic-freedom\"}",
+      "antiPatterns": "Corporate minimalism + Hidden portfolio",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:portfolio-personal",
+    "domain": "reasoning",
+    "name": "Portfolio/Personal",
+    "keywords": "Storytelling-Driven Brand primary + Artistic Expressive + Variable typography",
+    "summary": "Storytelling-Driven. {\"if_creative_field\": \"add-brutalism\", \"if_minimal_portfolio\": \"reduce-motion\"}",
+    "modes": ["experience"],
+    "fields": {
+      "pattern": "Storytelling-Driven",
+      "stylePriority": "Motion-Driven + Minimalism",
+      "colorMood": "Brand primary + Artistic",
+      "typographyMood": "Expressive + Variable typography",
+      "effects": "Parallax (3-5 layers) + Scroll-triggered reveals",
+      "rules": "{\"if_creative_field\": \"add-brutalism\", \"if_minimal_portfolio\": \"reduce-motion\"}",
+      "antiPatterns": "Corporate templates + Generic layouts",
+      "severity": "MEDIUM"
+    }
+  },
+  {
+    "id": "reasoning:gaming",
+    "domain": "reasoning",
+    "name": "Gaming",
+    "keywords": "Feature-Rich Showcase Vibrant + Neon + Immersive Bold + Impactful typography",
+    "summary": "Feature-Rich Showcase. {\"if_competitive\": \"add-real-time-stats\", \"if_casual\": \"increase-playfulness\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase",
+      "stylePriority": "3D & Hyperrealism + Retro-Futurism",
+      "colorMood": "Vibrant + Neon + Immersive",
+      "typographyMood": "Bold + Impactful typography",
+      "effects": "WebGL 3D rendering + Glitch effects",
+      "rules": "{\"if_competitive\": \"add-real-time-stats\", \"if_casual\": \"increase-playfulness\"}",
+      "antiPatterns": "Minimalist design + Static assets",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:government-public-service",
+    "domain": "reasoning",
+    "name": "Government/Public Service",
+    "keywords": "Minimal & Direct Professional blue + High contrast Clear + Large typography",
+    "summary": "Minimal & Direct. {\"must_have\": \"wcag-aaa\", \"must_have\": \"keyboard-navigation\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Minimal & Direct",
+      "stylePriority": "Accessible & Ethical + Minimalism",
+      "colorMood": "Professional blue + High contrast",
+      "typographyMood": "Clear + Large typography",
+      "effects": "Clear focus rings (3-4px) + Skip links",
+      "rules": "{\"must_have\": \"wcag-aaa\", \"must_have\": \"keyboard-navigation\"}",
+      "antiPatterns": "Ornate design + Low contrast + Motion effects + AI purple/pink gradients",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:fintech-crypto",
+    "domain": "reasoning",
+    "name": "Fintech/Crypto",
+    "keywords": "Trust & Authority Navy + Trust Blue + Gold Professional + Trustworthy",
+    "summary": "Trust & Authority. {\"must_have\": \"security-first\", \"if_dashboard\": \"use-dark-mode\"}",
+    "modes": ["operate"],
+    "fields": {
+      "pattern": "Trust & Authority",
+      "stylePriority": "Minimalism + Accessible & Ethical",
+      "colorMood": "Navy + Trust Blue + Gold",
+      "typographyMood": "Professional + Trustworthy",
+      "effects": "Smooth state transitions + Number animations",
+      "rules": "{\"must_have\": \"security-first\", \"if_dashboard\": \"use-dark-mode\"}",
+      "antiPatterns": "Playful design + Unclear fees + AI purple/pink gradients",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:social-media-app",
+    "domain": "reasoning",
+    "name": "Social Media App",
+    "keywords": "Feature-Rich Showcase Vibrant + Engagement colors Modern + Bold typography",
+    "summary": "Feature-Rich Showcase. {\"if_engagement_metric\": \"add-motion\", \"if_content_focused\": \"minimize-chrome\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase",
+      "stylePriority": "Vibrant & Block-based + Motion-Driven",
+      "colorMood": "Vibrant + Engagement colors",
+      "typographyMood": "Modern + Bold typography",
+      "effects": "Large scroll animations + Icon animations",
+      "rules": "{\"if_engagement_metric\": \"add-motion\", \"if_content_focused\": \"minimize-chrome\"}",
+      "antiPatterns": "Heavy skeuomorphism + Accessibility ignored",
+      "severity": "MEDIUM"
+    }
+  },
+  {
+    "id": "reasoning:productivity-tool",
+    "domain": "reasoning",
+    "name": "Productivity Tool",
+    "keywords": "Interactive Demo + Feature-Rich Clear hierarchy + Functional colors Clean + Efficient typography",
+    "summary": "Interactive Demo + Feature-Rich. {\"must_have\": \"keyboard-shortcuts\", \"if_collaboration\": \"add-real-time-cursors\"}",
+    "modes": ["operate"],
+    "fields": {
+      "pattern": "Interactive Demo + Feature-Rich",
+      "stylePriority": "Flat Design + Micro-interactions",
+      "colorMood": "Clear hierarchy + Functional colors",
+      "typographyMood": "Clean + Efficient typography",
+      "effects": "Quick actions (150ms) + Task animations",
+      "rules": "{\"must_have\": \"keyboard-shortcuts\", \"if_collaboration\": \"add-real-time-cursors\"}",
+      "antiPatterns": "Complex onboarding + Slow performance",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:design-system-component-library",
+    "domain": "reasoning",
+    "name": "Design System/Component Library",
+    "keywords": "Feature-Rich + Documentation Clear hierarchy + Code-like structure Monospace + Clear typography",
+    "summary": "Feature-Rich + Documentation. {\"must_have\": \"search\", \"must_have\": \"code-examples\"}",
+    "modes": ["read"],
+    "fields": {
+      "pattern": "Feature-Rich + Documentation",
+      "stylePriority": "Minimalism + Accessible & Ethical",
+      "colorMood": "Clear hierarchy + Code-like structure",
+      "typographyMood": "Monospace + Clear typography",
+      "effects": "Code copy animations + Component previews",
+      "rules": "{\"must_have\": \"search\", \"must_have\": \"code-examples\"}",
+      "antiPatterns": "Poor documentation + No live preview",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:ai-chatbot-platform",
+    "domain": "reasoning",
+    "name": "AI/Chatbot Platform",
+    "keywords": "Interactive Demo + Minimal Neutral + AI Purple (#6366F1) Modern + Clear typography",
+    "summary": "Interactive Demo + Minimal. {\"must_have\": \"conversational-ui\", \"must_have\": \"context-awareness\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Interactive Demo + Minimal",
+      "stylePriority": "AI-Native UI + Minimalism",
+      "colorMood": "Neutral + AI Purple (#6366F1)",
+      "typographyMood": "Modern + Clear typography",
+      "effects": "Streaming text + Typing indicators + Fade-in",
+      "rules": "{\"must_have\": \"conversational-ui\", \"must_have\": \"context-awareness\"}",
+      "antiPatterns": "Heavy chrome + Slow response feedback",
+      "severity": "HIGH"
+    },
+    "caution": "Purple or indigo gradients are a default generated look, choose it only when the brief asks. (NS-LOOK-DEFAULT-PALETTE)"
+  },
+  {
+    "id": "reasoning:nft-web3-platform",
+    "domain": "reasoning",
+    "name": "NFT/Web3 Platform",
+    "keywords": "Feature-Rich Showcase Dark + Neon + Gold (#FFD700) Bold + Modern typography",
+    "summary": "Feature-Rich Showcase. {\"must_have\": \"wallet-integration\", \"must_have\": \"gas-fees-display\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase",
+      "stylePriority": "Cyberpunk UI + Glassmorphism",
+      "colorMood": "Dark + Neon + Gold (#FFD700)",
+      "typographyMood": "Bold + Modern typography",
+      "effects": "Wallet connect animations + Transaction feedback",
+      "rules": "{\"must_have\": \"wallet-integration\", \"must_have\": \"gas-fees-display\"}",
+      "antiPatterns": "Light mode default + No transaction status",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:creator-economy-platform",
+    "domain": "reasoning",
+    "name": "Creator Economy Platform",
+    "keywords": "Social Proof + Feature-Rich Vibrant + Brand colors Modern + Bold typography",
+    "summary": "Social Proof + Feature-Rich. {\"must_have\": \"creator-profiles\", \"must_have\": \"monetization-display\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Social Proof + Feature-Rich",
+      "stylePriority": "Vibrant & Block-based + Bento Box Grid",
+      "colorMood": "Vibrant + Brand colors",
+      "typographyMood": "Modern + Bold typography",
+      "effects": "Engagement counter animations + Profile reveals",
+      "rules": "{\"must_have\": \"creator-profiles\", \"must_have\": \"monetization-display\"}",
+      "antiPatterns": "Generic layout + Hidden earnings",
+      "severity": "MEDIUM"
+    }
+  },
+  {
+    "id": "reasoning:remote-work-collaboration-tool",
+    "domain": "reasoning",
+    "name": "Remote Work/Collaboration Tool",
+    "keywords": "Feature-Rich + Real-Time Calm Blue + Neutral grey Clean + Readable typography",
+    "summary": "Feature-Rich + Real-Time. {\"must_have\": \"status-indicators\", \"must_have\": \"video-integration\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich + Real-Time",
+      "stylePriority": "Soft UI Evolution + Minimalism",
+      "colorMood": "Calm Blue + Neutral grey",
+      "typographyMood": "Clean + Readable typography",
+      "effects": "Real-time presence indicators + Notification badges",
+      "rules": "{\"must_have\": \"status-indicators\", \"must_have\": \"video-integration\"}",
+      "antiPatterns": "Cluttered interface + No presence",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:mental-health-app",
+    "domain": "reasoning",
+    "name": "Mental Health App",
+    "keywords": "Social Proof-Focused Calm Pastels + Trust colors Calming + Readable typography",
+    "summary": "Social Proof-Focused. {\"must_have\": \"privacy-first\", \"if_meditation\": \"add-breathing-animation\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Social Proof-Focused",
+      "stylePriority": "Neumorphism + Accessible & Ethical",
+      "colorMood": "Calm Pastels + Trust colors",
+      "typographyMood": "Calming + Readable typography",
+      "effects": "Soft press + Breathing animations",
+      "rules": "{\"must_have\": \"privacy-first\", \"if_meditation\": \"add-breathing-animation\"}",
+      "antiPatterns": "Bright neon + Motion overload",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:pet-tech-app",
+    "domain": "reasoning",
+    "name": "Pet Tech App",
+    "keywords": "Storytelling + Feature-Rich Playful + Warm colors Friendly + Playful typography",
+    "summary": "Storytelling + Feature-Rich. {\"must_have\": \"pet-profiles\", \"if_health\": \"add-vet-integration\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Storytelling + Feature-Rich",
+      "stylePriority": "Claymorphism + Vibrant & Block-based",
+      "colorMood": "Playful + Warm colors",
+      "typographyMood": "Friendly + Playful typography",
+      "effects": "Pet profile animations + Health tracking charts",
+      "rules": "{\"must_have\": \"pet-profiles\", \"if_health\": \"add-vet-integration\"}",
+      "antiPatterns": "Generic design + No personality",
+      "severity": "MEDIUM"
+    }
+  },
+  {
+    "id": "reasoning:smart-home-iot-dashboard",
+    "domain": "reasoning",
+    "name": "Smart Home/IoT Dashboard",
+    "keywords": "Real-Time Monitoring Dark + Status indicator colors Clear + Functional typography",
+    "summary": "Real-Time Monitoring. {\"must_have\": \"real-time-controls\", \"must_have\": \"energy-monitoring\"}",
+    "modes": ["operate", "experience"],
+    "fields": {
+      "pattern": "Real-Time Monitoring",
+      "stylePriority": "Glassmorphism + Dark Mode (OLED)",
+      "colorMood": "Dark + Status indicator colors",
+      "typographyMood": "Clear + Functional typography",
+      "effects": "Device status pulse + Quick action animations",
+      "rules": "{\"must_have\": \"real-time-controls\", \"must_have\": \"energy-monitoring\"}",
+      "antiPatterns": "Slow updates + No automation",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:ev-charging-ecosystem",
+    "domain": "reasoning",
+    "name": "EV/Charging Ecosystem",
+    "keywords": "Hero-Centric + Feature-Rich Electric Blue (#009CD1) + Green Modern + Clear typography",
+    "summary": "Hero-Centric + Feature-Rich. {\"must_have\": \"charging-map\", \"must_have\": \"range-calculator\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Hero-Centric + Feature-Rich",
+      "stylePriority": "Minimalism + Aurora UI",
+      "colorMood": "Electric Blue (#009CD1) + Green",
+      "typographyMood": "Modern + Clear typography",
+      "effects": "Range estimation animations + Map interactions",
+      "rules": "{\"must_have\": \"charging-map\", \"must_have\": \"range-calculator\"}",
+      "antiPatterns": "Poor map UX + Hidden costs",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:subscription-box-service",
+    "domain": "reasoning",
+    "name": "Subscription Box Service",
+    "keywords": "Feature-Rich + Conversion Brand + Excitement colors Engaging + Clear typography",
+    "summary": "Feature-Rich + Conversion. {\"must_have\": \"personalization-quiz\", \"must_have\": \"subscription-management\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Feature-Rich + Conversion",
+      "stylePriority": "Vibrant & Block-based + Motion-Driven",
+      "colorMood": "Brand + Excitement colors",
+      "typographyMood": "Engaging + Clear typography",
+      "effects": "Unboxing reveal animations + Product carousel",
+      "rules": "{\"must_have\": \"personalization-quiz\", \"must_have\": \"subscription-management\"}",
+      "antiPatterns": "Confusing pricing + No unboxing preview",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:podcast-platform",
+    "domain": "reasoning",
+    "name": "Podcast Platform",
+    "keywords": "Storytelling + Feature-Rich Dark + Audio waveform accents Modern + Clear typography",
+    "summary": "Storytelling + Feature-Rich. {\"must_have\": \"audio-player-ux\", \"must_have\": \"episode-discovery\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Storytelling + Feature-Rich",
+      "stylePriority": "Dark Mode (OLED) + Minimalism",
+      "colorMood": "Dark + Audio waveform accents",
+      "typographyMood": "Modern + Clear typography",
+      "effects": "Waveform visualizations + Episode transitions",
+      "rules": "{\"must_have\": \"audio-player-ux\", \"must_have\": \"episode-discovery\"}",
+      "antiPatterns": "Poor audio player + Cluttered layout",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:dating-app",
+    "domain": "reasoning",
+    "name": "Dating App",
+    "keywords": "Social Proof + Feature-Rich Warm + Romantic (Pink/Red gradients) Modern + Friendly typography",
+    "summary": "Social Proof + Feature-Rich. {\"must_have\": \"profile-cards\", \"must_have\": \"safety-features\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Social Proof + Feature-Rich",
+      "stylePriority": "Vibrant & Block-based + Motion-Driven",
+      "colorMood": "Warm + Romantic (Pink/Red gradients)",
+      "typographyMood": "Modern + Friendly typography",
+      "effects": "Profile card swipe + Match animations",
+      "rules": "{\"must_have\": \"profile-cards\", \"must_have\": \"safety-features\"}",
+      "antiPatterns": "Generic profiles + No safety",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:micro-credentials-badges-platform",
+    "domain": "reasoning",
+    "name": "Micro-Credentials/Badges Platform",
+    "keywords": "Trust & Authority + Feature Trust Blue + Gold (#FFD700) Professional + Clear typography",
+    "summary": "Trust & Authority + Feature. {\"must_have\": \"credential-verification\", \"must_have\": \"progress-display\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Trust & Authority + Feature",
+      "stylePriority": "Minimalism + Flat Design",
+      "colorMood": "Trust Blue + Gold (#FFD700)",
+      "typographyMood": "Professional + Clear typography",
+      "effects": "Badge reveal animations + Progress tracking",
+      "rules": "{\"must_have\": \"credential-verification\", \"must_have\": \"progress-display\"}",
+      "antiPatterns": "No verification + Hidden progress",
+      "severity": "MEDIUM"
+    }
+  },
+  {
+    "id": "reasoning:knowledge-base-documentation",
+    "domain": "reasoning",
+    "name": "Knowledge Base/Documentation",
+    "keywords": "FAQ + Minimal Clean hierarchy + Minimal color Clear + Readable typography",
+    "summary": "FAQ + Minimal. {\"must_have\": \"search-first\", \"must_have\": \"version-switching\"}",
+    "modes": ["read"],
+    "fields": {
+      "pattern": "FAQ + Minimal",
+      "stylePriority": "Minimalism + Accessible & Ethical",
+      "colorMood": "Clean hierarchy + Minimal color",
+      "typographyMood": "Clear + Readable typography",
+      "effects": "Search highlight + Smooth scrolling",
+      "rules": "{\"must_have\": \"search-first\", \"must_have\": \"version-switching\"}",
+      "antiPatterns": "Poor navigation + No search",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:hyperlocal-services",
+    "domain": "reasoning",
+    "name": "Hyperlocal Services",
+    "keywords": "Conversion + Feature-Rich Location markers + Trust colors Clear + Functional typography",
+    "summary": "Conversion + Feature-Rich. {\"must_have\": \"map-integration\", \"must_have\": \"booking-system\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Conversion + Feature-Rich",
+      "stylePriority": "Minimalism + Vibrant & Block-based",
+      "colorMood": "Location markers + Trust colors",
+      "typographyMood": "Clear + Functional typography",
+      "effects": "Map hover + Provider card reveals",
+      "rules": "{\"must_have\": \"map-integration\", \"must_have\": \"booking-system\"}",
+      "antiPatterns": "No map + Hidden reviews",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:beauty-spa-wellness-service",
+    "domain": "reasoning",
+    "name": "Beauty/Spa/Wellness Service",
+    "keywords": "Hero-Centric + Social Proof Soft pastels (Pink Sage Cream) + Gold accents Elegant + Calming typography",
+    "summary": "Hero-Centric + Social Proof. {\"must_have\": \"booking-system\", \"must_have\": \"before-after-gallery\", \"if_luxury\": \"add-gold-accents\"}",
+    "modes": ["experience"],
+    "fields": {
+      "pattern": "Hero-Centric + Social Proof",
+      "stylePriority": "Soft UI Evolution + Neumorphism",
+      "colorMood": "Soft pastels (Pink Sage Cream) + Gold accents",
+      "typographyMood": "Elegant + Calming typography",
+      "effects": "Soft shadows + Smooth transitions (200-300ms) + Gentle hover",
+      "rules": "{\"must_have\": \"booking-system\", \"must_have\": \"before-after-gallery\", \"if_luxury\": \"add-gold-accents\"}",
+      "antiPatterns": "Bright neon colors + Harsh animations + Dark mode",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:luxury-premium-brand",
+    "domain": "reasoning",
+    "name": "Luxury/Premium Brand",
+    "keywords": "Storytelling + Feature-Rich Black + Gold (#FFD700) + White Elegant + Refined typography",
+    "summary": "Storytelling + Feature-Rich. {\"must_have\": \"high-quality-imagery\", \"must_have\": \"storytelling\"}",
+    "modes": ["experience"],
+    "fields": {
+      "pattern": "Storytelling + Feature-Rich",
+      "stylePriority": "Liquid Glass + Glassmorphism",
+      "colorMood": "Black + Gold (#FFD700) + White",
+      "typographyMood": "Elegant + Refined typography",
+      "effects": "Slow parallax + Premium reveals (400-600ms)",
+      "rules": "{\"must_have\": \"high-quality-imagery\", \"must_have\": \"storytelling\"}",
+      "antiPatterns": "Cheap visuals + Fast animations",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:restaurant-food-service",
+    "domain": "reasoning",
+    "name": "Restaurant/Food Service",
+    "keywords": "Hero-Centric + Conversion Warm colors (Orange Red Brown) Appetizing + Clear typography",
+    "summary": "Hero-Centric + Conversion. {\"must_have\": \"high_quality_images\", \"if_delivery\": \"emphasize-speed\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Hero-Centric + Conversion",
+      "stylePriority": "Vibrant & Block-based + Motion-Driven",
+      "colorMood": "Warm colors (Orange Red Brown)",
+      "typographyMood": "Appetizing + Clear typography",
+      "effects": "Food image reveal + Menu hover effects",
+      "rules": "{\"must_have\": \"high_quality_images\", \"if_delivery\": \"emphasize-speed\"}",
+      "antiPatterns": "Low-quality imagery + Outdated hours",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:fitness-gym-app",
+    "domain": "reasoning",
+    "name": "Fitness/Gym App",
+    "keywords": "Feature-Rich + Data Energetic (Orange #FF6B35) + Dark bg Bold + Motivational typography",
+    "summary": "Feature-Rich + Data. {\"must_have\": \"progress-tracking\", \"must_have\": \"workout-plans\"}",
+    "modes": ["operate"],
+    "fields": {
+      "pattern": "Feature-Rich + Data",
+      "stylePriority": "Vibrant & Block-based + Dark Mode (OLED)",
+      "colorMood": "Energetic (Orange #FF6B35) + Dark bg",
+      "typographyMood": "Bold + Motivational typography",
+      "effects": "Progress ring animations + Achievement unlocks",
+      "rules": "{\"must_have\": \"progress-tracking\", \"must_have\": \"workout-plans\"}",
+      "antiPatterns": "Static design + No gamification",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:real-estate-property",
+    "domain": "reasoning",
+    "name": "Real Estate/Property",
+    "keywords": "Hero-Centric + Feature-Rich Trust Blue + Gold + White Professional + Confident",
+    "summary": "Hero-Centric + Feature-Rich. {\"if_luxury\": \"add-3d-models\", \"must_have\": \"map-integration\"}",
+    "modes": ["experience"],
+    "fields": {
+      "pattern": "Hero-Centric + Feature-Rich",
+      "stylePriority": "Glassmorphism + Minimalism",
+      "colorMood": "Trust Blue + Gold + White",
+      "typographyMood": "Professional + Confident",
+      "effects": "3D property tour zoom + Map hover",
+      "rules": "{\"if_luxury\": \"add-3d-models\", \"must_have\": \"map-integration\"}",
+      "antiPatterns": "Poor photos + No virtual tours",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:travel-tourism-agency",
+    "domain": "reasoning",
+    "name": "Travel/Tourism Agency",
+    "keywords": "Storytelling-Driven + Hero Vibrant destination + Sky Blue Inspirational + Engaging",
+    "summary": "Storytelling-Driven + Hero. {\"if_experience_focused\": \"use-storytelling\", \"must_have\": \"mobile-booking\"}",
+    "modes": ["experience"],
+    "fields": {
+      "pattern": "Storytelling-Driven + Hero",
+      "stylePriority": "Aurora UI + Motion-Driven",
+      "colorMood": "Vibrant destination + Sky Blue",
+      "typographyMood": "Inspirational + Engaging",
+      "effects": "Destination parallax + Itinerary animations",
+      "rules": "{\"if_experience_focused\": \"use-storytelling\", \"must_have\": \"mobile-booking\"}",
+      "antiPatterns": "Generic photos + Complex booking",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:hotel-hospitality",
+    "domain": "reasoning",
+    "name": "Hotel/Hospitality",
+    "keywords": "Hero-Centric + Social Proof Warm neutrals + Gold (#D4AF37) Elegant + Welcoming typography",
+    "summary": "Hero-Centric + Social Proof. {\"must_have\": \"room-booking\", \"must_have\": \"virtual-tour\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Hero-Centric + Social Proof",
+      "stylePriority": "Liquid Glass + Minimalism",
+      "colorMood": "Warm neutrals + Gold (#D4AF37)",
+      "typographyMood": "Elegant + Welcoming typography",
+      "effects": "Room gallery + Amenity reveals",
+      "rules": "{\"must_have\": \"room-booking\", \"must_have\": \"virtual-tour\"}",
+      "antiPatterns": "Poor photos + Complex booking",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:wedding-event-planning",
+    "domain": "reasoning",
+    "name": "Wedding/Event Planning",
+    "keywords": "Storytelling + Social Proof Soft Pink (#FFD6E0) + Gold + Cream Elegant + Romantic typography",
+    "summary": "Storytelling + Social Proof. {\"must_have\": \"portfolio-gallery\", \"must_have\": \"planning-tools\"}",
+    "modes": ["experience"],
+    "fields": {
+      "pattern": "Storytelling + Social Proof",
+      "stylePriority": "Soft UI Evolution + Aurora UI",
+      "colorMood": "Soft Pink (#FFD6E0) + Gold + Cream",
+      "typographyMood": "Elegant + Romantic typography",
+      "effects": "Gallery reveals + Timeline animations",
+      "rules": "{\"must_have\": \"portfolio-gallery\", \"must_have\": \"planning-tools\"}",
+      "antiPatterns": "Generic templates + No portfolio",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:legal-services",
+    "domain": "reasoning",
+    "name": "Legal Services",
+    "keywords": "Trust & Authority + Minimal Navy Blue (#1E3A5F) + Gold + White Professional + Authoritative typography",
+    "summary": "Trust & Authority + Minimal. {\"must_have\": \"case-results\", \"must_have\": \"credential-display\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Trust & Authority + Minimal",
+      "stylePriority": "Trust & Authority + Minimalism",
+      "colorMood": "Navy Blue (#1E3A5F) + Gold + White",
+      "typographyMood": "Professional + Authoritative typography",
+      "effects": "Practice area reveal + Attorney profile animations",
+      "rules": "{\"must_have\": \"case-results\", \"must_have\": \"credential-display\"}",
+      "antiPatterns": "Outdated design + Hidden credentials + AI purple/pink gradients",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:insurance-platform",
+    "domain": "reasoning",
+    "name": "Insurance Platform",
+    "keywords": "Conversion + Trust Trust Blue (#0066CC) + Green + Neutral Clear + Professional typography",
+    "summary": "Conversion + Trust. {\"must_have\": \"quote-calculator\", \"must_have\": \"policy-comparison\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Conversion + Trust",
+      "stylePriority": "Trust & Authority + Flat Design",
+      "colorMood": "Trust Blue (#0066CC) + Green + Neutral",
+      "typographyMood": "Clear + Professional typography",
+      "effects": "Quote calculator animations + Policy comparison",
+      "rules": "{\"must_have\": \"quote-calculator\", \"must_have\": \"policy-comparison\"}",
+      "antiPatterns": "Confusing pricing + No trust signals + AI purple/pink gradients",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:banking-traditional-finance",
+    "domain": "reasoning",
+    "name": "Banking/Traditional Finance",
+    "keywords": "Trust & Authority + Feature Navy (#0A1628) + Trust Blue + Gold Professional + Trustworthy typography",
+    "summary": "Trust & Authority + Feature. {\"must_have\": \"security-first\", \"must_have\": \"accessibility\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Trust & Authority + Feature",
+      "stylePriority": "Minimalism + Accessible & Ethical",
+      "colorMood": "Navy (#0A1628) + Trust Blue + Gold",
+      "typographyMood": "Professional + Trustworthy typography",
+      "effects": "Smooth number animations + Security indicators",
+      "rules": "{\"must_have\": \"security-first\", \"must_have\": \"accessibility\"}",
+      "antiPatterns": "Playful design + Poor security UX + AI purple/pink gradients",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:online-course-e-learning",
+    "domain": "reasoning",
+    "name": "Online Course/E-learning",
+    "keywords": "Feature-Rich + Social Proof Vibrant learning colors + Progress green Friendly + Engaging typography",
+    "summary": "Feature-Rich + Social Proof. {\"must_have\": \"progress-tracking\", \"must_have\": \"video-player\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich + Social Proof",
+      "stylePriority": "Claymorphism + Vibrant & Block-based",
+      "colorMood": "Vibrant learning colors + Progress green",
+      "typographyMood": "Friendly + Engaging typography",
+      "effects": "Progress bar animations + Certificate reveals",
+      "rules": "{\"must_have\": \"progress-tracking\", \"must_have\": \"video-player\"}",
+      "antiPatterns": "Boring design + No gamification",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:non-profit-charity",
+    "domain": "reasoning",
+    "name": "Non-profit/Charity",
+    "keywords": "Storytelling + Trust Cause-related colors + Trust + Warm Heartfelt + Readable typography",
+    "summary": "Storytelling + Trust. {\"must_have\": \"impact-stories\", \"must_have\": \"donation-transparency\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Storytelling + Trust",
+      "stylePriority": "Accessible & Ethical + Organic Biophilic",
+      "colorMood": "Cause-related colors + Trust + Warm",
+      "typographyMood": "Heartfelt + Readable typography",
+      "effects": "Impact counter animations + Story reveals",
+      "rules": "{\"must_have\": \"impact-stories\", \"must_have\": \"donation-transparency\"}",
+      "antiPatterns": "No impact data + Hidden financials",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:music-streaming",
+    "domain": "reasoning",
+    "name": "Music Streaming",
+    "keywords": "Feature-Rich Showcase Dark (#121212) + Vibrant accents + Album art colors Modern + Bold typography",
+    "summary": "Feature-Rich Showcase. {\"must_have\": \"audio-player-ux\", \"if_discovery_focused\": \"add-playlist-recommendations\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase",
+      "stylePriority": "Dark Mode (OLED) + Vibrant & Block-based",
+      "colorMood": "Dark (#121212) + Vibrant accents + Album art colors",
+      "typographyMood": "Modern + Bold typography",
+      "effects": "Waveform visualization + Playlist animations",
+      "rules": "{\"must_have\": \"audio-player-ux\", \"if_discovery_focused\": \"add-playlist-recommendations\"}",
+      "antiPatterns": "Cluttered layout + Poor audio player UX",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:video-streaming-ott",
+    "domain": "reasoning",
+    "name": "Video Streaming/OTT",
+    "keywords": "Hero-Centric + Feature-Rich Dark bg + Poster colors + Brand accent Bold + Engaging typography",
+    "summary": "Hero-Centric + Feature-Rich. {\"must_have\": \"continue-watching\", \"if_personalized\": \"add-recommendations\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Hero-Centric + Feature-Rich",
+      "stylePriority": "Dark Mode (OLED) + Motion-Driven",
+      "colorMood": "Dark bg + Poster colors + Brand accent",
+      "typographyMood": "Bold + Engaging typography",
+      "effects": "Video player animations + Content carousel (parallax)",
+      "rules": "{\"must_have\": \"continue-watching\", \"if_personalized\": \"add-recommendations\"}",
+      "antiPatterns": "Static layout + Slow video player",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:job-board-recruitment",
+    "domain": "reasoning",
+    "name": "Job Board/Recruitment",
+    "keywords": "Conversion-Optimized + Feature-Rich Professional Blue + Success Green + Neutral Clear + Professional typography",
+    "summary": "Conversion-Optimized + Feature-Rich. {\"must_have\": \"advanced-search\", \"if_salary_focused\": \"highlight-compensation\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Conversion-Optimized + Feature-Rich",
+      "stylePriority": "Flat Design + Minimalism",
+      "colorMood": "Professional Blue + Success Green + Neutral",
+      "typographyMood": "Clear + Professional typography",
+      "effects": "Search/filter animations + Application flow",
+      "rules": "{\"must_have\": \"advanced-search\", \"if_salary_focused\": \"highlight-compensation\"}",
+      "antiPatterns": "Outdated forms + Hidden filters",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:marketplace-p2p",
+    "domain": "reasoning",
+    "name": "Marketplace (P2P)",
+    "keywords": "Feature-Rich Showcase + Social Proof Trust colors + Category colors + Success green Modern + Engaging typography",
+    "summary": "Feature-Rich Showcase + Social Proof. {\"must_have\": \"seller-profiles\", \"must_have\": \"secure-payment\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Social Proof",
+      "stylePriority": "Vibrant & Block-based + Flat Design",
+      "colorMood": "Trust colors + Category colors + Success green",
+      "typographyMood": "Modern + Engaging typography",
+      "effects": "Review star animations + Listing hover effects",
+      "rules": "{\"must_have\": \"seller-profiles\", \"must_have\": \"secure-payment\"}",
+      "antiPatterns": "Low trust signals + Confusing layout",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:logistics-delivery",
+    "domain": "reasoning",
+    "name": "Logistics/Delivery",
+    "keywords": "Feature-Rich Showcase + Real-Time Blue (#2563EB) + Orange (tracking) + Green Clear + Functional typography",
+    "summary": "Feature-Rich Showcase + Real-Time. {\"must_have\": \"tracking-map\", \"must_have\": \"delivery-updates\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Real-Time",
+      "stylePriority": "Minimalism + Flat Design",
+      "colorMood": "Blue (#2563EB) + Orange (tracking) + Green",
+      "typographyMood": "Clear + Functional typography",
+      "effects": "Real-time tracking animation + Status pulse",
+      "rules": "{\"must_have\": \"tracking-map\", \"must_have\": \"delivery-updates\"}",
+      "antiPatterns": "Static tracking + No map integration + AI purple/pink gradients",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:agriculture-farm-tech",
+    "domain": "reasoning",
+    "name": "Agriculture/Farm Tech",
+    "keywords": "Feature-Rich Showcase Earth Green (#4A7C23) + Brown + Sky Blue Clear + Informative typography",
+    "summary": "Feature-Rich Showcase. {\"must_have\": \"sensor-dashboard\", \"if_crop_focused\": \"add-health-indicators\"}",
+    "modes": ["operate"],
+    "fields": {
+      "pattern": "Feature-Rich Showcase",
+      "stylePriority": "Organic Biophilic + Flat Design",
+      "colorMood": "Earth Green (#4A7C23) + Brown + Sky Blue",
+      "typographyMood": "Clear + Informative typography",
+      "effects": "Data visualization + Weather animations",
+      "rules": "{\"must_have\": \"sensor-dashboard\", \"if_crop_focused\": \"add-health-indicators\"}",
+      "antiPatterns": "Generic design + Ignored accessibility + AI purple/pink gradients",
+      "severity": "MEDIUM"
+    }
+  },
+  {
+    "id": "reasoning:construction-architecture",
+    "domain": "reasoning",
+    "name": "Construction/Architecture",
+    "keywords": "Hero-Centric + Feature-Rich Grey (#4A4A4A) + Orange (safety) + Blueprint Blue Professional + Bold typography",
+    "summary": "Hero-Centric + Feature-Rich. {\"must_have\": \"project-portfolio\", \"if_team_collaboration\": \"add-real-time-updates\"}",
+    "modes": ["experience"],
+    "fields": {
+      "pattern": "Hero-Centric + Feature-Rich",
+      "stylePriority": "Minimalism + 3D & Hyperrealism",
+      "colorMood": "Grey (#4A4A4A) + Orange (safety) + Blueprint Blue",
+      "typographyMood": "Professional + Bold typography",
+      "effects": "3D model viewer + Timeline animations",
+      "rules": "{\"must_have\": \"project-portfolio\", \"if_team_collaboration\": \"add-real-time-updates\"}",
+      "antiPatterns": "2D-only layouts + Poor image quality + AI purple/pink gradients",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:automotive-car-dealership",
+    "domain": "reasoning",
+    "name": "Automotive/Car Dealership",
+    "keywords": "Hero-Centric + Feature-Rich Brand colors + Metallic + Dark/Light Bold + Confident typography",
+    "summary": "Hero-Centric + Feature-Rich. {\"must_have\": \"vehicle-comparison\", \"must_have\": \"financing-calculator\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Hero-Centric + Feature-Rich",
+      "stylePriority": "Motion-Driven + 3D & Hyperrealism",
+      "colorMood": "Brand colors + Metallic + Dark/Light",
+      "typographyMood": "Bold + Confident typography",
+      "effects": "360 product view + Configurator animations",
+      "rules": "{\"must_have\": \"vehicle-comparison\", \"must_have\": \"financing-calculator\"}",
+      "antiPatterns": "Static product pages + Poor UX",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:photography-studio",
+    "domain": "reasoning",
+    "name": "Photography Studio",
+    "keywords": "Storytelling-Driven + Hero-Centric Black + White + Minimal accent Elegant + Minimal typography",
+    "summary": "Storytelling-Driven + Hero-Centric. {\"must_have\": \"portfolio-showcase\", \"if_booking\": \"add-calendar-system\"}",
+    "modes": ["experience"],
+    "fields": {
+      "pattern": "Storytelling-Driven + Hero-Centric",
+      "stylePriority": "Motion-Driven + Minimalism",
+      "colorMood": "Black + White + Minimal accent",
+      "typographyMood": "Elegant + Minimal typography",
+      "effects": "Full-bleed gallery + Before/after reveal",
+      "rules": "{\"must_have\": \"portfolio-showcase\", \"if_booking\": \"add-calendar-system\"}",
+      "antiPatterns": "Heavy text + Poor image showcase",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:coworking-space",
+    "domain": "reasoning",
+    "name": "Coworking Space",
+    "keywords": "Hero-Centric + Feature-Rich Energetic colors + Wood tones + Brand Modern + Engaging typography",
+    "summary": "Hero-Centric + Feature-Rich. {\"must_have\": \"virtual-tour\", \"must_have\": \"booking-system\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Hero-Centric + Feature-Rich",
+      "stylePriority": "Vibrant & Block-based + Glassmorphism",
+      "colorMood": "Energetic colors + Wood tones + Brand",
+      "typographyMood": "Modern + Engaging typography",
+      "effects": "Space tour video + Amenity reveal animations",
+      "rules": "{\"must_have\": \"virtual-tour\", \"must_have\": \"booking-system\"}",
+      "antiPatterns": "Outdated photos + Confusing layout",
+      "severity": "MEDIUM"
+    }
+  },
+  {
+    "id": "reasoning:home-services-plumber-electrician",
+    "domain": "reasoning",
+    "name": "Home Services (Plumber/Electrician)",
+    "keywords": "Conversion-Optimized + Trust Trust Blue + Safety Orange + Grey Professional + Clear typography",
+    "summary": "Conversion-Optimized + Trust. {\"must_have\": \"emergency-contact\", \"must_have\": \"certifications-display\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Conversion-Optimized + Trust",
+      "stylePriority": "Flat Design + Trust & Authority",
+      "colorMood": "Trust Blue + Safety Orange + Grey",
+      "typographyMood": "Professional + Clear typography",
+      "effects": "Emergency contact highlight + Service menu animations",
+      "rules": "{\"must_have\": \"emergency-contact\", \"must_have\": \"certifications-display\"}",
+      "antiPatterns": "Hidden contact info + No certifications",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:childcare-daycare",
+    "domain": "reasoning",
+    "name": "Childcare/Daycare",
+    "keywords": "Social Proof-Focused + Trust Playful pastels + Safe colors + Warm Friendly + Playful typography",
+    "summary": "Social Proof-Focused + Trust. {\"must_have\": \"parent-communication\", \"must_have\": \"safety-certifications\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Social Proof-Focused + Trust",
+      "stylePriority": "Claymorphism + Vibrant & Block-based",
+      "colorMood": "Playful pastels + Safe colors + Warm",
+      "typographyMood": "Friendly + Playful typography",
+      "effects": "Parent portal animations + Activity gallery reveal",
+      "rules": "{\"must_have\": \"parent-communication\", \"must_have\": \"safety-certifications\"}",
+      "antiPatterns": "Generic design + Hidden safety info",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:senior-care-elderly",
+    "domain": "reasoning",
+    "name": "Senior Care/Elderly",
+    "keywords": "Trust & Authority + Accessible Calm Blue + Warm neutrals + Large text Large + Clear typography (18px+)",
+    "summary": "Trust & Authority + Accessible. {\"must_have\": \"wcag-aaa\", \"must_have\": \"family-portal\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Trust & Authority + Accessible",
+      "stylePriority": "Accessible & Ethical + Soft UI Evolution",
+      "colorMood": "Calm Blue + Warm neutrals + Large text",
+      "typographyMood": "Large + Clear typography (18px+)",
+      "effects": "Large touch targets + Clear navigation",
+      "rules": "{\"must_have\": \"wcag-aaa\", \"must_have\": \"family-portal\"}",
+      "antiPatterns": "Small text + Complex navigation + AI purple/pink gradients",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:medical-clinic",
+    "domain": "reasoning",
+    "name": "Medical Clinic",
+    "keywords": "Trust & Authority + Conversion Medical Blue (#0077B6) + Trust White Professional + Readable typography",
+    "summary": "Trust & Authority + Conversion. {\"must_have\": \"appointment-booking\", \"must_have\": \"insurance-info\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Trust & Authority + Conversion",
+      "stylePriority": "Accessible & Ethical + Minimalism",
+      "colorMood": "Medical Blue (#0077B6) + Trust White",
+      "typographyMood": "Professional + Readable typography",
+      "effects": "Online booking flow + Doctor profile reveals",
+      "rules": "{\"must_have\": \"appointment-booking\", \"must_have\": \"insurance-info\"}",
+      "antiPatterns": "Outdated interface + Confusing booking + AI purple/pink gradients",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:pharmacy-drug-store",
+    "domain": "reasoning",
+    "name": "Pharmacy/Drug Store",
+    "keywords": "Conversion-Optimized + Trust Pharmacy Green + Trust Blue + Clean White Clear + Functional typography",
+    "summary": "Conversion-Optimized + Trust. {\"must_have\": \"prescription-management\", \"must_have\": \"drug-interaction-warnings\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Conversion-Optimized + Trust",
+      "stylePriority": "Flat Design + Accessible & Ethical",
+      "colorMood": "Pharmacy Green + Trust Blue + Clean White",
+      "typographyMood": "Clear + Functional typography",
+      "effects": "Prescription upload flow + Refill reminders",
+      "rules": "{\"must_have\": \"prescription-management\", \"must_have\": \"drug-interaction-warnings\"}",
+      "antiPatterns": "Confusing layout + Privacy concerns + AI purple/pink gradients",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:dental-practice",
+    "domain": "reasoning",
+    "name": "Dental Practice",
+    "keywords": "Social Proof-Focused + Conversion Fresh Blue + White + Smile Yellow Friendly + Professional typography",
+    "summary": "Social Proof-Focused + Conversion. {\"must_have\": \"before-after-gallery\", \"must_have\": \"appointment-system\"}",
+    "modes": ["persuade", "experience"],
+    "fields": {
+      "pattern": "Social Proof-Focused + Conversion",
+      "stylePriority": "Soft UI Evolution + Minimalism",
+      "colorMood": "Fresh Blue + White + Smile Yellow",
+      "typographyMood": "Friendly + Professional typography",
+      "effects": "Before/after gallery + Patient testimonial carousel",
+      "rules": "{\"must_have\": \"before-after-gallery\", \"must_have\": \"appointment-system\"}",
+      "antiPatterns": "Poor imagery + No testimonials",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:veterinary-clinic",
+    "domain": "reasoning",
+    "name": "Veterinary Clinic",
+    "keywords": "Social Proof-Focused + Trust Caring Blue + Pet colors + Warm Friendly + Welcoming typography",
+    "summary": "Social Proof-Focused + Trust. {\"must_have\": \"pet-portal\", \"must_have\": \"emergency-contact\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Social Proof-Focused + Trust",
+      "stylePriority": "Claymorphism + Accessible & Ethical",
+      "colorMood": "Caring Blue + Pet colors + Warm",
+      "typographyMood": "Friendly + Welcoming typography",
+      "effects": "Pet profile management + Service animations",
+      "rules": "{\"must_have\": \"pet-portal\", \"must_have\": \"emergency-contact\"}",
+      "antiPatterns": "Generic design + Hidden services",
+      "severity": "MEDIUM"
+    }
+  },
+  {
+    "id": "reasoning:florist-plant-shop",
+    "domain": "reasoning",
+    "name": "Florist/Plant Shop",
+    "keywords": "Hero-Centric + Conversion Natural Green + Floral pinks/purples Elegant + Natural typography",
+    "summary": "Hero-Centric + Conversion. {\"must_have\": \"delivery-scheduling\", \"must_have\": \"care-guides\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Hero-Centric + Conversion",
+      "stylePriority": "Organic Biophilic + Vibrant & Block-based",
+      "colorMood": "Natural Green + Floral pinks/purples",
+      "typographyMood": "Elegant + Natural typography",
+      "effects": "Product reveal + Seasonal transitions",
+      "rules": "{\"must_have\": \"delivery-scheduling\", \"must_have\": \"care-guides\"}",
+      "antiPatterns": "Poor imagery + No seasonal content",
+      "severity": "MEDIUM"
+    }
+  },
+  {
+    "id": "reasoning:bakery-cafe",
+    "domain": "reasoning",
+    "name": "Bakery/Cafe",
+    "keywords": "Hero-Centric + Conversion Warm Brown + Cream + Appetizing accents Warm + Inviting typography",
+    "summary": "Hero-Centric + Conversion. {\"must_have\": \"menu-display\", \"must_have\": \"online-ordering\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Hero-Centric + Conversion",
+      "stylePriority": "Vibrant & Block-based + Soft UI Evolution",
+      "colorMood": "Warm Brown + Cream + Appetizing accents",
+      "typographyMood": "Warm + Inviting typography",
+      "effects": "Menu hover + Order animations",
+      "rules": "{\"must_have\": \"menu-display\", \"must_have\": \"online-ordering\"}",
+      "antiPatterns": "Poor food photos + Hidden hours",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:brewery-winery",
+    "domain": "reasoning",
+    "name": "Brewery/Winery",
+    "keywords": "Storytelling + Hero-Centric Deep amber/burgundy + Gold + Craft Artisanal + Heritage typography",
+    "summary": "Storytelling + Hero-Centric. {\"must_have\": \"product-showcase\", \"must_have\": \"story-heritage\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Storytelling + Hero-Centric",
+      "stylePriority": "Motion-Driven + Storytelling-Driven",
+      "colorMood": "Deep amber/burgundy + Gold + Craft",
+      "typographyMood": "Artisanal + Heritage typography",
+      "effects": "Tasting note reveals + Heritage timeline",
+      "rules": "{\"must_have\": \"product-showcase\", \"must_have\": \"story-heritage\"}",
+      "antiPatterns": "Generic product pages + No story",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:airline",
+    "domain": "reasoning",
+    "name": "Airline",
+    "keywords": "Conversion + Feature-Rich Sky Blue + Brand colors + Trust Clear + Professional typography",
+    "summary": "Conversion + Feature-Rich. {\"must_have\": \"flight-search\", \"must_have\": \"mobile-first\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Conversion + Feature-Rich",
+      "stylePriority": "Minimalism + Glassmorphism",
+      "colorMood": "Sky Blue + Brand colors + Trust",
+      "typographyMood": "Clear + Professional typography",
+      "effects": "Flight search animations + Boarding pass reveals",
+      "rules": "{\"must_have\": \"flight-search\", \"must_have\": \"mobile-first\"}",
+      "antiPatterns": "Complex booking + Poor mobile",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:news-media-platform",
+    "domain": "reasoning",
+    "name": "News/Media Platform",
+    "keywords": "Hero-Centric + Feature-Rich Brand colors + High contrast Clear + Readable typography",
+    "summary": "Hero-Centric + Feature-Rich. {\"must_have\": \"mobile-first-reading\", \"must_have\": \"category-navigation\"}",
+    "modes": ["read"],
+    "fields": {
+      "pattern": "Hero-Centric + Feature-Rich",
+      "stylePriority": "Minimalism + Flat Design",
+      "colorMood": "Brand colors + High contrast",
+      "typographyMood": "Clear + Readable typography",
+      "effects": "Breaking news badge + Article reveal animations",
+      "rules": "{\"must_have\": \"mobile-first-reading\", \"must_have\": \"category-navigation\"}",
+      "antiPatterns": "Cluttered layout + Slow loading",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:magazine-blog",
+    "domain": "reasoning",
+    "name": "Magazine/Blog",
+    "keywords": "Storytelling + Hero-Centric Editorial colors + Brand + Clean white Editorial + Elegant typography",
+    "summary": "Storytelling + Hero-Centric. {\"must_have\": \"article-showcase\", \"must_have\": \"newsletter-signup\"}",
+    "modes": ["read"],
+    "fields": {
+      "pattern": "Storytelling + Hero-Centric",
+      "stylePriority": "Swiss Modernism 2.0 + Motion-Driven",
+      "colorMood": "Editorial colors + Brand + Clean white",
+      "typographyMood": "Editorial + Elegant typography",
+      "effects": "Article transitions + Category reveals",
+      "rules": "{\"must_have\": \"article-showcase\", \"must_have\": \"newsletter-signup\"}",
+      "antiPatterns": "Poor typography + Slow loading",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:freelancer-platform",
+    "domain": "reasoning",
+    "name": "Freelancer Platform",
+    "keywords": "Feature-Rich + Conversion Professional Blue + Success Green Clear + Professional typography",
+    "summary": "Feature-Rich + Conversion. {\"must_have\": \"portfolio-display\", \"must_have\": \"skill-matching\"}",
+    "modes": ["persuade", "experience"],
+    "fields": {
+      "pattern": "Feature-Rich + Conversion",
+      "stylePriority": "Flat Design + Minimalism",
+      "colorMood": "Professional Blue + Success Green",
+      "typographyMood": "Clear + Professional typography",
+      "effects": "Skill match animations + Review reveals",
+      "rules": "{\"must_have\": \"portfolio-display\", \"must_have\": \"skill-matching\"}",
+      "antiPatterns": "Poor profiles + No reviews",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:marketing-agency",
+    "domain": "reasoning",
+    "name": "Marketing Agency",
+    "keywords": "Storytelling + Feature-Rich Bold brand colors + Creative freedom Bold + Expressive typography",
+    "summary": "Storytelling + Feature-Rich. {\"must_have\": \"portfolio\", \"must_have\": \"results-metrics\"}",
+    "modes": ["persuade", "experience"],
+    "fields": {
+      "pattern": "Storytelling + Feature-Rich",
+      "stylePriority": "Brutalism + Motion-Driven",
+      "colorMood": "Bold brand colors + Creative freedom",
+      "typographyMood": "Bold + Expressive typography",
+      "effects": "Portfolio reveals + Results animations",
+      "rules": "{\"must_have\": \"portfolio\", \"must_have\": \"results-metrics\"}",
+      "antiPatterns": "Boring design + Hidden work",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:event-management",
+    "domain": "reasoning",
+    "name": "Event Management",
+    "keywords": "Hero-Centric + Feature-Rich Event theme colors + Excitement accents Bold + Engaging typography",
+    "summary": "Hero-Centric + Feature-Rich. {\"must_have\": \"registration\", \"must_have\": \"agenda-display\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Hero-Centric + Feature-Rich",
+      "stylePriority": "Vibrant & Block-based + Motion-Driven",
+      "colorMood": "Event theme colors + Excitement accents",
+      "typographyMood": "Bold + Engaging typography",
+      "effects": "Countdown timer + Registration flow",
+      "rules": "{\"must_have\": \"registration\", \"must_have\": \"agenda-display\"}",
+      "antiPatterns": "Confusing registration + No countdown",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:membership-community",
+    "domain": "reasoning",
+    "name": "Membership/Community",
+    "keywords": "Social Proof + Conversion Community brand colors + Engagement Friendly + Engaging typography",
+    "summary": "Social Proof + Conversion. {\"must_have\": \"member-benefits\", \"must_have\": \"pricing-tiers\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Social Proof + Conversion",
+      "stylePriority": "Vibrant & Block-based + Soft UI Evolution",
+      "colorMood": "Community brand colors + Engagement",
+      "typographyMood": "Friendly + Engaging typography",
+      "effects": "Member counter + Benefit reveals",
+      "rules": "{\"must_have\": \"member-benefits\", \"must_have\": \"pricing-tiers\"}",
+      "antiPatterns": "Hidden benefits + No community proof",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:newsletter-platform",
+    "domain": "reasoning",
+    "name": "Newsletter Platform",
+    "keywords": "Minimal + Conversion Brand primary + Clean white + CTA Clean + Readable typography",
+    "summary": "Minimal + Conversion. {\"must_have\": \"subscribe-form\", \"must_have\": \"sample-content\"}",
+    "modes": ["read", "persuade"],
+    "fields": {
+      "pattern": "Minimal + Conversion",
+      "stylePriority": "Minimalism + Flat Design",
+      "colorMood": "Brand primary + Clean white + CTA",
+      "typographyMood": "Clean + Readable typography",
+      "effects": "Subscribe form + Archive reveals",
+      "rules": "{\"must_have\": \"subscribe-form\", \"must_have\": \"sample-content\"}",
+      "antiPatterns": "Complex signup + No preview",
+      "severity": "MEDIUM"
+    }
+  },
+  {
+    "id": "reasoning:digital-products-downloads",
+    "domain": "reasoning",
+    "name": "Digital Products/Downloads",
+    "keywords": "Feature-Rich + Conversion Product colors + Brand + Success green Modern + Clear typography",
+    "summary": "Feature-Rich + Conversion. {\"must_have\": \"product-preview\", \"must_have\": \"instant-delivery\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Feature-Rich + Conversion",
+      "stylePriority": "Vibrant & Block-based + Motion-Driven",
+      "colorMood": "Product colors + Brand + Success green",
+      "typographyMood": "Modern + Clear typography",
+      "effects": "Product preview + Instant delivery animations",
+      "rules": "{\"must_have\": \"product-preview\", \"must_have\": \"instant-delivery\"}",
+      "antiPatterns": "No preview + Slow delivery",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:church-religious-organization",
+    "domain": "reasoning",
+    "name": "Church/Religious Organization",
+    "keywords": "Hero-Centric + Social Proof Warm Gold + Deep Purple/Blue + White Welcoming + Clear typography",
+    "summary": "Hero-Centric + Social Proof. {\"must_have\": \"service-times\", \"must_have\": \"community-events\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Hero-Centric + Social Proof",
+      "stylePriority": "Accessible & Ethical + Soft UI Evolution",
+      "colorMood": "Warm Gold + Deep Purple/Blue + White",
+      "typographyMood": "Welcoming + Clear typography",
+      "effects": "Service time highlights + Event calendar",
+      "rules": "{\"must_have\": \"service-times\", \"must_have\": \"community-events\"}",
+      "antiPatterns": "Outdated design + Hidden info",
+      "severity": "MEDIUM"
+    },
+    "caution": "Purple or indigo gradients are a default generated look, choose it only when the brief asks. (NS-LOOK-DEFAULT-PALETTE)"
+  },
+  {
+    "id": "reasoning:sports-team-club",
+    "domain": "reasoning",
+    "name": "Sports Team/Club",
+    "keywords": "Hero-Centric + Feature-Rich Team colors + Energetic accents Bold + Impactful typography",
+    "summary": "Hero-Centric + Feature-Rich. {\"must_have\": \"schedule\", \"must_have\": \"roster\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Hero-Centric + Feature-Rich",
+      "stylePriority": "Vibrant & Block-based + Motion-Driven",
+      "colorMood": "Team colors + Energetic accents",
+      "typographyMood": "Bold + Impactful typography",
+      "effects": "Score animations + Schedule reveals",
+      "rules": "{\"must_have\": \"schedule\", \"must_have\": \"roster\"}",
+      "antiPatterns": "Static content + Poor fan engagement",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:museum-gallery",
+    "domain": "reasoning",
+    "name": "Museum/Gallery",
+    "keywords": "Storytelling + Feature-Rich Art-appropriate neutrals + Exhibition accents Elegant + Minimal typography",
+    "summary": "Storytelling + Feature-Rich. {\"must_have\": \"virtual-tour\", \"must_have\": \"exhibition-info\"}",
+    "modes": ["experience"],
+    "fields": {
+      "pattern": "Storytelling + Feature-Rich",
+      "stylePriority": "Minimalism + Motion-Driven",
+      "colorMood": "Art-appropriate neutrals + Exhibition accents",
+      "typographyMood": "Elegant + Minimal typography",
+      "effects": "Virtual tour + Collection reveals",
+      "rules": "{\"must_have\": \"virtual-tour\", \"must_have\": \"exhibition-info\"}",
+      "antiPatterns": "Cluttered layout + No online access",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:theater-cinema",
+    "domain": "reasoning",
+    "name": "Theater/Cinema",
+    "keywords": "Hero-Centric + Conversion Dark + Spotlight accents + Gold Dramatic + Bold typography",
+    "summary": "Hero-Centric + Conversion. {\"must_have\": \"showtimes\", \"must_have\": \"seat-selection\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Hero-Centric + Conversion",
+      "stylePriority": "Dark Mode (OLED) + Motion-Driven",
+      "colorMood": "Dark + Spotlight accents + Gold",
+      "typographyMood": "Dramatic + Bold typography",
+      "effects": "Seat selection + Trailer reveals",
+      "rules": "{\"must_have\": \"showtimes\", \"must_have\": \"seat-selection\"}",
+      "antiPatterns": "Poor booking UX + No trailers",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:language-learning-app",
+    "domain": "reasoning",
+    "name": "Language Learning App",
+    "keywords": "Feature-Rich + Social Proof Playful colors + Progress indicators Friendly + Clear typography",
+    "summary": "Feature-Rich + Social Proof. {\"must_have\": \"progress-tracking\", \"must_have\": \"gamification\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich + Social Proof",
+      "stylePriority": "Claymorphism + Vibrant & Block-based",
+      "colorMood": "Playful colors + Progress indicators",
+      "typographyMood": "Friendly + Clear typography",
+      "effects": "Progress animations + Achievement unlocks",
+      "rules": "{\"must_have\": \"progress-tracking\", \"must_have\": \"gamification\"}",
+      "antiPatterns": "Boring design + No motivation",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:coding-bootcamp",
+    "domain": "reasoning",
+    "name": "Coding Bootcamp",
+    "keywords": "Feature-Rich + Social Proof Code editor colors + Brand + Success Technical + Clear typography",
+    "summary": "Feature-Rich + Social Proof. {\"must_have\": \"curriculum\", \"must_have\": \"career-outcomes\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich + Social Proof",
+      "stylePriority": "Dark Mode (OLED) + Minimalism",
+      "colorMood": "Code editor colors + Brand + Success",
+      "typographyMood": "Technical + Clear typography",
+      "effects": "Terminal animations + Career outcome reveals",
+      "rules": "{\"must_have\": \"curriculum\", \"must_have\": \"career-outcomes\"}",
+      "antiPatterns": "Light mode only + Hidden results",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:cybersecurity-platform",
+    "domain": "reasoning",
+    "name": "Cybersecurity Platform",
+    "keywords": "Trust & Authority + Real-Time Matrix Green (#00FF00) + Deep Black Technical + Clear typography",
+    "summary": "Trust & Authority + Real-Time. {\"must_have\": \"real-time-monitoring\", \"must_have\": \"threat-display\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Trust & Authority + Real-Time",
+      "stylePriority": "Cyberpunk UI + Dark Mode (OLED)",
+      "colorMood": "Matrix Green (#00FF00) + Deep Black",
+      "typographyMood": "Technical + Clear typography",
+      "effects": "Threat visualization + Alert animations",
+      "rules": "{\"must_have\": \"real-time-monitoring\", \"must_have\": \"threat-display\"}",
+      "antiPatterns": "Light mode + Poor data viz",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:developer-tool-ide",
+    "domain": "reasoning",
+    "name": "Developer Tool / IDE",
+    "keywords": "Minimal + Documentation Dark syntax theme + Blue focus Monospace + Functional typography",
+    "summary": "Minimal + Documentation. {\"must_have\": \"keyboard-shortcuts\", \"must_have\": \"documentation\"}",
+    "modes": ["read"],
+    "fields": {
+      "pattern": "Minimal + Documentation",
+      "stylePriority": "Dark Mode (OLED) + Minimalism",
+      "colorMood": "Dark syntax theme + Blue focus",
+      "typographyMood": "Monospace + Functional typography",
+      "effects": "Syntax highlighting + Command palette",
+      "rules": "{\"must_have\": \"keyboard-shortcuts\", \"must_have\": \"documentation\"}",
+      "antiPatterns": "Light mode default + Slow performance",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:biotech-life-sciences",
+    "domain": "reasoning",
+    "name": "Biotech / Life Sciences",
+    "keywords": "Storytelling + Data Sterile White + DNA Blue + Life Green Scientific + Clear typography",
+    "summary": "Storytelling + Data. {\"must_have\": \"data-accuracy\", \"must_have\": \"clean-aesthetic\"}",
+    "modes": ["operate"],
+    "fields": {
+      "pattern": "Storytelling + Data",
+      "stylePriority": "Glassmorphism + Clean Science",
+      "colorMood": "Sterile White + DNA Blue + Life Green",
+      "typographyMood": "Scientific + Clear typography",
+      "effects": "Data visualization + Research reveals",
+      "rules": "{\"must_have\": \"data-accuracy\", \"must_have\": \"clean-aesthetic\"}",
+      "antiPatterns": "Cluttered data + Poor credibility",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:space-tech-aerospace",
+    "domain": "reasoning",
+    "name": "Space Tech / Aerospace",
+    "keywords": "Immersive + Feature-Rich Deep Space Black + Star White + Metallic Futuristic + Precise typography",
+    "summary": "Immersive + Feature-Rich. {\"must_have\": \"high-tech-feel\", \"must_have\": \"precision-data\"}",
+    "modes": ["operate", "experience"],
+    "fields": {
+      "pattern": "Immersive + Feature-Rich",
+      "stylePriority": "Holographic/HUD + Dark Mode",
+      "colorMood": "Deep Space Black + Star White + Metallic",
+      "typographyMood": "Futuristic + Precise typography",
+      "effects": "Telemetry animations + 3D renders",
+      "rules": "{\"must_have\": \"high-tech-feel\", \"must_have\": \"precision-data\"}",
+      "antiPatterns": "Generic design + No immersion",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:architecture-interior",
+    "domain": "reasoning",
+    "name": "Architecture / Interior",
+    "keywords": "Portfolio + Hero-Centric Monochrome + Gold Accent + High Imagery Architectural + Elegant typography",
+    "summary": "Portfolio + Hero-Centric. {\"must_have\": \"high-res-images\", \"must_have\": \"project-portfolio\"}",
+    "modes": ["experience"],
+    "fields": {
+      "pattern": "Portfolio + Hero-Centric",
+      "stylePriority": "Exaggerated Minimalism + High Imagery",
+      "colorMood": "Monochrome + Gold Accent + High Imagery",
+      "typographyMood": "Architectural + Elegant typography",
+      "effects": "Project gallery + Blueprint reveals",
+      "rules": "{\"must_have\": \"high-res-images\", \"must_have\": \"project-portfolio\"}",
+      "antiPatterns": "Poor imagery + Cluttered layout",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:quantum-computing-interface",
+    "domain": "reasoning",
+    "name": "Quantum Computing Interface",
+    "keywords": "Immersive + Interactive Quantum Blue (#00FFFF) + Deep Black Futuristic + Scientific typography",
+    "summary": "Immersive + Interactive. {\"must_have\": \"complexity-visualization\", \"must_have\": \"scientific-credibility\"}",
+    "modes": ["experience"],
+    "fields": {
+      "pattern": "Immersive + Interactive",
+      "stylePriority": "Holographic/HUD + Dark Mode",
+      "colorMood": "Quantum Blue (#00FFFF) + Deep Black",
+      "typographyMood": "Futuristic + Scientific typography",
+      "effects": "Probability visualizations + Qubit state animations",
+      "rules": "{\"must_have\": \"complexity-visualization\", \"must_have\": \"scientific-credibility\"}",
+      "antiPatterns": "Generic tech design + No viz",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:biohacking-longevity-app",
+    "domain": "reasoning",
+    "name": "Biohacking / Longevity App",
+    "keywords": "Data-Dense + Storytelling Cellular Pink/Red + DNA Blue + White Scientific + Clear typography",
+    "summary": "Data-Dense + Storytelling. {\"must_have\": \"data-privacy\", \"must_have\": \"scientific-credibility\"}",
+    "modes": ["operate"],
+    "fields": {
+      "pattern": "Data-Dense + Storytelling",
+      "stylePriority": "Biomimetic/Organic 2.0 + Minimalism",
+      "colorMood": "Cellular Pink/Red + DNA Blue + White",
+      "typographyMood": "Scientific + Clear typography",
+      "effects": "Biological data viz + Progress animations",
+      "rules": "{\"must_have\": \"data-privacy\", \"must_have\": \"scientific-credibility\"}",
+      "antiPatterns": "Generic health app + No privacy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:autonomous-drone-fleet-manager",
+    "domain": "reasoning",
+    "name": "Autonomous Drone Fleet Manager",
+    "keywords": "Real-Time + Feature-Rich Tactical Green + Alert Red + Map Dark Technical + Functional typography",
+    "summary": "Real-Time + Feature-Rich. {\"must_have\": \"real-time-telemetry\", \"must_have\": \"safety-alerts\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Real-Time + Feature-Rich",
+      "stylePriority": "HUD/Sci-Fi FUI + Real-Time",
+      "colorMood": "Tactical Green + Alert Red + Map Dark",
+      "typographyMood": "Technical + Functional typography",
+      "effects": "Telemetry animations + 3D spatial awareness",
+      "rules": "{\"must_have\": \"real-time-telemetry\", \"must_have\": \"safety-alerts\"}",
+      "antiPatterns": "Slow updates + Poor spatial viz",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:generative-art-platform",
+    "domain": "reasoning",
+    "name": "Generative Art Platform",
+    "keywords": "Showcase + Feature-Rich Neutral (#F5F5F5) + User Content Minimal + Content-focused typography",
+    "summary": "Showcase + Feature-Rich. {\"must_have\": \"fast-loading\", \"must_have\": \"creator-attribution\"}",
+    "modes": ["experience"],
+    "fields": {
+      "pattern": "Showcase + Feature-Rich",
+      "stylePriority": "Minimalism + Gen Z Chaos",
+      "colorMood": "Neutral (#F5F5F5) + User Content",
+      "typographyMood": "Minimal + Content-focused typography",
+      "effects": "Gallery masonry + Minting animations",
+      "rules": "{\"must_have\": \"fast-loading\", \"must_have\": \"creator-attribution\"}",
+      "antiPatterns": "Heavy chrome + Slow loading",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:spatial-computing-os-app",
+    "domain": "reasoning",
+    "name": "Spatial Computing OS / App",
+    "keywords": "Immersive + Interactive Frosted Glass + System Colors + Depth Spatial + Readable typography",
+    "summary": "Immersive + Interactive. {\"must_have\": \"depth-hierarchy\", \"must_have\": \"environment-awareness\"}",
+    "modes": ["experience"],
+    "fields": {
+      "pattern": "Immersive + Interactive",
+      "stylePriority": "Spatial UI (VisionOS) + Glassmorphism",
+      "colorMood": "Frosted Glass + System Colors + Depth",
+      "typographyMood": "Spatial + Readable typography",
+      "effects": "Depth hierarchy + Gaze interactions",
+      "rules": "{\"must_have\": \"depth-hierarchy\", \"must_have\": \"environment-awareness\"}",
+      "antiPatterns": "2D design + No spatial depth",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:sustainable-energy-climate-tech",
+    "domain": "reasoning",
+    "name": "Sustainable Energy / Climate Tech",
+    "keywords": "Data + Trust Earth Green + Sky Blue + Solar Yellow Clear + Informative typography",
+    "summary": "Data + Trust. {\"must_have\": \"data-transparency\", \"must_have\": \"impact-visualization\"}",
+    "modes": ["operate"],
+    "fields": {
+      "pattern": "Data + Trust",
+      "stylePriority": "Organic Biophilic + E-Ink/Paper",
+      "colorMood": "Earth Green + Sky Blue + Solar Yellow",
+      "typographyMood": "Clear + Informative typography",
+      "effects": "Impact viz + Progress animations",
+      "rules": "{\"must_have\": \"data-transparency\", \"must_have\": \"impact-visualization\"}",
+      "antiPatterns": "Greenwashing + No real data",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:personal-finance-tracker",
+    "domain": "reasoning",
+    "name": "Personal Finance Tracker",
+    "keywords": "Interactive Product Demo Calm blue + success green + alert red + chart accents Modern + Clear hierarchy",
+    "summary": "Interactive Product Demo. {\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_low_performance\": \"fallback-to-flat\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Interactive Product Demo",
+      "stylePriority": "Glassmorphism + Dark Mode (OLED)",
+      "colorMood": "Calm blue + success green + alert red + chart accents",
+      "typographyMood": "Modern + Clear hierarchy",
+      "effects": "Backdrop blur (10-20px) + Translucent overlays",
+      "rules": "{\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_low_performance\": \"fallback-to-flat\"}",
+      "antiPatterns": "Pure white backgrounds",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:chat-messaging-app",
+    "domain": "reasoning",
+    "name": "Chat & Messaging App",
+    "keywords": "Feature-Rich Showcase + Demo Brand primary + bubble contrast (sender/receiver) + typing grey Professional + Clean hierarchy",
+    "summary": "Feature-Rich Showcase + Demo. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Demo",
+      "stylePriority": "Minimalism + Micro-interactions",
+      "colorMood": "Brand primary + bubble contrast (sender/receiver) + typing grey",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle hover 200ms + Smooth transitions + Clean",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:notes-writing-app",
+    "domain": "reasoning",
+    "name": "Notes & Writing App",
+    "keywords": "Minimal & Direct Clean white/cream + minimal accent + editor syntax colors Professional + Clean hierarchy",
+    "summary": "Minimal & Direct. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Minimal & Direct",
+      "stylePriority": "Minimalism + Flat Design",
+      "colorMood": "Clean white/cream + minimal accent + editor syntax colors",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration + Complex shadows + 3D effects",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:habit-tracker",
+    "domain": "reasoning",
+    "name": "Habit Tracker",
+    "keywords": "Social Proof-Focused + Demo Streak warm (amber/orange) + progress green + motivational accents Playful + Rounded + Friendly",
+    "summary": "Social Proof-Focused + Demo. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Social Proof-Focused + Demo",
+      "stylePriority": "Claymorphism + Vibrant & Block-based",
+      "colorMood": "Streak warm (amber/orange) + progress green + motivational accents",
+      "typographyMood": "Playful + Rounded + Friendly",
+      "effects": "Multi-layer shadows + Spring bounce + Soft press 200ms",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:food-delivery-on-demand",
+    "domain": "reasoning",
+    "name": "Food Delivery / On-Demand",
+    "keywords": "Hero-Centric Design + Feature-Rich Appetizing warm (orange/red) + trust blue + map accent Energetic + Bold + Large",
+    "summary": "Hero-Centric Design + Feature-Rich. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Hero-Centric Design + Feature-Rich",
+      "stylePriority": "Vibrant & Block-based + Motion-Driven",
+      "colorMood": "Appetizing warm (orange/red) + trust blue + map accent",
+      "typographyMood": "Energetic + Bold + Large",
+      "effects": "Scroll animations + Parallax + Page transitions",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:ride-hailing-transportation",
+    "domain": "reasoning",
+    "name": "Ride Hailing / Transportation",
+    "keywords": "Conversion-Optimized + Demo Brand primary + map neutral + status indicator colors Professional + Clean hierarchy",
+    "summary": "Conversion-Optimized + Demo. {\"if_low_performance\": \"fallback-to-flat\", \"if_conversion_focused\": \"add-urgency-colors\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Conversion-Optimized + Demo",
+      "stylePriority": "Minimalism + Glassmorphism",
+      "colorMood": "Brand primary + map neutral + status indicator colors",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Backdrop blur (10-20px) + Translucent overlays",
+      "rules": "{\"if_low_performance\": \"fallback-to-flat\", \"if_conversion_focused\": \"add-urgency-colors\"}",
+      "antiPatterns": "Excessive decoration",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:recipe-cooking-app",
+    "domain": "reasoning",
+    "name": "Recipe & Cooking App",
+    "keywords": "Hero-Centric Design + Feature-Rich Warm food tones (terracotta/sage/cream) + appetizing imagery Playful + Rounded + Friendly",
+    "summary": "Hero-Centric Design + Feature-Rich. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Hero-Centric Design + Feature-Rich",
+      "stylePriority": "Claymorphism + Vibrant & Block-based",
+      "colorMood": "Warm food tones (terracotta/sage/cream) + appetizing imagery",
+      "typographyMood": "Playful + Rounded + Friendly",
+      "effects": "Multi-layer shadows + Spring bounce + Soft press 200ms",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:meditation-mindfulness",
+    "domain": "reasoning",
+    "name": "Meditation & Mindfulness",
+    "keywords": "Storytelling-Driven + Social Proof Ultra-calm pastels (lavender/sage/sky) + breathing animation gradient Subtle + Soft + Monochromatic",
+    "summary": "Storytelling-Driven + Social Proof. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Storytelling-Driven + Social Proof",
+      "stylePriority": "Neumorphism + Soft UI Evolution",
+      "colorMood": "Ultra-calm pastels (lavender/sage/sky) + breathing animation gradient",
+      "typographyMood": "Subtle + Soft + Monochromatic",
+      "effects": "Dual shadows (light+dark) + Soft press 150ms",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Inconsistent styling + Poor contrast ratios",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:weather-app",
+    "domain": "reasoning",
+    "name": "Weather App",
+    "keywords": "Hero-Centric Design Atmospheric gradients (sky blue → sunset → storm grey) + temp scale Modern + Clear hierarchy",
+    "summary": "Hero-Centric Design. {\"if_low_performance\": \"fallback-to-flat\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Hero-Centric Design",
+      "stylePriority": "Glassmorphism + Aurora UI",
+      "colorMood": "Atmospheric gradients (sky blue → sunset → storm grey) + temp scale",
+      "typographyMood": "Modern + Clear hierarchy",
+      "effects": "Backdrop blur (10-20px) + Translucent overlays",
+      "rules": "{\"if_low_performance\": \"fallback-to-flat\"}",
+      "antiPatterns": "Inconsistent styling + Poor contrast ratios",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:diary-journal-app",
+    "domain": "reasoning",
+    "name": "Diary & Journal App",
+    "keywords": "Storytelling-Driven Warm paper tones (cream/linen) + muted ink + mood-coded accents Professional + Clean hierarchy",
+    "summary": "Storytelling-Driven. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Storytelling-Driven",
+      "stylePriority": "Soft UI Evolution + Minimalism",
+      "colorMood": "Warm paper tones (cream/linen) + muted ink + mood-coded accents",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle hover 200ms + Smooth transitions + Clean",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:crm-client-management",
+    "domain": "reasoning",
+    "name": "CRM & Client Management",
+    "keywords": "Feature-Rich Showcase + Demo Professional blue + pipeline stage colors + closed-won green Professional + Clean hierarchy",
+    "summary": "Feature-Rich Showcase + Demo. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": ["operate"],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Demo",
+      "stylePriority": "Flat Design + Minimalism",
+      "colorMood": "Professional blue + pipeline stage colors + closed-won green",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration + Complex shadows + 3D effects",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:inventory-stock-management",
+    "domain": "reasoning",
+    "name": "Inventory & Stock Management",
+    "keywords": "Feature-Rich Showcase Functional neutral + status traffic-light (green/amber/red) + scanner accent Professional + Clean hierarchy",
+    "summary": "Feature-Rich Showcase. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase",
+      "stylePriority": "Flat Design + Minimalism",
+      "colorMood": "Functional neutral + status traffic-light (green/amber/red) + scanner accent",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration + Complex shadows + 3D effects",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:flashcard-study-tool",
+    "domain": "reasoning",
+    "name": "Flashcard & Study Tool",
+    "keywords": "Feature-Rich Showcase + Demo Playful primary + correct green + incorrect red + progress blue Playful + Rounded + Friendly",
+    "summary": "Feature-Rich Showcase + Demo. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Demo",
+      "stylePriority": "Claymorphism + Micro-interactions",
+      "colorMood": "Playful primary + correct green + incorrect red + progress blue",
+      "typographyMood": "Playful + Rounded + Friendly",
+      "effects": "Multi-layer shadows + Spring bounce + Soft press 200ms",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Inconsistent styling + Poor contrast ratios",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:booking-appointment-app",
+    "domain": "reasoning",
+    "name": "Booking & Appointment App",
+    "keywords": "Conversion-Optimized Trust blue + available green + booked grey + confirm accent Bold + Clean + Sans-serif",
+    "summary": "Conversion-Optimized. {\"if_conversion_focused\": \"add-urgency-colors\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Conversion-Optimized",
+      "stylePriority": "Soft UI Evolution + Flat Design",
+      "colorMood": "Trust blue + available green + booked grey + confirm accent",
+      "typographyMood": "Bold + Clean + Sans-serif",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_conversion_focused\": \"add-urgency-colors\"}",
+      "antiPatterns": "Complex shadows + 3D effects",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:invoice-billing-tool",
+    "domain": "reasoning",
+    "name": "Invoice & Billing Tool",
+    "keywords": "Conversion-Optimized + Trust Professional navy + paid green + overdue red + neutral grey Professional + Clean hierarchy",
+    "summary": "Conversion-Optimized + Trust. {\"if_conversion_focused\": \"add-urgency-colors\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Conversion-Optimized + Trust",
+      "stylePriority": "Minimalism + Flat Design",
+      "colorMood": "Professional navy + paid green + overdue red + neutral grey",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_conversion_focused\": \"add-urgency-colors\"}",
+      "antiPatterns": "Excessive decoration + Complex shadows + 3D effects",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:grocery-shopping-list",
+    "domain": "reasoning",
+    "name": "Grocery & Shopping List",
+    "keywords": "Minimal & Direct + Demo Fresh green + food-category colors + checkmark accent Bold + Clean + Sans-serif",
+    "summary": "Minimal & Direct + Demo. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Minimal & Direct + Demo",
+      "stylePriority": "Flat Design + Vibrant & Block-based",
+      "colorMood": "Fresh green + food-category colors + checkmark accent",
+      "typographyMood": "Bold + Clean + Sans-serif",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Complex shadows + 3D effects + Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:timer-pomodoro",
+    "domain": "reasoning",
+    "name": "Timer & Pomodoro",
+    "keywords": "Minimal & Direct High-contrast on dark + focus red/amber + break green Professional + Clean hierarchy",
+    "summary": "Minimal & Direct. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Minimal & Direct",
+      "stylePriority": "Minimalism + Neumorphism",
+      "colorMood": "High-contrast on dark + focus red/amber + break green",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Dual shadows (light+dark) + Soft press 150ms",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:parenting-baby-tracker",
+    "domain": "reasoning",
+    "name": "Parenting & Baby Tracker",
+    "keywords": "Social Proof-Focused + Trust Soft pastels (baby pink/sky blue/mint/peach) + warm accents Playful + Rounded + Friendly",
+    "summary": "Social Proof-Focused + Trust. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Social Proof-Focused + Trust",
+      "stylePriority": "Claymorphism + Soft UI Evolution",
+      "colorMood": "Soft pastels (baby pink/sky blue/mint/peach) + warm accents",
+      "typographyMood": "Playful + Rounded + Friendly",
+      "effects": "Multi-layer shadows + Spring bounce + Soft press 200ms",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Inconsistent styling + Poor contrast ratios",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:scanner-document-manager",
+    "domain": "reasoning",
+    "name": "Scanner & Document Manager",
+    "keywords": "Feature-Rich Showcase + Demo Clean white + camera viewfinder accent + file-type color coding Professional + Clean hierarchy",
+    "summary": "Feature-Rich Showcase + Demo. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Demo",
+      "stylePriority": "Minimalism + Flat Design",
+      "colorMood": "Clean white + camera viewfinder accent + file-type color coding",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration + Complex shadows + 3D effects",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:calendar-scheduling-app",
+    "domain": "reasoning",
+    "name": "Calendar & Scheduling App",
+    "keywords": "Feature-Rich Showcase + Demo Clean blue + event category accent colors + success green Bold + Clean + Sans-serif",
+    "summary": "Feature-Rich Showcase + Demo. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Demo",
+      "stylePriority": "Flat Design + Micro-interactions",
+      "colorMood": "Clean blue + event category accent colors + success green",
+      "typographyMood": "Bold + Clean + Sans-serif",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Complex shadows + 3D effects",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:password-manager",
+    "domain": "reasoning",
+    "name": "Password Manager",
+    "keywords": "Trust & Authority + Feature-Rich Trust blue + security green + dark neutral Professional + Clean hierarchy",
+    "summary": "Trust & Authority + Feature-Rich. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Trust & Authority + Feature-Rich",
+      "stylePriority": "Minimalism + Accessible & Ethical",
+      "colorMood": "Trust blue + security green + dark neutral",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle hover 200ms + Smooth transitions + Clean",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration + Color-only indicators",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:expense-splitter-bill-split",
+    "domain": "reasoning",
+    "name": "Expense Splitter / Bill Split",
+    "keywords": "Minimal & Direct + Demo Success green + alert red + neutral grey + avatar accent colors Bold + Clean + Sans-serif",
+    "summary": "Minimal & Direct + Demo. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Minimal & Direct + Demo",
+      "stylePriority": "Flat Design + Vibrant & Block-based",
+      "colorMood": "Success green + alert red + neutral grey + avatar accent colors",
+      "typographyMood": "Bold + Clean + Sans-serif",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Complex shadows + 3D effects + Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:voice-recorder-memo",
+    "domain": "reasoning",
+    "name": "Voice Recorder & Memo",
+    "keywords": "Interactive Product Demo + Minimal Clean white + recording red + waveform accent Professional + Clean hierarchy",
+    "summary": "Interactive Product Demo + Minimal. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Interactive Product Demo + Minimal",
+      "stylePriority": "Minimalism + AI-Native UI",
+      "colorMood": "Clean white + recording red + waveform accent",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle hover 200ms + Smooth transitions + Clean",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:bookmark-read-later",
+    "domain": "reasoning",
+    "name": "Bookmark & Read-Later",
+    "keywords": "Minimal & Direct + Demo Paper warm white + ink neutral + minimal accent + tag colors Professional + Clean hierarchy",
+    "summary": "Minimal & Direct + Demo. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Minimal & Direct + Demo",
+      "stylePriority": "Minimalism + Flat Design",
+      "colorMood": "Paper warm white + ink neutral + minimal accent + tag colors",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration + Complex shadows + 3D effects",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:translator-app",
+    "domain": "reasoning",
+    "name": "Translator App",
+    "keywords": "Feature-Rich Showcase + Interactive Demo Global blue + neutral grey + language flag accent Bold + Clean + Sans-serif",
+    "summary": "Feature-Rich Showcase + Interactive Demo. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Interactive Demo",
+      "stylePriority": "Flat Design + AI-Native UI",
+      "colorMood": "Global blue + neutral grey + language flag accent",
+      "typographyMood": "Bold + Clean + Sans-serif",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Complex shadows + 3D effects",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:calculator-unit-converter",
+    "domain": "reasoning",
+    "name": "Calculator & Unit Converter",
+    "keywords": "Minimal & Direct Dark functional + orange operation keys + clear button hierarchy Professional + Clean hierarchy",
+    "summary": "Minimal & Direct. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Minimal & Direct",
+      "stylePriority": "Neumorphism + Minimalism",
+      "colorMood": "Dark functional + orange operation keys + clear button hierarchy",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Dual shadows (light+dark) + Soft press 150ms",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:alarm-world-clock",
+    "domain": "reasoning",
+    "name": "Alarm & World Clock",
+    "keywords": "Minimal & Direct Deep dark + ambient glow accent + timezone gradient Professional + Clean hierarchy",
+    "summary": "Minimal & Direct. {\"if_light_mode_needed\": \"provide-theme-toggle\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Minimal & Direct",
+      "stylePriority": "Dark Mode (OLED) + Minimalism",
+      "colorMood": "Deep dark + ambient glow accent + timezone gradient",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle glow + Neon accents + High contrast",
+      "rules": "{\"if_light_mode_needed\": \"provide-theme-toggle\"}",
+      "antiPatterns": "Excessive decoration + Pure white backgrounds",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:file-manager-transfer",
+    "domain": "reasoning",
+    "name": "File Manager & Transfer",
+    "keywords": "Feature-Rich Showcase + Demo Functional neutral + file type color coding (PDF orange, doc blue, image purple) Professional + Clean hierarchy",
+    "summary": "Feature-Rich Showcase + Demo. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Demo",
+      "stylePriority": "Flat Design + Minimalism",
+      "colorMood": "Functional neutral + file type color coding (PDF orange, doc blue, image purple)",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration + Complex shadows + 3D effects",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:email-client",
+    "domain": "reasoning",
+    "name": "Email Client",
+    "keywords": "Feature-Rich Showcase + Demo Clean white + brand primary + priority red + snooze amber Professional + Clean hierarchy",
+    "summary": "Feature-Rich Showcase + Demo. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Demo",
+      "stylePriority": "Flat Design + Minimalism",
+      "colorMood": "Clean white + brand primary + priority red + snooze amber",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration + Complex shadows + 3D effects",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:casual-puzzle-game",
+    "domain": "reasoning",
+    "name": "Casual Puzzle Game",
+    "keywords": "Feature-Rich Showcase + Social Proof Cheerful pastels + progression gradient + reward gold + bright accent Playful + Rounded + Friendly",
+    "summary": "Feature-Rich Showcase + Social Proof. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Social Proof",
+      "stylePriority": "Claymorphism + Vibrant & Block-based",
+      "colorMood": "Cheerful pastels + progression gradient + reward gold + bright accent",
+      "typographyMood": "Playful + Rounded + Friendly",
+      "effects": "Multi-layer shadows + Spring bounce + Soft press 200ms",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:trivia-quiz-game",
+    "domain": "reasoning",
+    "name": "Trivia & Quiz Game",
+    "keywords": "Feature-Rich Showcase + Social Proof Energetic blue + correct green + incorrect red + leaderboard gold Energetic + Bold + Large",
+    "summary": "Feature-Rich Showcase + Social Proof. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Social Proof",
+      "stylePriority": "Vibrant & Block-based + Micro-interactions",
+      "colorMood": "Energetic blue + correct green + incorrect red + leaderboard gold",
+      "typographyMood": "Energetic + Bold + Large",
+      "effects": "Haptic feedback + Small 50-100ms animations",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:card-board-game",
+    "domain": "reasoning",
+    "name": "Card & Board Game",
+    "keywords": "Feature-Rich Showcase Game-theme felt green + dark wood + card back patterns Bold + Clean + Sans-serif",
+    "summary": "Feature-Rich Showcase. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase",
+      "stylePriority": "3D & Hyperrealism + Flat Design",
+      "colorMood": "Game-theme felt green + dark wood + card back patterns",
+      "typographyMood": "Bold + Clean + Sans-serif",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Complex shadows + 3D effects",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:idle-clicker-game",
+    "domain": "reasoning",
+    "name": "Idle & Clicker Game",
+    "keywords": "Feature-Rich Showcase Coin gold + upgrade blue + prestige purple + progress green Energetic + Bold + Large",
+    "summary": "Feature-Rich Showcase. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase",
+      "stylePriority": "Vibrant & Block-based + Motion-Driven",
+      "colorMood": "Coin gold + upgrade blue + prestige purple + progress green",
+      "typographyMood": "Energetic + Bold + Large",
+      "effects": "Scroll animations + Parallax + Page transitions",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:word-crossword-game",
+    "domain": "reasoning",
+    "name": "Word & Crossword Game",
+    "keywords": "Minimal & Direct + Demo Clean white + warm letter tiles + success green + shake red Professional + Clean hierarchy",
+    "summary": "Minimal & Direct + Demo. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Minimal & Direct + Demo",
+      "stylePriority": "Minimalism + Flat Design",
+      "colorMood": "Clean white + warm letter tiles + success green + shake red",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration + Complex shadows + 3D effects",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:arcade-retro-game",
+    "domain": "reasoning",
+    "name": "Arcade & Retro Game",
+    "keywords": "Feature-Rich Showcase + Hero-Centric Neon on black + pixel palette + score gold + danger red Nostalgic + Monospace + Neon",
+    "summary": "Feature-Rich Showcase + Hero-Centric. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Hero-Centric",
+      "stylePriority": "Pixel Art + Retro-Futurism",
+      "colorMood": "Neon on black + pixel palette + score gold + danger red",
+      "typographyMood": "Nostalgic + Monospace + Neon",
+      "effects": "Subtle hover (200ms) + Smooth transitions",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Inconsistent styling + Poor contrast ratios",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:photo-editor-filters",
+    "domain": "reasoning",
+    "name": "Photo Editor & Filters",
+    "keywords": "Feature-Rich Showcase + Interactive Demo Dark editor background + vibrant filter preview strip + tool icon accent Professional + Clean hierarchy",
+    "summary": "Feature-Rich Showcase + Interactive Demo. {\"if_light_mode_needed\": \"provide-theme-toggle\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Interactive Demo",
+      "stylePriority": "Minimalism + Dark Mode (OLED)",
+      "colorMood": "Dark editor background + vibrant filter preview strip + tool icon accent",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle glow + Neon accents + High contrast",
+      "rules": "{\"if_light_mode_needed\": \"provide-theme-toggle\"}",
+      "antiPatterns": "Excessive decoration + Pure white backgrounds",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:short-video-editor",
+    "domain": "reasoning",
+    "name": "Short Video Editor",
+    "keywords": "Feature-Rich Showcase + Hero-Centric Dark background + timeline track accent colors + effect preview vivid High contrast + Light on dark",
+    "summary": "Feature-Rich Showcase + Hero-Centric. {\"if_light_mode_needed\": \"provide-theme-toggle\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Hero-Centric",
+      "stylePriority": "Dark Mode (OLED) + Motion-Driven",
+      "colorMood": "Dark background + timeline track accent colors + effect preview vivid",
+      "typographyMood": "High contrast + Light on dark",
+      "effects": "Subtle glow + Neon accents + High contrast",
+      "rules": "{\"if_light_mode_needed\": \"provide-theme-toggle\"}",
+      "antiPatterns": "Pure white backgrounds",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:drawing-sketching-canvas",
+    "domain": "reasoning",
+    "name": "Drawing & Sketching Canvas",
+    "keywords": "Interactive Product Demo + Storytelling Neutral canvas + full-spectrum color picker + tool panel dark Professional + Clean hierarchy",
+    "summary": "Interactive Product Demo + Storytelling. {\"if_light_mode_needed\": \"provide-theme-toggle\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Interactive Product Demo + Storytelling",
+      "stylePriority": "Minimalism + Dark Mode (OLED)",
+      "colorMood": "Neutral canvas + full-spectrum color picker + tool panel dark",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle glow + Neon accents + High contrast",
+      "rules": "{\"if_light_mode_needed\": \"provide-theme-toggle\"}",
+      "antiPatterns": "Excessive decoration + Pure white backgrounds",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:music-creation-beat-maker",
+    "domain": "reasoning",
+    "name": "Music Creation & Beat Maker",
+    "keywords": "Interactive Product Demo + Storytelling Dark studio background + track colors rainbow + waveform accent + BPM pulse High contrast + Light on dark",
+    "summary": "Interactive Product Demo + Storytelling. {\"if_light_mode_needed\": \"provide-theme-toggle\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Interactive Product Demo + Storytelling",
+      "stylePriority": "Dark Mode (OLED) + Motion-Driven",
+      "colorMood": "Dark studio background + track colors rainbow + waveform accent + BPM pulse",
+      "typographyMood": "High contrast + Light on dark",
+      "effects": "Subtle glow + Neon accents + High contrast",
+      "rules": "{\"if_light_mode_needed\": \"provide-theme-toggle\"}",
+      "antiPatterns": "Pure white backgrounds",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:meme-sticker-maker",
+    "domain": "reasoning",
+    "name": "Meme & Sticker Maker",
+    "keywords": "Feature-Rich Showcase + Social Proof Bold primary + comedic yellow + viral red + high saturation accent Bold + Clean + Sans-serif",
+    "summary": "Feature-Rich Showcase + Social Proof. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Social Proof",
+      "stylePriority": "Vibrant & Block-based + Flat Design",
+      "colorMood": "Bold primary + comedic yellow + viral red + high saturation accent",
+      "typographyMood": "Bold + Clean + Sans-serif",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Complex shadows + 3D effects + Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:ai-photo-avatar-generator",
+    "domain": "reasoning",
+    "name": "AI Photo & Avatar Generator",
+    "keywords": "Feature-Rich Showcase + Social Proof AI purple + aurora gradients + before/after neutral Elegant + Gradient-friendly",
+    "summary": "Feature-Rich Showcase + Social Proof. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Social Proof",
+      "stylePriority": "AI-Native UI + Aurora UI",
+      "colorMood": "AI purple + aurora gradients + before/after neutral",
+      "typographyMood": "Elegant + Gradient-friendly",
+      "effects": "Flowing gradients 8-12s + Color morphing",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Inconsistent styling + Poor contrast ratios",
+      "severity": "HIGH"
+    },
+    "caution": "Purple or indigo gradients are a default generated look, choose it only when the brief asks. (NS-LOOK-DEFAULT-PALETTE)"
+  },
+  {
+    "id": "reasoning:link-in-bio-page-builder",
+    "domain": "reasoning",
+    "name": "Link-in-Bio Page Builder",
+    "keywords": "Conversion-Optimized + Social Proof Brand-customizable + accent link color + clean white canvas Energetic + Bold + Large",
+    "summary": "Conversion-Optimized + Social Proof. {\"if_conversion_focused\": \"add-urgency-colors\", \"if_trust_needed\": \"add-testimonials\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Conversion-Optimized + Social Proof",
+      "stylePriority": "Vibrant & Block-based + Bento Box Grid",
+      "colorMood": "Brand-customizable + accent link color + clean white canvas",
+      "typographyMood": "Energetic + Bold + Large",
+      "effects": "Large section gaps 48px+ + Color shift hover + Scroll-snap",
+      "rules": "{\"if_conversion_focused\": \"add-urgency-colors\", \"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:wardrobe-outfit-planner",
+    "domain": "reasoning",
+    "name": "Wardrobe & Outfit Planner",
+    "keywords": "Storytelling-Driven + Feature-Rich Clean fashion neutral + full clothes color palette + accent Professional + Clean hierarchy",
+    "summary": "Storytelling-Driven + Feature-Rich. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Storytelling-Driven + Feature-Rich",
+      "stylePriority": "Minimalism + Motion-Driven",
+      "colorMood": "Clean fashion neutral + full clothes color palette + accent",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle hover 200ms + Smooth transitions + Clean",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:plant-care-tracker",
+    "domain": "reasoning",
+    "name": "Plant Care Tracker",
+    "keywords": "Storytelling-Driven + Social Proof Nature greens + earth brown + sunny yellow reminder + water blue Warm + Humanist + Natural",
+    "summary": "Storytelling-Driven + Social Proof. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Storytelling-Driven + Social Proof",
+      "stylePriority": "Organic Biophilic + Soft UI Evolution",
+      "colorMood": "Nature greens + earth brown + sunny yellow reminder + water blue",
+      "typographyMood": "Warm + Humanist + Natural",
+      "effects": "Rounded 16-24px + Natural shadows + Flowing SVG",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Inconsistent styling + Poor contrast ratios",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:book-reading-tracker",
+    "domain": "reasoning",
+    "name": "Book & Reading Tracker",
+    "keywords": "Social Proof-Focused + Feature-Rich Warm paper white + ink brown + reading progress green + book cover colors Professional + Clean hierarchy",
+    "summary": "Social Proof-Focused + Feature-Rich. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": ["read"],
+    "fields": {
+      "pattern": "Social Proof-Focused + Feature-Rich",
+      "stylePriority": "Swiss Modernism 2.0 + Minimalism",
+      "colorMood": "Warm paper white + ink brown + reading progress green + book cover colors",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle hover 200ms + Smooth transitions + Clean",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Excessive decoration",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:couple-relationship-app",
+    "domain": "reasoning",
+    "name": "Couple & Relationship App",
+    "keywords": "Storytelling-Driven + Social Proof Warm romantic pink/rose + soft gradient + memory photo tones Elegant + Gradient-friendly",
+    "summary": "Storytelling-Driven + Social Proof. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Storytelling-Driven + Social Proof",
+      "stylePriority": "Aurora UI + Soft UI Evolution",
+      "colorMood": "Warm romantic pink/rose + soft gradient + memory photo tones",
+      "typographyMood": "Elegant + Gradient-friendly",
+      "effects": "Flowing gradients 8-12s + Color morphing",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Inconsistent styling + Poor contrast ratios",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:family-calendar-chores",
+    "domain": "reasoning",
+    "name": "Family Calendar & Chores",
+    "keywords": "Feature-Rich Showcase + Social Proof Warm playful + member color coding + chore completion green Playful + Rounded + Friendly",
+    "summary": "Feature-Rich Showcase + Social Proof. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Social Proof",
+      "stylePriority": "Flat Design + Claymorphism",
+      "colorMood": "Warm playful + member color coding + chore completion green",
+      "typographyMood": "Playful + Rounded + Friendly",
+      "effects": "Multi-layer shadows + Spring bounce + Soft press 200ms",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Complex shadows + 3D effects",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:mood-tracker",
+    "domain": "reasoning",
+    "name": "Mood Tracker",
+    "keywords": "Storytelling-Driven + Social Proof Emotion gradient (blue sad to yellow happy) + pastel per mood + insight accent Professional + Clean hierarchy",
+    "summary": "Storytelling-Driven + Social Proof. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Storytelling-Driven + Social Proof",
+      "stylePriority": "Soft UI Evolution + Minimalism",
+      "colorMood": "Emotion gradient (blue sad to yellow happy) + pastel per mood + insight accent",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle hover 200ms + Smooth transitions + Clean",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Excessive decoration",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:gift-wishlist",
+    "domain": "reasoning",
+    "name": "Gift & Wishlist",
+    "keywords": "Minimal & Direct + Conversion Celebration warm pink/gold/red + category colors + surprise accent Energetic + Bold + Large",
+    "summary": "Minimal & Direct + Conversion. {\"if_conversion_focused\": \"add-urgency-colors\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Minimal & Direct + Conversion",
+      "stylePriority": "Vibrant & Block-based + Soft UI Evolution",
+      "colorMood": "Celebration warm pink/gold/red + category colors + surprise accent",
+      "typographyMood": "Energetic + Bold + Large",
+      "effects": "Large section gaps 48px+ + Color shift hover + Scroll-snap",
+      "rules": "{\"if_conversion_focused\": \"add-urgency-colors\"}",
+      "antiPatterns": "Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:running-cycling-gps",
+    "domain": "reasoning",
+    "name": "Running & Cycling GPS",
+    "keywords": "Feature-Rich Showcase + Social Proof Energetic orange + map accent + pace zones (green/yellow/red) High contrast + Light on dark",
+    "summary": "Feature-Rich Showcase + Social Proof. {\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Social Proof",
+      "stylePriority": "Dark Mode (OLED) + Vibrant & Block-based",
+      "colorMood": "Energetic orange + map accent + pace zones (green/yellow/red)",
+      "typographyMood": "High contrast + Light on dark",
+      "effects": "Subtle glow + Neon accents + High contrast",
+      "rules": "{\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Pure white backgrounds + Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:yoga-stretching-guide",
+    "domain": "reasoning",
+    "name": "Yoga & Stretching Guide",
+    "keywords": "Storytelling-Driven + Social Proof Earth calming sage/terracotta/cream + breathing gradient + warm accent Warm + Humanist + Natural",
+    "summary": "Storytelling-Driven + Social Proof. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Storytelling-Driven + Social Proof",
+      "stylePriority": "Organic Biophilic + Soft UI Evolution",
+      "colorMood": "Earth calming sage/terracotta/cream + breathing gradient + warm accent",
+      "typographyMood": "Warm + Humanist + Natural",
+      "effects": "Rounded 16-24px + Natural shadows + Flowing SVG",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Inconsistent styling + Poor contrast ratios",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:sleep-tracker",
+    "domain": "reasoning",
+    "name": "Sleep Tracker",
+    "keywords": "Feature-Rich Showcase + Social Proof Deep midnight blue + stars/moon accent + sleep quality gradient (poor red to great green) High contrast + Light on dark",
+    "summary": "Feature-Rich Showcase + Social Proof. {\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Social Proof",
+      "stylePriority": "Dark Mode (OLED) + Neumorphism",
+      "colorMood": "Deep midnight blue + stars/moon accent + sleep quality gradient (poor red to great green)",
+      "typographyMood": "High contrast + Light on dark",
+      "effects": "Dual shadows (light+dark) + Soft press 150ms",
+      "rules": "{\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Pure white backgrounds",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:calorie-nutrition-counter",
+    "domain": "reasoning",
+    "name": "Calorie & Nutrition Counter",
+    "keywords": "Feature-Rich Showcase + Social Proof Healthy green + macro colors (protein blue, carb orange, fat yellow) + progress circle Bold + Clean + Sans-serif",
+    "summary": "Feature-Rich Showcase + Social Proof. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Social Proof",
+      "stylePriority": "Flat Design + Vibrant & Block-based",
+      "colorMood": "Healthy green + macro colors (protein blue, carb orange, fat yellow) + progress circle",
+      "typographyMood": "Bold + Clean + Sans-serif",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Complex shadows + 3D effects + Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:period-cycle-tracker",
+    "domain": "reasoning",
+    "name": "Period & Cycle Tracker",
+    "keywords": "Social Proof-Focused + Trust Rose/blush + lavender + fertility green + soft calendar tones Elegant + Gradient-friendly",
+    "summary": "Social Proof-Focused + Trust. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Social Proof-Focused + Trust",
+      "stylePriority": "Soft UI Evolution + Aurora UI",
+      "colorMood": "Rose/blush + lavender + fertility green + soft calendar tones",
+      "typographyMood": "Elegant + Gradient-friendly",
+      "effects": "Flowing gradients 8-12s + Color morphing",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Inconsistent styling + Poor contrast ratios",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:medication-pill-reminder",
+    "domain": "reasoning",
+    "name": "Medication & Pill Reminder",
+    "keywords": "Trust & Authority + Feature-Rich Medical trust blue + missed alert red + taken green + clean white Bold + Clean + Sans-serif",
+    "summary": "Trust & Authority + Feature-Rich. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Trust & Authority + Feature-Rich",
+      "stylePriority": "Accessible & Ethical + Flat Design",
+      "colorMood": "Medical trust blue + missed alert red + taken green + clean white",
+      "typographyMood": "Bold + Clean + Sans-serif",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Complex shadows + 3D effects + Color-only indicators",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:water-hydration-reminder",
+    "domain": "reasoning",
+    "name": "Water & Hydration Reminder",
+    "keywords": "Minimal & Direct + Demo Refreshing blue + water wave animation + goal progress accent Playful + Rounded + Friendly",
+    "summary": "Minimal & Direct + Demo. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Minimal & Direct + Demo",
+      "stylePriority": "Claymorphism + Vibrant & Block-based",
+      "colorMood": "Refreshing blue + water wave animation + goal progress accent",
+      "typographyMood": "Playful + Rounded + Friendly",
+      "effects": "Multi-layer shadows + Spring bounce + Soft press 200ms",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:fasting-intermittent-timer",
+    "domain": "reasoning",
+    "name": "Fasting & Intermittent Timer",
+    "keywords": "Feature-Rich Showcase + Social Proof Fasting deep blue/purple + eating window green + timeline neutral Professional + Clean hierarchy",
+    "summary": "Feature-Rich Showcase + Social Proof. {\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Social Proof",
+      "stylePriority": "Minimalism + Dark Mode (OLED)",
+      "colorMood": "Fasting deep blue/purple + eating window green + timeline neutral",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle glow + Neon accents + High contrast",
+      "rules": "{\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Excessive decoration + Pure white backgrounds",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:anonymous-community-confession",
+    "domain": "reasoning",
+    "name": "Anonymous Community / Confession",
+    "keywords": "Social Proof-Focused + Feature-Rich Dark protective + subtle gradient + upvote green + empathy warm accent Professional + Clean hierarchy",
+    "summary": "Social Proof-Focused + Feature-Rich. {\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Social Proof-Focused + Feature-Rich",
+      "stylePriority": "Dark Mode (OLED) + Minimalism",
+      "colorMood": "Dark protective + subtle gradient + upvote green + empathy warm accent",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle glow + Neon accents + High contrast",
+      "rules": "{\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Excessive decoration + Pure white backgrounds",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:local-events-discovery",
+    "domain": "reasoning",
+    "name": "Local Events & Discovery",
+    "keywords": "Hero-Centric Design + Feature-Rich City vibrant + event category colors + map accent + date highlight Energetic + Bold + Large",
+    "summary": "Hero-Centric Design + Feature-Rich. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Hero-Centric Design + Feature-Rich",
+      "stylePriority": "Vibrant & Block-based + Motion-Driven",
+      "colorMood": "City vibrant + event category colors + map accent + date highlight",
+      "typographyMood": "Energetic + Bold + Large",
+      "effects": "Scroll animations + Parallax + Page transitions",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:study-together-virtual-coworking",
+    "domain": "reasoning",
+    "name": "Study Together / Virtual Coworking",
+    "keywords": "Social Proof-Focused + Feature-Rich Calm focus blue + session progress indicator + ambient warm neutrals Professional + Clean hierarchy",
+    "summary": "Social Proof-Focused + Feature-Rich. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Social Proof-Focused + Feature-Rich",
+      "stylePriority": "Minimalism + Soft UI Evolution",
+      "colorMood": "Calm focus blue + session progress indicator + ambient warm neutrals",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle hover 200ms + Smooth transitions + Clean",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Excessive decoration",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:coding-challenge-practice",
+    "domain": "reasoning",
+    "name": "Coding Challenge & Practice",
+    "keywords": "Feature-Rich Showcase + Social Proof Code editor dark + success green + difficulty gradient (easy green / medium amber / hard red) High contrast + Light on dark",
+    "summary": "Feature-Rich Showcase + Social Proof. {\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Social Proof",
+      "stylePriority": "Dark Mode (OLED) + Cyberpunk UI",
+      "colorMood": "Code editor dark + success green + difficulty gradient (easy green / medium amber / hard red)",
+      "typographyMood": "High contrast + Light on dark",
+      "effects": "Subtle glow + Neon accents + High contrast",
+      "rules": "{\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Pure white backgrounds",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:kids-learning-abc-math",
+    "domain": "reasoning",
+    "name": "Kids Learning (ABC & Math)",
+    "keywords": "Social Proof-Focused + Trust Bright primary + child-safe pastels + reward gold + interactive accent Playful + Rounded + Friendly",
+    "summary": "Social Proof-Focused + Trust. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Social Proof-Focused + Trust",
+      "stylePriority": "Claymorphism + Vibrant & Block-based",
+      "colorMood": "Bright primary + child-safe pastels + reward gold + interactive accent",
+      "typographyMood": "Playful + Rounded + Friendly",
+      "effects": "Multi-layer shadows + Spring bounce + Soft press 200ms",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:music-instrument-learning",
+    "domain": "reasoning",
+    "name": "Music Instrument Learning",
+    "keywords": "Interactive Product Demo + Social Proof Musical warm deep red/brown + note color system + skill progress bar Energetic + Bold + Large",
+    "summary": "Interactive Product Demo + Social Proof. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Interactive Product Demo + Social Proof",
+      "stylePriority": "Vibrant & Block-based + Motion-Driven",
+      "colorMood": "Musical warm deep red/brown + note color system + skill progress bar",
+      "typographyMood": "Energetic + Bold + Large",
+      "effects": "Scroll animations + Parallax + Page transitions",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:parking-finder",
+    "domain": "reasoning",
+    "name": "Parking Finder",
+    "keywords": "Conversion-Optimized + Feature-Rich Trust blue + available green + occupied red + map neutral Professional + Clean hierarchy",
+    "summary": "Conversion-Optimized + Feature-Rich. {\"if_low_performance\": \"fallback-to-flat\", \"if_conversion_focused\": \"add-urgency-colors\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Conversion-Optimized + Feature-Rich",
+      "stylePriority": "Minimalism + Glassmorphism",
+      "colorMood": "Trust blue + available green + occupied red + map neutral",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Backdrop blur (10-20px) + Translucent overlays",
+      "rules": "{\"if_low_performance\": \"fallback-to-flat\", \"if_conversion_focused\": \"add-urgency-colors\"}",
+      "antiPatterns": "Excessive decoration",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:public-transit-guide",
+    "domain": "reasoning",
+    "name": "Public Transit Guide",
+    "keywords": "Feature-Rich Showcase + Interactive Demo Transit brand line colors + real-time indicator green/red + map neutral Bold + Clean + Sans-serif",
+    "summary": "Feature-Rich Showcase + Interactive Demo. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Interactive Demo",
+      "stylePriority": "Flat Design + Accessible & Ethical",
+      "colorMood": "Transit brand line colors + real-time indicator green/red + map neutral",
+      "typographyMood": "Bold + Clean + Sans-serif",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Complex shadows + 3D effects + Color-only indicators",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:road-trip-planner",
+    "domain": "reasoning",
+    "name": "Road Trip Planner",
+    "keywords": "Storytelling-Driven + Hero-Centric Adventure warm sunset orange + map teal + stop markers + road neutral Elegant + Gradient-friendly",
+    "summary": "Storytelling-Driven + Hero-Centric. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Storytelling-Driven + Hero-Centric",
+      "stylePriority": "Aurora UI + Organic Biophilic",
+      "colorMood": "Adventure warm sunset orange + map teal + stop markers + road neutral",
+      "typographyMood": "Elegant + Gradient-friendly",
+      "effects": "Flowing gradients 8-12s + Color morphing",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Inconsistent styling + Poor contrast ratios",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:vpn-privacy-tool",
+    "domain": "reasoning",
+    "name": "VPN & Privacy Tool",
+    "keywords": "Trust & Authority + Conversion-Optimized Dark shield blue + connected green + disconnected red + trust accent Professional + Clean hierarchy",
+    "summary": "Trust & Authority + Conversion-Optimized. {\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_conversion_focused\": \"add-urgency-colors\"}",
+    "modes": ["persuade"],
+    "fields": {
+      "pattern": "Trust & Authority + Conversion-Optimized",
+      "stylePriority": "Minimalism + Dark Mode (OLED)",
+      "colorMood": "Dark shield blue + connected green + disconnected red + trust accent",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle glow + Neon accents + High contrast",
+      "rules": "{\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_conversion_focused\": \"add-urgency-colors\"}",
+      "antiPatterns": "Excessive decoration + Pure white backgrounds",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:emergency-sos-safety",
+    "domain": "reasoning",
+    "name": "Emergency SOS & Safety",
+    "keywords": "Trust & Authority + Social Proof Alert red + safety blue + location green + high contrast critical Bold + Clean + Sans-serif",
+    "summary": "Trust & Authority + Social Proof. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Trust & Authority + Social Proof",
+      "stylePriority": "Accessible & Ethical + Flat Design",
+      "colorMood": "Alert red + safety blue + location green + high contrast critical",
+      "typographyMood": "Bold + Clean + Sans-serif",
+      "effects": "Color shift hover + Fast 150ms transitions + No shadows",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Complex shadows + 3D effects + Color-only indicators",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:wallpaper-theme-app",
+    "domain": "reasoning",
+    "name": "Wallpaper & Theme App",
+    "keywords": "Feature-Rich Showcase + Social Proof Content-driven + trending aesthetic palettes + download accent Energetic + Bold + Large",
+    "summary": "Feature-Rich Showcase + Social Proof. {\"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Feature-Rich Showcase + Social Proof",
+      "stylePriority": "Vibrant & Block-based + Aurora UI",
+      "colorMood": "Content-driven + trending aesthetic palettes + download accent",
+      "typographyMood": "Energetic + Bold + Large",
+      "effects": "Large section gaps 48px+ + Color shift hover + Scroll-snap",
+      "rules": "{\"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Muted colors + Low energy",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:white-noise-ambient-sound",
+    "domain": "reasoning",
+    "name": "White Noise & Ambient Sound",
+    "keywords": "Minimal & Direct + Social Proof Calming dark + ambient texture visual + subtle sound wave + sleep blue Professional + Clean hierarchy",
+    "summary": "Minimal & Direct + Social Proof. {\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_trust_needed\": \"add-testimonials\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Minimal & Direct + Social Proof",
+      "stylePriority": "Minimalism + Dark Mode (OLED)",
+      "colorMood": "Calming dark + ambient texture visual + subtle sound wave + sleep blue",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle glow + Neon accents + High contrast",
+      "rules": "{\"if_light_mode_needed\": \"provide-theme-toggle\", \"if_trust_needed\": \"add-testimonials\"}",
+      "antiPatterns": "Excessive decoration + Pure white backgrounds",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "id": "reasoning:home-decoration-interior-design",
+    "domain": "reasoning",
+    "name": "Home Decoration & Interior Design",
+    "keywords": "Storytelling-Driven + Feature-Rich Neutral interior palette + material texture accent + AR blue Professional + Clean hierarchy",
+    "summary": "Storytelling-Driven + Feature-Rich. {\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+    "modes": [],
+    "fields": {
+      "pattern": "Storytelling-Driven + Feature-Rich",
+      "stylePriority": "Minimalism + 3D Product Preview",
+      "colorMood": "Neutral interior palette + material texture accent + AR blue",
+      "typographyMood": "Professional + Clean hierarchy",
+      "effects": "Subtle hover 200ms + Smooth transitions + Clean",
+      "rules": "{\"if_ux_focused\": \"prioritize-clarity\", \"if_mobile\": \"optimize-touch-targets\"}",
+      "antiPatterns": "Excessive decoration",
+      "severity": "HIGH"
+    }
+  }
+]

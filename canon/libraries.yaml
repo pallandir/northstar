@@ -1,0 +1,105 @@
+stacks:
+  react: { label: React, detect: [react] }
+  next: { label: Next.js, detect: [next], extends: react }
+  vue: { label: Vue, detect: [vue] }
+  svelte: { label: Svelte, detect: [svelte] }
+  angular: { label: Angular, detect: ["@angular/core"] }
+  solid: { label: Solid, detect: [solid-js] }
+  html: { label: Plain HTML and CSS, detect: [] }
+
+needs:
+  primitives:
+    covers: [dialog, modal, drawer, popover, dropdown menu, tooltip, select, tabs, accordion, checkbox, switch, slider]
+    react: { choice: shadcn/ui on Radix, package: shadcn, install: "npx shadcn@latest init", mcp: shadcn }
+    vue: { choice: shadcn-vue on Reka UI, package: shadcn-vue, install: "npx shadcn-vue@latest init" }
+    svelte: { choice: shadcn-svelte on Bits UI, package: shadcn-svelte, install: "npx shadcn-svelte@latest init" }
+    angular: { choice: Angular CDK with Spartan UI, package: "@angular/cdk" }
+    solid: { choice: Kobalte, package: "@kobalte/core" }
+    html: { choice: "native dialog, popover and details elements" }
+
+  icon:
+    covers: [icon]
+    react: { choice: Lucide, package: lucide-react }
+    vue: { choice: Lucide, package: lucide-vue-next }
+    svelte: { choice: Lucide, package: "@lucide/svelte" }
+    angular: { choice: Lucide, package: lucide-angular }
+    solid: { choice: Lucide, package: lucide-solid }
+    html: { choice: Lucide static icons or Material Symbols, package: lucide-static }
+    alternatives: [Material Symbols, Iconify, Phosphor]
+
+  font:
+    covers: [font]
+    react: { choice: Fontsource variable fonts, package: "@fontsource-variable/<family>" }
+    next: { choice: next/font with Google Fonts, package: next/font/google }
+    vue: { choice: Fontsource variable fonts, package: "@fontsource-variable/<family>" }
+    svelte: { choice: Fontsource variable fonts, package: "@fontsource-variable/<family>" }
+    angular: { choice: Fontsource variable fonts, package: "@fontsource-variable/<family>" }
+    solid: { choice: Fontsource variable fonts, package: "@fontsource-variable/<family>" }
+    html: { choice: Google Fonts stylesheet with display swap }
+
+  toast:
+    covers: [toast, notification]
+    react: { choice: Sonner, package: sonner }
+    vue: { choice: Vue Sonner, package: vue-sonner }
+    svelte: { choice: Svelte Sonner, package: svelte-sonner }
+    angular: { choice: ngx-sonner, package: ngx-sonner }
+    solid: { choice: Solid Sonner, package: solid-sonner }
+
+  table:
+    covers: [data table, sorting, filtering]
+    react: { choice: TanStack Table, package: "@tanstack/react-table" }
+    vue: { choice: TanStack Table, package: "@tanstack/vue-table" }
+    svelte: { choice: TanStack Table, package: "@tanstack/svelte-table" }
+    angular: { choice: TanStack Table, package: "@tanstack/angular-table" }
+    solid: { choice: TanStack Table, package: "@tanstack/solid-table" }
+
+  form:
+    covers: [form, validation]
+    react: { choice: React Hook Form with Zod, package: react-hook-form }
+    vue: { choice: VeeValidate with Zod, package: vee-validate }
+    svelte: { choice: Superforms, package: sveltekit-superforms }
+    angular: { choice: Angular reactive forms, package: "@angular/forms" }
+    solid: { choice: Modular Forms, package: "@modular-forms/solid" }
+
+  chart:
+    covers: [chart, graph]
+    react: { choice: Recharts through the shadcn chart component, package: recharts }
+    vue: { choice: Chart.js, package: vue-chartjs }
+    svelte: { choice: LayerChart, package: layerchart }
+    angular: { choice: ngx-charts, package: "@swimlane/ngx-charts" }
+    solid: { choice: Chart.js, package: chart.js }
+    html: { choice: Chart.js, package: chart.js }
+
+  motion:
+    covers: [animation, transition, gesture]
+    react: { choice: Motion, package: motion }
+    vue: { choice: Motion for Vue, package: motion-v }
+    svelte: { choice: Svelte built in transitions and motion, package: svelte/motion }
+    angular: { choice: Angular animations, package: "@angular/animations" }
+    solid: { choice: Motion One, package: motion }
+    html: { choice: CSS transitions and the View Transitions API }
+
+  carousel:
+    covers: [carousel, slider]
+    react: { choice: Embla, package: embla-carousel-react }
+    vue: { choice: Embla, package: embla-carousel-vue }
+    svelte: { choice: Embla, package: embla-carousel-svelte }
+    solid: { choice: Embla, package: embla-carousel-solid }
+
+  command:
+    covers: [command palette, combobox search]
+    react: { choice: cmdk through the shadcn command component, package: cmdk }
+    vue: { choice: shadcn-vue command, package: shadcn-vue }
+    svelte: { choice: shadcn-svelte command, package: shadcn-svelte }
+
+  smooth-scroll:
+    covers: [smooth scroll]
+    react: { choice: Lenis, package: lenis, modes: [experience] }
+    vue: { choice: Lenis, package: lenis, modes: [experience] }
+    svelte: { choice: Lenis, package: lenis, modes: [experience] }
+    html: { choice: Lenis, package: lenis, modes: [experience] }
+
+external:
+  - { name: shadcn MCP, use: browse and add components from any registry, setup: "npx shadcn@latest mcp init" }
+  - { name: Figma remote MCP, use: "read variables, frames and design context from Figma, then pass variables to design_md_normalize", setup: "claude mcp add --transport http figma https://mcp.figma.com/mcp (see references/figma.md for Codex, Cursor and VS Code)" }
+  - { name: Iconify and Lucide MCPs, use: search icons with licence information, setup: community servers }

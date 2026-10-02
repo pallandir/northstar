@@ -1,0 +1,99 @@
+Northstar
+Copyright (c) 2026 pallandir
+Licensed under the MIT License, see LICENSE.md.
+
+The design canon, router skill and curated data in this project were distilled
+from the works below. No upstream file is redistributed verbatim. Text was
+rewritten, merged and in many places contradicted on purpose, with every
+conflict resolved in canon/arbitration.yaml. Each rule in canon/rules records
+the sources it draws on in its `sources` field. This notice states the changes
+required by the Apache License 2.0, section 4.
+
+impeccable
+  Copyright (c) Paul Bakaus. Licensed under the Apache License 2.0.
+  https://github.com/pbakaus/impeccable
+  Used as a source of ideas for the craft floor, the refuse list, the command
+  vocabulary (shape, critique, polish, adapt and related lenses) and the
+  detector rule catalogue. Changes: rewritten and restructured into the
+  Northstar method, rule ids and severities are original, detector code is
+  original and shares no source with impeccable.
+
+frontend-design (Anthropic skills)
+  Copyright (c) Anthropic. Licensed under the Apache License 2.0.
+  https://github.com/anthropics/skills
+  Used as a source of ideas for subject grounded direction, the two pass
+  plan, the list of default generated looks, the restraint rule and the UX
+  writing guidance. Changes: reworded, split into rules and references.
+
+ui-ux-pro-max
+  Copyright (c) 2024 Next Level Builder. Licensed under the MIT License.
+  https://github.com/nextlevelbuilder/ui-ux-pro-max-skill (version 2.5.0)
+  The curated data in mcp/data/json is derived from its CSV data files.
+  Changes: parsed into typed JSON, reduced to a common row shape, rows that
+  contradict the canon removed or annotated with a caution, font rows reduced
+  to what the resolver needs. The MIT license text is in
+  mcp/data/LICENSE-ui-ux-pro-max.txt and ships with the data.
+
+top-design (wondelai skills)
+  Copyright (c) 2025 Wondel.ai sp. z o.o. Licensed under the MIT License.
+  https://github.com/wondelai/skills
+  Used as a source of ideas for the critique rubric dimensions and weights for
+  expressive pages, and the motion and typography guidance. Changes: weights
+  re-balanced per mode, guidance reworded.
+
+taste-skill
+  Copyright (c) Leon Lin and blueemi. Licensed under the MIT License.
+  https://github.com/Leonxlnx/taste-skill
+  Used as a source of ideas for the design read before code, the three taste
+  dials (design variance, motion intensity, visual density), the soft,
+  minimalist and brutalist direction archetypes, the redesign audit order and
+  fix priority, the pre flight checklist, dark mode parity, and the copy and
+  placeholder data tells. Changes: distilled and reworded, no upstream text is
+  redistributed. Its defaults were turned into guidance with per mode values,
+  its absolute bans (Inter, Lucide, a fixed variance default) were relaxed
+  where they conflict with the library first policy and the mode canon, and the
+  conflicts are resolved in canon/arbitration.yaml. Rule ids and detector code
+  are original.
+
+make-interfaces-feel-better
+  Copyright (c) Jakub Krehel. Licensed under the MIT License.
+  https://github.com/jakubkrehel/make-interfaces-feel-better
+  Used as a source of ideas for the finish layer: concentric radii, layered
+  shadows over borders, image outlines, tabular figures, text wrapping and icon
+  stroke matching. Changes: reworded in the Northstar voice, turned into token
+  generation, detector rules and a checklist, and no upstream text is
+  redistributed.
+
+emil-design-eng (Emil Kowalski skills)
+  Copyright (c) Emil Kowalski. Licensed under the MIT License.
+  https://github.com/emilkowalski/skills
+  Used as a source of ideas for the motion frequency rule, the duration and
+  easing values, press and hover feedback, and the entrance rules. Changes:
+  reworded, merged with the existing motion budget per mode, and the numbers
+  were re-derived into the generated motion tokens.
+
+Web Interface Guidelines
+  Copyright (c) Vercel. Licensed under the MIT License.
+  https://github.com/vercel-labs/web-interface-guidelines
+  Used as a source of ideas for the interaction, form, loading and content
+  guidance and the detail checks. Changes: condensed, reworded and mapped onto
+  Northstar stages, modes and rule ids.
+
+DESIGN.md format
+  Copyright (c) Google. Licensed under the Apache License 2.0.
+  https://github.com/google-labs-code/design.md
+  The DESIGN.md file layout (frontmatter token groups and section order) is
+  followed so that files stay interchangeable. No code is copied.
+
+W3C Design Tokens Community Group format
+  https://www.w3.org/community/reports/design-tokens/
+  The DTCG object form is targeted by the design_md_export tool. No text or
+  code is copied.
+
+Google Fonts
+  Font family names and metadata come from the ui-ux-pro-max data. The fonts
+  themselves are not distributed, they are installed from Fontsource or the
+  Google Fonts service under each family's own license.
+
+Full license texts are available at the source URLs above and at
+https://www.apache.org/licenses/LICENSE-2.0 and https://opensource.org/license/mit.

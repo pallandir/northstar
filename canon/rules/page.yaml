@@ -1,0 +1,90 @@
+- id: NS-PAGE-PRIMARY-ACTIONS
+  title: One primary action per region
+  stage: [compose, critique, polish]
+  severity: warn
+  allowable: true
+  detect: dom
+  rationale: Several filled actions with the same visual weight weaken the reader's sense of the next step. One action should lead and the others step back.
+  fix: Decide the primary goal, keep one filled action, and demote the others to outline, ghost or text links.
+  sources: [impeccable, ui-ux-pro-max, taste-skill]
+
+- id: NS-PAGE-ALIGNMENT
+  title: Edges that nearly align
+  stage: [compose, polish]
+  severity: warn
+  allowable: true
+  detect: dom
+  rationale: Left edges a few pixels apart read as a mistake, not a choice. Alignment should be exact or clearly different.
+  fix: Snap the offset edge to the shared grid line, or move it far enough to read as intentional indentation.
+  sources: [impeccable, ui-ux-pro-max]
+
+- id: NS-PAGE-LINE-LENGTH
+  title: Comfortable line length
+  stage: [compose, polish]
+  severity: warn
+  allowable: true
+  detect: dom
+  rationale: Body text reads best at 45 to 75 characters per line. Longer lines make the eye lose its place.
+  fix: Cap prose containers with a max width in ch units, around 65ch.
+  sources: [impeccable, ui-ux-pro-max, top-design]
+
+- id: NS-PAGE-HEADING-ORDER
+  title: One h1 and no skipped heading levels
+  stage: [compose, polish]
+  severity: warn
+  allowable: false
+  detect: dom
+  rationale: Headings are the outline that screen readers and search engines use. A missing h1, several h1s or a skipped level break that outline.
+  fix: Use one h1, then h2 and h3 in order, and style headings with classes instead of picking a level for its look.
+  sources: [ui-ux-pro-max]
+
+- id: NS-PAGE-SMALL-TEXT
+  title: Text under 12px
+  stage: [compose, polish]
+  severity: warn
+  modes: { read: error }
+  allowable: true
+  detect: dom
+  rationale: Text below 12px is hard to read on most screens and fails for many users, even when contrast passes.
+  fix: Raise the text to at least 12px, and 14px or more for anything the reader needs.
+  sources: [impeccable, ui-ux-pro-max]
+
+- id: NS-PAGE-GENERIC-HERO
+  title: The default centred SaaS hero
+  stage: [direction, compose, critique]
+  severity: warn
+  allowable: true
+  detect: dom
+  rationale: A centred headline with a pill badge, two buttons and a product shot below is the template every generated page starts from. It says nothing about this product.
+  fix: Explore another composition, such as an asymmetric split, a type led hero or the product itself at scale, and pick the one that follows the direction in DESIGN.md.
+  sources: [impeccable, frontend-design, taste-skill]
+
+- id: NS-PAGE-ICON-SQUARES
+  title: Icons in identical rounded tiles
+  stage: [compose, critique]
+  severity: warn
+  allowable: true
+  detect: dom
+  rationale: Every icon inside a same sized rounded square is a scaffold habit. It adds weight without adding meaning.
+  fix: Drop the tile and let the icon sit on the text baseline, or vary scale and emphasis by importance.
+  sources: [impeccable, taste-skill]
+
+- id: NS-PAGE-GRADIENT
+  title: Gradient text and gradient filled surfaces
+  stage: [compose, polish]
+  severity: warn
+  allowable: true
+  detect: dom
+  rationale: Gradient headings and large gradient fills are the most recognisable generated look. A flat colour with strong type does more.
+  fix: Use a solid palette colour for the text and let scale or weight carry the emphasis. Keep gradients to one deliberate moment.
+  sources: [impeccable, frontend-design, taste-skill]
+
+- id: NS-PAGE-DRIFT
+  title: The build drifts from the chosen direction
+  stage: [compose, critique]
+  severity: warn
+  allowable: true
+  detect: dom
+  rationale: The direction was chosen from intent and references. A build that measures differently on composition, density, colour, type or corners has lost the idea it was meant to carry.
+  fix: Compare the measured values with the direction, and move the build back, or update the direction on purpose and record why in design/decisions.md.
+  sources: [northstar]

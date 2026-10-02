@@ -1,0 +1,130 @@
+precedence:
+  - rank: 1
+    name: Accessibility floor
+    rule: Rules marked allowable false cannot be lowered by any brief or allow entry.
+  - rank: 2
+    name: Explicit brief
+    rule: DESIGN.md, PRODUCT.md or a direct user instruction overrides taste rules through an allow entry with a reason, logged in decisions.
+  - rank: 3
+    name: Mode canon
+    rule: Operate, Read, Persuade and Experience change severities and limits.
+  - rank: 4
+    name: Global craft floor
+    rule: The anti slop defaults apply when the brief is silent.
+  - rank: 5
+    name: Data suggestions
+    rule: Ported palettes, pairings and styles are candidates, always filtered by every rank above.
+
+conflicts:
+  - id: fonts
+    topic: Which display faces are acceptable
+    positions:
+      top-design: Never Inter, Roboto or Arial as the primary face, and recommends Space Grotesk, Instrument Serif and Fraunces.
+      impeccable: Lists Space Grotesk, Instrument Serif, Fraunces and Inter display as training data defaults to avoid.
+      ui-ux-pro-max: Recommends Inter in many pairings.
+      taste-skill: Discourages Inter as the default sans and bans Fraunces and Instrument Serif as default serifs, with an override when the brief asks for neutral or Linear style.
+    resolution: No absolute ban list. A training data default as the display face is a warning unless the brief chose it. Inter is fine as quiet body text in Operate. The font resolver picks from the subject and mood.
+    rules: [NS-TYPE-DEFAULT-DISPLAY, NS-LIB-FONT]
+
+  - id: cream-and-near-black
+    topic: Cream grounds, near black grounds and tinted neutrals
+    positions:
+      top-design: Require warm near black and off white instead of pure black and white.
+      frontend-design: Treats cream with serif and terracotta, and near black with an acid accent, as generated defaults.
+    resolution: Pure black and white surfaces are discouraged, and neutrals are derived from the palette hue. The known default looks are warnings unless the brief asks for them.
+    rules: [NS-COLOR-PURE-BLACK, NS-LOOK-DEFAULT-PALETTE]
+
+  - id: gradients-and-glass
+    topic: Gradient text, aurora gradients and glassmorphism
+    positions:
+      impeccable: Bans gradient text and decorative glass.
+      ui-ux-pro-max: Lists glassmorphism, aurora gradients and gradient text rows as styles.
+    resolution: Gradient text is an error unless allowed, with a warning in Experience. Glass is allowed over imagery or maps, not as decoration.
+    rules: [NS-SLOP-GRADIENT-TEXT, NS-SLOP-DECOR-GLASS]
+
+  - id: labels
+    topic: Uppercase and monospace labels
+    positions:
+      frontend-design: Avoid all caps labels and monospace data labels.
+      impeccable: Bans eyebrows and monospace used as a costume.
+      ui-ux-pro-max: Prescribes uppercase tracked labels and uppercase monospace data labels.
+    resolution: Eyebrows are errors outside Operate. Tracked uppercase and monospace labels are warnings, and informational in dense Operate views where they encode real data.
+    rules: [NS-SLOP-EYEBROW, NS-SLOP-CAPS-LABELS, NS-SLOP-MONO-COSTUME]
+
+  - id: motion-amount
+    topic: How much motion
+    positions:
+      top-design: Choreographed page load, staggered reveals and smooth scroll.
+      frontend-design: One orchestrated moment, no per section entrances.
+      impeccable: One authored moment.
+      ui-ux-pro-max: Short durations, one or two animated elements per view.
+    resolution: Operate and Read use functional motion only. Persuade gets one signature moment. Experience may choreograph with a reduced motion fallback and an opt in for scroll libraries.
+    rules: [NS-MOTION-ONE-MOMENT, NS-MOTION-SECTION-ENTRANCE, NS-MOTION-SCROLLJACK, NS-A11Y-REDUCED-MOTION]
+
+  - id: easing
+    topic: Easing keywords versus curves
+    positions:
+      top-design: Never the ease, ease out or linear keywords, use custom cubic bezier.
+      impeccable: Exponential ease out.
+      ui-ux-pro-max: Allows ease out and ease in with 150 to 300ms durations.
+    resolution: Authored motion uses a custom cubic bezier from the exponential ease out family, defined once as a token. Keywords are acceptable for trivial state feedback.
+    rules: [NS-MOTION-EASING, NS-MOTION-BOUNCE]
+
+  - id: type-scale
+    topic: Display size
+    positions:
+      top-design: Ratio of about ten to one between display and body, type that fills the viewport.
+      impeccable: Display type capped at 6rem.
+    resolution: The cap depends on the mode, with Experience allowed to exceed it through a recorded allow entry.
+    rules: [NS-TYPE-DISPLAY-MAX, NS-TYPE-SCALE]
+
+  - id: libraries
+    topic: Hand built versus library components
+    positions:
+      impeccable: Allows authored SVG icons.
+      ui-ux-pro-max: Suggests icon sets and component stacks.
+      taste-skill: Bans hand drawn icons and wants official design system packages installed rather than imitated.
+    resolution: Library first. Hand rolled icons, overlays, fonts and primitives are flagged unless the brief or an allow entry says otherwise.
+    rules: [NS-LIB-ICON, NS-LIB-OVERLAY, NS-LIB-FONT, NS-LIB-PRIMITIVE]
+
+  - id: icon-set
+    topic: Which icon library
+    positions:
+      taste-skill: Prefers Phosphor, Hugeicons, Radix or Tabler icons and discourages Lucide unless asked for or already installed.
+      ui-ux-pro-max: Suggests Lucide among several icon sets.
+    resolution: The library first policy decides. The icon set already in the project or named in DESIGN.md wins, otherwise resolve_icon picks one by subject and mood, and Lucide stays the stack default for shadcn projects. Phosphor and Tabler are equal alternatives. What is enforced is one library at one stroke and size.
+    rules: [NS-LIB-ICON, NS-SLOP-EMOJI-ICON]
+
+  - id: taste-dials
+    topic: Default design variance and the mode
+    positions:
+      taste-skill: Defaults to a design variance of 8 for landing pages and avoids centred layouts above 4.
+      impeccable: Asks for restraint and a clear structure that follows the content.
+    resolution: The dials are guidance and start from the mode, never from a fixed default. Operate starts at a low variance and a high density, Read and Persuade sit in the middle, and only Experience starts high. The designer's answer, recorded in DESIGN.md prose, overrides the mode default, and the accessibility floor still applies at every setting.
+    rules: [NS-LAYOUT-TASTE-DIALS, NS-LAYOUT-CENTER-EVERYTHING, NS-LAYOUT-SPACING-RHYTHM]
+
+  - id: depth-model
+    topic: Shadows, borders or a flat surface
+    positions:
+      make-interfaces-feel-better: Layered soft shadows with a thin ring beat solid borders, since shadows adapt to any background.
+      taste-skill: Soft tinted shadows for calm looks, no shadows at all for minimalist and brutalist looks.
+      impeccable: Refuses hard offset shadows and decorative glass.
+    resolution: The archetype decides the depth model and DESIGN.md records it. Soft looks use two or three tinted layers, minimalist and editorial looks use a ring and background steps, brutalist looks need an allow entry for hard shadows. A single black layer is never right, and a flat system is valid when the brief says flat.
+    rules: [NS-FINISH-FLAT-SHADOW, NS-SLOP-HARD-SHADOW, NS-SLOP-DECOR-GLASS]
+
+  - id: motion-frequency
+    topic: Atmosphere versus restraint in motion
+    positions:
+      taste-skill: Motion intensity high on landing pages, with scroll choreography and hover physics.
+      emil-design-eng: Animate less the more often an action happens, never animate keyboard actions, and keep interface motion under 300ms.
+      impeccable: One authored moment per page.
+    resolution: The mode sets the budget and frequency sets the amount. Operate animates feedback only, Persuade gets one signature moment, Experience may choreograph with a reduced motion path. Actions repeated all day and anything triggered by keyboard stay instant, and interface transitions stay under 300ms outside Experience.
+    rules: [NS-MOTION-ONE-MOMENT, NS-MOTION-DURATION, NS-MOTION-EASE-IN, NS-A11Y-REDUCED-MOTION]
+
+  - id: generated-tokens
+    topic: Generated tokens versus a supplied brand
+    positions:
+      northstar: design_tokens_generate builds a tinted ramp from a hue, a shape and a density.
+      brief: A designer or brand guide may already fix the colours, fonts and radii.
+    resolution: A supplied brand always wins. Seed the generator with the brand colour, keep the supplied fonts and radii, and use the generated neutrals, shadows and motion tokens only for what the brief leaves open. Contrast must still pass for every pair.
+    rules: [NS-LOOK-DEFAULT-PALETTE, NS-COLOR-RAW-VALUES, NS-A11Y-CONTRAST]

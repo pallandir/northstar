@@ -1,0 +1,92 @@
+# AMO listing
+
+Reference copy for submitting Northstar to addons.mozilla.org. Build the upload
+artifact with `npm run package:firefox`, which produces
+`extensions/firefox/web-ext-artifacts/northstar-firefox-<version>.zip`.
+
+AMO requires a source-code package for this add-on because the shipped code is
+bundled and minified by Vite. Produce it with `npm run source --workspace @northstar/firefox`,
+which archives the tagged commit directly from git so it cannot drift from what is submitted.
+
+## Summary (250 chars max)
+
+Point at anything on your frontend, leave a comment, and let your local AI coding
+assistant fix it in the real source. Everything stays on your machine.
+
+## Detailed description
+
+Northstar turns the frontend you are building into something you can talk to
+directly. Instead of writing tickets, taking screenshots, and describing what you
+want changed, you click the element on the page and leave a comment right where the
+problem is. That comment travels straight to your AI coding assistant, which then
+works on the real source files in your project.
+
+It feels like leaving notes in Figma, except the canvas is your actual running app
+and the notes turn into code.
+
+How it works
+
+Click the Northstar icon to bring up a lightweight toolbar over the current tab.
+From there you can point at any element and open one popover with three things you
+can do: leave a comment, edit its text, or recolor it, and see the change live
+before you send it. Every note is pinned to the element it belongs to, with a
+stable reference so nothing gets lost in translation.
+
+Northstar reads the running page to identify the component and route an element
+belongs to wherever the framework exposes that (React, Vue, Svelte, Angular), so
+your assistant lands on the right file immediately instead of searching for it.
+
+Your comments are delivered to a small companion server that runs on your own
+machine. Any assistant that speaks the Model Context Protocol can read them and
+act. It has been tested with Claude Code, and other MCP compatible tools should
+work as well.
+
+Built for how developers actually work
+
+Northstar stays out of the way until you ask for it. It does not run on any website
+by default and has no standing access to the pages you visit. The moment you click
+its icon, it works only on that one tab. On a local dev server it comes back after
+a reload on its own, and on a remote page it waits for you to click again.
+
+It works on localhost and on remote preview URLs alike. On localhost your comments
+flow straight to your project. On a remote page they are kept safely on your device
+so you can export them later, and nothing is ever sent to a remote server.
+
+Privacy first, by design
+
+Everything Northstar captures stays on your computer. There is no analytics, no
+tracking, and no third party service involved. It makes no network connection at
+all. It talks to a small helper program on your own machine through the browser's
+native messaging, and that helper only answers this extension. Your comments,
+screenshots, and source references never leave your device, even when the page you
+are commenting on is hosted elsewhere.
+
+Who it is for
+
+Northstar is for developers, designers, and product teams who want to close the gap
+between spotting something on screen and getting it fixed in code.
+
+## Notes for reviewers
+
+- The extension talks only to a local helper through `runtime.connectNative`, a native
+  messaging host the developer installs with `northstar install`. The host manifest
+  allows only this extension id. The extension makes no network requests and has no
+  remote code.
+- `nativeMessaging` is the only channel to that helper, and `contextMenus` adds a right
+  click entry and a keyboard shortcut that run under `activeTab`.
+- `activeTab` and `scripting` grant access only to the tab the user actively clicks
+  the toolbar icon on; there is no standing content script. Only after a reload of
+  a tab already turned on, and only on loopback pages that hold the localhost
+  permission, the overlay is injected again.
+- The main-world targeting probe (`scripting.executeScript({ world: "MAIN" })`)
+  only reads DOM and framework debug state already present in the page; it writes
+  nothing back to the page and has no extension API access from that world.
+- `storage` / `unlimitedStorage` queue comments locally so commenting still works
+  when the local helper is not running. The queue is sent only when the user presses
+  Send to AI.
+- See [`PRIVACY.md`](https://github.com/pallandir/northstar/blob/main/PRIVACY.md)
+  for the full data-handling description.
+
+## Privacy policy URL
+
+https://github.com/pallandir/northstar/blob/main/PRIVACY.md

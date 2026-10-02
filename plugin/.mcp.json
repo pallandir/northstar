@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "northstar": {
+      "command": "npx",
+      "args": ["-y", "@pallandir/northstar@2.6.1"]
+    },
+    "northstar-comments": {
+      "command": "npx",
+      "args": ["-y", "@pallandir/northstar@2.6.1", "serve", "comments"]
+    }
+  }
+}

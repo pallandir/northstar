@@ -1,0 +1,106 @@
+- id: NS-MOTION-ONE-MOMENT
+  title: One authored moment
+  stage: [compose, critique]
+  severity: warn
+  modes: { operate: info, read: info, experience: off }
+  allowable: true
+  detect: advisory
+  rationale: In persuasive pages a single orchestrated page load or reveal lands better than scattered effects. Working interfaces use motion only to explain a change.
+  fix: Pick the one place motion matters and keep everything else still.
+  sources: [impeccable, frontend-design, taste-skill]
+
+- id: NS-MOTION-SECTION-ENTRANCE
+  title: The same entrance on every section
+  stage: [compose, polish]
+  severity: warn
+  modes: { experience: info }
+  allowable: true
+  detect: static
+  rationale: A fade and slide up on every block, and hover lifts on every card, are the generic default.
+  fix: Animate the focal element only and answer user actions with feedback motion.
+  sources: [frontend-design, impeccable]
+
+- id: NS-MOTION-TRANSITION-ALL
+  title: Transition all
+  stage: [polish]
+  severity: error
+  allowable: true
+  detect: static
+  rationale: Transitioning every property animates layout and causes jank and accidental effects.
+  fix: List the exact properties, usually opacity, transform, colour and background colour.
+  sources: [ui-ux-pro-max]
+
+- id: NS-MOTION-BOUNCE
+  title: Bounce and elastic easing
+  stage: [polish]
+  severity: warn
+  modes: { operate: error, experience: off }
+  allowable: true
+  detect: static
+  rationale: Bounce reads as playful and dated in working interfaces and slows task completion.
+  fix: Use a smooth exponential ease out curve.
+  sources: [impeccable]
+
+- id: NS-MOTION-EASE-IN
+  title: Ease in on interface motion
+  stage: [polish]
+  severity: warn
+  allowable: true
+  detect: static
+  rationale: Ease in starts slowly, so the interface feels like it hesitates after a click. Interface motion should start fast and settle.
+  fix: Use an ease out or a custom ease out curve from the motion tokens.
+  sources: [emil-design-eng]
+
+- id: NS-MOTION-SCALE-ZERO
+  title: Entrance from scale zero
+  stage: [polish]
+  severity: warn
+  allowable: true
+  detect: static
+  rationale: Nothing in the real world grows from nothing. Elements that appear from a point look cheap, and they hide the origin of the change.
+  fix: Start from scale 0.95 with opacity 0, and set the transform origin at the trigger.
+  sources: [emil-design-eng]
+
+- id: NS-MOTION-DURATION
+  title: Interface transition longer than 300ms
+  stage: [polish]
+  severity: warn
+  modes: { experience: info }
+  allowable: true
+  detect: static
+  params:
+    max_ms: 300
+  rationale: Feedback longer than 300ms feels slow in an interface people use repeatedly. Drawers and page level transitions are the exceptions.
+  fix: Use 120 to 240ms for controls and menus, and keep longer durations for drawers and choreography.
+  sources: [emil-design-eng, impeccable]
+
+- id: NS-MOTION-EASING
+  title: Custom easing instead of the default keywords
+  stage: [polish]
+  severity: info
+  allowable: true
+  detect: static
+  rationale: The ease and linear keywords feel mechanical. A custom cubic bezier in the exponential ease out family feels intentional. Both agree on durations of 150 to 300ms for interface feedback.
+  fix: Define easing tokens once and reuse them.
+  sources: [impeccable, top-design, ui-ux-pro-max]
+
+- id: NS-MOTION-PROPERTIES
+  title: Animate cheap properties
+  stage: [polish]
+  severity: warn
+  allowable: true
+  detect: static
+  rationale: Transform and opacity stay on the compositor. Width, height, top and left trigger layout. Blur, clip path and mask are acceptable when they stay smooth.
+  fix: Animate transform and opacity, or measure the smoothness of the alternative.
+  sources: [impeccable, ui-ux-pro-max, top-design, taste-skill]
+
+- id: NS-MOTION-SCROLLJACK
+  title: Scroll hijacking
+  stage: [compose]
+  severity: error
+  modes: { experience: info }
+  allowable: true
+  detect: static
+  rationale: Smooth scroll libraries change a basic browser behaviour. They are justified only on expressive brand pages and need a reduced motion fallback.
+  fix: Use native scrolling, or opt in with an allow entry in DESIGN.md for an Experience page. In Experience mode the finding is informational until the opt in is recorded.
+  sources: [top-design, ui-ux-pro-max, taste-skill]

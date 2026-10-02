@@ -1,0 +1,196 @@
+blend:
+  takes: [surface, type, motion]
+  never: [mode, accessibility, density, library choice]
+
+archetypes:
+  - id: minimalist
+    title: Minimalist
+    summary: Few colours, one accent, a strict grid. Type and space carry the hierarchy and nothing is ornamental.
+    modes: [operate, read, persuade]
+    seeds: { hue: 265, chroma: 0.12, temperature: pure, shape: crisp, density: balanced, feel: snappy }
+    fonts: { heading: Geist, body: Geist, mono: Geist Mono }
+    depth: One hairline ring and a very soft shadow on floating layers only. Surfaces separate by background step.
+    layout:
+      - Left aligned headings over a strict column grid
+      - One accent used for the single primary action per view
+      - Generous gutters, with content width capped near 1100px
+    avoid:
+      - Emptiness mistaken for calm, keep real content and real imagery
+      - Several accent colours
+    dials: { variance: 3, motion: 3, density: 5 }
+
+  - id: soft
+    title: Soft
+    summary: Rounded surfaces, tinted shadows, warm neutrals and slow easing. Calm and approachable without being childish.
+    modes: [operate, persuade]
+    seeds: { hue: 25, chroma: 0.1, temperature: warm, shape: round, density: airy, feel: calm }
+    fonts: { heading: Rethink Sans, body: Figtree, mono: Geist Mono }
+    depth: Layered tinted shadows with a faint inner highlight. Surfaces sit a half step above the page.
+    layout:
+      - Large radii that stay concentric from card to control
+      - Roomy padding, with one oversized element per screen
+      - Soft grouped sections instead of divider lines
+    avoid:
+      - Pale text on pale surfaces
+      - Glass and blur used as decoration
+    dials: { variance: 4, motion: 4, density: 3 }
+
+  - id: brutalist
+    title: Brutalist
+    summary: Raw structure, hard borders, flat colour and a visible grid. Abrupt contrast that stays readable.
+    modes: [persuade, experience]
+    seeds: { hue: 27, chroma: 0.22, temperature: pure, shape: sharp, density: balanced, feel: snappy }
+    fonts: { heading: Archivo, body: Public Sans, mono: Space Mono }
+    depth: None. Borders and background contrast do all the work, and any hard shadow needs an allow entry.
+    layout:
+      - Thick rules and exposed grid lines
+      - Type set very large against small utilitarian labels
+      - Blocks that collide on purpose, with one hot colour
+    avoid:
+      - Low contrast, focus rings still have to pass
+      - Decorative randomness with no structure behind it
+    dials: { variance: 9, motion: 3, density: 5 }
+
+  - id: editorial
+    title: Editorial
+    summary: A reading first look with a confident serif voice, strong scale contrast and asymmetric composition.
+    modes: [read, persuade, experience]
+    seeds: { hue: 30, chroma: 0.13, temperature: warm, shape: crisp, density: airy, feel: calm }
+    fonts: { heading: Source Serif 4, body: Source Sans 3, mono: IBM Plex Mono }
+    depth: Flat. Hairline rules and whitespace separate content, and shadows appear only on popovers.
+    layout:
+      - A wide measure column offset against a narrow margin column
+      - Large headline against small captions, with real photography
+      - One pull quote or figure that breaks the grid
+    avoid:
+      - A serif used only to look premium with no reading content
+      - Centre aligned long text
+    dials: { variance: 7, motion: 3, density: 3 }
+
+  - id: precise
+    title: Precise
+    summary: A working tool look, cool and exact, built for people who spend hours in it. Clarity over personality.
+    modes: [operate]
+    seeds: { hue: 250, chroma: 0.15, temperature: cool, shape: crisp, density: balanced, feel: snappy }
+    fonts: { heading: Schibsted Grotesk, body: Hanken Grotesk, mono: JetBrains Mono }
+    depth: Ring plus a one pixel soft shadow on cards, a stronger layer on menus and dialogs.
+    layout:
+      - A persistent navigation rail with a quiet content canvas
+      - Tables and lists before cards
+      - Status shown with text and a small icon, never colour alone
+    avoid:
+      - Decorative gradients in working views
+      - Animation on frequent actions
+    dials: { variance: 2, motion: 2, density: 7 }
+
+  - id: warm
+    title: Warm
+    summary: A friendly product look with warm neutrals, rounded forms and an optimistic accent.
+    modes: [operate, persuade]
+    seeds: { hue: 55, chroma: 0.15, temperature: warm, shape: soft, density: balanced, feel: calm }
+    fonts: { heading: Bricolage Grotesque, body: Onest, mono: JetBrains Mono }
+    depth: Warm tinted shadows in two layers, with surfaces that lift slightly on hover.
+    layout:
+      - A friendly header with one illustrated or photographic moment
+      - Clear grouped sections with plain, human headings
+      - Primary actions placed where the thumb or cursor already is
+    avoid:
+      - Cream and terracotta used as a reflex, derive the palette from the subject
+      - Cartoon illustration with no purpose
+    dials: { variance: 4, motion: 4, density: 4 }
+
+  - id: technical
+    title: Technical
+    summary: A developer tool look, dense and quick, with monospace where it carries data and a cool signal colour.
+    modes: [operate, persuade]
+    seeds: { hue: 165, chroma: 0.13, temperature: cool, shape: crisp, density: dense, feel: snappy }
+    fonts: { heading: Host Grotesk, body: Host Grotesk, mono: JetBrains Mono }
+    depth: Ring borders and subtle inner highlights. Dark surfaces use a lighter ring instead of a shadow.
+    layout:
+      - Split panes and command driven navigation
+      - Code, logs and tables set in monospace with tabular figures
+      - Keyboard hints shown inline
+    avoid:
+      - Monospace on labels that are not data
+      - Neon glow on dark backgrounds
+    dials: { variance: 3, motion: 2, density: 8 }
+
+  - id: bold
+    title: Bold
+    summary: A confident launch look, saturated and large, with one signature moment and a short, direct message.
+    modes: [persuade, experience]
+    seeds: { hue: 150, chroma: 0.18, temperature: brand, shape: soft, density: airy, feel: expressive }
+    fonts: { heading: Familjen Grotesk, body: Hanken Grotesk, mono: Geist Mono }
+    depth: Solid colour blocks with a single layered shadow on the hero element.
+    layout:
+      - An oversized headline with one dominant visual
+      - Full width colour sections that change rhythm
+      - Proof placed directly under the first action
+    avoid:
+      - Purple to blue gradients and glowing buttons
+      - Several competing hero elements
+    dials: { variance: 8, motion: 6, density: 3 }
+
+  - id: swiss
+    title: Swiss
+    summary: A grid based, typographic look with flush left text, rules and a single bright accent.
+    modes: [read, persuade]
+    seeds: { hue: 27, chroma: 0.2, temperature: pure, shape: sharp, density: balanced, feel: snappy }
+    fonts: { heading: Libre Franklin, body: Public Sans, mono: IBM Plex Mono }
+    depth: Flat. Thin rules, strict alignment and whitespace separate everything.
+    layout:
+      - A visible twelve column grid with content snapped to it
+      - Flush left, ragged right text
+      - Numbers and data given the same care as headlines
+    avoid:
+      - Rounded corners and soft shadows
+      - Centre aligned blocks
+    dials: { variance: 5, motion: 2, density: 5 }
+
+  - id: dense
+    title: Dense data
+    summary: A cockpit look for analysts, with small type, tight rows, strong alignment and quiet colour.
+    modes: [operate]
+    seeds: { hue: 230, chroma: 0.12, temperature: cool, shape: crisp, density: dense, feel: snappy }
+    fonts: { heading: Public Sans, body: Public Sans, mono: IBM Plex Mono }
+    depth: Borders only, with a soft shadow on menus and popovers.
+    layout:
+      - Sticky headers and sticky first columns in tables
+      - Row heights that stay constant while content changes
+      - Filters, saved views and the URL kept in sync
+    avoid:
+      - Cards wrapped around every table
+      - Colour used for decoration, so that colour can mean status
+    dials: { variance: 2, motion: 1, density: 9 }
+
+  - id: playful
+    title: Playful
+    summary: A lively, rounded look with friendly type and bright colour, for products that want to feel fun.
+    modes: [persuade, experience]
+    seeds: { hue: 330, chroma: 0.17, temperature: warm, shape: round, density: airy, feel: expressive }
+    fonts: { heading: Fredoka, body: Nunito, mono: JetBrains Mono }
+    depth: Chunky tinted shadows and generous radii, with a springy press state.
+    layout:
+      - Big friendly shapes and oversized controls
+      - Colour blocks that change with each section
+      - Short, human copy with a clear next step
+    avoid:
+      - Low contrast pastel text
+      - Motion that blocks the task
+    dials: { variance: 7, motion: 6, density: 3 }
+
+  - id: luxury
+    title: Luxury
+    summary: A restrained, high end look with a display serif, wide spacing and very little colour.
+    modes: [persuade, experience]
+    seeds: { hue: 75, chroma: 0.06, temperature: warm, shape: sharp, density: airy, feel: calm }
+    fonts: { heading: Bodoni Moda, body: Hanken Grotesk, mono: IBM Plex Mono }
+    depth: Flat, with fine hairlines and a slow image reveal as the only effect.
+    layout:
+      - Large photography with a small amount of type
+      - Wide letter spacing on small labels, tight spacing on display text
+      - Slow, unhurried transitions
+    avoid:
+      - Gold gradients and ornament
+      - Crowded navigation
+    dials: { variance: 6, motion: 4, density: 2 }

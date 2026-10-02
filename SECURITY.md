@@ -3,20 +3,28 @@
 Northstar is a developer tool that runs entirely on your machine. You can leave
 comments on any running frontend, local or a remote preview, but everything you
 capture stays local: the only thing that crosses a trust boundary is a comment
-you explicitly created, and it only ever travels to the loopback listener owned
-by your own AI coding assistant.
+you explicitly created, and it only ever travels to a helper owned by your own user
+and to an assistant session that Northstar itself started.
 
 ## Threat model
 
-- **Processing stays local.** The MCP server binds to `127.0.0.1` only and never
-  listens on a public interface. Wherever you leave a comment, the extension
-  sends it only to that loopback listener. No comment, screenshot, or source path
-  leaves your machine, and there is no remote backend.
+- **Processing stays local.** There is no network listener. The extension reaches
+  Northstar through Chrome and Firefox Native Messaging, the helper reaches the
+  daemon through a Unix socket in a directory only your user can open (mode 0700,
+  socket 0600). No comment, screenshot, or source path leaves your machine, and
+  there is no remote backend.
+- **Page tools use a private browser.** `page_capture`, `page_audit` and
+  `references_search` start headless Google Chrome with a new, empty context for every
+  call. It never uses your profile, cookies or logins, it opens only `http`, `https`
+  and `file` addresses, and it blocks service workers and downloads. A sign in panel
+  or a bot check on a gallery is reported as it is, never dismissed or worked around.
+  The browser starts only when one of those tools runs.
 - **No standing access to any page.** The extension declares no content scripts
   and no web-page host permissions, so it runs on no site by default. The overlay
-  is injected only into the single tab you activate, only after you click the
-  toolbar button, under the `activeTab` grant, and that access is dropped as soon
-  as the tab navigates. Visiting a page never gives the extension a foothold.
+  is injected only into a tab you activate by clicking the toolbar button, under
+  the `activeTab` grant. The context menu entry and the keyboard shortcut grant
+  `activeTab` for the page they were used on, nothing more. Visiting a page never
+  gives the extension a foothold.
 - **The main-world probe reads only.** Resolving a component and a route requires
   reading state a page's own framework attaches to its DOM nodes, which an
   isolated-world content script cannot see. Northstar injects a second script
@@ -25,72 +33,93 @@ by your own AI coding assistant.
   the page beyond dispatching its own events, and has no extension API access
   from that world; every reader is wrapped so an unusual page can make it return
   nothing, never throw into that page's own execution.
-- **The network surface is loopback only.** The extension's only host permissions
-  are `localhost`, `127.0.0.1`, and `*.localhost`, used solely by the background
-  context to reach the ingest listener. It cannot make a network request to any
-  other origin. On Firefox these are opt-in and are requested from the popup.
-- **The ingest listener only accepts the extension.** The localhost HTTP server
-  rejects any request whose `Origin` is a web page (`http(s)://…`) and any
-  request whose `Host` header is not loopback. This closes two attack paths a
-  malicious web page you happen to be visiting could otherwise use:
-  - **CSRF / store poisoning:** injecting comments into your store (which your AI
-    assistant later reads and may act on) or deleting your comments.
-  - **DNS rebinding:** pointing an attacker-controlled hostname at `127.0.0.1`.
-  Every ingested payload is also validated against a strict schema with bounded
-  field sizes.
+- **The extension makes no network request.** Its host permissions are `localhost`,
+  `127.0.0.1`, and `*.localhost`, used only so the overlay can run on a local dev
+  server you activate. It talks to Northstar only through Native Messaging.
+- **The helper answers only the Northstar extension.** The native host manifest
+  allows exactly one Chrome extension origin and one Firefox extension id, and the
+  host checks the caller it was started with again before it reads a message. An
+  unpacked build is allowed only when you pass its id to
+  `northstar install --allow-extension`. A web page cannot reach a Native Messaging
+  host at all.
+- **Every message is checked against a fixed list.** The host accepts a versioned
+  envelope with a strict schema, a fixed set of actions (`system.info`, `agent.list`,
+  `session.list`, `session.send`, the comment, project, status and
+  config actions), at most 16 MB in and about 900 KB out. An unknown action, an unknown
+  key, a malformed frame or a wrong version is refused with a reason and a fix. The
+  protocol has no field that carries a shell string or a command, and browser input is
+  never evaluated or passed to a shell. A project root the daemon has not seen is
+  refused, so a message cannot make Northstar create files in an arbitrary folder.
+  Every comment is validated against a strict schema with bounded field sizes.
 - **Comments are untrusted input to the assistant.** The MCP read tools treat
   every comment's text and selector as *data describing a change*, never as
   instructions. The assistant acts only on the design intent, binds edits to the
   located source, stays within UI changes, and sends no page content or comment
   data anywhere.
-- **What Northstar types into your terminal is a fixed constant.** Sending a batch
-  makes the server type one line into the terminal your assistant runs in. That
-  line is a compile-time string. No comment text, count, id, or any other part of
-  an HTTP request reaches the terminal, so nothing that arrives over loopback can
-  change what your assistant is told to do. Repeat sends within a few seconds are
-  coalesced into a single line, so the channel cannot be driven in a loop.
-- **Northstar will not answer a prompt for you.** Before typing it reads the
-  visible pane and refuses when a numbered choice or a yes/no question is showing,
-  and it refuses if it cannot read the pane at all. It types only after seeing the
-  pane hold still across two reads.
-- **Least-privilege extension.** The extension requests only `activeTab`,
-  `scripting`, `storage`, and `unlimitedStorage`, plus the loopback host
-  permissions above. It requests no `debugger` permission and holds no capability
-  to drive a page over the DevTools protocol.
+- **Northstar can only write into sessions it started.** `northstar run` starts the
+  assistant in a pseudo terminal that Northstar owns, and that terminal is the only
+  place a send can write. Northstar does not use a terminal multiplexer, AppleScript, accessibility
+  permissions or any terminal automation, so it cannot type into another window, and
+  there is nothing to grant. There is also no channel and no development flag.
+- **What Northstar writes is a fixed constant.** A send makes the session write one
+  line chosen from six templates compiled into the package (resolve, implement,
+  explain, fix, review, add to task). The wrapper re-checks that the line is exactly
+  one of them, printable ASCII, before it writes. No comment text, selected text, page
+  URL, page title, id or count is ever written. The assistant reads all of that through
+  the MCP tools, as data.
+- **Northstar will not answer a prompt for you.** The wrapper keeps a rendered copy
+  of the terminal screen. It refuses when a numbered choice or a yes or no question is
+  showing, when there is text in the assistant's input, when you typed in the last
+  moments, or when the output never goes quiet. Your own keystrokes are held while a
+  line is written and released after, so they cannot interleave with it. Each refusal
+  is shown in the toolbar with the reason and the fix.
+- **Copy the line is explicit too.** It copies a fixed start line to the clipboard when
+  you press it. `northstar listen` only waits and prints one of the fixed template lines
+  with the saved comment summaries. It writes into no terminal, and the daemon accepts
+  the listen call only on its user only socket.
+- **Least-privilege extension.** The extension requests `activeTab`, `scripting`,
+  `storage`, `unlimitedStorage`, `nativeMessaging` and `contextMenus`, plus the
+  loopback host permissions above. It requests no `debugger` permission and holds no
+  capability to drive a page over the DevTools protocol.
+- **Logs hold no content.** `~/.northstar/logs/` records events, session ids, agent
+  names, byte counts and durations. It never holds comment text, selected text or a
+  prompt.
 - **No remote code, no telemetry.** The extension and server build to static
   assets. The published npm package ships only `dist/`. There is no analytics,
   tracking, or external network call.
 
 ## What this does not defend against
 
-Northstar v2 removed the session token, so the ingest listener now accepts any
-request that reaches it from a browser-extension origin on loopback. **Any process
-already running as you on this machine can therefore post comments into your
-store.** That is a deliberate trade, made to remove the pairing step, and it is
-bounded rather than unbounded:
+- **Any process running as you can open the daemon socket.** Such a process could
+  already read and write `.northstar/` directly, so the store is not a new target.
+  The escalation that would matter, making your assistant follow attacker written
+  instructions, is closed by the fixed lines and by the rule that comment text is
+  data. It could, however, ask the daemon to send the existing open comments to a
+  session, or to clear them.
+- **The browser enforces which extension may start the helper.** Northstar checks the
+  caller again, but it relies on Chrome and Firefox for the first check.
+- **A session you start yourself is trusted with your files.** Northstar does not
+  sandbox the assistant. It sandboxes only what Northstar writes into it.
 
-- Such a process could already read and write `.northstar/` directly, so the store
-  itself is not a new target.
-- The escalation that would matter, making your assistant follow attacker-written
-  instructions, is closed by the fixed typed line above and by the rule that
-  comment text is data. The worst outcome is a spurious "read your comments"
-  nudge, plus whatever the assistant decides to do with comments you can see and
-  delete in the toolbar.
-
-If you do not want that trade on a shared or untrusted machine, set
-`NORTHSTAR_INJECT=0` to disable the typing entirely, or do not run the extension
-there.
+If you do not want an assistant reachable from the browser on a shared or untrusted
+machine, run `northstar uninstall` to remove the helper, or do not start agents with
+`northstar run` there. Sessions end with the terminal, and `northstar daemon stop`
+closes the daemon.
 
 ## Supply chain
 
-- Production dependencies are minimal (`@modelcontextprotocol/sdk`, `zod`) and
-  carry no known vulnerabilities. The terminal handoff shells out only to `ps`,
-  `tmux`, and `osascript`, always through `execFile` with an argument array and
-  never through a shell.
-- Build-time tooling carries no known advisories: `npm audit` reports zero
-  vulnerabilities. `vite` is pinned to a release with a patched `esbuild`, and
-  `esbuild` and `tmp` are held at fixed patched versions through root
-  `overrides`.
+- Production dependencies are small: `@modelcontextprotocol/sdk`, `zod`, `yaml`,
+  `@xterm/headless` for the rendered screen, and `@lydell/node-pty` for the pseudo
+  terminal. `@lydell/node-pty` ships prebuilt binaries for macOS and Linux as
+  optional packages, so installing it compiles nothing. Northstar shells out only to
+  `ps`, always through `execFile` with an argument array and never through a shell.
+- `npm audit --omit=dev` currently reports advisories only in packages the MCP SDK
+  brings in for its HTTP transports (`hono`, `@hono/node-server`, `qs`, `fast-uri` and
+  `ip-address`). Northstar serves MCP over stdio only and never loads those transports,
+  and `@lydell/node-pty`, `@xterm/headless`, `yaml` and `zod` add none. The build tooling
+  has advisories of its own, in the test and lint tools that are not published.
+  `vite` is pinned to a release with a patched `esbuild`, and `esbuild` and `tmp` are held
+  at fixed patched versions through root `overrides`.
 - The npm package is published from CI with **provenance** enabled.
 
 ## Reporting a vulnerability
