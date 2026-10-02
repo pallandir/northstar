@@ -234,6 +234,11 @@ export async function installCommand(args: string[]): Promise<number> {
   process.stdout.write("\n");
   print(outcome);
   printHost(applied);
+  if (options.shell && !options.dryRun) {
+    process.stdout.write(
+      "\nOpen a new terminal tab and start your AI assistant as usual. Comments from the browser will reach it.\n",
+    );
+  }
   return outcome.results.some((r) => r.status === "failed") ? 1 : 0;
 }
 

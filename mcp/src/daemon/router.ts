@@ -26,7 +26,7 @@ export function routeSend(all: readonly SessionInfo[], request: RouteRequest): R
 }
 
 export const NO_SESSION_FIX =
-  "Start your agent in a new terminal so Northstar wraps it, or run northstar run <agent>. Run northstar doctor to check the shell integration.";
+  "Open a new terminal tab and start your AI assistant in this project. If it was already open, restart it there.";
 
 export function readinessFor(
   all: readonly SessionInfo[],

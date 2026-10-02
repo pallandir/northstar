@@ -174,7 +174,8 @@ export class Toolbar {
 
   private sendTip(): string {
     if (this.sending) return "Sending to your AI assistant";
-    if (!this.reachable) return "Not connected, start your AI agent in this project";
+    if (!this.reachable)
+      return "Not connected, open a new terminal tab and start your AI assistant in this project";
     if (this.blocked !== null) return this.blocked;
     if (this.pending === 0) return "Nothing to send yet, add a comment first";
     return this.pending === 1
@@ -263,7 +264,7 @@ export class Toolbar {
       this.showFailure(
         "noproject",
         "No project is running",
-        "Start your agent in the project you are commenting on.",
+        "Open a new terminal tab and start your AI assistant in the project you are commenting on.",
       );
     } else if (send && send.rejected > 0) {
       this.showFailure(

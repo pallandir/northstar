@@ -111,4 +111,4 @@ export class DaemonLink implements BrokerLink {
 }
 
 const UNWRAPPED_AGENT =
-  "this agent was not started through Northstar, so Send to AI cannot write to it. Start it in a new terminal so the shell integration wraps it, or run northstar run <agent>. northstar doctor checks the integration.";
+  "this assistant was opened before Northstar was installed, so Send to AI cannot reach it. Restart it in a new terminal tab.";

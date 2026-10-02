@@ -472,7 +472,9 @@ describe("Toolbar tooltips", () => {
 
     toolbar.render(state({ status: offlineStatus() }));
     expect(send().disabled).toBe(true);
-    expect(send().dataset.tip).toBe("Not connected, start your AI agent in this project");
+    expect(send().dataset.tip).toBe(
+      "Not connected, open a new terminal tab and start your AI assistant in this project",
+    );
 
     toolbar.render(state({ status: reachableStatus({ queued: 0 }) }));
     expect(send().dataset.tip).toBe("Nothing to send yet, add a comment first");
