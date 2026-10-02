@@ -132,7 +132,7 @@ session by walking up its own process ancestry.
 
 Everything the daemon and the MCP server persist for a project lives under a single
 gitignored `.northstar/` folder at the project root: the comment store
-(`design-comments.md` and `.json`), the cropped screenshots (`design-shots/`), and the
+(`design-comments.json`), the cropped screenshots (`design-shots/`), and the
 deferred list. A `.gitignore` inside that folder makes sure it can never be committed by
 accident. Each comment carries its route, its component stack, an optional exact source
 location, and a target descriptor (a stable selector, tag, classes, its own text, a short

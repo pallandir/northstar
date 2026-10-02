@@ -48,6 +48,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Removed
 
+- The markdown mirrors `design-comments.md` and `northstar-deferred.md`. The store is
+  JSON only, and the old mirror files are deleted the next time the store writes.
 - **Quick run**, the `quickrun.execute` action, `--quick-run` and the session kind. It
   started a headless assistant that never loaded the comments.
 

@@ -8,10 +8,9 @@ import type { Comment, CommentStatus, DeferredComment, Draft, Resolution } from 
 
 const STORE_DIR = ".northstar";
 const STORE_JSON = join(STORE_DIR, "design-comments.json");
-const STORE_MIRROR = join(STORE_DIR, "design-comments.md");
 const SHOTS_DIR = join(STORE_DIR, "design-shots");
 const DEFERRED_JSON = join(STORE_DIR, "northstar-deferred.json");
-const DEFERRED_MIRROR = join(STORE_DIR, "northstar-deferred.md");
+const LEGACY_MIRRORS = ["design-comments.md", "northstar-deferred.md"];
 const LOCK_DIR = join(STORE_DIR, "store.lock");
 
 const LOCK_STALE_MS = 30_000;
@@ -81,10 +80,8 @@ export class CommentStore {
   private readonly storeRoot: string;
   private readonly storeDir: string;
   private readonly storePath: string;
-  private readonly mirrorPath: string;
   private readonly shotsPath: string;
   private readonly deferredPath: string;
-  private readonly deferredMirrorPath: string;
   private readonly lockPath: string;
   private writeQueue: Promise<void> = Promise.resolve();
   private storeDirInitialized = false;
@@ -96,10 +93,8 @@ export class CommentStore {
     this.storeRoot = root;
     this.storeDir = join(root, STORE_DIR);
     this.storePath = join(root, STORE_JSON);
-    this.mirrorPath = join(root, STORE_MIRROR);
     this.shotsPath = join(root, SHOTS_DIR);
     this.deferredPath = join(root, DEFERRED_JSON);
-    this.deferredMirrorPath = join(root, DEFERRED_MIRROR);
     this.lockPath = join(root, LOCK_DIR);
   }
 
@@ -364,6 +359,7 @@ export class CommentStore {
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
     }
+    for (const name of LEGACY_MIRRORS) await rm(join(this.storeDir, name), { force: true });
     this.storeDirInitialized = true;
   }
 
@@ -465,7 +461,6 @@ export class CommentStore {
       signature: signatureOf(await stat(this.storePath)),
       items: comments,
     };
-    await writeFileAtomic(this.mirrorPath, serializeComments(comments));
   }
 
   private async writeDeferred(entries: DeferredComment[]): Promise<void> {
@@ -475,7 +470,6 @@ export class CommentStore {
       signature: signatureOf(await stat(this.deferredPath)),
       items: entries,
     };
-    await writeFileAtomic(this.deferredMirrorPath, serializeDeferred(entries));
   }
 }
 
@@ -529,51 +523,4 @@ async function writeFileAtomic(path: string, contents: string | Buffer): Promise
     await rm(temp, { force: true });
     throw error;
   }
-}
-
-function serializeComments(comments: Comment[]): string {
-  const blocks = comments.map((c) => {
-    const lines = [
-      `## [${c.status}] ${c.id} · ${c.metadata.page} · ${c.operation.type}`,
-      `> ${c.comment.replace(/\n/g, "\n> ")}`,
-      "",
-    ];
-    if (c.screenshot) lines.push(`![${c.id}](${c.screenshot})`, "");
-    const op = c.operation;
-    if (op.type !== "comment") {
-      const prop = op.property ? `${op.property}: ` : "";
-      lines.push(
-        `- operation: ${op.type} ${prop}${JSON.stringify(op.from)} -> ${JSON.stringify(op.to)}`,
-      );
-    }
-    if (c.source) {
-      lines.push(
-        `- source: ${c.source.path}:${c.source.line}:${c.source.column} (${c.source.via})`,
-      );
-    }
-    lines.push(
-      `- operator: ${c.operator}`,
-      `- elementtext: ${JSON.stringify(c.metadata.elementText)}`,
-      `- viewport: ${c.metadata.viewport.w}x${c.metadata.viewport.h}`,
-      `- url: ${c.url}`,
-      `- created: ${c.createdAt}`,
-    );
-    return lines.join("\n");
-  });
-  return `# Design comments\n\n${blocks.join("\n\n")}\n`;
-}
-
-function serializeDeferred(entries: DeferredComment[]): string {
-  const blocks = entries.map((d) =>
-    [
-      `## [deferred] ${d.id} · ${d.page} · ${d.operationType}`,
-      `> ${d.comment.replace(/\n/g, "\n> ")}`,
-      "",
-      `- reason: ${d.reason}`,
-      `- flaggedby: ${d.flaggedBy}`,
-      `- category: ${d.category}`,
-      `- created: ${d.createdAt}`,
-    ].join("\n"),
-  );
-  return `# Deferred comments\n\n${blocks.join("\n\n")}\n`;
 }

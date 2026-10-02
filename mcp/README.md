@@ -19,8 +19,7 @@ It has three parts:
   the extension. It answers only the Northstar extension and forwards a fixed list of
   actions to the daemon. There is no local web server and no port.
 
-Comments are stored in `.northstar/design-comments.json` with a write only
-`design-comments.md` mirror, deferred entries in `.northstar/northstar-deferred.json`
+Comments are stored in `.northstar/design-comments.json`, deferred entries in `.northstar/northstar-deferred.json`
 and screenshots in `.northstar/design-shots/`, relative to the working directory it is
 launched from. The `.northstar/` folder is gitignored (the server also writes a
 `.gitignore` inside it).

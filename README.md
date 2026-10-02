@@ -345,7 +345,7 @@ with `npm ci --prefix examples/react-app`.
 > saved and the toolbar tells you they were not announced.
 
 > [!IMPORTANT]
-> The comment store (`.northstar/design-comments.md`) and screenshots
+> The comment store (`.northstar/design-comments.json`) and screenshots
 > (`.northstar/design-shots/`) are written to the project root where your MCP
 > client is running and are gitignored. Keep them out of version control.
 
@@ -422,7 +422,7 @@ through the local helper.
    flushes the batch to the project. Your assistant applies each comment directly
    to your source, then marks it resolved. Comments that need more thought (new
    dependencies, cross-cutting changes, or anything you flag "Plan this first")
-   are parked in `.northstar/northstar-deferred.md` and a notice appears in the
+   are parked in `.northstar/northstar-deferred.json` and a notice appears in the
    toolbar.
 
 Keep your assistant in auto (accept-edits) mode so each batch is applied without a

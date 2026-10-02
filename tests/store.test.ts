@@ -244,9 +244,19 @@ test("a store that is valid JSON but not a comment list is corrupt", async () =>
   await assert.rejects(store.list(), /corrupt/);
 });
 
-test("the markdown mirror is never read back", async () => {
+test("the store keeps one format, JSON, and removes the markdown mirrors an older version left", async () => {
+  const dir = join(root, ".northstar");
+  await mkdir(dir, { recursive: true });
+  await writeFile(join(dir, "design-comments.md"), "# old", "utf8");
+  await writeFile(join(dir, "northstar-deferred.md"), "# old", "utf8");
   const store = new CommentStore(root);
   await store.add(sample());
+  const names = await readdir(dir);
+  assert.deepEqual(
+    names.filter((n) => n.endsWith(".md")),
+    [],
+  );
+  assert.ok(names.includes("design-comments.json"));
   await rm(store.commentsPath);
   assert.deepEqual(await store.list(), []);
 });
