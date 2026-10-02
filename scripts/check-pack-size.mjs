@@ -22,7 +22,14 @@ const output = execFileSync(
   ["pack", "--workspace", "@pallandir/northstar", "--dry-run", "--json"],
   { encoding: "utf8" },
 );
-const [pack] = JSON.parse(output);
+const result = JSON.parse(output);
+if (!Array.isArray(result) || result.length !== 1) {
+  console.error(
+    `unexpected npm pack --json output (${Array.isArray(result) ? `array of ${result.length}` : "not an array"}), this script expects npm 10 or 11`,
+  );
+  process.exit(1);
+}
+const [pack] = result;
 const paths = new Set(pack.files.map((file) => file.path));
 const missing = REQUIRED.filter((path) => !paths.has(path));
 
