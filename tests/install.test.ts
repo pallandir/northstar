@@ -600,3 +600,54 @@ test("install writes the core skill and every workflow skill, doctor reads each 
   for (const name of names)
     assert.equal(existsSync(join(w.home, ".claude/skills", name)), false, name);
 });
+
+test("install wraps every agent through the shell by default and --no-shell leaves it out", () => {
+  const withShell = world();
+  const applied = spawnSync(
+    process.execPath,
+    [
+      "--import",
+      "tsx",
+      CLI_ENTRY,
+      "install",
+      "--agent",
+      "cursor",
+      "--yes",
+      "--home",
+      withShell.home,
+      "--project",
+      withShell.project,
+      "--no-host",
+    ],
+    { encoding: "utf8", input: "", env: { ...process.env, SHELL: "/bin/zsh" } },
+  );
+  assert.equal(applied.status, 0, applied.stderr);
+  const script = readFileSync(join(withShell.home, ".northstar/shell/northstar.sh"), "utf8");
+  for (const agent of ["claude", "codex", "gemini", "opencode"]) {
+    assert.match(script, new RegExp(`command northstar run ${agent} "\\$@"`));
+  }
+  assert.match(readFileSync(join(withShell.home, ".zshrc"), "utf8"), /northstar/);
+
+  const without = world();
+  const skipped = spawnSync(
+    process.execPath,
+    [
+      "--import",
+      "tsx",
+      CLI_ENTRY,
+      "install",
+      "--agent",
+      "cursor",
+      "--yes",
+      "--home",
+      without.home,
+      "--project",
+      without.project,
+      "--no-host",
+      "--no-shell",
+    ],
+    { encoding: "utf8", input: "", env: { ...process.env, SHELL: "/bin/zsh" } },
+  );
+  assert.equal(skipped.status, 0, skipped.stderr);
+  assert.equal(existsSync(join(without.home, ".northstar/shell/northstar.sh")), false);
+});

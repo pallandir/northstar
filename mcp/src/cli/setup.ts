@@ -3,6 +3,7 @@ import { existsSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
+import { mergeAgents } from "../agents/definitions.js";
 import { findLocalExtensionIds } from "../install/chrome-extensions.js";
 import { doctor } from "../install/doctor.js";
 import { type InstallOutcome, type OpResult, install, uninstall } from "../install/install.js";
@@ -10,8 +11,10 @@ import { type HostResult, installHost, uninstallHost } from "../install/native-m
 import { AGENT_NAMES, type AgentName, type Scope } from "../install/plans/index.js";
 import { northstarPluginInstalled } from "../install/plugin.js";
 import { readRecord } from "../install/record.js";
+import { type Shell, detectShell, installShell, uninstallShell } from "../install/shell.js";
 import { feedbackText } from "../lib/hook-feedback.js";
 import { recordUserPath } from "../lib/user-path.js";
+import { loadSettings } from "../user-config.js";
 
 interface Options {
   agents: AgentName[];
@@ -24,6 +27,7 @@ interface Options {
   bin?: string;
   gate: boolean;
   host: boolean;
+  shell: boolean;
   extensionIds: string[];
 }
 
@@ -38,6 +42,7 @@ function parse(args: string[]): Options {
     project: process.env.NORTHSTAR_ROOT ?? process.cwd(),
     gate: true,
     host: true,
+    shell: true,
     extensionIds: [],
   };
   for (let i = 0; i < args.length; i++) {
@@ -50,6 +55,7 @@ function parse(args: string[]): Options {
     if (arg === "--all") options.all = true;
     else if (arg === "--no-gate") options.gate = false;
     else if (arg === "--no-host") options.host = false;
+    else if (arg === "--no-shell") options.shell = false;
     else if (arg === "--allow-extension") options.extensionIds.push(value());
     else if (arg === "--dry-run") options.dryRun = true;
     else if (arg === "--yes") options.yes = true;
@@ -101,6 +107,23 @@ function installBrowserHost(options: Options, dryRun: boolean): HostResult[] {
     node: process.execPath,
     script: real,
     extensionIds: [...new Set([...options.extensionIds, ...findLocalExtensionIds(options.home)])],
+    dryRun,
+  });
+}
+
+function installShellIntegration(options: Options, dryRun: boolean): HostResult[] {
+  let shell: Shell;
+  try {
+    shell = detectShell();
+  } catch (error) {
+    throw new Error(
+      `${(error as Error).message} Northstar wraps your agents through the shell so Send to AI can write to them. Pass --no-shell to skip it.`,
+    );
+  }
+  return installShell({
+    home: options.home,
+    shell,
+    agents: mergeAgents(loadSettings(options.home).agents).map((a) => a.id),
     dryRun,
   });
 }
@@ -175,6 +198,7 @@ export async function installCommand(args: string[]): Promise<number> {
   try {
     preview = install({ ...request, dryRun: true, run });
     if (options.host) hostPreview = installBrowserHost(options, true);
+    if (options.shell) hostPreview = [...hostPreview, ...installShellIntegration(options, true)];
   } catch (err) {
     return failure(err);
   }
@@ -202,6 +226,7 @@ export async function installCommand(args: string[]): Promise<number> {
   try {
     outcome = install({ ...request, dryRun: false, run });
     if (options.host) applied = installBrowserHost(options, false);
+    if (options.shell) applied = [...applied, ...installShellIntegration(options, false)];
     recordUserPath(options.home);
   } catch (err) {
     return failure(err);
@@ -242,6 +267,12 @@ export async function uninstallCommand(args: string[]): Promise<number> {
     });
     if (options.host && remaining.length === 0) {
       removed = uninstallHost({ home: options.home, dryRun: options.dryRun });
+      if (options.shell) {
+        removed = [
+          ...removed,
+          ...uninstallShell({ home: options.home, shell: detectShell(), dryRun: options.dryRun }),
+        ];
+      }
     }
   } catch (err) {
     return failure(err);

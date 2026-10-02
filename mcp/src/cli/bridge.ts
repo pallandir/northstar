@@ -10,7 +10,14 @@ import {
 } from "../agents/definitions.js";
 import { connectDaemon } from "../daemon/client.js";
 import { RpcError } from "../daemon/rpc.js";
-import { SHELLS, type Shell, detectShell, installShell, uninstallShell } from "../install/shell.js";
+import {
+  SHELLS,
+  type Shell,
+  detectShell,
+  installShell,
+  shellInstalled,
+  uninstallShell,
+} from "../install/shell.js";
 import { northstarHome } from "../lib/home.js";
 import { userPath } from "../lib/user-path.js";
 import { loadSettings, updateSettings } from "../user-config.js";
@@ -112,7 +119,17 @@ export async function agentCommand(args: string[]): Promise<number> {
     } catch (error) {
       return fail((error as Error).message);
     }
-    process.stdout.write(`Added ${id}. Start it with northstar run ${id}.\n`);
+    const shell = detectShell();
+    if (shellInstalled(homedir(), shell)) {
+      installShell({
+        home: homedir(),
+        shell,
+        agents: mergeAgents(loadSettings(home).agents).map((a) => a.id),
+      });
+    }
+    process.stdout.write(
+      `Added ${id}. Open a new terminal and start it as usual, or run northstar run ${id}.\n`,
+    );
     return 0;
   }
   return fail("Usage: northstar agent [list | add <id> <path>]");

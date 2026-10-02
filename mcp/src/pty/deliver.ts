@@ -3,10 +3,10 @@ import { assertTemplateLine } from "@northstar/protocol";
 import { awaitingAnswer, tail, typedInput } from "./screen-state.js";
 
 export interface DeliveryTarget {
-  lines(): string[] | Promise<string[]>;
+  lines(): string[];
   lastOutputAt(): number;
   lastUserInputAt(): number;
-  write(data: string): void | Promise<void>;
+  write(data: string): void;
   holdUserInput(hold: boolean): void;
 }
 
@@ -63,7 +63,7 @@ export async function deliverLine(
   let last: BlockedReason = "busy";
   const settleBy = Date.now() + timings.settleCapMs;
   for (;;) {
-    const screen = tail(await target.lines());
+    const screen = tail(target.lines());
     const now = Date.now();
     const quiet = now - target.lastOutputAt() >= timings.quietMs;
     const userIdle = now - target.lastUserInputAt() >= timings.userQuietMs;
@@ -81,12 +81,12 @@ export async function deliverLine(
 
   target.holdUserInput(true);
   try {
-    await target.write(line);
+    target.write(line);
     const submitBy = Date.now() + timings.submitCapMs;
     do {
       await sleep(timings.pollMs);
     } while (Date.now() - target.lastOutputAt() < timings.submitQuietMs && Date.now() < submitBy);
-    await target.write("\r");
+    target.write("\r");
   } finally {
     target.holdUserInput(false);
   }

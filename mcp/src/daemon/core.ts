@@ -45,7 +45,6 @@ const registerParams = z
     command: z.string().min(1).max(4096),
     cwd: z.string().min(1).max(4096),
     pid: z.number().int().positive(),
-    kind: z.enum(["interactive", "terminal"]).optional(),
   })
   .strict();
 
@@ -193,13 +192,6 @@ export class Daemon {
     context: PeerContext,
     params: z.infer<typeof registerParams>,
   ): { id: string; version: string; protocol: number } {
-    const kind = params.kind ?? "interactive";
-    if (kind === "terminal") {
-      const existing = this.workspace.registry.findByPid(params.pid);
-      if (existing) {
-        return { id: existing.id, version: this.options.version, protocol: PROTOCOL_VERSION };
-      }
-    }
     const id = params.id ?? randomUUID();
     if (this.workspace.registry.get(id)) {
       throw badRequest(
@@ -229,7 +221,7 @@ export class Daemon {
       pid: params.pid,
       createdAt: now,
       lastActivityAt: now,
-      kind,
+      kind: "interactive",
     };
     const handle: SessionHandle = {
       info,

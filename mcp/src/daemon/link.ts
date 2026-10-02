@@ -1,15 +1,7 @@
-import { type DeferralNotice, templateLine, templateSchema } from "@northstar/protocol";
-import { z } from "zod";
-import { mergeAgents } from "../agents/definitions.js";
-import { northstarHome } from "../lib/home.js";
+import type { DeferralNotice } from "@northstar/protocol";
 import { ancestorPids } from "../pty/ancestors.js";
-import { type DeliverOutcome, deliverLine } from "../pty/deliver.js";
-import { type Detection, detectDriver } from "../terminal/detect.js";
-import { type AgentProcess, findAgentProcess } from "../terminal/process.js";
-import { TerminalTarget } from "../terminal/target.js";
-import { loadSettings } from "../user-config.js";
 import { ensureDaemon } from "./client.js";
-import { RpcError, type RpcHandler, type RpcPeer } from "./rpc.js";
+import type { RpcPeer } from "./rpc.js";
 
 const RETRY_MS = 5_000;
 
@@ -27,8 +19,6 @@ interface DaemonLinkOptions {
   log: (message: string) => void;
   connect?: typeof ensureDaemon;
   ancestors?: () => Promise<number[]>;
-  findAgent?: (executables: readonly string[]) => Promise<AgentProcess | null>;
-  detect?: (tty: string | null) => Detection;
 }
 
 export class DaemonLink implements BrokerLink {
@@ -38,7 +28,6 @@ export class DaemonLink implements BrokerLink {
   private current: BridgeStatus = { state: "off", error: "the daemon link has not started yet" };
   private ancestorList: number[] | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
-  private driver: Detection | null = null;
 
   constructor(private readonly options: DaemonLinkOptions) {}
 
@@ -89,43 +78,10 @@ export class DaemonLink implements BrokerLink {
     this.reconnectTimer.unref();
   }
 
-  private readonly serve: RpcHandler = async (method, params) => {
-    if (method !== "session.deliver") {
-      throw new RpcError(
-        "UNSUPPORTED_ACTION",
-        `This agent connection does not serve ${method}.`,
-        "Update Northstar.",
-      );
-    }
-    const { template } = z.object({ template: templateSchema }).strict().parse(params);
-    return this.deliver(templateLine(template));
-  };
-
-  private async deliver(line: string): Promise<DeliverOutcome> {
-    const detection = this.driver;
-    if (!detection?.driver) {
-      throw new RpcError(
-        "BLOCKED",
-        detection?.reason ?? "Northstar has no terminal to type into for this agent.",
-        detection?.fix ?? "Start the agent in a supported terminal.",
-      );
-    }
-    try {
-      return await deliverLine(new TerminalTarget(detection.driver), line);
-    } catch (error) {
-      this.options.log(`terminal delivery failed: ${(error as Error).message}`);
-      throw new RpcError(
-        "BLOCKED",
-        `Typing into ${detection.driver.name} failed, ${(error as Error).message}.`,
-        PERMISSION_FIX[detection.driver.name],
-      );
-    }
-  }
-
   private async open(): Promise<RpcPeer | null> {
     const connect = this.options.connect ?? ensureDaemon;
     try {
-      const peer = await connect(this.options.log, this.serve, this.options.home);
+      const peer = await connect(this.options.log, null, this.options.home);
       this.ancestorList ??= await (this.options.ancestors ?? (() => ancestorPids()))();
       const hello = await peer.call<{ session: string | null }>("mcp.hello", {
         root: this.options.root,
@@ -137,7 +93,9 @@ export class DaemonLink implements BrokerLink {
       });
       this.peer = peer;
       this.current = { state: "on" };
-      if (hello.session === null) await this.registerTerminalSession(peer);
+      if (hello.session === null) {
+        this.options.log(UNWRAPPED_AGENT);
+      }
       return peer;
     } catch (error) {
       this.failedAt = Date.now();
@@ -150,39 +108,7 @@ export class DaemonLink implements BrokerLink {
       return null;
     }
   }
-
-  private async registerTerminalSession(peer: RpcPeer): Promise<void> {
-    const home = this.options.home ?? northstarHome();
-    const executables = mergeAgents(loadSettings(home).agents).map((a) => a.executable);
-    const agent = await (this.options.findAgent ?? findAgentProcess)(executables);
-    if (!agent) {
-      this.options.log(
-        "no known agent runs this Northstar server, so Send to AI has no session to write to. Add the agent with northstar agent add.",
-      );
-      return;
-    }
-    const definition = mergeAgents(loadSettings(home).agents).find(
-      (a) => a.executable === agent.executable || a.executable.endsWith(`/${agent.executable}`),
-    );
-    this.driver = (this.options.detect ?? ((tty) => detectDriver(process.env, tty)))(agent.tty);
-    if (!this.driver.driver) {
-      this.options.log(`Send to AI cannot type into ${agent.executable}: ${this.driver.reason}`);
-    }
-    await peer.call("session.register", {
-      agent: definition?.id ?? agent.executable,
-      command: agent.command,
-      cwd: this.options.root,
-      pid: agent.pid,
-      kind: "terminal",
-    });
-  }
 }
 
-const PERMISSION_FIX = {
-  tmux: "Check that the tmux pane still exists.",
-  wezterm: "Check that the WezTerm pane still exists.",
-  kitty: "Check that kitty has remote control enabled and the window still exists.",
-  iterm: "Allow your agent to control iTerm2 in System Settings, Privacy & Security, Automation.",
-  "terminal-app":
-    "Allow your agent to control Terminal in System Settings, Privacy & Security, Accessibility.",
-} as const;
+const UNWRAPPED_AGENT =
+  "this agent was not started through Northstar, so Send to AI cannot write to it. Start it in a new terminal so the shell integration wraps it, or run northstar run <agent>. northstar doctor checks the integration.";
