@@ -10,6 +10,7 @@ import { RpcError } from "../daemon/rpc.js";
 import { validateDesign } from "../design-md/index.js";
 import { northstarHome } from "../lib/home.js";
 import { extraExtensionIds } from "../native/host.js";
+import { probeChrome } from "../page/browser.js";
 import { type Runner, findConflicts } from "./conflicts.js";
 import { contextForRecord } from "./install.js";
 import { checkHost } from "./native-manifest.js";
@@ -20,7 +21,7 @@ import { detectShell, shellInstalled } from "./shell.js";
 
 interface Check {
   name: string;
-  status: "ok" | "warn" | "fail";
+  status: "ok" | "info" | "warn" | "fail";
   detail: string;
 }
 
@@ -37,6 +38,7 @@ export interface DoctorOptions {
   scanHook: (input: HookProbeInput) => string | undefined;
   host?: { node: string; script: string };
   loadPty?: () => Promise<unknown>;
+  probeBrowser?: () => Promise<void>;
 }
 
 const FIXTURE_FILE = "Landing.tsx";
@@ -229,6 +231,17 @@ export async function doctor(options: DoctorOptions): Promise<Check[]> {
       "fail",
       `the pseudo terminal module did not load: ${(err as Error).message}. Reinstall Northstar with npm install -g @pallandir/northstar`,
     );
+  }
+
+  try {
+    await (options.probeBrowser ?? probeChrome)();
+    add(
+      "chrome",
+      "ok",
+      "Google Chrome starts, page_capture, page_audit and reference search are available",
+    );
+  } catch (err) {
+    add("chrome", "info", `${(err as Error).message} Comments and Send to AI are not affected.`);
   }
 
   try {

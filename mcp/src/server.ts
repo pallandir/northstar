@@ -11,6 +11,7 @@ import { RESOLVE_DIRECTIVE } from "./directive.js";
 import { registerCore } from "./packs/core.js";
 import { registerCritique } from "./packs/critique.js";
 import { registerDetect } from "./packs/detect.js";
+import { registerPage } from "./packs/page.js";
 import { PackRegistry, parsePacks } from "./packs/registry.js";
 import { registerResearch } from "./packs/research.js";
 import { registerResolve } from "./packs/resolve.js";
@@ -80,6 +81,7 @@ export function createMcpServer(
   registerDetect(packs, canon, root);
   registerSystem(packs, canon, data, root);
   registerCritique(packs, canon, root);
+  registerPage(packs, canon, root);
 
   packs.register(
     "comments",

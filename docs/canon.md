@@ -2,7 +2,7 @@
 
 Generated from `canon/rules`. Do not edit by hand.
 
-68 rules. Severity is the default, modes can raise or lower it.
+76 rules. Severity is the default, modes can raise or lower it.
 
 ## Accessibility floor
 
@@ -85,6 +85,19 @@ Generated from `canon/rules`. Do not edit by hand.
 | `NS-MOTION-EASING` | Custom easing instead of the default keywords | info | yes | static |
 | `NS-MOTION-PROPERTIES` | Animate cheap properties | warn | yes | static |
 | `NS-MOTION-SCROLLJACK` | Scroll hijacking | error | yes | static |
+
+## PAGE
+
+| Rule | Title | Severity | Allowable | Detection |
+|---|---|---|---|---|
+| `NS-PAGE-PRIMARY-ACTIONS` | One primary action per region | warn | yes | dom |
+| `NS-PAGE-ALIGNMENT` | Edges that nearly align | warn | yes | dom |
+| `NS-PAGE-LINE-LENGTH` | Comfortable line length | warn | yes | dom |
+| `NS-PAGE-HEADING-ORDER` | One h1 and no skipped heading levels | warn | no | dom |
+| `NS-PAGE-SMALL-TEXT` | Text under 12px | warn | yes | dom |
+| `NS-PAGE-GENERIC-HERO` | The default centred SaaS hero | warn | yes | dom |
+| `NS-PAGE-ICON-SQUARES` | Icons in identical rounded tiles | warn | yes | dom |
+| `NS-PAGE-GRADIENT` | Gradient text and gradient filled surfaces | warn | yes | dom |
 
 ## Anti slop
 

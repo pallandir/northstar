@@ -57,6 +57,7 @@ const doctorOptions = (w: ReturnType<typeof world>): DoctorOptions => ({
   scanHook,
   host: { node: process.execPath, script: join(w.home, "cli.js") },
   loadPty: async () => undefined,
+  probeBrowser: async () => undefined,
 });
 
 const uninstallOf = (
@@ -540,6 +541,22 @@ test("doctor reports the browser helper, the pty module and the shell integratio
   });
   assert.equal(named(checks, "node-pty")[0]?.status, "fail");
   assert.match(named(checks, "node-pty")[0]?.detail ?? "", /no prebuild/);
+});
+
+test("a missing Chrome is reported as information and never fails doctor", async () => {
+  const w = world();
+  const ok = await doctor(doctorOptions(w));
+  assert.equal(ok.find((c) => c.name === "chrome")?.status, "ok");
+  const checks = await doctor({
+    ...doctorOptions(w),
+    probeBrowser: async () => {
+      throw new Error("Northstar cannot use this function, Google Chrome could not be started.");
+    },
+  });
+  const chrome = checks.find((c) => c.name === "chrome");
+  assert.equal(chrome?.status, "info");
+  assert.match(chrome?.detail ?? "", /cannot use this function/);
+  assert.match(chrome?.detail ?? "", /Send to AI are not affected/);
 });
 
 test("doctor fails the hook check when the scan finds nothing in a fixture with a known error", async () => {

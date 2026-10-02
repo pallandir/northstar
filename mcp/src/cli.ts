@@ -5,6 +5,8 @@ type Command = (args: string[]) => Promise<number | undefined>;
 const commands: Record<string, () => Promise<Command>> = {
   init: async () => (await import("./cli/init.js")).init,
   detect: async () => (await import("./cli/detect.js")).detect,
+  capture: async () => (await import("./cli/page.js")).capture,
+  audit: async () => (await import("./cli/page.js")).audit,
   hook: async () => (await import("./cli/hook.js")).hook,
   conflicts: async () => (await import("./cli/conflicts.js")).conflicts,
   install: async () => (await import("./cli/setup.js")).installCommand,
@@ -27,6 +29,8 @@ Commands:
   serve       start the MCP server over stdio (default)
   init [dir]  write DESIGN.md, PRODUCT.md and design/decisions.md, never overwriting
   detect      scan UI files for generic AI patterns, exits 1 on errors
+  capture     screenshot a URL in headless Chrome, needs Google Chrome
+  audit       render a URL in headless Chrome and audit the real page, exits 1 on errors
   hook        agent hook entry point, never fails an edit
   conflicts   find overlapping design skills, --remove quarantines them
   install     set Northstar up in Claude Code, Codex, Cursor, Gemini CLI and OpenCode, and register the browser helper
