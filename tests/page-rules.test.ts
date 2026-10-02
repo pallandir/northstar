@@ -52,22 +52,36 @@ const EXPECTED: Record<string, Expectation> = {
 const VIEWPORTS: ViewportName[] = ["mobile", "desktop"];
 let unavailable: string | null = null;
 
-async function audit(name: string): Promise<PageFinding[]> {
-  const url = pathToFileURL(join(PAGES, `${name}.html`)).href;
-  const perViewport: PageFinding[][] = [];
-  for (const viewport of VIEWPORTS) {
-    const { result } = await captureViewport(url, viewport, (snapshot) => ({
-      crops: [],
-      result: auditSnapshot(snapshot, viewport, { canon, mode: "persuade", allowed: () => false }),
-    }));
-    perViewport.push(result);
+const audits = new Map<string, Promise<PageFinding[]>>();
+
+function audit(name: string): Promise<PageFinding[]> {
+  let found = audits.get(name);
+  if (!found) {
+    const url = pathToFileURL(join(PAGES, `${name}.html`)).href;
+    found = (async () => {
+      const perViewport = await Promise.all(
+        VIEWPORTS.map(async (viewport) => {
+          const { result } = await captureViewport(url, viewport, (snapshot) => ({
+            crops: [],
+            result: auditSnapshot(snapshot, viewport, {
+              canon,
+              mode: "persuade",
+              allowed: () => false,
+            }),
+          }));
+          return result;
+        }),
+      );
+      return mergeViewports(perViewport);
+    })();
+    audits.set(name, found);
   }
-  return mergeViewports(perViewport);
+  return found;
 }
 
 before(async () => {
   try {
-    await audit("single-primary");
+    await Promise.all(Object.keys(EXPECTED).map(audit));
   } catch (error) {
     if (!(error instanceof BrowserUnavailable)) throw error;
     unavailable = error.message;

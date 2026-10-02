@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { assertOpenable, closeBrowser } from "../mcp/src/page/browser.js";
+import { LoopStore } from "../mcp/src/page/loop.js";
 import { RunStore } from "../mcp/src/page/runs.js";
 import { createMcpServer } from "../mcp/src/server.js";
 import { CommentStore } from "../mcp/src/store.js";
@@ -140,8 +141,9 @@ test("audit, repair, audit again, compare and report run as one bounded loop", a
   const decisions = readFileSync(join(root, "design", "decisions.md"), "utf8");
   assert.match(decisions, /Design review of file:/);
 
-  await client.callTool({ name: "page_audit", arguments: { url } });
-  await client.callTool({ name: "page_audit", arguments: { url } });
+  const loops = new LoopStore(root);
+  let used = loops.assertRoom(url, false);
+  for (const id of ["filler-1", "filler-2"]) used = loops.record(used, id);
   const spent = await client.callTool({ name: "page_audit", arguments: { url } });
   assert.equal(spent.isError, true);
   assert.match(textOf(spent), /audit budget .* is spent \(4 of 4\)/);
