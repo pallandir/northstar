@@ -87,7 +87,7 @@ function proseLines(lines: string[]): string[] {
       else if (marker.startsWith(fence)) fence = null;
       continue;
     }
-    if (!fence && !/^\s*(---+|<!--.*-->)\s*$/.test(line)) prose.push(line);
+    if (!fence && !/^\s*(---+|<!--.*--!?>)\s*$/.test(line)) prose.push(line);
   }
   return prose;
 }

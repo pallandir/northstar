@@ -101,6 +101,10 @@ export function removeHook(root: Json, event: string): void {
   prune(root, "hooks");
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function isTableHeader(line: string): boolean {
   return /^\s*\[/.test(line);
 }
@@ -112,7 +116,7 @@ export function removeTomlTables(
   table: string,
   scope: "all" | "sub" = "all",
 ): string {
-  const name = table.replace(/\./g, "\\.");
+  const name = escapeRegExp(table);
   const own = new RegExp(
     scope === "sub" ? `^\\s*\\[${name}\\..+\\]\\s*$` : `^\\s*\\[${name}(\\..+)?\\]\\s*$`,
   );
@@ -143,7 +147,7 @@ export function removeTomlTables(
 
 export function upsertToml(text: string | undefined, table: string, body: string): string {
   const source = text ?? "";
-  const header = new RegExp(`^\\s*\\[${table.replace(/\./g, "\\.")}\\]\\s*$`);
+  const header = new RegExp(`^\\s*\\[${escapeRegExp(table)}\\]\\s*$`);
   const lines = source.split("\n");
   const start = lines.findIndex((line) => header.test(line));
   if (start === -1) {

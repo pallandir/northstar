@@ -41,5 +41,7 @@ export function isGenericFamily(family: string): boolean {
 }
 
 export function quoteFamily(family: string): string {
-  return isGenericFamily(family) ? family : `"${family.replace(/"/g, '\\"')}"`;
+  return isGenericFamily(family)
+    ? family
+    : `"${family.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 }

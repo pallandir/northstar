@@ -46,9 +46,15 @@ function isUnder(path: string, base: string): boolean {
     : path.startsWith(`${base}/`);
 }
 
+function trimTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value[end - 1] === "/") end -= 1;
+  return value.slice(0, end);
+}
+
 export function sanitizeSourcePath(raw: string, root: string): string {
   const unified = stripPrefix(raw).replace(/\\/g, "/");
-  const base = root.replace(/\\/g, "/").replace(/\/+$/, "");
+  const base = trimTrailingSlashes(root.replace(/\\/g, "/"));
   const relative = isUnder(unified, base) ? unified.slice(base.length + 1) : unified;
   const candidate =
     relative.startsWith("/") || DRIVE.test(relative) ? relative : normalize(relative);

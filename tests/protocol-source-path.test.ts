@@ -39,3 +39,10 @@ test("paths outside the root are rejected", () => {
 test("dot segments are normalised", () => {
   assert.equal(sanitizeSourcePath("./src//App.tsx", "/r"), "src/App.tsx");
 });
+
+test("a root with a very long run of trailing slashes is trimmed in linear time", () => {
+  const root = `/proj${"/".repeat(200_000)}`;
+  const started = Date.now();
+  assert.equal(sanitizeSourcePath("/proj/src/App.tsx", root), "src/App.tsx");
+  assert.ok(Date.now() - started < 1_000);
+});
