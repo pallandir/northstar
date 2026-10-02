@@ -78,6 +78,16 @@ function assertExtensionIds(ids: readonly string[]): void {
   }
 }
 
+function allowedOrigins(extensionIds: readonly string[]): string[] {
+  return [...new Set([CHROME_EXTENSION_ID, ...extensionIds])].map(
+    (id) => `chrome-extension://${id}/`,
+  );
+}
+
+function idsFileContent(extensionIds: readonly string[]): string {
+  return `${JSON.stringify({ ids: extensionIds }, null, 2)}\n`;
+}
+
 function hostFiles(options: HostOptions): HostFile[] {
   const platform = options.platform ?? process.platform;
   if (!/\.m?js$/.test(options.script)) {
@@ -89,7 +99,6 @@ function hostFiles(options: HostOptions): HostFile[] {
   const dirs = manifestDirs(options.home, platform);
   const launcher = launcherPath(options.home);
   const description = "Northstar local bridge";
-  const chromeIds = [CHROME_EXTENSION_ID, ...options.extensionIds];
   const files: HostFile[] = [
     {
       label: "native host launcher",
@@ -106,7 +115,7 @@ function hostFiles(options: HostOptions): HostFile[] {
           description,
           path: launcher,
           type: "stdio",
-          allowed_origins: chromeIds.map((id) => `chrome-extension://${id}/`),
+          allowed_origins: allowedOrigins(options.extensionIds),
         },
         null,
         2,
@@ -132,7 +141,7 @@ function hostFiles(options: HostOptions): HostFile[] {
     {
       label: "allowed extension ids",
       path: join(stateDir(options.home), EXTENSION_IDS_FILE),
-      content: `${JSON.stringify({ ids: options.extensionIds }, null, 2)}\n`,
+      content: idsFileContent(options.extensionIds),
       mode: 0o600,
     },
   ];
@@ -146,6 +155,55 @@ function readIfPresent(path: string): string | undefined {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
     throw error;
   }
+}
+
+function writeIfChanged(label: string, path: string, content: string, mode: number): HostResult {
+  const current = readIfPresent(path);
+  if (current === content) return { label, target: path, status: "unchanged" };
+  mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
+  writeFileSync(path, content, { mode });
+  chmodSync(path, mode);
+  return { label, target: path, status: "updated" };
+}
+
+export function syncAllowedExtensions(options: {
+  home: string;
+  extensionIds: string[];
+  platform?: NodeJS.Platform;
+}): HostResult[] {
+  assertExtensionIds(options.extensionIds);
+  const platform = options.platform ?? process.platform;
+  const manifestPath = join(
+    manifestDirs(options.home, platform).chrome,
+    `${NATIVE_HOST_NAME}.json`,
+  );
+  const current = readIfPresent(manifestPath);
+  if (current === undefined) {
+    return [{ label: "chrome native host manifest", target: manifestPath, status: "missing" }];
+  }
+  let manifest: Record<string, unknown>;
+  try {
+    manifest = JSON.parse(current) as Record<string, unknown>;
+  } catch (error) {
+    throw new Error(
+      `${manifestPath} is not valid JSON (${(error as Error).message}). Run northstar install to rewrite it.`,
+    );
+  }
+  manifest.allowed_origins = allowedOrigins(options.extensionIds);
+  return [
+    writeIfChanged(
+      "chrome native host manifest",
+      manifestPath,
+      `${JSON.stringify(manifest, null, 2)}\n`,
+      0o644,
+    ),
+    writeIfChanged(
+      "allowed extension ids",
+      join(stateDir(options.home), EXTENSION_IDS_FILE),
+      idsFileContent(options.extensionIds),
+      0o600,
+    ),
+  ];
 }
 
 export function installHost(options: HostOptions): HostResult[] {

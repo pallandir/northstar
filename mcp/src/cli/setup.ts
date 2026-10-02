@@ -3,6 +3,7 @@ import { existsSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
+import { findLocalExtensionIds } from "../install/chrome-extensions.js";
 import { doctor } from "../install/doctor.js";
 import { type InstallOutcome, type OpResult, install, uninstall } from "../install/install.js";
 import { type HostResult, installHost, uninstallHost } from "../install/native-manifest.js";
@@ -99,7 +100,7 @@ function installBrowserHost(options: Options, dryRun: boolean): HostResult[] {
     home: options.home,
     node: process.execPath,
     script: real,
-    extensionIds: options.extensionIds,
+    extensionIds: [...new Set([...options.extensionIds, ...findLocalExtensionIds(options.home)])],
     dryRun,
   });
 }

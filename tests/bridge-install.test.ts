@@ -25,6 +25,7 @@ import {
   checkHost,
   installHost,
   launcherPath,
+  syncAllowedExtensions,
   uninstallHost,
 } from "../mcp/src/install/native-manifest.js";
 import {
@@ -327,4 +328,46 @@ test("the daemon link reports an unreachable daemon once and never throws into a
   link.notice({ commentId: "c", page: "p", summary: "s", createdAt: "now" });
   await new Promise((resolve) => setTimeout(resolve, 30));
   assert.equal(logs.filter((l) => /Send to AI is unavailable/.test(l)).length, 1);
+});
+
+test("syncing allowed extensions rewrites the ids and leaves the launcher alone", () => {
+  const home = temp();
+  installHost(host(home));
+  const launcher = launcherPath(home);
+  const before = readFileSync(launcher, "utf8");
+  const manifest = join(
+    home,
+    "Library",
+    "Application Support",
+    "Google",
+    "Chrome",
+    "NativeMessagingHosts",
+    `${NATIVE_HOST_NAME}.json`,
+  );
+  const id = "p".repeat(32);
+  const results = syncAllowedExtensions({ home, extensionIds: [id], platform: "darwin" });
+  assert.deepEqual(
+    results.map((r) => r.status),
+    ["updated", "updated"],
+  );
+  const chrome = JSON.parse(readFileSync(manifest, "utf8"));
+  assert.deepEqual(chrome.allowed_origins, [
+    `chrome-extension://${CHROME_EXTENSION_ID}/`,
+    `chrome-extension://${id}/`,
+  ]);
+  assert.equal(readFileSync(launcher, "utf8"), before);
+  assert.ok(checkHost({ ...host(home), extensionIds: [id] }).every((c) => c.status !== "warn"));
+  assert.deepEqual(
+    syncAllowedExtensions({ home, extensionIds: [id], platform: "darwin" }).map((r) => r.status),
+    ["unchanged", "unchanged"],
+  );
+});
+
+test("syncing allowed extensions does nothing before the helper is installed", () => {
+  const [result] = syncAllowedExtensions({
+    home: temp(),
+    extensionIds: [],
+    platform: "darwin",
+  });
+  assert.equal(result?.status, "missing");
 });

@@ -84,14 +84,14 @@ export class Workspace {
       throw new RpcError(
         "NO_PROJECT",
         `Northstar can not read the project ${root}.`,
-        "Start your agent in that project with northstar run.",
+        "Start your agent in that project, then try again.",
       );
     }
     if (!this.allRoots().includes(canonical)) {
       throw new RpcError(
         "NO_PROJECT",
         `Northstar does not know the project ${canonical}.`,
-        "Start your agent in that project with northstar run, or map it in northstar config.",
+        "Start your agent in that project, or map it in northstar config.",
       );
     }
     return canonical;

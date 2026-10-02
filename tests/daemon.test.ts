@@ -175,7 +175,7 @@ test("a send with no session says so and how to start one", async () => {
     request(peer, "session.send", { root: project, template: "resolve" }),
   );
   assert.equal(error.code, "NO_SESSION");
-  assert.match(error.fix, /northstar run/);
+  assert.match(error.fix, /Start your agent in this project/);
 });
 
 test("a send with one session is delivered and confirmed by the agent reading the comments", async () => {

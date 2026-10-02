@@ -11,6 +11,7 @@ import { validateDesign } from "../design-md/index.js";
 import { northstarHome } from "../lib/home.js";
 import { extraExtensionIds } from "../native/host.js";
 import { probeChrome } from "../page/browser.js";
+import { findLocalExtensionIds } from "./chrome-extensions.js";
 import { type Runner, findConflicts } from "./conflicts.js";
 import { contextForRecord } from "./install.js";
 import { checkHost } from "./native-manifest.js";
@@ -220,6 +221,15 @@ export async function doctor(options: DoctorOptions): Promise<Check[]> {
     })) {
       add(check.name, check.status, check.detail);
     }
+    const allowed = extraExtensionIds(ns);
+    const missing = findLocalExtensionIds(ns).filter((id) => !allowed.includes(id));
+    add(
+      "local extension builds",
+      missing.length === 0 ? "ok" : "warn",
+      missing.length === 0
+        ? "every unpacked Northstar build in Chrome is allowed"
+        : `${missing.join(", ")} is not allowed yet, start an agent or run northstar daemon, then reload the page`,
+    );
   }
 
   try {

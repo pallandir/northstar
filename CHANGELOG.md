@@ -4,6 +4,23 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- The toolbar no longer says the helper does not allow the extension for an unpacked
+  build. Northstar finds the Northstar builds loaded in Chrome and allows them when
+  the daemon starts and on install. The helper launcher is never rewritten at runtime.
+
+### Changed
+
+- **`northstar run` is optional again.** An assistant started the normal way registers
+  a session through its Northstar MCP server, which now starts the daemon, and Send to
+  AI types into its terminal (tmux, WezTerm, kitty, iTerm2, Terminal.app). iTerm2 and
+  Terminal.app need the macOS Automation permission. A terminal Northstar cannot type
+  into fails the send with the reason and the fix.
+- `northstar doctor` reports unpacked builds that are not allowed yet.
+
 ## [2.6.0] - 2026-10-02
 
 Northstar can now look at the page it helps design. It renders your running app in

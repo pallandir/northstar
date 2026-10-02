@@ -4,7 +4,10 @@ import { fileLogger } from "../daemon/log.js";
 import { launchQuickRun } from "../daemon/quickrun.js";
 import { RpcError } from "../daemon/rpc.js";
 import { startDaemon } from "../daemon/server.js";
+import { findLocalExtensionIds } from "../install/chrome-extensions.js";
+import { syncAllowedExtensions } from "../install/native-manifest.js";
 import { northstarHome } from "../lib/home.js";
+import { extraExtensionIds } from "../native/host.js";
 
 async function stop(home: string): Promise<number> {
   try {
@@ -35,8 +38,22 @@ async function status(home: string): Promise<number> {
     return 0;
   } catch (error) {
     if (!(error instanceof RpcError)) throw error;
-    process.stdout.write("not running, it starts on demand by northstar run\n");
+    process.stdout.write(
+      "not running, it starts on demand when an agent or the browser needs it\n",
+    );
     return 0;
+  }
+}
+
+function allowLocalExtensions(home: string, log: (message: string) => void): void {
+  try {
+    const ids = [...new Set([...extraExtensionIds(home), ...findLocalExtensionIds(home)])];
+    for (const result of syncAllowedExtensions({ home, extensionIds: ids })) {
+      if (result.status === "updated")
+        log(`allowed extensions ${ids.join(", ")} in ${result.target}`);
+    }
+  } catch (error) {
+    log(`could not allow local extension builds: ${(error as Error).message}`);
   }
 }
 
@@ -50,6 +67,7 @@ export async function daemonCommand(args: string[]): Promise<number> {
     return 2;
   }
   const log = fileLogger(home);
+  allowLocalExtensions(home, log);
   let running: Awaited<ReturnType<typeof startDaemon>>;
   try {
     running = await startDaemon({ home, version: VERSION, log, launchQuickRun });

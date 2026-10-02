@@ -13,7 +13,7 @@ interface RouteRequest {
 }
 
 export function routeSend(all: readonly SessionInfo[], request: RouteRequest): Route {
-  const candidates = all.filter((s) => s.root === request.root && s.kind === "interactive");
+  const candidates = all.filter((s) => s.root === request.root && s.kind !== "quick-run");
   if (request.sessionId !== undefined) {
     const chosen = candidates.find((s) => s.id === request.sessionId);
     return chosen ? { kind: "target", session: chosen } : { kind: "missing" };
@@ -26,13 +26,13 @@ export function routeSend(all: readonly SessionInfo[], request: RouteRequest): R
 }
 
 export const NO_SESSION_FIX =
-  "Start your agent through Northstar with northstar run claude (or codex, gemini, opencode), or run northstar shell install once so plain claude and codex do it for you.";
+  "Start your agent in this project, for example claude or codex, so its Northstar MCP server is running. If it is already running, run northstar doctor.";
 
 export function readinessFor(
   all: readonly SessionInfo[],
   request: Omit<RouteRequest, "sessionId">,
 ): Readiness {
-  const sessions = all.filter((s) => s.root === request.root && s.kind === "interactive");
+  const sessions = all.filter((s) => s.root === request.root && s.kind !== "quick-run");
   const route = routeSend(all, request);
   if (route.kind === "target") {
     return { ready: true, sessions, target: route.session.id, needsPick: false };

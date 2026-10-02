@@ -143,7 +143,7 @@ export function requireConnected(link: Link): Extract<Link, { kind: "connected" 
     case "noproject":
       throw new UserError(
         "No project is running yet.",
-        "Start your agent in the project with northstar run, then try again.",
+        "Start your agent in the project, then try again.",
         "offline",
       );
     case "choose":

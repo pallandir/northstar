@@ -12,7 +12,7 @@ const unavailable = (detail: string): RpcError =>
   new RpcError(
     "DAEMON_UNAVAILABLE",
     `The Northstar daemon is not reachable, ${detail}.`,
-    "Run northstar run <agent> or northstar daemon to start it.",
+    "Run northstar daemon in a terminal to see why it does not start, or run northstar doctor.",
   );
 
 function connectSocket(path: string): Promise<Socket> {

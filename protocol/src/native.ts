@@ -140,7 +140,7 @@ export interface SessionInfo {
   pid: number;
   createdAt: string;
   lastActivityAt: string;
-  kind: "interactive" | "quick-run";
+  kind: "interactive" | "terminal" | "quick-run";
 }
 
 export interface Readiness {

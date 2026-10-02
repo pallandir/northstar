@@ -191,7 +191,7 @@ exists, parses and names a mode, and in Claude Code an edit hook enforces that.
 | An MCP-capable AI coding assistant | reads comments and edits your source (Codex, Claude Code, Gemini, or any MCP client) | Yes |
 | Chrome or Firefox 128+ | extension | Yes |
 | macOS or Linux | the local helper and the agent sessions use Unix sockets and a pseudo terminal | Yes |
-| Your assistant started with `northstar run`, or the shell integration | gives Send to AI a session it owns and can write to | Yes |
+| tmux, WezTerm, kitty, iTerm2 or Terminal.app, or `northstar run` | lets Send to AI write into your assistant's terminal | Yes |
 | React, Vue, Svelte, or Angular dev build | precise component, source and route resolution | No, automatic |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -266,25 +266,22 @@ helper only answers extensions it was told about. Copy the id from
 
 ---
 
-### Step 3. Start your agent through Northstar and comment
+### Step 3. Start your agent and comment
 
-Start your assistant with `northstar run`, from the project folder, instead of
-starting it directly:
+Start your assistant the way you always do, from the project folder. Its Northstar MCP
+server registers the session with the local daemon, so there is nothing else to run.
+Send to AI types one fixed line into the terminal the assistant runs in (tmux,
+WezTerm, kitty, iTerm2 and Terminal.app are supported). On macOS, iTerm2 and
+Terminal.app ask once for permission to be controlled.
 
-```sh
-northstar run claude
-northstar run codex
-northstar run gemini
-northstar run opencode
-northstar run my-own-cli
-```
+To avoid any terminal permission, start the assistant with `northstar run claude`
+instead (or `codex`, `gemini`, `opencode`, your own CLI). Northstar then runs it in a
+pseudo terminal it owns. `northstar shell install` makes plain `claude` and `codex`
+do that for you.
 
-Nothing changes in how the assistant looks or behaves. Northstar runs it inside a
-pseudo terminal it owns, so it knows the session, and it is the only thing Send to AI
-can ever write into. To keep typing plain `claude` and `codex`, run
-`northstar shell install` once (zsh, bash and fish are supported). It adds shell
-functions that call `northstar run` and fall back to the real command, with a note,
-if Northstar is ever removed.
+Unpacked builds of the extension are allowed automatically: when the daemon starts it
+finds the Northstar builds loaded in Chrome and allows them. Reload the page after
+starting your assistant.
 
 Open your frontend on a `localhost` dev server and click the Northstar toolbar icon
 to turn the overlay on. There is nothing to connect or pair. Mark up the page, then
@@ -543,9 +540,9 @@ comment locally, **Send** flushes the batch.
 
 If you did click Send, the toolbar tells you why and how to fix it. The usual reasons
 are that the assistant was showing a permission prompt (Northstar will not answer one
-for you, send again once it clears), that there was text in its input, or that it was
-started without `northstar run`, so Northstar has no session to write to. Start it with
-`northstar run <agent>` or run `northstar shell install` once.
+for you, send again once it clears), that there was text in its input, or that it
+runs in a terminal Northstar cannot type into. Run `northstar doctor`, or start it with
+`northstar run <agent>`.
 </details>
 
 <details>
@@ -611,8 +608,9 @@ Everything stays on your machine. There is no local web server: the extension re
 Northstar through Native Messaging, and the helper it starts only answers the Northstar
 extension and accepts a fixed list of actions. The daemon behind it listens on a Unix
 socket that only your user can open. Send to AI writes one fixed line, never your
-comment text, and only into a session that `northstar run` started, so it cannot type
-into any other terminal and needs no accessibility permission. The extension has no
+comment text, and only into the terminal of the agent that registered the session, through
+`northstar run`, tmux, WezTerm, kitty, iTerm2 or Terminal.app. iTerm2 and Terminal.app
+need the macOS Automation permission, `northstar run` needs none. The extension has no
 standing access to any page. `activeTab` grants access to one tab for as long as it
 stays on the current URL, and that access is revoked on navigation.
 

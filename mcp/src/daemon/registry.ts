@@ -59,6 +59,10 @@ export class Registry {
     return this.sessions.get(id);
   }
 
+  findByPid(pid: number): SessionInfo | undefined {
+    return this.list().find((info) => info.pid === pid && info.kind !== "quick-run");
+  }
+
   add(handle: SessionHandle): void {
     this.sessions.set(handle.info.id, handle);
     this.rememberRoot(handle.info.root);

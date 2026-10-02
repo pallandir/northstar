@@ -41,7 +41,7 @@ installed package, so use a global install rather than `npx` for it. Other comma
 | `northstar install [--agent a,b] [--all] [--scope user\|project] [--bin path] [--no-gate] [--no-host] [--allow-extension id] [--home dir] [--project dir] [--dry-run] [--yes]` | Register the server, install the five skills and the edit hooks. `--bin` points the server and hooks at a local build, `--no-gate` leaves out the design gate hook. |
 | `northstar uninstall [--agent a,b] [--scope user\|project]` | Remove exactly what install added and restore what it replaced, including the browser helper once no agent is left. |
 | `northstar doctor` | Check installs, assets, hooks, the browser helper, the pseudo terminal module, the daemon, the shell integration, DESIGN.md and conflicts. |
-| `northstar run <agent> [args]` | Start an agent in a session Northstar owns, so Send to AI can write into it. Any terminal program works. |
+| `northstar run <agent> [args]` | Optional. Start an agent in a session Northstar owns, so Send to AI needs no terminal permission. Any terminal program works. |
 | `northstar sessions` | List the running sessions. |
 | `northstar agent [list\|add <id> <path>]` | List the known agents, or register your own, optionally with `--quick-run "-p {{prompt}}"`. |
 | `northstar shell install\|uninstall [--shell zsh\|bash\|fish]` | Add or remove shell functions so plain `claude` and `codex` start through `run`. |

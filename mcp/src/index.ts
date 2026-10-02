@@ -44,7 +44,7 @@ async function main(): Promise<void> {
   log(
     status.state === "on"
       ? `Send to AI is linked to the Northstar daemon, store root ${root}`
-      : `Send to AI is unavailable: ${status.error}. Start the agent with northstar run so the daemon is running.`,
+      : `Send to AI is unavailable: ${status.error}. Run northstar doctor.`,
   );
 }
 

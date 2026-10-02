@@ -85,7 +85,7 @@ function statusLine(url: string | undefined, status: QueueStatus): string {
         ? `${status.problem.error} ${status.problem.fix}`
         : "Northstar's browser helper is not reachable.";
     case "noproject":
-      return "No project is running. Start your agent with northstar run in the project you are commenting on.";
+      return "No project is running. Start your agent in the project you are commenting on.";
     case "choose":
       return "More than one project is running. Pick one in the Northstar toolbar on the page.";
     case "mismatch":
