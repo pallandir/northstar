@@ -45,6 +45,8 @@
     "@biomejs/biome": "^1.9.4",
     "@commitlint/cli": "^19.6.1",
     "@commitlint/config-conventional": "^19.6.0",
+    "@emnapi/core": "^1.11.3",
+    "@emnapi/runtime": "^1.11.3",
     "@types/chrome": "^0.0.287",
     "@types/node": "^22.10.5",
     "happy-dom": "^17.6.3",
