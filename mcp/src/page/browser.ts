@@ -5,6 +5,7 @@ export class BrowserUnavailable extends Error {}
 class PageError extends Error {}
 
 const IDLE_MS = 120_000;
+const LAUNCH_TIMEOUT_MS = 15_000;
 const NAVIGATION_TIMEOUT_MS = 30_000;
 const SETTLE_MS = 400;
 const POLL_MS = 250;
@@ -40,7 +41,11 @@ async function launch(): Promise<Browser> {
     );
   }
   try {
-    const browser = await engine.chromium.launch({ channel: "chrome", headless: true });
+    const browser = await engine.chromium.launch({
+      channel: "chrome",
+      headless: true,
+      timeout: LAUNCH_TIMEOUT_MS,
+    });
     browser.once("disconnected", () => {
       launching = null;
     });
