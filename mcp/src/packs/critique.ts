@@ -1,27 +1,8 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
 import { type Canon, MODES, type Mode } from "@northstar/canon";
 import { z } from "zod";
+import { appendDecision, oneLine } from "../lib/decisions.js";
 import type { PackRegistry } from "./registry.js";
 import { error, modeSchema, text } from "./util.js";
-
-const DECISIONS_HEADER = "# Design decisions\n";
-
-async function readDecisions(file: string): Promise<string> {
-  try {
-    return await readFile(file, "utf8");
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === "ENOENT") return DECISIONS_HEADER;
-    throw err;
-  }
-}
-
-const oneLine = (value: string, max: number) =>
-  value
-    .replace(/\s+/g, " ")
-    .replace(/^#+\s*/, "")
-    .trim()
-    .slice(0, max);
 
 export function bandFor(canon: Canon, score: number): string {
   const bands = [...canon.rubric.bands].sort((a, b) => b.min - a.min);
@@ -128,10 +109,7 @@ export function registerCritique(registry: PackRegistry, canon: Canon, root: str
       });
       const band = bandFor(canon, overall);
       const date = new Date().toISOString().slice(0, 10);
-      const entry = [
-        "",
-        `## ${date} Critique${page ? ` of ${oneLine(page, 120)}` : ""}`,
-        "",
+      await appendDecision(root, `${date} Critique${page ? ` of ${oneLine(page, 120)}` : ""}`, [
         "- Stage: critique",
         `- Mode: ${mode}`,
         `- Overall: ${overall} (${band})${capped ? `, capped by the ${capped} gate` : ""}`,
@@ -144,13 +122,7 @@ export function registerCritique(registry: PackRegistry, canon: Canon, root: str
             `  - ${f.severity}${f.rule ? ` ${oneLine(f.rule, 60)}` : ""}: ${oneLine(f.text, 300)}`,
         ),
         "- Decided by: agent",
-        "",
-      ].join("\n");
-
-      const file = join(root, "design", "decisions.md");
-      await mkdir(dirname(file), { recursive: true });
-      const existing = await readDecisions(file);
-      await writeFile(file, `${existing.trimEnd()}\n${entry}`);
+      ]);
       return text(
         `Recorded. Overall ${overall} (${band})${capped ? `, capped by the ${capped} gate` : ""}. Appended to design/decisions.md.`,
       );

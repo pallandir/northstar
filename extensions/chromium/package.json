@@ -1,6 +1,6 @@
 {
   "name": "@northstar/chromium",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "Chromium MV3 build target for the Northstar extension.",
   "license": "MIT",
   "private": true,

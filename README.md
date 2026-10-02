@@ -122,6 +122,9 @@ normally would.
 | Library first | `resolve_library`, `resolve_font` and `resolve_icon` pick shadcn, an icon set, Fontsource and friends for your stack, so nothing gets hand rolled |
 | Your direction | `design_md_normalize` turns any markdown into a valid `DESIGN.md`. It also reads a Figma design system when the official Figma MCP server is installed |
 | Rubric | `critique_rubric` scores a built screen on nine dimensions, with weights per mode and caps for accessibility and detector failures |
+| Page audit | `page_audit` renders your running page in headless Chrome at 390 and 1440 wide, reads the real DOM and styles, and runs rules the source cannot show: competing primary actions, nested cards, contrast, focus, target size, overflow, type scale, heading order, the default centred hero and more. It returns the top findings by impact with crops and a repair plan |
+| Self feedback | Repair, audit again, then `page_compare` shows what was resolved, what was introduced and how many pixels moved. The loop stops after four audits, and `design_report` writes the evidence, never a score |
+| References | `design_intent`, `references_search` and `design_direction` find references on Dribbble, Pinterest and Awwwards, measure or record their Design DNA and build a direction from principles, never a copy of one site |
 
 ### Five skills, loaded only when needed
 
@@ -492,7 +495,7 @@ the project root the MCP server stores comments in.
 
 ### MCP tools
 
-The server exposes 28 tools in seven packs and 12 prompts. Core and comment tools
+The server exposes 37 tools in nine packs and 12 prompts. Core and comment tools
 are always on, the rest are enabled per stage with `enable_packs`. The prompts are
 `resolve-comments`, the stage prompts (`brief`, `direct`, `system`, `compose`,
 `critique`, `polish`) and the workflow prompts (`build`, `refine`, `finish`,
@@ -520,6 +523,14 @@ The design tools, by pack:
 | resolve | `resolve_library`, `resolve_font`, `resolve_icon` | Pick libraries, fonts and icons for the stack |
 | detect | `slop_scan`, `explain_rule`, `ui_audit` | Scan, explain a rule, audit existing UI |
 | critique | `critique_rubric`, `record_critique` | Score a screen and keep the decisions log |
+| page | `page_capture`, `page_audit`, `page_compare` | Screenshot and audit the running page in headless Chrome, then compare two runs |
+| design | `design_intent`, `references_search`, `references_add`, `references_record`, `design_direction`, `design_report` | Intent, references, direction and the final evidence report |
+
+The page and design tools need Google Chrome installed. When it is missing they answer
+that Northstar cannot use this function, nothing is downloaded and nothing else changes,
+so comments and Send to AI keep working. `northstar audit <url>` and `northstar capture
+<url>` run the same code from a terminal. Runs, references and the direction are saved
+under `.northstar/design/` in the project.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

@@ -1,6 +1,6 @@
 {
   "name": "@northstar/protocol",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "private": true,
   "type": "module",
   "description": "Shared wire contract between the Northstar extension and server.",

@@ -102,10 +102,10 @@ Call `northstar_context` first. It reports the project, the active mode and the 
 | Stage | Packs to enable |
 |---|---|
 | Brief | none |
-| Direction | research |
+| Direction | research, design |
 | System | system, resolve |
-| Compose | resolve, detect |
-| Critique | detect, critique |
+| Compose | resolve, detect, page |
+| Critique | detect, critique, page |
 | Polish | detect |
 
 The comments pack is always available. Tool names by pack:
@@ -119,6 +119,8 @@ The comments pack is always available. Tool names by pack:
 | resolve | `resolve_library`, `resolve_font`, `resolve_icon` |
 | detect | `slop_scan`, `explain_rule`, `ui_audit` |
 | critique | `critique_rubric`, `record_critique` |
+| page | `page_capture`, `page_audit`, `page_compare` |
+| design | `design_intent`, `references_search`, `references_add`, `references_record`, `design_direction`, `design_report` |
 
 ## Browser comments
 

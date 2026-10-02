@@ -10,7 +10,7 @@ developer tool. This policy explains what it does and does not do with data.
 - It does **not** collect, store, or transmit any personal data.
 - It does **not** use analytics, tracking, advertising, or any third-party
   services.
-- It does **not** send any data to the developer or to any remote server.
+- It does **not** send any data to the developer or to any remote server. The only requests it makes are the page and gallery visits described under page audits and reference search, and only when your agent asks for them.
 
 ## What data Northstar handles, and where it stays
 
@@ -43,6 +43,17 @@ screen is not stored.
 Northstar keeps a small amount of state in `~/.northstar/`: your settings, the
 sessions that are running (agent, folder and process id), and logs of events with byte
 counts. The logs never contain comment text, selected text or anything typed.
+
+## Page audits and reference search
+
+These only run when your agent calls `page_capture`, `page_audit`, `references_search` or
+`references_add`. They open the address the agent gives in a private headless Chrome
+that has none of your cookies or logins, and save screenshots, measurements and
+reference images in the project's `.northstar/design/` folder. Reference search visits
+Dribbble, Pinterest and Awwwards with search words built from your design intent, and
+downloads images from their image servers, exactly as a browser visit would. Nothing
+about your project or your comments is sent to them. Northstar itself sends nothing
+anywhere.
 
 ## Permissions
 

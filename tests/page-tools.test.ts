@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { copyFileSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, before, test } from "node:test";
@@ -104,4 +104,69 @@ test("playwright-core is only ever imported lazily or as a type", () => {
       .some((line) => /from "playwright-core"/.test(line) && !/^import type /.test(line)),
   );
   assert.deepEqual(offenders, []);
+});
+
+test("audit, repair, audit again, compare and report run as one bounded loop", async (t) => {
+  const page = join(root, "page.html");
+  const pages = join(dirname(fileURLToPath(import.meta.url)), "fixtures", "pages");
+  const url = pathToFileURL(page).href;
+  copyFileSync(join(pages, "multiple-primary.html"), page);
+  const first = await client.callTool({ name: "page_audit", arguments: { url } });
+  if (first.isError && /cannot use this function/.test(textOf(first))) return t.skip(textOf(first));
+  assert.notEqual(first.isError, true, textOf(first));
+  assert.match(textOf(first), /Audit 1 of 4/);
+  assert.match(textOf(first), /repair: Decide the primary goal|repair: /);
+  const firstRun = new RunStore(root).latest();
+  assert.ok(firstRun && existsSync(new RunStore(root).pathOf(firstRun.id, "repair-plan.json")));
+
+  copyFileSync(join(pages, "single-primary.html"), page);
+  const second = await client.callTool({ name: "page_audit", arguments: { url } });
+  assert.match(textOf(second), /Audit 2 of 4/);
+  assert.match(textOf(second), /Clean/);
+  assert.match(textOf(second), /Stop here and call design_report/);
+
+  const compared = textOf(await client.callTool({ name: "page_compare", arguments: {} }));
+  assert.match(compared, /IMPROVED/);
+  assert.match(compared, /Resolved 1, introduced 0/);
+  assert.match(compared, /NS-PAGE-PRIMARY-ACTIONS/);
+  assert.match(compared, /mobile: [\d.]+% of pixels changed/);
+  assert.match(compared, /desktop: [\d.]+% of pixels changed/);
+
+  const report = textOf(await client.callTool({ name: "design_report", arguments: {} }));
+  assert.match(report, /NORTHSTAR DESIGN REVIEW/);
+  assert.match(report, /Accessibility +PASS/);
+  assert.match(report, /resolved NS-PAGE-PRIMARY-ACTIONS/);
+  assert.match(report, /2 of 4 audits/);
+  assert.match(report, /READY$/);
+  const decisions = readFileSync(join(root, "design", "decisions.md"), "utf8");
+  assert.match(decisions, /Design review of file:/);
+
+  await client.callTool({ name: "page_audit", arguments: { url } });
+  await client.callTool({ name: "page_audit", arguments: { url } });
+  const spent = await client.callTool({ name: "page_audit", arguments: { url } });
+  assert.equal(spent.isError, true);
+  assert.match(textOf(spent), /audit budget .* is spent \(4 of 4\)/);
+  const restarted = await client.callTool({
+    name: "page_audit",
+    arguments: { url, restart: true },
+  });
+  assert.match(textOf(restarted), /Audit 1 of 4/);
+});
+
+test("compare and report refuse to guess when there is nothing to work from", async () => {
+  const fresh = mkdtempSync(join(tmpdir(), "northstar-empty-"));
+  const server = createMcpServer(new CommentStore(fresh), noopLink, undefined, {
+    root: fresh,
+    packs: "all",
+  });
+  const [c, s] = InMemoryTransport.createLinkedPair();
+  const empty = new Client({ name: "t", version: "0" });
+  await Promise.all([server.connect(s), empty.connect(c)]);
+  const compare = await empty.callTool({ name: "page_compare", arguments: {} });
+  assert.equal(compare.isError, true);
+  assert.match(textOf(compare), /not two runs to compare/);
+  const report = await empty.callTool({ name: "design_report", arguments: {} });
+  assert.equal(report.isError, true);
+  assert.match(textOf(report), /No audit has run yet/);
+  rmSync(fresh, { recursive: true, force: true });
 });

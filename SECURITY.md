@@ -13,6 +13,12 @@ and to an assistant session that Northstar itself started.
   daemon through a Unix socket in a directory only your user can open (mode 0700,
   socket 0600). No comment, screenshot, or source path leaves your machine, and
   there is no remote backend.
+- **Page tools use a private browser.** `page_capture`, `page_audit` and
+  `references_search` start headless Google Chrome with a new, empty context for every
+  call. It never uses your profile, cookies or logins, it opens only `http`, `https`
+  and `file` addresses, and it blocks service workers and downloads. A sign in panel
+  or a bot check on a gallery is reported as it is, never dismissed or worked around.
+  The browser starts only when one of those tools runs.
 - **No standing access to any page.** The extension declares no content scripts
   and no web-page host permissions, so it runs on no site by default. The overlay
   is injected only into a tab you activate by clicking the toolbar button, under

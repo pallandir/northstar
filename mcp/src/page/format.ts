@@ -1,8 +1,16 @@
 import type { Crop } from "./capture.js";
 import type { JudgedFinding } from "./judge.js";
+import { type Loop, describeLoop } from "./loop.js";
+import type { Repair } from "./repair.js";
 import type { RunRecord } from "./runs.js";
 
-export function describeRun(record: RunRecord, top: readonly JudgedFinding[], dir: string): string {
+export function describeRun(
+  record: RunRecord,
+  top: readonly JudgedFinding[],
+  repairs: readonly Repair[],
+  dir: string,
+  loop: Loop,
+): string {
   const errors = record.findings.filter((f) => f.severity === "error").length;
   const lines = [
     `Run ${record.id} on ${record.url} (${record.mode} mode, ${record.viewports.join(" and ")}).`,
@@ -12,7 +20,11 @@ export function describeRun(record: RunRecord, top: readonly JudgedFinding[], di
     lines.push(`The full screenshot was cut at 16000px on: ${record.truncated.join(", ")}.`);
   }
   if (top.length === 0) {
-    lines.push("", "Clean. Judge what the rules cannot see by eye, then call design_report.");
+    lines.push(
+      "",
+      "Clean. Judge what the rules cannot see by eye.",
+      describeLoop(loop, record.findings),
+    );
     return lines.join("\n");
   }
   lines.push("", `Top ${top.length} by impact:`);
@@ -21,8 +33,14 @@ export function describeRun(record: RunRecord, top: readonly JudgedFinding[], di
       `${i + 1}. ${f.rule} ${f.severity} (${f.viewports.join("+")}, ${f.region}, confidence ${f.confidence}, ${f.repair === "automatic" ? "safe to fix" : "needs a decision"})`,
       `   ${f.message}`,
       ...(f.evidence.length ? [`   at ${f.evidence.slice(0, 3).join(" ; ")}`] : []),
+      `   repair: ${repairs[i]?.modifications[0] ?? ""}`,
     );
   });
+  lines.push(
+    "",
+    `Repair plan saved to ${dir}/${record.id}/repair-plan.json.`,
+    describeLoop(loop, record.findings),
+  );
   return lines.join("\n");
 }
 

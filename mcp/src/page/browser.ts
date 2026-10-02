@@ -85,13 +85,7 @@ export async function waitUntil(
 }
 
 export async function probeChrome(): Promise<void> {
-  launching ??= launch();
-  try {
-    await launching;
-  } catch (error) {
-    launching = null;
-    throw error;
-  }
+  await acquire();
   await closeBrowser();
 }
 
@@ -123,23 +117,43 @@ async function openContext(browser: Browser, viewport: ViewportName): Promise<Br
   });
 }
 
+async function acquire(): Promise<Browser> {
+  launching ??= launch();
+  try {
+    return await launching;
+  } catch (error) {
+    launching = null;
+    throw error;
+  }
+}
+
+async function inContext<T>(
+  viewport: ViewportName,
+  work: (context: BrowserContext) => Promise<T>,
+): Promise<T> {
+  const browser = await acquire();
+  active += 1;
+  const context = await openContext(browser, viewport);
+  try {
+    return await work(context);
+  } finally {
+    await context.close();
+    active -= 1;
+    scheduleIdleClose();
+  }
+}
+
+export async function withBlankPage<T>(work: (page: Page) => Promise<T>): Promise<T> {
+  return inContext("desktop", async (context) => work(await context.newPage()));
+}
+
 export async function withPage<T>(
   url: string,
   viewport: ViewportName,
   work: (page: Page) => Promise<T>,
 ): Promise<T> {
   const target = assertOpenable(url);
-  launching ??= launch();
-  let browser: Browser;
-  try {
-    browser = await launching;
-  } catch (error) {
-    launching = null;
-    throw error;
-  }
-  active += 1;
-  const context = await openContext(browser, viewport);
-  try {
+  return inContext(viewport, async (context) => {
     const page = await context.newPage();
     try {
       await page.goto(target.href, { waitUntil: "load", timeout: NAVIGATION_TIMEOUT_MS });
@@ -150,10 +164,6 @@ export async function withPage<T>(
     }
     await page.evaluate(SETTLE_SCRIPT);
     await page.waitForTimeout(SETTLE_MS);
-    return await work(page);
-  } finally {
-    await context.close();
-    active -= 1;
-    scheduleIdleClose();
-  }
+    return work(page);
+  });
 }

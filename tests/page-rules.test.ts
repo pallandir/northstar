@@ -44,6 +44,9 @@ const EXPECTED: Record<string, Expectation> = {
     ],
   },
   "editorial-clean": { detected: [], only: true },
+  "dark-overlay": { detected: [], only: true },
+  "painted-layer": { detected: [], only: true },
+  "painted-low": { detected: ["NS-A11Y-CONTRAST"] },
 };
 
 const VIEWPORTS: ViewportName[] = ["mobile", "desktop"];
@@ -100,4 +103,13 @@ test("horizontal overflow shows up on the phone viewport only", async (t) => {
   if (unavailable) return t.skip(unavailable);
   const finding = (await audit("mobile-overflow")).find((f) => f.rule === "NS-LAYOUT-RESPONSIVE");
   assert.deepEqual(finding?.viewports, ["mobile"]);
+});
+
+test("messages read correctly for a single element", async (t) => {
+  if (unavailable) return t.skip(unavailable);
+  const findings = await audit("inaccessible");
+  const focus = findings.find((f) => f.rule === "NS-A11Y-FOCUS-VISIBLE");
+  assert.match(focus?.message ?? "", /Keyboard focus shows no change on 2 controls\./);
+  const contrast = findings.find((f) => f.rule === "NS-A11Y-CONTRAST");
+  assert.match(contrast?.message ?? "", /Contrast fails on 1 text block, the worst is/);
 });

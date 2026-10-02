@@ -1,6 +1,7 @@
 import type { Page } from "playwright-core";
 import { withPage } from "./browser.js";
 import { COLLECTOR } from "./collector.js";
+import { refineBackgrounds } from "./refine.js";
 import { type Region, regionsOf } from "./regions.js";
 import type { PageSnapshot } from "./snapshot.js";
 import { VIEWPORTS, type ViewportName } from "./viewports.js";
@@ -57,6 +58,7 @@ export async function captureViewport<R>(
 ): Promise<{ capture: Capture; crops: Crop[]; result: R }> {
   return withPage(url, viewport, async (page) => {
     const snapshot = (await page.evaluate(COLLECTOR)) as PageSnapshot;
+    await refineBackgrounds(page, snapshot);
     const regions = regionsOf(snapshot);
     const fullHeight = Math.min(snapshot.document.height, MAX_FULL_HEIGHT);
     const full = await page.screenshot({

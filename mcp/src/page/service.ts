@@ -5,6 +5,8 @@ import { compileAllow } from "../detector/suppress.js";
 import { auditPage } from "./audit-run.js";
 import { type Crop, captureViewport } from "./capture.js";
 import { type JudgedFinding, judge } from "./judge.js";
+import { type Loop, LoopStore } from "./loop.js";
+import { type Repair, repairPlan } from "./repair.js";
 import { type RunRecord, RunStore } from "./runs.js";
 import { DEFAULT_VIEWPORTS, type ViewportName } from "./viewports.js";
 
@@ -14,8 +16,10 @@ const FIRST_VIEW = "first view";
 export interface AuditOutcome {
   record: RunRecord;
   top: JudgedFinding[];
+  repairs: Repair[];
   crops: Crop[];
   dir: string;
+  loop: Loop;
 }
 
 export async function auditProject(options: {
@@ -24,7 +28,10 @@ export async function auditProject(options: {
   url: string;
   viewports?: ViewportName[];
   mode?: Mode;
+  restart?: boolean;
 }): Promise<AuditOutcome> {
+  const loops = new LoopStore(options.root);
+  const open = loops.assertRoom(options.url, options.restart ?? false);
   const config = loadScanConfig(options.root, options.mode);
   const { record, crops } = await auditPage({
     url: options.url,
@@ -41,7 +48,12 @@ export async function auditProject(options: {
       return [...new Set(regions)].slice(0, MAX_CROPS_PER_VIEWPORT);
     },
   });
-  return { record, top: judge(record.findings), crops, dir: new RunStore(options.root).dir };
+  const top = judge(record.findings);
+  const store = new RunStore(options.root);
+  const repairs = repairPlan(options.canon, top);
+  store.saveRepairs(record.id, repairs);
+  const loop = loops.record(open, record.id);
+  return { record, top, repairs, crops, dir: store.dir, loop };
 }
 
 export async function captureProject(options: {

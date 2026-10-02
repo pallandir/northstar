@@ -4,6 +4,53 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.6.0] - 2026-10-02
+
+Northstar can now look at the page it helps design. It renders your running app in
+headless Chrome, measures the real DOM and styles, ranks what is wrong, plans the
+repair and checks that the repair helped. It can also find references and turn them
+into a direction. All of it is optional: without Google Chrome the new tools say so
+and everything else works as before.
+
+### Added
+
+- **`page_audit`**: renders a URL at mobile and desktop, runs 20 page rules against
+  the real page (competing primary actions, nested cards, card grids, contrast, focus,
+  target size, semantics, overflow, type scale, heading order, line length, small
+  text, alignment, centred layouts, the default centred hero, icon tiles, gradients,
+  palette size and drift from the direction), ranks the findings by impact, returns
+  crops and saves a run with a repair plan.
+- **`page_capture`** and **`page_compare`**: screenshots by region, and a comparison of
+  two runs with resolved and introduced findings, changed pixels and moved regions.
+  A repair that introduces a worse finding than it resolved is reported as regressed.
+- **A bounded audit loop**: four audits per page, then `design_report` writes the
+  evidence (areas, unresolved observations with confidence, changes, iterations and
+  READY or NOT READY) and logs it in `design/decisions.md`.
+- **References and direction**: `design_intent`, `references_search` (Dribbble,
+  Pinterest, Awwwards, with sign in walls reported and never bypassed),
+  `references_add`, `references_record` and `design_direction`. Design DNA is measured
+  from a page or recorded from an image, and the direction takes each dimension from the
+  reference that fits the intent.
+- `northstar audit <url>` and `northstar capture <url>`, and a `chrome` line in
+  `northstar doctor` that is information, never a failure.
+
+### Changed
+
+- **Internal layout.** The `packages/` workspaces are folded into `mcp/` (detector,
+  design-md, data and the install plans) and the wire contract moved to `protocol/`.
+  Every test now lives in the root `tests/` folder, `*.test.ts` on node:test and
+  `*.spec.ts` on vitest, and shared dev dependencies are installed once at the root.
+- The hand copied `integrations/` folder is removed. `northstar install` is the way to
+  configure an agent.
+- The daemon core is split into workspace, comment actions and sending modules.
+
+### Fixed
+
+- A choice prompt drawn inside a box and followed by a hint line, such as a permission
+  dialog, was not recognised as a prompt, so Send to AI could write into it.
+- The terminal is restored to cooked mode whenever the wrapper process exits.
+- Dead exports and files found by knip are removed, and `knip` runs from the root.
+
 ## [2.5.0] - 2026-10-02
 
 Send to AI no longer pushes into an agent or types into someone else's terminal.

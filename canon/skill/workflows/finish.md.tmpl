@@ -19,7 +19,7 @@ The final pass between working and shipped. It does not change the structure or 
 5. Check depth and shape: layered tinted shadows, concentric radii, borders from the neutral ramp, no pure black or white surfaces.
 6. Check type details: balanced headings, tabular figures, real quotes and ellipses, a sensible measure.
 7. Check browser surfaces: title, favicon, theme colour, dynamic viewport height, both themes.
-8. Rescan until the detector is clean or each finding is allowed with a reason, then record any allow entry in `design/decisions.md`.
+8. Rescan until the detector is clean or each finding is allowed with a reason, then record any allow entry in `design/decisions.md`. When the page runs, call `page_audit` once more to confirm nothing regressed.
 
 ## Keep it light
 

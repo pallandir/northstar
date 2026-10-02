@@ -71,7 +71,7 @@ export function buildDirection(
     sources[dimension] = candidates.map((r) => r.id);
     for (const group of GROUPS[dimension]) {
       const taken = chosen.dna[group];
-      if (taken) dna[group] = { ...dna[group], ...taken } as never;
+      if (taken) Object.assign(dna, { [group]: { ...dna[group], ...taken } });
     }
     lines.push(
       `${dimension} from ${chosen.id} (${chosen.title.slice(0, 60)})${chosen.notes ? `: ${chosen.notes}` : ""}`,

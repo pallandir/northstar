@@ -1,5 +1,6 @@
 import type { RuleContext } from "../context.js";
 import type { RawFinding } from "../finding.js";
+import { plural } from "./util.js";
 
 const MAX_SIZES = 8;
 const LINE_CHARS = 90;
@@ -89,7 +90,7 @@ export function smallText(ctx: RuleContext): RawFinding[] {
       confidence: 0.9,
       region: ctx.regionOf(small[0] as (typeof small)[number]),
       evidence: small.slice(0, EVIDENCE_CAP).map((n) => n.selector),
-      message: `${small.length} text blocks are under ${SMALL_TEXT}px.`,
+      message: `Text under ${SMALL_TEXT}px in ${plural(small.length, "block")}.`,
     },
   ];
 }

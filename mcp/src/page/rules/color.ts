@@ -2,6 +2,7 @@ import { composite, hex, hueOf, lightnessOf, ratio, saturationOf } from "../colo
 import type { RuleContext } from "../context.js";
 import type { RawFinding } from "../finding.js";
 import type { PageNode } from "../snapshot.js";
+import { plural } from "./util.js";
 
 const NORMAL_RATIO = 4.5;
 const LARGE_RATIO = 3;
@@ -17,6 +18,17 @@ const HUE_BUCKET = 30;
 const MAX_ACCENTS = 2;
 
 const TEXT_KINDS: ReadonlySet<string> = new Set(["text", "heading", "button", "link"]);
+
+export function requiredRatio(node: PageNode): number {
+  const large =
+    node.style.fontSize >= LARGE_SIZE ||
+    (node.style.fontSize >= LARGE_BOLD_SIZE && node.style.fontWeight >= BOLD);
+  return large ? LARGE_RATIO : NORMAL_RATIO;
+}
+
+export function contrastOf(node: PageNode): number {
+  return ratio(composite(node.style.color, node.style.background), node.style.background);
+}
 
 function onImage(ctx: RuleContext, node: PageNode): boolean {
   return (
@@ -34,12 +46,8 @@ function textNodes(ctx: RuleContext): PageNode[] {
 export function contrast(ctx: RuleContext): RawFinding[] {
   const failing = new Map<string, { node: PageNode; value: number }[]>();
   for (const node of textNodes(ctx)) {
-    const ink = composite(node.style.color, node.style.background);
-    const value = ratio(ink, node.style.background);
-    const large =
-      node.style.fontSize >= LARGE_SIZE ||
-      (node.style.fontSize >= LARGE_BOLD_SIZE && node.style.fontWeight >= BOLD);
-    if (value >= (large ? LARGE_RATIO : NORMAL_RATIO)) continue;
+    const value = contrastOf(node);
+    if (value >= requiredRatio(node)) continue;
     const region = ctx.regionOf(node);
     failing.set(region, [...(failing.get(region) ?? []), { node, value }]);
   }
@@ -50,7 +58,7 @@ export function contrast(ctx: RuleContext): RawFinding[] {
       confidence: 0.95,
       region,
       evidence: items.slice(0, EVIDENCE_CAP).map((i) => i.node.selector),
-      message: `${items.length} text blocks fail contrast, the worst is ${worst.value.toFixed(1)}:1 for ${hex(worst.node.style.color)} on ${hex(worst.node.style.background)}.`,
+      message: `Contrast fails on ${plural(items.length, "text block")}, the worst is ${worst.value.toFixed(1)}:1 for ${hex(worst.node.style.color)} on ${hex(worst.node.style.background)}.`,
     };
   });
 }
@@ -70,7 +78,7 @@ export function greyOnColour(ctx: RuleContext): RawFinding[] {
       confidence: 0.8,
       region: ctx.regionOf(hits[0] as PageNode),
       evidence: hits.slice(0, EVIDENCE_CAP).map((n) => n.selector),
-      message: `${hits.length} grey text blocks sit on a coloured surface.`,
+      message: `Grey text on a coloured surface in ${plural(hits.length, "block")}.`,
     },
   ];
 }

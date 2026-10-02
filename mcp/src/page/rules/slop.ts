@@ -1,6 +1,7 @@
 import type { RuleContext } from "../context.js";
 import type { RawFinding } from "../finding.js";
 import { type PageNode, bottomOf, centreX } from "../snapshot.js";
+import { plural } from "./util.js";
 
 const CENTRE_TOLERANCE = 0.08;
 const BADGE_MAX_CHARS = 30;
@@ -102,7 +103,7 @@ export function gradients(ctx: RuleContext): RawFinding[] {
       confidence: 0.9,
       region: ctx.regionOf(text[0] as PageNode),
       evidence: text.slice(0, EVIDENCE_CAP).map((n) => n.selector),
-      message: `${text.length} headings use gradient text.`,
+      message: `Gradient text on ${plural(text.length, "heading")}.`,
     });
   }
   if (surfaces.length >= GRADIENT_SURFACES) {

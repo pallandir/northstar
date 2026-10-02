@@ -124,7 +124,7 @@ while it writes.
 ### MCP server
 
 The MCP server is the assistant's entry point. It speaks MCP over stdio and registers
-24 tools across seven packs and nine prompts (`resolve-comments` and the eight design
+37 tools across nine packs and 12 prompts (`resolve-comments` and the eight design
 stages), carrying the instruction to treat comment text as data and never as
 instructions. It declares no experimental capability, there is no push. It tells the
 daemon when the assistant read the comments and when it parked one, and finds its
@@ -198,7 +198,7 @@ cannot disagree.
 The server registers every tool at start up and keeps the packs it was not asked
 for disabled. Enabling a pack calls the SDK's `enable()`, which sends
 `tools/list_changed` to the client. Packs are core, comments, research, system,
-resolve, detect and critique. `pack_call` is the escape hatch for clients that never
+resolve, detect, critique, page and design. `pack_call` is the escape hatch for clients that never
 refresh their tool list.
 
 | Pack | Tools |
@@ -210,6 +210,8 @@ refresh their tool list.
 | resolve | `resolve_library`, `resolve_font`, `resolve_icon` |
 | detect | `slop_scan`, `explain_rule`, `ui_audit` |
 | critique | `critique_rubric`, `record_critique` |
+| page | `page_capture`, `page_audit`, `page_compare` |
+| design | `design_intent`, `references_search`, `references_add`, `references_record`, `design_direction`, `design_report` |
 
 The server also serves the canon as resources under `northstar://canon/`, including
 a small `northstar://canon/index`, and the design stages and workflows as prompts, so
@@ -224,6 +226,25 @@ keywords, summary, body), a synonym table in `canon/synonyms.yaml`, a typo corre
 over the vocabulary, a boost for the current stage and a cap on how many hits may come
 from one reference. Results are cut to a token budget. A topic id returns an outline
 so that reading never means loading a whole file.
+
+### Page engine
+
+`mcp/src/page` turns a running page into evidence. A lazily started headless Chrome,
+one per server process and closed after two idle minutes, opens each address in a
+fresh context with no profile and no cookies. An in page collector returns a plain
+JSON snapshot of the visible nodes: boxes, computed type and colour, interactivity,
+accessible names and a real keyboard focus check. Everything after that is a pure
+function of the snapshot: regions, visual weight, the rules in `page/rules`, the judge
+that ranks findings by severity, confidence, impact and repair cost, the repair plan,
+the audit loop budget and the comparison of two runs. Screenshots are saved at full
+size and returned as crops no longer than 1500 pixels. `playwright-core` is imported
+only when a page tool runs, so the extension and the comment tools never load it.
+
+The references side (`mcp/src/references`, `mcp/src/design`) keeps the design intent,
+the references and the direction as plain files under `.northstar/design`. Providers
+are a search address and an image rewrite, with one generic reader for results pages.
+Design DNA is measured from a snapshot or recorded by the agent from an image, and the
+direction takes each dimension from the reference that fits the intent best.
 
 ### Token generation
 

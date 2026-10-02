@@ -2,6 +2,7 @@ import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "nod
 import { join } from "node:path";
 import { MODES } from "@northstar/canon";
 import { z } from "zod";
+import type { Repair } from "./repair.js";
 import type { PageSnapshot } from "./snapshot.js";
 import { VIEWPORT_NAMES, type ViewportName } from "./viewports.js";
 
@@ -60,6 +61,13 @@ export class RunStore {
     }
     writeFileSync(join(base, RUN_FILE), `${JSON.stringify(record, null, 2)}\n`);
     this.prune();
+  }
+
+  saveRepairs(id: string, repairs: Repair[]): void {
+    writeFileSync(
+      join(this.dir, id, "repair-plan.json"),
+      `${JSON.stringify({ runId: id, repairs }, null, 2)}\n`,
+    );
   }
 
   ids(): string[] {

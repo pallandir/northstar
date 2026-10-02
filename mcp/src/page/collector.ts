@@ -182,7 +182,8 @@ export const COLLECTOR = String.raw`(() => {
       const text = heading || interactive ? fullText(el).slice(0, 100) : ownText(el).slice(0, 100);
       const style = styleOf(el, cs, parentBackground);
       const surface = box.width * box.height > 400 && (style.differsFromParent || style.border || style.shadow || style.backgroundImage !== "none");
-      const kind = kindOf(el, tag, interactive, text, surface);
+      const hiddenFromUsers = el.closest('[aria-hidden="true"]') !== null || box.width < 2 || box.height < 2;
+      const kind = hiddenFromUsers && (interactive || FIELDS.has(tag)) ? null : kindOf(el, tag, interactive, text, surface);
       if (style.ownBackground[3] === 1) nextBackground = style.ownBackground;
       if (kind) {
         const naming = nameOf(el, tag);
@@ -252,6 +253,18 @@ export const COLLECTOR = String.raw`(() => {
   });
   const blocks = candidates.map((c) => ({ selector: selectorOf(c), tag: c.tagName.toLowerCase(), box: boxOf(c) })).filter((b) => b.box.height >= 60);
 
+  const layers = [];
+  const layerArea = vw * vh * 0.05;
+  for (const el of document.querySelectorAll("body *")) {
+    if (layers.length >= 60) break;
+    const cs = getComputedStyle(el);
+    if (cs.position !== "absolute" && cs.position !== "fixed" && cs.position !== "sticky") continue;
+    if (cs.display === "none" || cs.visibility === "hidden") continue;
+    if (rgba(cs.backgroundColor)[3] === 0 && cs.backgroundImage === "none") continue;
+    const box = boxOf(el);
+    if (box.width * box.height >= layerArea) layers.push(box);
+  }
+
   return {
     url: location.href,
     title: document.title,
@@ -260,5 +273,6 @@ export const COLLECTOR = String.raw`(() => {
     document: { width: pageW, height: pageH },
     nodes,
     blocks,
+    layers,
   };
 })()`;

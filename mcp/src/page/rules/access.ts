@@ -1,6 +1,7 @@
 import type { RuleContext } from "../context.js";
 import type { RawFinding } from "../finding.js";
 import type { PageNode } from "../snapshot.js";
+import { plural } from "./util.js";
 
 const EVIDENCE_CAP = 5;
 const MIN_TARGET = 24;
@@ -15,7 +16,7 @@ export function focusVisible(ctx: RuleContext): RawFinding[] {
       confidence: 0.9,
       region: ctx.regionOf(hidden[0] as PageNode),
       evidence: hidden.slice(0, EVIDENCE_CAP).map((n) => n.selector),
-      message: `${hidden.length} controls show no change when they take keyboard focus.`,
+      message: `Keyboard focus shows no change on ${plural(hidden.length, "control")}.`,
     },
   ];
 }
@@ -42,7 +43,7 @@ export function targetSize(ctx: RuleContext): RawFinding[] {
       confidence: 0.9,
       region: ctx.regionOf(small[0] as PageNode),
       evidence: small.slice(0, EVIDENCE_CAP).map((n) => n.selector),
-      message: `${small.length} controls are smaller than ${floor} by ${floor} CSS pixels.`,
+      message: `Smaller than ${floor} by ${floor} CSS pixels: ${plural(small.length, "control")}.`,
     },
   ];
 }
@@ -66,7 +67,7 @@ export function semantics(ctx: RuleContext): RawFinding[] {
       confidence: 0.95,
       region: ctx.regionOf((problems[0] as { node: PageNode }).node),
       evidence: problems.slice(0, EVIDENCE_CAP).map((p) => p.node.selector),
-      message: `${problems.length} elements fail semantics: ${reasons}.`,
+      message: `Semantics fail on ${plural(problems.length, "element")}: ${reasons}.`,
     },
   ];
 }

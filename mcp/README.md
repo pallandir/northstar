@@ -63,7 +63,8 @@ claude mcp add northstar -- npx -y @pallandir/northstar
 The server must be registered under the name `northstar`. Tools are grouped into
 packs. Core and comments are always on, the others are enabled with `enable_packs`
 or reached through `pack_call`. `NORTHSTAR_PACKS` sets the starting packs: `dynamic`
-for core and comments, `all`, or a comma separated list. See
+for core and comments, `all`, or a comma separated list. The page and design packs
+render and research in headless Chrome and say so when Google Chrome is not installed. See
 [architecture](../docs/architecture.md) for the full list of packs and tools.
 
 ### Comment tools

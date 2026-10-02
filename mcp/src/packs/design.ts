@@ -1,4 +1,5 @@
-import { resolve } from "node:path";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { stringify } from "yaml";
 import { z } from "zod";
 import { DirectionError, buildDirection } from "../design/direction.js";
@@ -10,9 +11,13 @@ import {
   missingFromIntent,
 } from "../design/intent.js";
 import { DesignStore, type Reference } from "../design/store.js";
+import { appendDecision, oneLine } from "../lib/decisions.js";
 import { BrowserUnavailable, withPage } from "../page/browser.js";
 import { firstView } from "../page/capture.js";
 import { COLLECTOR } from "../page/collector.js";
+import { LoopStore } from "../page/loop.js";
+import { buildReport, describeReport } from "../page/report.js";
+import { RunStore } from "../page/runs.js";
 import type { PageSnapshot } from "../page/snapshot.js";
 import { type SearchOutcome, searchProvider } from "../references/harvest.js";
 import { fetchImage, mimeOf, readLocalImage } from "../references/image.js";
@@ -328,6 +333,49 @@ export function registerDesign(registry: PackRegistry, root: string): void {
         );
       } catch (err) {
         if (err instanceof DirectionError) return error(err.message);
+        return error((err as Error).message);
+      }
+    },
+  );
+
+  registry.register(
+    "design",
+    "design_report",
+    {
+      description:
+        "Write the final design review for the current audit loop: the direction, the references used, pass or warn or fail per area, the unresolved observations with their confidence, what changed between the first and last audit, the iterations used and READY or NOT READY. It reports evidence, never a score. Saves .northstar/design/report.json and adds an entry to design/decisions.md.",
+    },
+    async () => {
+      try {
+        const loop = new LoopStore(root).read();
+        if (!loop || loop.runs.length === 0)
+          return error("No audit has run yet. Call page_audit on the page first.");
+        const runs = new RunStore(root);
+        const first = runs.read(loop.runs[0] as string);
+        const latest = runs.read(loop.runs.at(-1) as string);
+        const report = buildReport({
+          loop,
+          first,
+          latest,
+          direction: store.readDirection(),
+          references: store.referenceIds().map((id) => store.readReference(id)),
+        });
+        mkdirSync(store.dir, { recursive: true });
+        writeFileSync(join(store.dir, "report.json"), `${JSON.stringify(report, null, 2)}\n`);
+        await appendDecision(
+          root,
+          `${report.createdAt.slice(0, 10)} Design review of ${oneLine(report.url, 120)}`,
+          [
+            "- Stage: critique",
+            `- Status: ${report.status}`,
+            `- Areas: ${report.areas.map((a) => `${a.name} ${a.status}`).join(", ")}`,
+            `- Iterations: ${report.iterations.used} of ${report.iterations.max}`,
+            `- Resolved: ${report.resolved.length}, unresolved: ${report.unresolved.length}`,
+            "- Decided by: agent",
+          ],
+        );
+        return text(describeReport(report));
+      } catch (err) {
         return error((err as Error).message);
       }
     },

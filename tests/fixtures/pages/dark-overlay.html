@@ -1,0 +1,15 @@
+<!doctype html><html lang="en" style="background:#0b0b0f"><head><meta charset="utf-8"><title>Dark overlay</title>
+<style>
+body{margin:0;font:18px/1.6 system-ui;color:#f5f5f5}
+section{position:relative;padding:72px 24px;min-height:320px}
+.layer{position:absolute;inset:0;background:#15151f;z-index:0}
+.content{position:relative;z-index:1;max-width:640px}
+h1{font-size:44px;line-height:1.1;margin:0 0 16px;color:#fafafa}
+p{margin:0 0 24px;color:#d4d4d8}
+a.cta{display:inline-flex;align-items:center;min-height:48px;padding:0 24px;background:#7dd3fc;color:#0b0b0f;font-weight:600;text-decoration:none;border-radius:4px}
+a.cta:focus-visible{outline:3px solid #fde68a;outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);background:#fff}
+</style></head><body>
+<section><div class="layer"></div><div class="content"><h1>Quiet by default</h1><p>Light text over a dark layer that is not an ancestor of the text, the way many hero sections are built.</p><a class="cta" href="#start">Open the console</a></div>
+<input class="sr" type="text" aria-hidden="true" tabindex="-1"></section>
+</body></html>

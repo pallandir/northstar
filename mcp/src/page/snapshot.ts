@@ -61,6 +61,7 @@ export interface PageSnapshot {
   document: { width: number; height: number };
   nodes: PageNode[];
   blocks: PageBlock[];
+  layers: Box[];
 }
 
 export function bottomOf(box: Box): number {

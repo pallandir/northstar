@@ -70,9 +70,13 @@ Refused unless the brief asks for it. Details and fixes via `explain_rule` or `r
 
 {{CRAFT_FLOOR}}
 
+## Never design blind
+
+When the page runs, look at it. `page_audit` renders it in headless Chrome, measures the real DOM and styles and returns the top findings with crops and a repair plan. Repair, audit again, then `page_compare`. It stops after four audits, then `design_report` gives the evidence. For the look itself, `design_intent`, `references_search` and `design_direction` turn references into principles, never a copy. These need Google Chrome and say so when it is missing. Everything else works without it.
+
 ## Packs
 
-Core tools are always on. Enable others per stage with `enable_packs`: direction needs research, system needs system and resolve, compose needs resolve and detect, critique needs detect and critique, polish needs detect. If a tool is not listed, call it through `pack_call`.
+Core tools are always on. Enable others per stage with `enable_packs`: direction needs research and design, system needs system and resolve, compose needs resolve, detect and page, critique needs detect, critique and page, polish needs detect. If a tool is not listed, call it through `pack_call`.
 
 ## Browser comments
 

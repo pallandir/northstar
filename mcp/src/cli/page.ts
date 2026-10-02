@@ -2,26 +2,33 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { MODES, type Mode } from "@northstar/canon";
 import { getCanon } from "../assets.js";
+import { closeBrowser } from "../page/browser.js";
 import { describeRun } from "../page/format.js";
 import { auditProject, captureProject } from "../page/service.js";
 import { VIEWPORT_NAMES, type ViewportName } from "../page/viewports.js";
 
 const USAGE =
-  "Usage: northstar <capture|audit> <url> [--viewport mobile,desktop] [--mode operate|read|persuade|experience]";
+  "Usage: northstar <capture|audit> <url> [--viewport mobile,desktop] [--mode operate|read|persuade|experience] [--restart]";
 
 interface PageArgs {
   url: string;
   viewports?: ViewportName[];
   mode?: Mode;
+  restart?: boolean;
 }
 
 function parse(args: string[]): PageArgs {
   const url = args[0];
   if (!url || url.startsWith("--")) throw new Error(`The page address is missing. ${USAGE}`);
   const out: PageArgs = { url };
-  for (let i = 1; i < args.length; i += 2) {
+  for (let i = 1; i < args.length; i += 1) {
     const flag = args[i];
-    const value = args[i + 1];
+    if (flag === "--restart") {
+      out.restart = true;
+      continue;
+    }
+    i += 1;
+    const value = args[i];
     if (value === undefined) throw new Error(`${flag} needs a value. ${USAGE}`);
     if (flag === "--viewport") {
       const names = value.split(",");
@@ -43,16 +50,18 @@ function parse(args: string[]): PageArgs {
 export async function audit(args: string[]): Promise<number> {
   try {
     const request = parse(args);
-    const { record, top, dir } = await auditProject({
+    const { record, top, repairs, dir, loop } = await auditProject({
       root: process.cwd(),
       canon: getCanon(),
       ...request,
     });
-    process.stdout.write(`${describeRun(record, top, dir)}\n`);
+    process.stdout.write(`${describeRun(record, top, repairs, dir, loop)}\n`);
     return record.findings.some((f) => f.severity === "error") ? 1 : 0;
   } catch (error) {
     process.stderr.write(`${(error as Error).message}\n`);
     return 2;
+  } finally {
+    await closeBrowser();
   }
 }
 
@@ -75,5 +84,7 @@ export async function capture(args: string[]): Promise<number> {
   } catch (error) {
     process.stderr.write(`${(error as Error).message}\n`);
     return 2;
+  } finally {
+    await closeBrowser();
   }
 }
