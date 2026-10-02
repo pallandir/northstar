@@ -1,6 +1,6 @@
 {
   "name": "@northstar/core",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "Shared source for the Northstar browser extension.",
   "license": "MIT",
   "private": true,

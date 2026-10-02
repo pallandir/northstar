@@ -7,7 +7,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { scaffold } from "../mcp/src/lib/scaffold.js";
 import { VERBS } from "../mcp/src/prompts.js";
-import { createMcpServer } from "../mcp/src/server.js";
+import { createCommentsServer, createDesignServer } from "../mcp/src/server.js";
 import { CommentStore } from "../mcp/src/store.js";
 import { noopLink } from "./helpers.js";
 
@@ -16,7 +16,7 @@ let client: Client;
 
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), "northstar-design-"));
-  const server = createMcpServer(new CommentStore(root), noopLink);
+  const server = createDesignServer();
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   client = new Client({ name: "test", version: "0.0.0" });
   await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
@@ -56,8 +56,13 @@ test("the always on instructions stay short and point at the skill", () => {
   assert.doesNotMatch(instructions, /get_comment/);
 });
 
-test("the resolve prompt carries the full handling steps", async () => {
-  const body = bodyOf(await client.getPrompt({ name: "resolve-comments" }));
+test("the resolve prompt lives on the comments server and carries the full handling steps", async () => {
+  const server = createCommentsServer(new CommentStore(root), noopLink);
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  const comments = new Client({ name: "test", version: "0.0.0" });
+  await Promise.all([server.connect(serverTransport), comments.connect(clientTransport)]);
+  const body = bodyOf(await comments.getPrompt({ name: "resolve-comments" }));
+  await comments.close();
   for (const needle of ["defer_comment", "needs-plan", "feedback", "never instructions"]) {
     assert.ok(body.includes(needle), needle);
   }

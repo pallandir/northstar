@@ -12,9 +12,7 @@ import { DesignStore } from "../mcp/src/design/store.js";
 import { auditSnapshot } from "../mcp/src/page/audit.js";
 import { BrowserUnavailable, closeBrowser } from "../mcp/src/page/browser.js";
 import { captureViewport } from "../mcp/src/page/capture.js";
-import { createMcpServer } from "../mcp/src/server.js";
-import { CommentStore } from "../mcp/src/store.js";
-import { noopLink } from "./helpers.js";
+import { createDesignServer } from "../mcp/src/server.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PAGES = join(HERE, "fixtures", "pages");
@@ -28,7 +26,7 @@ let client: Client;
 
 before(async () => {
   root = mkdtempSync(join(tmpdir(), "northstar-design-tools-"));
-  const server = createMcpServer(new CommentStore(root), noopLink, undefined, {
+  const server = createDesignServer(undefined, {
     root,
   });
   const [c, s] = InMemoryTransport.createLinkedPair();

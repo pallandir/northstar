@@ -140,7 +140,7 @@ test("a second install changes nothing and makes no backups", () => {
     again.results
       .filter((r) => r.status === "created" || r.status === "updated" || r.status === "failed")
       .map((r) => `${r.agent} ${r.label} ${r.status}`),
-    ["claude MCP server created"],
+    ["claude MCP server created", "claude MCP server northstar-comments created"],
   );
   assert.deepEqual(tree(w.home).sort(), before);
 });
@@ -181,7 +181,7 @@ test("a failing claude cli is reported but the file based parts still install", 
     },
   });
   const failed = outcome.results.filter((r) => r.status === "failed");
-  assert.equal(failed.length, 1);
+  assert.equal(failed.length, 2);
   assert.match(failed[0]?.detail ?? "", /command not found/);
   assert.ok(existsSync(join(w.home, ".claude/skills/northstar/SKILL.md")));
 });

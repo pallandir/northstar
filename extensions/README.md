@@ -22,7 +22,7 @@ builds two targets, `chromium/` and `firefox/`.
   assistant session of that project. The daemon answers whether the assistant started
   on the comments, and the toolbar shows the reason and the fix when it did not, when
   the assistant is waiting on a prompt, or when more than one session needs a pick.
-  With no session it offers **Copy the line** and **Quick run**.
+  With no writable session it offers **Copy the line**.
 - The right click menu (**Send selection to AI**, and a submenu of templates) and
   `Alt+Shift+A` send the selected text, stored as a
   comment, to the project that site is mapped to. The options page sets the preferred

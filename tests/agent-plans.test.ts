@@ -336,7 +336,7 @@ test("with the Northstar plugin installed claude registers no second copy of hoo
   const plan = planAgent({ ...ctx("claude"), plugin: true });
   assert.deepEqual(
     plan.ops.map((op) => op.kind),
-    ["command", "merge"],
+    ["command", "command", "merge"],
   );
   assert.ok(plan.notes.some((n) => /plugin/.test(n)));
   const op = merges(plan.ops)[0] as Extract<Op, { kind: "merge" }>;

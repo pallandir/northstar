@@ -188,3 +188,22 @@ test("scanEdited names the files it skipped and the scan failures", async () => 
   assert.match(scanEdited(dir, ["src/Hero.tsx"]), /Northstar scan failed: /);
   await rm(dir, { recursive: true, force: true });
 });
+
+test("an edit that answers an open browser comment is never gated, and the gate returns once none is open", async () => {
+  const comment = (status: string) =>
+    JSON.stringify([{ id: "c1", status, comment: "Center it", url: "http://localhost:3000/" }]);
+  const dir = await project({
+    "package.json": REACT,
+    "src/Page.tsx": CLEAN,
+    ".northstar/design-comments.json": comment("open"),
+  });
+  const input = { tool_name: "Edit", tool_input: { file_path: join(dir, "src/Page.tsx") } };
+  assert.equal(preEditReason("claude", input, dir), undefined);
+  await writeFile(join(dir, ".northstar/design-comments.json"), comment("resolved"));
+  assert.match(preEditReason("claude", input, dir) ?? "", /write DESIGN\.md before any UI code/);
+  await rm(join(dir, ".northstar/design-comments.json"));
+  assert.match(preEditReason("claude", input, dir) ?? "", /write DESIGN\.md before any UI code/);
+  await writeFile(join(dir, ".northstar/design-comments.json"), "{ nope");
+  assert.throws(() => preEditReason("claude", input, dir), /comment store .* is corrupt/);
+  await rm(dir, { recursive: true, force: true });
+});

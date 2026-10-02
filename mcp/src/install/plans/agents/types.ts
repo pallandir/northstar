@@ -36,4 +36,10 @@ export interface AgentPlan {
 }
 
 export const PACKAGE = "@pallandir/northstar";
-export const SERVER = "northstar";
+export const SERVERS = [
+  { name: "northstar", serve: [] as string[] },
+  { name: "northstar-comments", serve: ["serve", "comments"] },
+] as const;
+
+export const serverLabel = (name: string): string =>
+  name === "northstar" ? "MCP server" : `MCP server ${name}`;

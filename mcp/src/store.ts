@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { copyFile, mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { DRAFT_FIX, type Rejection, pageKey } from "@northstar/protocol";
@@ -14,6 +15,27 @@ const DEFERRED_MIRROR = join(STORE_DIR, "northstar-deferred.md");
 const LOCK_DIR = join(STORE_DIR, "store.lock");
 
 const LOCK_STALE_MS = 30_000;
+
+export function hasOpenComments(root: string): boolean {
+  const path = join(root, STORE_JSON);
+  let raw: string;
+  try {
+    raw = readFileSync(path, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+    throw error;
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    throw new Error(`The comment store ${path} is corrupt (${(error as Error).message}).`);
+  }
+  if (!Array.isArray(parsed)) {
+    throw new Error(`The comment store ${path} is corrupt (it is not a list).`);
+  }
+  return parsed.some((entry) => (entry as { status?: unknown } | null)?.status === "open");
+}
 const LOCK_TIMEOUT_MS = 10_000;
 const LOCK_RETRY_MS = 25;
 

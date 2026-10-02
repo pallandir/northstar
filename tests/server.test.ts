@@ -6,7 +6,7 @@ import { afterEach, beforeEach, test } from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { Broker } from "../mcp/src/daemon/broker.js";
-import { createMcpServer } from "../mcp/src/server.js";
+import { createCommentsServer } from "../mcp/src/server.js";
 import { CommentStore } from "../mcp/src/store.js";
 import type { Draft } from "../mcp/src/types.js";
 import { draft, linkFor } from "./helpers.js";
@@ -36,7 +36,7 @@ beforeEach(async () => {
   broker = new Broker();
 
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
-  const server = createMcpServer(store, linkFor(broker));
+  const server = createCommentsServer(store, linkFor(broker));
   await server.connect(serverTransport);
 
   client = new Client({ name: "test-client", version: "1.0.0" });

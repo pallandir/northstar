@@ -8,10 +8,8 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { loadCanon } from "@northstar/canon";
 import { parseDesign } from "../mcp/src/design-md/index.js";
-import { createMcpServer } from "../mcp/src/server.js";
-import { CommentStore } from "../mcp/src/store.js";
+import { createDesignServer } from "../mcp/src/server.js";
 import { bandFor, weightedScore } from "../mcp/src/tools/critique.js";
-import { noopLink } from "./helpers.js";
 
 const canon = loadCanon();
 let root: string;
@@ -60,7 +58,7 @@ x
 
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), "northstar-system-"));
-  const server = createMcpServer(new CommentStore(root), noopLink, undefined, {
+  const server = createDesignServer(undefined, {
     root,
   });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();

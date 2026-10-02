@@ -9,12 +9,12 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { loadCanon } from "@northstar/canon";
-import { createMcpServer } from "../mcp/src/server.js";
+import { createCommentsServer, createDesignServer } from "../mcp/src/server.js";
 import { CommentStore } from "../mcp/src/store.js";
 import { registerCore } from "../mcp/src/tools/core.js";
 import { noopLink } from "./helpers.js";
 
-const SERVER_ENTRY = fileURLToPath(new URL("../mcp/src/index.ts", import.meta.url));
+const SERVER_ENTRY = fileURLToPath(new URL("../mcp/src/cli.ts", import.meta.url));
 let root: string;
 let client: Client;
 
@@ -32,7 +32,7 @@ async function connect(server: McpServer): Promise<void> {
 
 function coreServer(): McpServer {
   const server = new McpServer({ name: "dummy", version: "0.0.0" });
-  registerCore(server, root, () => ({ state: "off", error: "test server" }), loadCanon());
+  registerCore(server, root, loadCanon());
   return server;
 }
 
@@ -143,9 +143,7 @@ test("northstar_context surfaces a DESIGN.md that cannot be parsed and a broken 
 const TOOLS = [
   "canon_find",
   "canon_read",
-  "clear_resolved",
   "critique_rubric",
-  "defer_comment",
   "design_direction",
   "design_intent",
   "design_md_export",
@@ -156,9 +154,6 @@ const TOOLS = [
   "design_search",
   "design_system_propose",
   "design_tokens_generate",
-  "get_comment",
-  "list_comments",
-  "list_deferred",
   "northstar_context",
   "page_audit",
   "page_capture",
@@ -167,8 +162,6 @@ const TOOLS = [
   "references_add",
   "references_record",
   "references_search",
-  "resolve_comment",
-  "resolve_comments",
   "resolve_font",
   "resolve_icon",
   "resolve_library",
@@ -176,24 +169,54 @@ const TOOLS = [
 ];
 
 async function fullServer(): Promise<void> {
-  await connect(createMcpServer(new CommentStore(root), noopLink, undefined, { root }));
+  await connect(createDesignServer(undefined, { root }));
 }
 
-test("every tool is available from the first list, with no pack to enable", async () => {
+test("every design tool is available from the first list, with no pack to enable", async () => {
   await fullServer();
   const names = (await client.listTools()).tools.map((t) => t.name).sort();
   assert.deepEqual(names, TOOLS);
 });
 
+test("the comments server carries only the tools that apply comments", async () => {
+  await connect(createCommentsServer(new CommentStore(root), noopLink, undefined, { root }));
+  const names = (await client.listTools()).tools.map((t) => t.name).sort();
+  assert.deepEqual(names, [
+    "clear_resolved",
+    "defer_comment",
+    "get_comment",
+    "list_comments",
+    "list_deferred",
+    "resolve_comment",
+    "resolve_comments",
+  ]);
+  const instructions = client.getInstructions() ?? "";
+  assert.match(instructions, /list_comments/);
+  assert.doesNotMatch(instructions, /DESIGN\.md/);
+});
+
 test("a server started with the removed NORTHSTAR_PACKS setting stops and says how to fix it", () => {
-  const started = spawnSync(process.execPath, ["--import", "tsx", SERVER_ENTRY], {
-    encoding: "utf8",
-    input: "",
-    env: { ...process.env, NORTHSTAR_PACKS: "all", NORTHSTAR_ROOT: root },
-  });
+  const started = spawnSync(
+    process.execPath,
+    ["--import", "tsx", SERVER_ENTRY, "serve", "comments"],
+    {
+      encoding: "utf8",
+      input: "",
+      env: { ...process.env, NORTHSTAR_PACKS: "all", NORTHSTAR_ROOT: root },
+    },
+  );
   assert.equal(started.status, 1);
   assert.match(started.stderr, /NORTHSTAR_PACKS was removed/);
   assert.match(started.stderr, /northstar install/);
+});
+
+test("an unknown server name is refused with the two valid ones", () => {
+  const started = spawnSync(process.execPath, ["--import", "tsx", SERVER_ENTRY, "serve", "nope"], {
+    encoding: "utf8",
+    input: "",
+  });
+  assert.equal(started.status, 2);
+  assert.match(started.stderr, /northstar serve design or northstar serve comments/);
 });
 
 test("design_search takes either an id or a domain with a query, never a mix", async () => {

@@ -44,7 +44,7 @@ and to an assistant session that Northstar itself started.
   host at all.
 - **Every message is checked against a fixed list.** The host accepts a versioned
   envelope with a strict schema, a fixed set of actions (`system.info`, `agent.list`,
-  `session.list`, `session.send`, `quickrun.execute`, the comment, project, status and
+  `session.list`, `session.send`, the comment, project, status and
   config actions), at most 16 MB in and about 900 KB out. An unknown action, an unknown
   key, a malformed frame or a wrong version is refused with a reason and a fix. The
   protocol has no field that carries a shell string or a command, and browser input is
@@ -73,10 +73,6 @@ and to an assistant session that Northstar itself started.
   moments, or when the output never goes quiet. Your own keystrokes are held while a
   line is written and released after, so they cannot interleave with it. Each refusal
   is shown in the toolbar with the reason and the fix.
-- **Quick run is an explicit choice with a fixed argument list.** It is offered only
-  when no session runs in the project, it starts only an agent you pick, and it runs
-  the agent with an argument array whose prompt is one of the fixed lines. It never
-  goes through a shell.
 - **Copy the line is explicit too.** It copies the same fixed line to the clipboard
   when you press it.
 - **Least-privilege extension.** The extension requests `activeTab`, `scripting`,

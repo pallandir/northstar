@@ -1,4 +1,4 @@
-import { hookCommand, launchOf } from "../../src/install/plans/index.js";
+import { SERVERS, hookCommand, launchOf } from "../../src/install/plans/index.js";
 import { formatJson } from "./json.js";
 
 export const AUTHOR = { name: "pallandir", url: "https://github.com/pallandir" };
@@ -69,5 +69,8 @@ export function hooksManifest(version: string): string {
 
 export function mcpManifest(version: string): string {
   const { command, args } = launchOf({ version });
-  return formatJson({ mcpServers: { northstar: { command, args } } });
+  const mcpServers = Object.fromEntries(
+    SERVERS.map((server) => [server.name, { command, args: [...args, ...server.serve] }]),
+  );
+  return formatJson({ mcpServers });
 }

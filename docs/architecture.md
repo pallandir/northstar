@@ -110,8 +110,6 @@ is the single source of truth for what is running.
   needing a plan, the last poll by the assistant, and the last handoff outcome.
 - **Comment store access** reads and writes the project's `.northstar/` folder, with
   every path confined under the project root and unknown roots refused.
-- **Quick run** starts an installed agent once in its non interactive mode, only when
-  you choose it and only when no session runs in the project.
 
 ### Session
 

@@ -4,6 +4,7 @@ import { HOOK_FINDING_CAP, runScan } from "../detect.js";
 import { hookFeedback, kindOf } from "../detector/index.js";
 import { AGENT_NAMES, type AgentName } from "../install/plans/index.js";
 import { designGap, readDesign, readJsonFile } from "../project.js";
+import { hasOpenComments } from "../store.js";
 import { isInside, relativeTarget } from "./paths.js";
 
 export type HookAgent = AgentName;
@@ -100,6 +101,7 @@ export function gateReason(root: string, path: string): string | undefined {
   if (!GATED_SOURCE.test(path) || NOT_UI_SOURCE.test(path) || !hasUiAncestor(root, path)) {
     return undefined;
   }
+  if (hasOpenComments(root)) return undefined;
   const gap = designGap(readDesign(root));
   if (!gap) return undefined;
   return `Northstar: write DESIGN.md before any UI code, ${gap}. Call design_md_normalize with the designer's direction file and write true, or design_system_propose, then design_md_validate until it is ready, then continue. If the designer wants the system from Figma, follow northstar://canon/references/figma first. Do not edit UI files first. Only set NORTHSTAR_GATE=off if the user asked to skip the design system.`;

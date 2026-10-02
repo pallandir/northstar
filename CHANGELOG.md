@@ -4,22 +4,38 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [2.6.1] - 2026-10-02
 
 ### Fixed
 
 - The toolbar no longer says the helper does not allow the extension for an unpacked
   build. Northstar finds the Northstar builds loaded in Chrome and allows them when
   the daemon starts and on install. The helper launcher is never rewritten at runtime.
+- The design gate no longer blocks an edit that answers an open browser comment. It
+  still blocks every other UI edit until DESIGN.md is ready.
+- Send to AI no longer fails with "the agent did not start" for an assistant it cannot
+  write to. It says the assistant is open but not writable and offers **Copy the line**.
 
 ### Changed
 
-- **No command to run.** `northstar install` now wraps every known agent in your shell
-  (zsh, bash, fish), so plain `claude` and `codex` start in a Northstar session in any
-  terminal. `--no-shell` skips it, and `northstar agent add` extends the wrapper. An
-  agent that was not started this way gets a clear message, not a silent failure.
-- The Northstar MCP server starts the daemon and reconnects when it restarts.
+- **Two MCP servers.** `northstar` carries the design tools and `northstar-comments`
+  carries the tools that apply browser comments (`list_comments`, `get_comment`,
+  `resolve_comment`, `resolve_comments`, `defer_comment`, `list_deferred`,
+  `clear_resolved`). `northstar install` registers both for every agent, and
+  `northstar serve comments` starts the second one. Restart an open assistant once to
+  pick up the second server.
+- **One action when Northstar cannot write to your assistant: Copy the line.** It works
+  with any assistant in any terminal or editor, with nothing to restart.
+- `northstar install` wraps every known agent in your shell (zsh, bash, fish) so plain
+  `claude` and `codex` start in a session Send to AI can write to. `--no-shell` skips it
+  and `northstar agent add` extends it.
+- The comments server starts the daemon and reconnects when it restarts.
 - `northstar doctor` reports unpacked builds that are not allowed yet.
+
+### Removed
+
+- **Quick run**, the `quickrun.execute` action, `--quick-run` and the session kind. It
+  started a headless assistant that never loaded the comments.
 
 ## [2.6.0] - 2026-10-02
 

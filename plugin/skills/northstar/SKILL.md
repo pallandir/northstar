@@ -3,7 +3,7 @@ name: northstar
 description: Use when designing, redesigning, refining, polishing, adapting or modernising any user interface, page, component or design system, when a DESIGN.md or PRODUCT.md exists, when UI looks generic or AI generated, or when resolving Northstar browser comments. Steers the work through brief, direction, system, compose, critique and polish, library first, and never hand rolls what a library provides.
 license: MIT
 metadata:
-  version: "2.6.0"
+  version: "2.6.1"
 ---
 
 # Northstar

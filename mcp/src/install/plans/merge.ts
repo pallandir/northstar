@@ -107,8 +107,15 @@ function isTableHeader(line: string): boolean {
 
 const COMMENT_OR_BLANK = /^\s*(#.*)?$/;
 
-export function removeTomlTables(text: string, table: string): string {
-  const own = new RegExp(`^\\s*\\[${table.replace(/\./g, "\\.")}(\\..+)?\\]\\s*$`);
+export function removeTomlTables(
+  text: string,
+  table: string,
+  scope: "all" | "sub" = "all",
+): string {
+  const name = table.replace(/\./g, "\\.");
+  const own = new RegExp(
+    scope === "sub" ? `^\\s*\\[${name}\\..+\\]\\s*$` : `^\\s*\\[${name}(\\..+)?\\]\\s*$`,
+  );
   const lines = text.split("\n");
   const out: string[] = [];
   let index = 0;
@@ -135,8 +142,24 @@ export function removeTomlTables(text: string, table: string): string {
 }
 
 export function upsertToml(text: string | undefined, table: string, body: string): string {
-  const base = removeTomlTables(text ?? "", table).trimEnd();
-  return `${base ? `${base}\n\n` : ""}${body.trim()}\n`;
+  const source = text ?? "";
+  const header = new RegExp(`^\\s*\\[${table.replace(/\./g, "\\.")}\\]\\s*$`);
+  const lines = source.split("\n");
+  const start = lines.findIndex((line) => header.test(line));
+  if (start === -1) {
+    const base = removeTomlTables(source, table).trimEnd();
+    return `${base ? `${base}\n\n` : ""}${body.trim()}\n`;
+  }
+  let end = start + 1;
+  while (end < lines.length && !isTableHeader(lines[end] as string)) end += 1;
+  let lastBody = end - 1;
+  while (lastBody > start && COMMENT_OR_BLANK.test(lines[lastBody] as string)) lastBody -= 1;
+  const replaced = [
+    ...lines.slice(0, start),
+    ...body.trim().split("\n"),
+    ...lines.slice(lastBody + 1),
+  ].join("\n");
+  return removeTomlTables(replaced, table, "sub");
 }
 
 export function upsertBlock(text: string | undefined, content: string): string {

@@ -113,10 +113,8 @@ goes in as its own write, after the output has gone quiet again.
 Nothing in that path is specific to one assistant. Claude Code, Codex, Gemini, OpenCode,
 Aider, Goose and any other terminal program receive the same bytes.
 
-When no session runs in the project, the toolbar offers **Copy the line** and **Quick
-run**. Quick run starts an installed agent once in its non interactive mode with the
-same fixed line, through an argument array and never a shell. Neither happens unless you
-click it.
+When Northstar cannot write to your assistant, the toolbar offers **Copy the line**. It
+copies the same fixed line, and nothing happens unless you click it.
 
 ## What gets written
 

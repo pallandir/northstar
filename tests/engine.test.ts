@@ -5,9 +5,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, test } from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { createMcpServer } from "../mcp/src/server.js";
-import { CommentStore } from "../mcp/src/store.js";
-import { noopLink } from "./helpers.js";
+import { createDesignServer } from "../mcp/src/server.js";
 
 let root: string;
 let client: Client;
@@ -22,7 +20,7 @@ const call = (name: string, args: Record<string, unknown> = {}) =>
 
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), "northstar-engine-"));
-  const server = createMcpServer(new CommentStore(root), noopLink, undefined, {
+  const server = createDesignServer(undefined, {
     root,
   });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();

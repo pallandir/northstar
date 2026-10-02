@@ -1,18 +1,24 @@
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { getCanon } from "./assets.js";
 import { DaemonLink } from "./daemon/link.js";
-import { createMcpServer } from "./server.js";
+import { SURFACES, type Surface, createCommentsServer, createDesignServer } from "./server.js";
 import { CommentStore } from "./store.js";
 
-async function main(): Promise<void> {
+export function parseSurface(value: string | undefined): Surface {
+  if (value === undefined) return "design";
+  if ((SURFACES as readonly string[]).includes(value)) return value as Surface;
+  throw new Error(
+    `Unknown server ${value}. Use northstar serve design or northstar serve comments.`,
+  );
+}
+
+async function main(surface: Surface): Promise<void> {
   if (process.env.NORTHSTAR_PACKS !== undefined) {
     throw new Error(
       "NORTHSTAR_PACKS was removed, every tool is always available now. Delete NORTHSTAR_PACKS from the northstar MCP server entry, or run northstar install to rewrite it.",
     );
   }
   const root = process.env.NORTHSTAR_ROOT ?? process.cwd();
-  const store = new CommentStore(root);
-
   const log = (msg: string) => process.stderr.write(`[northstar] ${msg}\n`);
   process.on("unhandledRejection", (reason) => {
     log(
@@ -20,8 +26,11 @@ async function main(): Promise<void> {
     );
   });
 
-  const link = new DaemonLink({ root, log });
-  const server = createMcpServer(store, link, getCanon(), { root, bridge: () => link.status() });
+  const link = surface === "comments" ? new DaemonLink({ root, log }) : null;
+  const server =
+    link === null
+      ? createDesignServer(getCanon(), { root })
+      : createCommentsServer(new CommentStore(root), link, getCanon(), { root });
 
   let closing = false;
   const shutdown = () => {
@@ -40,15 +49,19 @@ async function main(): Promise<void> {
 
   await server.connect(transport);
 
-  const status = await link.start();
-  log(
-    status.state === "on"
-      ? `Send to AI is linked to the Northstar daemon, store root ${root}`
-      : `Send to AI is unavailable: ${status.error}. Run northstar doctor.`,
-  );
+  if (link) {
+    const status = await link.start();
+    log(
+      status.state === "on"
+        ? `Send to AI is linked to the Northstar daemon, store root ${root}`
+        : `Send to AI is unavailable: ${status.error}. Run northstar doctor.`,
+    );
+  }
 }
 
-main().catch((err) => {
-  process.stderr.write(`[northstar] fatal: ${(err as Error).message}\n`);
-  process.exit(1);
-});
+export function serve(surface: Surface): void {
+  main(surface).catch((err) => {
+    process.stderr.write(`[northstar] fatal: ${(err as Error).message}\n`);
+    process.exit(1);
+  });
+}

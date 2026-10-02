@@ -9,16 +9,14 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { assertOpenable, closeBrowser } from "../mcp/src/page/browser.js";
 import { LoopStore } from "../mcp/src/page/loop.js";
 import { RunStore } from "../mcp/src/page/runs.js";
-import { createMcpServer } from "../mcp/src/server.js";
-import { CommentStore } from "../mcp/src/store.js";
-import { noopLink } from "./helpers.js";
+import { createDesignServer } from "../mcp/src/server.js";
 
 let root: string;
 let client: Client;
 
 before(async () => {
   root = mkdtempSync(join(tmpdir(), "northstar-page-"));
-  const server = createMcpServer(new CommentStore(root), noopLink, undefined, {
+  const server = createDesignServer(undefined, {
     root,
   });
   const [c, s] = InMemoryTransport.createLinkedPair();
@@ -156,7 +154,7 @@ test("audit, repair, audit again, compare and report run as one bounded loop", a
 
 test("compare and report refuse to guess when there is nothing to work from", async () => {
   const fresh = mkdtempSync(join(tmpdir(), "northstar-empty-"));
-  const server = createMcpServer(new CommentStore(fresh), noopLink, undefined, {
+  const server = createDesignServer(undefined, {
     root: fresh,
   });
   const [c, s] = InMemoryTransport.createLinkedPair();

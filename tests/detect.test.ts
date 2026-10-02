@@ -9,8 +9,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { claudeFeedback } from "../mcp/src/cli/hook.js";
 import { resolveInside } from "../mcp/src/lib/paths.js";
-import { createMcpServer } from "../mcp/src/server.js";
-import { CommentStore } from "../mcp/src/store.js";
+import { createDesignServer } from "../mcp/src/server.js";
 
 const FIXTURES = fileURLToPath(new URL("./fixtures/detector", import.meta.url));
 const BAD =
@@ -34,7 +33,7 @@ beforeEach(async () => {
   );
   await writeFile(join(root, "src/Hero.tsx"), BAD);
   await writeFile(join(root, "src/Clean.tsx"), '<h1 className="text-4xl">x</h1>');
-  const server = createMcpServer(new CommentStore(root), noopLink, undefined, {
+  const server = createDesignServer(undefined, {
     root,
   });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
@@ -313,7 +312,7 @@ test("tests, fixtures and specs are never scanned by the hook", async () => {
 import { renderDeny } from "../mcp/src/cli/hook.js";
 import { gateReason, preEditReason } from "../mcp/src/lib/hook-feedback.js";
 import { designGap, readDesign } from "../mcp/src/project.js";
-import { CLI_ENTRY, noopLink } from "./helpers.js";
+import { CLI_ENTRY } from "./helpers.js";
 
 const CLEAN = '<h1 className="text-4xl">x</h1>';
 const FULL_TOKENS =

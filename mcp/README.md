@@ -43,7 +43,7 @@ installed package, so use a global install rather than `npx` for it. Other comma
 | `northstar doctor` | Check installs, assets, hooks, the browser helper, the pseudo terminal module, the daemon, the shell integration, DESIGN.md and conflicts. |
 | `northstar run <agent> [args]` | Start an agent in a session Northstar owns. Install wraps your agents so plain `claude` does this for you. Any terminal program works. |
 | `northstar sessions` | List the running sessions. |
-| `northstar agent [list\|add <id> <path>]` | List the known agents, or register your own, optionally with `--quick-run "-p {{prompt}}"`. |
+| `northstar agent [list\|add <id> <path>]` | List the known agents, or register your own. |
 | `northstar shell install\|uninstall [--shell zsh\|bash\|fish]` | Add or remove shell functions so plain `claude` and `codex` start through `run`. |
 | `northstar config [set preferred-agent <id> \| set template <id> \| map <site> <dir> \| unmap <site>]` | Show or change the settings in `~/.northstar/config.yaml`. |
 | `northstar daemon [stop\|status]` | Run the daemon in the foreground, stop it, or show its status. |
@@ -77,7 +77,7 @@ the full list of tools.
 | `list_deferred()` | List deferred comments with their category and reason. |
 | `clear_resolved()` | Remove every resolved and wontfix comment. |
 
-The `resolve-comments` prompt (`/mcp__northstar__resolve-comments` in Claude Code)
+The `resolve-comments` prompt (`/mcp__northstar-comments__resolve-comments` in Claude Code)
 runs the whole list, get and resolve flow. The design work is prompts too: `brief`,
 `direct`, `system`, `compose`, `critique`, `polish`, `build`, `refine`, `finish`,
 `adapt` and `modernise`. The canon is served as resources under `northstar://canon/`,
@@ -114,10 +114,9 @@ field that carries a command.
 | Action | Purpose |
 | --- | --- |
 | `system.info` | Version, protocol, process id and start time of the daemon. |
-| `agent.list` | The built in and custom agents, whether each is installed and whether it can quick run. |
+| `agent.list` | The built in and custom agents and whether each is installed. |
 | `session.list` | The running sessions with agent, folder, process id and last activity. |
 | `session.send` | `{ root, template, sessionId? }`. Route to a session and write the fixed line. Returns the handoff outcome, or `NO_SESSION`, `PICK_SESSION`, `SESSION_NOT_FOUND`, `BLOCKED`. |
-| `quickrun.execute` | `{ root, agent, template }`. Start an installed agent once with the fixed line, only when no session runs in the project. |
 | `project.list` / `project.resolve` | The known project folders, and which of them owns a set of source paths or a mapped site. |
 | `status.get` | Notices, session readiness with its reason and fix, the open comment count, the last poll and the last handoff outcome. |
 | `comments.list` | Stored comments for one page, `page` is required. |

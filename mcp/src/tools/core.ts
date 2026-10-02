@@ -9,7 +9,6 @@ import {
   renderHits,
 } from "@northstar/canon";
 import { z } from "zod";
-import type { BridgeStatus } from "../daemon/link.js";
 import { browserState } from "../page/browser.js";
 import { LoopStore } from "../page/loop.js";
 import { inspectProject } from "../project.js";
@@ -18,12 +17,7 @@ import { error, text } from "./util.js";
 const KINDS = ["ref", "rule", "archetype", "conflict"] as const satisfies readonly EntryKind[];
 const STAGES = ["brief", "direction", "system", "compose", "critique", "polish"] as const;
 
-export function registerCore(
-  server: McpServer,
-  root: string,
-  bridge: () => BridgeStatus,
-  canon: Canon,
-): void {
+export function registerCore(server: McpServer, root: string, canon: Canon): void {
   let catalog: CatalogEntry[] | undefined;
   const entries = () => {
     catalog ??= buildCatalog(canon);
@@ -89,15 +83,11 @@ export function registerCore(
     },
     async () => {
       const state = inspectProject(root);
-      const status = bridge();
-      const bridgeState =
-        status.state === "on" ? { daemon: "on" } : { daemon: "off", error: status.error };
       const loop = new LoopStore(root).read();
       return text(
         JSON.stringify(
           {
             ...state,
-            bridge: bridgeState,
             browser: browserState(),
             loop: loop ? { url: loop.url, audits: loop.runs.length, max: loop.maxAudits } : null,
           },

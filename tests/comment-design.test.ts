@@ -7,7 +7,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { loadCanon } from "@northstar/canon";
 import { designContext, groupFor, relevantRules } from "../mcp/src/design-context.js";
-import { createMcpServer } from "../mcp/src/server.js";
+import { createCommentsServer } from "../mcp/src/server.js";
 import { CommentStore } from "../mcp/src/store.js";
 import type { Comment, Draft } from "../mcp/src/types.js";
 import { noopLink } from "./helpers.js";
@@ -67,7 +67,7 @@ const BAD_FILE =
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), "northstar-comment-design-"));
   store = new CommentStore(root);
-  const server = createMcpServer(store, noopLink, undefined, { root });
+  const server = createCommentsServer(store, noopLink, undefined, { root });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   client = new Client({ name: "test", version: "0.0.0" });
   await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);

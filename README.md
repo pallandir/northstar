@@ -210,7 +210,7 @@ npm install -g @pallandir/northstar
 northstar install
 ```
 
-`northstar install` registers the MCP server, installs the five skills, adds the edit
+`northstar install` registers the two MCP servers (`northstar` for design and `northstar-comments` for applying comments), installs the five skills, adds the edit
 hook for every agent it finds, and registers the browser helper (a Native Messaging
 host) for Chrome and Firefox. It prints a plan and asks before changing anything. Use
 `--agent codex` to choose one agent, `--dry-run` to only look, `--no-host` to skip the
@@ -236,9 +236,9 @@ or add the same command to any MCP client configuration:
 }
 ```
 
-The MCP server must be registered under the name `northstar`. The extension's
-trigger line, `/mcp__northstar__resolve-comments`, and the tool names all depend
-on it.
+The comment tools must be registered under the name `northstar-comments`, and the design
+tools under `northstar`. The extension's fixed line and the tool names depend on both,
+and `northstar serve comments` starts the comments server.
 
 ---
 
@@ -306,11 +306,11 @@ toolbar, with the reason and the fix, only when it must not go on:
 | The assistant did not read the comments within 20 seconds | Check it for a pending prompt or a running task |
 | More than one session runs in the project | Pick the session to send to |
 | A comment was parked because it needs a plan | A notice with the comment, so you can plan it |
-| No session runs in the project | Start one, or choose **Copy the line** or **Quick run** |
+| Northstar cannot write to your assistant | Choose **Copy the line** and paste it into the assistant |
 
 **Copy the line** copies the fixed line to the clipboard so you can paste it into any
-assistant. **Quick run** starts the assistant once in its non interactive mode for
-this request. Neither runs on its own, you choose it.
+assistant, in any terminal or editor, with nothing to start or restart. It never runs on
+its own, you choose it.
 
 ### The resolve-comments prompt
 
@@ -318,7 +318,7 @@ The server also registers an MCP prompt named `resolve-comments`. In Claude Code
 you can run it yourself at any time:
 
 ```text
-/mcp__northstar__resolve-comments
+/mcp__northstar-comments__resolve-comments
 ```
 
 It tells the agent to list the open comments, fetch each one with `get_comment`,
@@ -476,7 +476,7 @@ The extension is Manifest V3 and builds for both engines from one source tree:
 | `northstar run <agent> [arguments]` | Starts the agent in a session Northstar owns, all arguments go to the agent |
 | `northstar sessions` | Lists the running sessions with their project and last activity |
 | `northstar agent list` | Shows the agents Northstar knows and whether each is installed |
-| `northstar agent add <id> <path>` | Registers your own CLI, add `--quick-run "-p {{prompt}}"` to allow quick run |
+| `northstar agent add <id> <path>` | Registers your own CLI |
 | `northstar shell install` / `uninstall` | Adds or removes the shell functions for zsh, bash or fish |
 | `northstar config` | Shows or sets the preferred agent, the default template and site mappings |
 | `northstar daemon [stop\|status]` | Runs, stops or inspects the daemon, it starts on demand |

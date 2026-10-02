@@ -14,7 +14,14 @@ import {
 } from "../merge.js";
 import { CORE_SKILL, SKILL_NAMES } from "../skills.js";
 import { opencodePlugin } from "./opencode-plugin.js";
-import { type AgentPlan, type Op, PACKAGE, type PlanContext, SERVER } from "./types.js";
+import {
+  type AgentPlan,
+  type Op,
+  PACKAGE,
+  type PlanContext,
+  SERVERS,
+  serverLabel,
+} from "./types.js";
 
 export function launchOf(ctx: Pick<PlanContext, "launch" | "version">): {
   command: string;
@@ -55,9 +62,9 @@ export function hookCommand(
     .join(" ");
 }
 
-function standardEntry(ctx: PlanContext) {
+function standardEntry(ctx: PlanContext, serve: readonly string[]) {
   const { command, args } = launchOf(ctx);
-  return { command, args };
+  return { command, args: [...args, ...serve] };
 }
 
 function jsonMerge(
@@ -88,11 +95,13 @@ function mcpServersMerge(path: string, ctx: PlanContext): Op {
     path,
     "MCP server",
     (root) => {
-      child(root, "mcpServers")[SERVER] = standardEntry(ctx);
+      for (const server of SERVERS) {
+        child(root, "mcpServers")[server.name] = standardEntry(ctx, server.serve);
+      }
     },
     (root) => {
       const servers = root.mcpServers as Record<string, unknown> | undefined;
-      if (servers) delete servers[SERVER];
+      if (servers) for (const server of SERVERS) delete servers[server.name];
       prune(root, "mcpServers");
     },
   );
@@ -134,26 +143,36 @@ function claude(ctx: PlanContext): AgentPlan {
   };
   const ops: Op[] = [];
   if (ctx.scope === "user") {
-    const add: [string, ...string[]] = [
-      "claude",
-      "mcp",
-      "add",
-      "--transport",
-      "stdio",
-      "--scope",
-      "user",
-      SERVER,
-      "--",
-      launchOf(ctx).command,
-      ...launchOf(ctx).args,
-    ];
-    ops.push({
-      kind: "command",
-      label: "MCP server",
-      reset: ["claude", "mcp", "remove", SERVER, "--scope", "user"],
-      run: add,
-      undo: ["claude", "mcp", "remove", SERVER, "--scope", "user"],
-    });
+    for (const server of SERVERS) {
+      const remove: [string, ...string[]] = [
+        "claude",
+        "mcp",
+        "remove",
+        server.name,
+        "--scope",
+        "user",
+      ];
+      ops.push({
+        kind: "command",
+        label: serverLabel(server.name),
+        reset: remove,
+        run: [
+          "claude",
+          "mcp",
+          "add",
+          "--transport",
+          "stdio",
+          "--scope",
+          "user",
+          server.name,
+          "--",
+          launchOf(ctx).command,
+          ...launchOf(ctx).args,
+          ...server.serve,
+        ],
+        undo: remove,
+      });
+    }
   } else {
     ops.push(mcpServersMerge(join(ctx.project, ".mcp.json"), ctx));
   }
@@ -207,13 +226,16 @@ function claude(ctx: PlanContext): AgentPlan {
 function codex(ctx: PlanContext): AgentPlan {
   const user = ctx.scope === "user";
   const root = user ? join(ctx.home, ".codex") : join(ctx.project, ".codex");
-  const table = `mcp_servers.${SERVER}`;
-  const body = [
-    `[${table}]`,
-    `command = ${JSON.stringify(launchOf(ctx).command)}`,
-    `args = ${JSON.stringify(launchOf(ctx).args)}`,
-    "startup_timeout_sec = 30",
-  ].join("\n");
+  const tomlServers = SERVERS.map((server) => ({
+    server,
+    table: `mcp_servers.${server.name}`,
+    body: [
+      `[mcp_servers.${server.name}]`,
+      `command = ${JSON.stringify(launchOf(ctx).command)}`,
+      `args = ${JSON.stringify([...launchOf(ctx).args, ...server.serve])}`,
+      "startup_timeout_sec = 30",
+    ].join("\n"),
+  }));
   const entry: HookEntry = {
     matcher: "apply_patch|Edit|Write",
     hooks: [
@@ -228,13 +250,15 @@ function codex(ctx: PlanContext): AgentPlan {
   return {
     agent: "codex",
     ops: [
-      {
-        kind: "merge",
-        path: join(root, "config.toml"),
-        label: "MCP server",
-        apply: (existing) => upsertToml(existing, table, body),
-        remove: (existing) => removeTomlTables(existing, table),
-      },
+      ...tomlServers.map(
+        ({ server, table, body }): Op => ({
+          kind: "merge",
+          path: join(root, "config.toml"),
+          label: serverLabel(server.name),
+          apply: (existing) => upsertToml(existing, table, body),
+          remove: (existing) => removeTomlTables(existing, table),
+        }),
+      ),
       jsonMerge(
         join(root, "hooks.json"),
         "post edit scan hook",
@@ -307,12 +331,14 @@ function gemini(ctx: PlanContext): AgentPlan {
         join(root, "settings.json"),
         "MCP server and scan hook",
         (settings) => {
-          child(settings, "mcpServers")[SERVER] = standardEntry(ctx);
+          for (const server of SERVERS) {
+            child(settings, "mcpServers")[server.name] = standardEntry(ctx, server.serve);
+          }
           upsertHook(settings, "AfterTool", entry);
         },
         (settings) => {
           const servers = settings.mcpServers as Record<string, unknown> | undefined;
-          if (servers) delete servers[SERVER];
+          if (servers) for (const server of SERVERS) delete servers[server.name];
           prune(settings, "mcpServers");
           removeHook(settings, "AfterTool");
         },
@@ -338,16 +364,18 @@ function opencode(ctx: PlanContext): AgentPlan {
         "MCP server",
         (config) => {
           config.$schema ??= "https://opencode.ai/config.json";
-          child(config, "mcp")[SERVER] = {
-            type: "local",
-            command: [launchOf(ctx).command, ...launchOf(ctx).args],
-            enabled: true,
-            timeout: 30000,
-          };
+          for (const server of SERVERS) {
+            child(config, "mcp")[server.name] = {
+              type: "local",
+              command: [launchOf(ctx).command, ...launchOf(ctx).args, ...server.serve],
+              enabled: true,
+              timeout: 30000,
+            };
+          }
         },
         (config) => {
           const servers = config.mcp as Record<string, unknown> | undefined;
-          if (servers) delete servers[SERVER];
+          if (servers) for (const server of SERVERS) delete servers[server.name];
           prune(config, "mcp");
           if (Object.keys(config).length === 1 && config.$schema)
             Reflect.deleteProperty(config, "$schema");

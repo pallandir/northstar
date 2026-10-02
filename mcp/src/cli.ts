@@ -26,7 +26,7 @@ const USAGE = `northstar ${VERSION}
 Usage: northstar [command]
 
 Commands:
-  serve       start the MCP server over stdio (default)
+  serve       start an MCP server over stdio: design (default) or comments
   init [dir]  write DESIGN.md, PRODUCT.md and design/decisions.md, never overwriting
   detect      scan UI files for generic AI patterns, exits 1 on errors
   capture     screenshot a URL in headless Chrome, needs Google Chrome
@@ -48,7 +48,13 @@ async function run(argv: string[]): Promise<number> {
   const [name, ...args] = argv;
 
   if (name === undefined || name === "serve") {
-    await import("./index.js");
+    const { parseSurface, serve } = await import("./index.js");
+    try {
+      serve(parseSurface(args[0]));
+    } catch (error) {
+      process.stderr.write(`${(error as Error).message}\n`);
+      return 2;
+    }
     return -1;
   }
   if (name === "--version" || name === "-v") {

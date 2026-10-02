@@ -6,9 +6,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, test } from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { createMcpServer } from "../mcp/src/server.js";
-import { CommentStore } from "../mcp/src/store.js";
-import { noopLink } from "./helpers.js";
+import { createDesignServer } from "../mcp/src/server.js";
 
 let root: string;
 let client: Client;
@@ -25,7 +23,7 @@ async function call(name: string, args: Record<string, unknown>): Promise<CallRe
 
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), "northstar-resolve-"));
-  const server = createMcpServer(new CommentStore(root), noopLink, undefined, {
+  const server = createDesignServer(undefined, {
     root,
   });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
@@ -124,9 +122,9 @@ test("design data loads on the first data tool call, not at the handshake", () =
   const script = `
     import { Client } from "@modelcontextprotocol/sdk/client/index.js";
     import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-    import { createMcpServer } from "./mcp/src/server.ts";
+    import { createDesignServer } from "./mcp/src/server.ts";
     import { CommentStore } from "./mcp/src/store.ts";
-    const server = createMcpServer(new CommentStore(process.env.ROOT), { polled() {}, bump() {}, notice() {} }, undefined, { root: process.env.ROOT });
+    const server = createDesignServer(undefined, { root: process.env.ROOT });
     const [c, s] = InMemoryTransport.createLinkedPair();
     const client = new Client({ name: "t", version: "0" });
     await Promise.all([server.connect(s), client.connect(c)]);

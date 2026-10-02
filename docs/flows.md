@@ -127,14 +127,7 @@ sequenceDiagram
     participant D as Daemon
 
     T->>D: status.get
-    D-->>T: no session, the agents that can quick run
-    alt Copy the line
-        U->>T: Copy the line
-        T->>U: the fixed line on the clipboard
-    else Quick run
-        U->>T: Quick run with Codex
-        T->>D: quickrun.execute
-        D->>D: start codex once with the fixed line, no shell
-        D-->>T: delivered when it read the comments, or why not
-    end
+    D-->>T: no session, connected but not writable
+    U->>T: Copy the line
+    T->>U: the fixed line on the clipboard
 ```
