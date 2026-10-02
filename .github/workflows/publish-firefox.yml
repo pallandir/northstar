@@ -17,6 +17,15 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     steps:
+      - name: AMO credentials must be set
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+        run: |
+          if [ -z "$WEB_EXT_API_KEY" ] || [ -z "$WEB_EXT_API_SECRET" ]; then
+            echo "WEB_EXT_API_KEY and WEB_EXT_API_SECRET must be set on the release environment" >&2
+            exit 1
+          fi
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
