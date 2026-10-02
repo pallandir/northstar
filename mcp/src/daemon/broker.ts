@@ -25,6 +25,10 @@ export class Broker {
     return this.lastPolledTime;
   }
 
+  activeWithin(ms: number): boolean {
+    return this.lastPolledTime > 0 && Date.now() - this.lastPolledTime < ms;
+  }
+
   get pendingNotices(): DeferralNotice[] {
     return [...this.notices];
   }

@@ -142,6 +142,7 @@ export interface Readiness {
   sessions: SessionInfo[];
   target: string | null;
   needsPick: boolean;
+  working?: boolean;
   reason?: string;
   fix?: string;
 }

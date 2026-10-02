@@ -11,6 +11,7 @@ interface RouteRequest {
   sessionId?: string;
   preferredAgent: string | null;
   assistantConnected: boolean;
+  assistantWorking: boolean;
 }
 
 export function routeSend(all: readonly SessionInfo[], request: RouteRequest): Route {
@@ -27,10 +28,18 @@ export function routeSend(all: readonly SessionInfo[], request: RouteRequest): R
 }
 
 const NOT_WRITABLE_FIX = "Click Copy the line and paste it into your AI assistant.";
+const WORKING_FIX =
+  "Your new comments are saved. When it finishes, click Copy the line and paste it into the assistant.";
 const NOT_CONNECTED_FIX =
   "Open your AI assistant in this project. If it is already open, run northstar doctor.";
 
-export function noSessionNotice(assistantConnected: boolean): { reason: string; fix: string } {
+export function noSessionNotice(
+  assistantConnected: boolean,
+  assistantWorking: boolean,
+): { reason: string; fix: string } {
+  if (assistantConnected && assistantWorking) {
+    return { reason: "Your AI assistant is working on your comments.", fix: WORKING_FIX };
+  }
   return assistantConnected
     ? {
         reason: "Your AI assistant is open in this project but Northstar cannot write to it.",
@@ -63,6 +72,7 @@ export function readinessFor(
     sessions,
     target: null,
     needsPick: false,
-    ...noSessionNotice(request.assistantConnected),
+    working: request.assistantConnected && request.assistantWorking,
+    ...noSessionNotice(request.assistantConnected, request.assistantWorking),
   };
 }

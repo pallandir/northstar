@@ -292,8 +292,8 @@ export class Toolbar {
       const quick: StripAction[] =
         this.pending > 0 ? [{ label: "Copy the line", run: () => this.handlers.onCopyLine() }] : [];
       this.showFailure(
-        `no-session:${this.pending > 0}`,
-        "Northstar cannot reach your assistant",
+        `no-session:${readiness.working === true}:${this.pending > 0}`,
+        readiness.working ? "Your assistant is working" : "Northstar cannot reach your assistant",
         `${readiness.reason ?? ""} ${readiness.fix ?? ""}`.trim(),
         quick,
       );

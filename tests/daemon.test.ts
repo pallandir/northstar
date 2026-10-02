@@ -166,6 +166,29 @@ test("a send with an assistant open but no session tells the designer to copy th
   assert.match(error.fix, /Copy the line/);
 });
 
+test("an assistant that is working on comments is reported as working, not as unreachable", async () => {
+  const peer = await connect();
+  const agent = await mcp();
+  await post(peer, [draft()]);
+  const idle = await request<{ readiness: { working?: boolean } }>(peer, "status.get", {
+    root: project,
+  });
+  assert.equal(idle.readiness.working, false);
+  await agent.call("broker.polled", {});
+  const busy = await request<{ readiness: { ready: boolean; working?: boolean; reason?: string } }>(
+    peer,
+    "status.get",
+    { root: project },
+  );
+  assert.equal(busy.readiness.ready, false);
+  assert.equal(busy.readiness.working, true);
+  assert.match(busy.readiness.reason ?? "", /working on your comments/);
+  const error = await failure(
+    request(peer, "session.send", { root: project, template: "resolve" }),
+  );
+  assert.match(error.message, /working on your comments/);
+});
+
 test("a send with no assistant connected says to open one", async () => {
   const peer = await connect();
   const hello = await mcp();

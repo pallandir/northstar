@@ -8,6 +8,7 @@ import { RpcError, badRequest } from "./rpc.js";
 import type { Workspace } from "./workspace.js";
 
 const PICKUP_TIMEOUT_MS = 20_000;
+export const ASSISTANT_ACTIVE_MS = 5 * 60 * 1000;
 
 interface SenderOptions {
   pickupTimeoutMs?: number;
@@ -64,9 +65,13 @@ export class Sender {
       sessionId: params.sessionId,
       preferredAgent: settings.preferredAgent,
       assistantConnected: registry.hasAssistant(root),
+      assistantWorking: this.workspace.broker(root).activeWithin(ASSISTANT_ACTIVE_MS),
     });
     if (route.kind === "none") {
-      const { reason, fix } = noSessionNotice(registry.hasAssistant(root));
+      const { reason, fix } = noSessionNotice(
+        registry.hasAssistant(root),
+        this.workspace.broker(root).activeWithin(ASSISTANT_ACTIVE_MS),
+      );
       throw new RpcError("NO_SESSION", reason, fix);
     }
     if (route.kind === "pick") {

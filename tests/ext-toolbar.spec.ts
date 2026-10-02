@@ -264,6 +264,29 @@ describe("Toolbar connection strips", () => {
     expect(onCopyLine).toHaveBeenCalledOnce();
   });
 
+  it("says the assistant is working, with Copy the line, instead of an error", () => {
+    const toolbar = new Toolbar(fakeSurface(), handlers());
+    toolbar.render(
+      state({
+        status: reachableStatus({
+          queued: 1,
+          readiness: {
+            ...NO_SESSION,
+            working: true,
+            reason: "Your AI assistant is working on your comments.",
+            fix: "Your new comments are saved.",
+          },
+        }),
+      }),
+    );
+    expect(document.querySelector(".ns-setup-title")?.textContent).toBe(
+      "Your assistant is working",
+    );
+    expect(
+      Array.from(document.querySelectorAll(".ns-setup-actions button")).map((b) => b.textContent),
+    ).toEqual(["Copy the line"]);
+  });
+
   it("names the side to update on a version mismatch", () => {
     const toolbar = new Toolbar(fakeSurface(), handlers());
     toolbar.render(

@@ -12,6 +12,7 @@ import type { z } from "zod";
 import { loadSettings } from "../user-config.js";
 import { readinessFor } from "./router.js";
 import { badRequest } from "./rpc.js";
+import { ASSISTANT_ACTIVE_MS } from "./sending.js";
 import type { Workspace } from "./workspace.js";
 
 type Params<K extends keyof typeof actionParams> = z.infer<(typeof actionParams)[K]>;
@@ -129,6 +130,7 @@ export class CommentActions {
         root: canonical,
         preferredAgent: settings.preferredAgent,
         assistantConnected: this.workspace.registry.hasAssistant(canonical),
+        assistantWorking: broker.activeWithin(ASSISTANT_ACTIVE_MS),
       }),
       open: (await this.workspace.store(canonical).list("open")).length,
       lastPolledAt: broker.lastPolledAt,
