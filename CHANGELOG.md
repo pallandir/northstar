@@ -29,7 +29,7 @@ All notable changes to this project are documented here. The format follows
   design data search, `csv-parse` for the data port script, `proper-lockfile` and
   `write-file-atomic` for the comment store, `vscode-jsonrpc` for the daemon socket,
   `dom-accessibility-api` for roles and accessible names, `culori` for the colour
-  picker, the Web Locks API for the extension queue and `node:util` `parseArgs` for the
+  picker and `node:util` `parseArgs` for the
   command line flags. An unknown flag is now refused with its name.
 - The daemon socket is named after the protocol version and speaks JSON-RPC framing, so a
   daemon left running by 2.6.1 never blocks the new one, and exits on its own when idle.

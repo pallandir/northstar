@@ -8,7 +8,7 @@ const QUEUE_KEY = "northstar-queue";
 const SHOT_PREFIX = "northstar-shot:";
 const INTERRUPTED_AFTER_MS = 120_000;
 
-const locked = createLock("northstar-queue");
+const locked = createLock();
 
 const interrupted: Rejection = {
   field: null,
