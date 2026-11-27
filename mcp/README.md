@@ -37,7 +37,7 @@ installed package, so use a global install rather than `npx` for it. Other comma
 
 | Command | Purpose |
 | --- | --- |
-| `northstar install [--agent a,b] [--all] [--scope user\|project] [--bin path] [--no-gate] [--no-host] [--allow-extension id] [--home dir] [--project dir] [--dry-run] [--yes]` | Register the server, install the five skills and the edit hooks. `--bin` points the server and hooks at a local build, `--no-gate` leaves out the design gate hook. |
+| `northstar install [--agent a,b] [--all] [--scope user\|project] [--bin path] [--no-host] [--allow-extension id] [--home dir] [--project dir] [--dry-run] [--yes]` | Register the server, install the five skills and the edit scan hook. `--bin` points the server and hooks at a local build, `--no-gate` leaves out the design gate hook. |
 | `northstar uninstall [--agent a,b] [--scope user\|project]` | Remove exactly what install added and restore what it replaced, including the browser helper once no agent is left. |
 | `northstar doctor` | Check installs, assets, hooks, the browser helper, the pseudo terminal module, the daemon, the shell integration, DESIGN.md and conflicts. |
 | `northstar run <agent> [args]` | Start an agent in a session Northstar owns. Install wraps your agents so plain `claude` does this for you. Any terminal program works. |
@@ -49,7 +49,7 @@ installed package, so use a global install rather than `npx` for it. Other comma
 | `northstar init [dir]` | Scaffold `DESIGN.md`, `PRODUCT.md` and `design/decisions.md` without overwriting. |
 | `northstar detect [paths] [--diff] [--format text\|json\|sarif] [--mode m]` | Scan UI files, exit 1 on errors. |
 | `northstar conflicts [--remove] [--restore stamp]` | Find overlapping UI skills (impeccable, ui-ux-pro-max, taste and similar) and quarantine them. |
-| `northstar hook pre-edit\|post-edit --agent a` | The edit hook entry point. `pre-edit` is the design gate that denies UI edits until DESIGN.md is ready, `post-edit` scans the edited files. Hooks never block an edit on their own errors, they exit non zero with a message. |
+| `northstar hook post-edit --agent a` | The edit hook entry point. It scans the edited files. `pre-edit` is retired and does nothing. Hooks never block an edit on their own errors, they exit non zero with a message. |
 
 To register by hand with Claude Code instead:
 
@@ -133,7 +133,6 @@ Replies are kept under 900 KB and requests under 16 MB. See
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `NORTHSTAR_ROOT` | `process.cwd()` | Where the store is written and DESIGN.md is read. |
-| `NORTHSTAR_GATE` | on | Set to `off` to disable the design gate hook. |
 | `NORTHSTAR_HOME` | the home directory | Parent of the `.northstar` folder that holds the config, the session state, the logs and the daemon socket. Keep it short, Unix sockets allow about 100 characters. |
 
 ## Develop

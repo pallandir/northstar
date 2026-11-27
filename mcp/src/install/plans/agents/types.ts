@@ -11,7 +11,6 @@ export interface PlanContext {
   snippet: string;
   critic: string;
   launch?: { command: string; args: string[] };
-  gate?: boolean;
   plugin?: boolean;
 }
 

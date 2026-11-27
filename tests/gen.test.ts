@@ -126,7 +126,8 @@ test("generated files carry no machine specific paths", () => {
   assert.doesNotMatch([...generate(repoRoot).values()].join("\n"), /\/Users\//);
 });
 
-test("the plugin ships the design gate hook too", () => {
+test("the plugin ships only the post edit scan hook", () => {
   const hooks = JSON.parse(generate(repoRoot).get("plugin/hooks/hooks.json") ?? "{}");
-  assert.match(hooks.hooks.PreToolUse[0].hooks[0].command, /hook pre-edit --agent claude/);
+  assert.equal(hooks.hooks.PreToolUse, undefined);
+  assert.match(hooks.hooks.PostToolUse[0].hooks[0].command, /hook post-edit --agent claude/);
 });

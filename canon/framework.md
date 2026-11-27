@@ -14,7 +14,7 @@ Four workflow skills cover the common jobs, `northstar-build`, `northstar-refine
 
 ## The DESIGN.md gate
 
-No UI file is created or edited until `DESIGN.md` exists, parses, has no unfilled placeholders and names a mode. This holds for every task, including a small tweak, a polish pass and a browser comment. `northstar_context` reports it in the `gate` field, and the Claude Code edit hook blocks UI edits while it is closed. Open it with `design_md_normalize` when the designer supplied a direction, or with `design_system_propose` or `design_tokens_generate` after the questions, then fix every error from `design_md_validate`. Skipping it needs an explicit instruction from the user, logged in `design/decisions.md`.
+Write `DESIGN.md` before creating or editing UI files, and make sure it parses, has no unfilled placeholders and names a mode. This is a recommendation, nothing blocks an edit, and it holds for every task, including a small tweak, a polish pass and a browser comment. `northstar_context` reports it in the `gate` field. Fill it with `design_md_normalize` when the designer supplied a direction, or with `design_system_propose` or `design_tokens_generate` after the questions, then fix every error from `design_md_validate`. If the user asks to skip it, log that in `design/decisions.md`.
 
 ## Stages
 

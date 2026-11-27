@@ -4,7 +4,6 @@ import {
   type HookInput,
   feedbackText,
   findProjectRoot,
-  preEditReason,
 } from "../lib/hook-feedback.js";
 
 export function render(agent: HookAgent, text: string): string {
@@ -26,16 +25,6 @@ export function render(agent: HookAgent, text: string): string {
   }
 }
 
-export function renderDeny(reason: string): string {
-  return JSON.stringify({
-    hookSpecificOutput: {
-      hookEventName: "PreToolUse",
-      permissionDecision: "deny",
-      permissionDecisionReason: reason,
-    },
-  });
-}
-
 export function claudeFeedback(input: HookInput, root: string): string | undefined {
   const text = feedbackText("claude", input, root);
   return text ? render("claude", text) : undefined;
@@ -52,6 +41,7 @@ interface Parsed {
   agent: HookAgent;
 }
 
+// pre-edit is a no-op kept so hooks written by older installs keep working
 function parseArgs(args: string[]): Parsed {
   const [event, ...rest] = args;
   if (event !== "post-edit" && event !== "pre-edit") {
@@ -79,11 +69,7 @@ export async function hook(args: string[]): Promise<number> {
     const input = parseInput(await readStdin());
     const root = findProjectRoot(input.cwd ?? process.cwd());
     if (!root) return 0;
-    if (event === "pre-edit") {
-      const reason = preEditReason(agent, input, root);
-      if (reason) process.stdout.write(`${renderDeny(reason)}\n`);
-      return 0;
-    }
+    if (event === "pre-edit") return 0;
     const text = feedbackText(agent, input, root);
     const output = text ? render(agent, text) : "";
     if (output) process.stdout.write(`${output}\n`);

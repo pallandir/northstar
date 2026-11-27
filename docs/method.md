@@ -29,7 +29,7 @@ Refine starts with an audit, then critiques and polishes one lever at a time. Ad
 
 ## DESIGN.md comes first
 
-No UI file is created or edited until `DESIGN.md` exists, parses, has no unfilled placeholders and names a mode. This applies to every task, including small edits and polish passes, because a design system that is written afterwards describes the result instead of steering it. `northstar_context` reports the state in its `gate` field and says how to open it. In Claude Code an edit hook enforces the rule by denying edits to UI source files until the gate is open, and other agents are reminded after each edit. Set `NORTHSTAR_GATE=off` to skip it for a session, or install with `--no-gate`.
+Write `DESIGN.md` before creating or editing UI files, and make sure it parses, has no unfilled placeholders and names a mode. This is a recommendation, not a block, but it applies to every task, including small edits and polish passes, because a design system that is written afterwards describes the result instead of steering it. `northstar_context` reports the state in its `gate` field and says how to fill it.
 
 ## Modes
 

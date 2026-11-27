@@ -37,7 +37,6 @@ interface InstallOptions {
   run: Runner;
   stamp?: string;
   bin?: string;
-  gate?: boolean;
   plugin?: boolean;
 }
 
@@ -58,7 +57,7 @@ export interface InstallOutcome {
 
 function contextFor(
   agent: AgentName,
-  options: Pick<InstallOptions, "scope" | "home" | "project" | "bin" | "gate" | "plugin">,
+  options: Pick<InstallOptions, "scope" | "home" | "project" | "bin" | "plugin">,
 ): PlanContext {
   const root = canonRoot();
   return {
@@ -70,7 +69,6 @@ function contextFor(
     snippet: readFileSync(join(root, "snippets", "agents-md.md"), "utf8"),
     critic: readFileSync(join(root, "agents", "critic.md"), "utf8"),
     launch: options.bin ? { command: "node", args: [options.bin] } : undefined,
-    gate: options.gate,
     plugin: agent === "claude" && options.scope === "user" && options.plugin === true,
   };
 }
@@ -86,7 +84,6 @@ export function contextForRecord(
     home,
     project: entry.project ?? project,
     bin: entry.bin,
-    gate: entry.gate,
     plugin,
   });
 }
@@ -235,7 +232,6 @@ export function install(options: InstallOptions): InstallOutcome {
         scope: options.scope,
         project: options.scope === "project" ? options.project : undefined,
         bin: options.bin,
-        gate: options.gate,
         files,
       };
       changed = true;

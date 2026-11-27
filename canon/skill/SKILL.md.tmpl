@@ -19,7 +19,7 @@ Do not create or edit a UI file until `DESIGN.md` exists, parses, has no unfille
 - Nothing was given: ask your questions, then call `design_system_propose`, show the draft, and save it once approved.
 - Then call `design_md_validate` and fix every error before touching UI code.
 
-Skip this only when the user says so explicitly, and log that in `design/decisions.md`. In Claude Code an edit hook blocks UI edits until the gate is open.
+Skip this when the user says so, and log that in `design/decisions.md`. Nothing blocks an edit without it.
 
 ## Start
 

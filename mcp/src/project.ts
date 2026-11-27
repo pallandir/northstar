@@ -49,7 +49,7 @@ function errorLines(issues: Issue[]): string[] {
     );
 }
 
-export function designGap(design: DesignDoc): string | undefined {
+function designGap(design: DesignDoc): string | undefined {
   if (!design.exists) return "there is no DESIGN.md";
   if (design.error) return `DESIGN.md cannot be read: ${design.error}`;
   if (design.ready) return undefined;

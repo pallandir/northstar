@@ -3,8 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import { HOOK_FINDING_CAP, runScan } from "../detect.js";
 import { hookFeedback, kindOf } from "../detector/index.js";
 import { AGENT_NAMES, type AgentName } from "../install/plans/index.js";
-import { designGap, readDesign, readJsonFile } from "../project.js";
-import { hasOpenComments } from "../store.js";
+import { readJsonFile } from "../project.js";
 import { isInside, relativeTarget } from "./paths.js";
 
 export type HookAgent = AgentName;
@@ -51,7 +50,6 @@ export function filesFor(agent: HookAgent, input: HookInput): string[] {
 const UI_DEPENDENCY =
   /^(react|react-dom|next|preact|vue|nuxt|svelte|@sveltejs\/kit|@angular\/core|solid-js|astro|@remix-run\/react|lit|@builder\.io\/qwik)$/;
 const NOT_UI_SOURCE = /(^|\/)(tests?|__tests__|__mocks__|fixtures|e2e)\/|\.(test|spec)\.[^/]+$/;
-const GATED_SOURCE = /\.(jsx|tsx|vue|svelte|astro|html|css|scss|sass|less|mdx)$/i;
 
 function hasUiDependency(dir: string): boolean {
   const pkg = readJsonFile(join(dir, "package.json"));
@@ -96,28 +94,6 @@ export function findProjectRoot(
   return chain.find((dir) => existsSync(join(dir, "package.json")));
 }
 
-function hasOpenCommentsAbove(root: string, path: string): boolean {
-  const base = resolve(root);
-  let dir = resolve(base, dirname(path));
-  while (isInside(base, dir)) {
-    if (hasOpenComments(dir)) return true;
-    if (dir === base) return false;
-    dir = dirname(dir);
-  }
-  return false;
-}
-
-export function gateReason(root: string, path: string): string | undefined {
-  if (process.env.NORTHSTAR_GATE === "off") return undefined;
-  if (!GATED_SOURCE.test(path) || NOT_UI_SOURCE.test(path) || !hasUiAncestor(root, path)) {
-    return undefined;
-  }
-  if (hasOpenCommentsAbove(root, path)) return undefined;
-  const gap = designGap(readDesign(root));
-  if (!gap) return undefined;
-  return `Northstar: write DESIGN.md before any UI code, ${gap}. Call design_md_normalize with the designer's direction file and write true, or design_system_propose, then design_md_validate until it is ready, then continue. If the designer wants the system from Figma, follow northstar://canon/references/figma first. Do not edit UI files first. Only set NORTHSTAR_GATE=off if the user asked to skip the design system.`;
-}
-
 function relativeTargets(agent: HookAgent, input: HookInput, root: string): string[] {
   const out = new Set<string>();
   for (const target of filesFor(agent, input)) {
@@ -132,19 +108,6 @@ function allowedTool(agent: HookAgent, input: HookInput): boolean {
   return !(allowed && input.tool_name && !allowed.has(input.tool_name));
 }
 
-export function preEditReason(
-  agent: HookAgent,
-  input: HookInput,
-  root: string,
-): string | undefined {
-  if (agent !== "claude" || !allowedTool(agent, input)) return undefined;
-  for (const path of relativeTargets(agent, input, root)) {
-    const reason = gateReason(root, path);
-    if (reason) return reason;
-  }
-  return undefined;
-}
-
 export function feedbackText(agent: HookAgent, input: HookInput, root: string): string | undefined {
   if (!allowedTool(agent, input)) return undefined;
   const paths = relativeTargets(agent, input, root).filter(
@@ -156,14 +119,10 @@ export function feedbackText(agent: HookAgent, input: HookInput, root: string): 
   );
   if (!paths.length) return undefined;
 
-  const reminder =
-    agent === "claude"
-      ? undefined
-      : paths.map((path) => gateReason(root, path)).find((reason) => reason !== undefined);
   const { findings } = runScan({ root, paths });
   const feedback = hookFeedback(findings, HOOK_FINDING_CAP);
   const scan = feedback
     ? `Northstar found UI errors in ${paths.join(", ")}. Fix them or add an allow entry with a reason.\n${feedback}`
     : undefined;
-  return [reminder, scan].filter(Boolean).join("\n\n") || undefined;
+  return scan;
 }

@@ -217,14 +217,14 @@ test("the hook command is a node launcher with argv, pinned like the server, wit
   assert.match(command, /^node -e "/);
   assert.match(command, / npx -y @pallandir\/northstar@2\.2\.0 hook post-edit --agent gemini$/);
   assert.doesNotMatch(command, /sh -c|\|\| true|command -v/);
-  const argv = hookArgv(ctx("gemini"), "gemini", "pre-edit");
+  const argv = hookArgv(ctx("gemini"), "gemini");
   assert.deepEqual(argv.slice(0, 2), ["node", "-e"]);
   assert.deepEqual(argv.slice(3), [
     "npx",
     "-y",
     "@pallandir/northstar@2.2.0",
     "hook",
-    "pre-edit",
+    "post-edit",
     "--agent",
     "gemini",
   ]);
@@ -404,13 +404,12 @@ test("the server entry carries no environment at all", () => {
   assert.equal(JSON.parse(cursor.apply(undefined)).mcpServers.northstar.env, undefined);
 });
 
-test("claude gets a design gate before edits and a scan after, and both are removed together", () => {
+test("claude gets a scan after edits, removed with the install and never touching foreign hooks", () => {
   const op = merges(planAgent(ctx("claude")).ops).find((o) =>
     o.path.endsWith("settings.json"),
   ) as Extract<Op, { kind: "merge" }>;
   const written = JSON.parse(op.apply(undefined)).hooks;
-  assert.equal(written.PreToolUse[0].matcher, "Edit|Write|MultiEdit|NotebookEdit");
-  assert.match(written.PreToolUse[0].hooks[0].command, /hook pre-edit --agent claude/);
+  assert.equal(written.PreToolUse, undefined);
   assert.match(written.PostToolUse[0].hooks[0].command, /hook post-edit --agent claude/);
   assert.equal(op.remove(op.apply(undefined)).trim(), "");
 
@@ -420,15 +419,20 @@ test("claude gets a design gate before edits and a scan after, and both are remo
   assert.deepEqual(kept.hooks.PreToolUse, [foreign]);
 });
 
-test("the gate can be left out and is removed from a config that already has it", () => {
-  const off = merges(planAgent({ ...ctx("claude"), gate: false }).ops).find((o) =>
+test("an old Northstar pre-edit gate is removed when claude is installed again", () => {
+  const op = merges(planAgent(ctx("claude")).ops).find((o) =>
     o.path.endsWith("settings.json"),
   ) as Extract<Op, { kind: "merge" }>;
-  assert.equal(JSON.parse(off.apply(undefined)).hooks.PreToolUse, undefined);
-  const on = merges(planAgent(ctx("claude")).ops).find((o) =>
-    o.path.endsWith("settings.json"),
-  ) as Extract<Op, { kind: "merge" }>;
-  const reinstalled = JSON.parse(off.apply(on.apply(undefined)));
+  const old = {
+    matcher: "Edit|Write|MultiEdit|NotebookEdit",
+    hooks: [
+      {
+        type: "command",
+        command: hookCommand(ctx("claude"), "claude").replace("post-edit", "pre-edit"),
+      },
+    ],
+  };
+  const reinstalled = JSON.parse(op.apply(JSON.stringify({ hooks: { PreToolUse: [old] } })));
   assert.equal(reinstalled.hooks.PreToolUse, undefined);
   assert.ok(reinstalled.hooks.PostToolUse);
 });

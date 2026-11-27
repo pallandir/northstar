@@ -1,6 +1,6 @@
 # Setting up your agent
 
-One command registers the Northstar MCP server, installs the skills and adds the edit hooks for every supported agent it finds on your machine:
+One command registers the Northstar MCP server, installs the skills and adds the edit scan hook for every supported agent it finds on your machine:
 
 ```sh
 npm install -g @pallandir/northstar
@@ -27,9 +27,9 @@ Where an agent has no hook, the skill and the context file tell it to call `slop
 
 Five skills are installed side by side: `northstar` (the core, with the method, rules and references), and four short workflow skills, `northstar-build`, `northstar-refine`, `northstar-finish` and `northstar-review`. The workflow skills hold only the steps and send the agent to the core for detail. Because they search the canon instead of loading it, they keep the context small. If other UI skills are installed, such as impeccable, taste-skill or ui-ux-pro-max, `northstar conflicts` lists them and `northstar conflicts --remove` moves them to a quarantine you can restore. Northstar covers the same ground, and several UI skills together give mixed advice.
 
-## The design gate
+## The design system
 
-In Claude Code a pre edit hook blocks UI file edits until `DESIGN.md` exists, parses, has no placeholders and names a mode. The deny message says what is missing and which tool fixes it. Other agents rely on the skill text and `northstar_context`, which report the same gate. Setting `NORTHSTAR_GATE=off` opens the gate, and it is meant only for a user who asked to skip the design system.
+Writing `DESIGN.md` before UI code is a recommendation. No hook blocks an edit without it. The skill text and `northstar_context` report what is missing and which tool fixes it.
 
 ## Tools
 

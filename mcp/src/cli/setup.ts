@@ -25,7 +25,6 @@ interface Options {
   home: string;
   project: string;
   bin?: string;
-  gate: boolean;
   host: boolean;
   shell: boolean;
   extensionIds: string[];
@@ -40,7 +39,6 @@ function parse(args: string[]): Options {
     yes: false,
     home: homedir(),
     project: process.env.NORTHSTAR_ROOT ?? process.cwd(),
-    gate: true,
     host: true,
     shell: true,
     extensionIds: [],
@@ -53,7 +51,6 @@ function parse(args: string[]): Options {
       return next;
     };
     if (arg === "--all") options.all = true;
-    else if (arg === "--no-gate") options.gate = false;
     else if (arg === "--no-host") options.host = false;
     else if (arg === "--no-shell") options.shell = false;
     else if (arg === "--allow-extension") options.extensionIds.push(value());
@@ -157,7 +154,7 @@ async function confirm(question: string): Promise<boolean> {
 
 function usage(message: string, name: string): number {
   process.stderr.write(
-    `${message}\nUsage: northstar ${name} [--agent a,b | --all] [--scope user|project] [--bin path] [--no-gate] [--no-host] [--allow-extension id] [--home dir] [--project dir] [--dry-run] [--yes]\n`,
+    `${message}\nUsage: northstar ${name} [--agent a,b | --all] [--scope user|project] [--bin path] [--no-host] [--allow-extension id] [--home dir] [--project dir] [--dry-run] [--yes]\n`,
   );
   return 2;
 }

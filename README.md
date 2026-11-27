@@ -178,8 +178,8 @@ repeats, scans what it edited, and records what changed.
 **Before shipping.** `northstar-review` scores the screen from screenshots and the
 detector, and returns ranked findings without editing anything.
 
-In every case `DESIGN.md` comes first. No UI file is created or edited until it
-exists, parses and names a mode, and in Claude Code an edit hook enforces that.
+In every case `DESIGN.md` comes first. It is a recommendation, nothing blocks an edit
+without it.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

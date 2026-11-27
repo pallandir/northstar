@@ -367,17 +367,12 @@ test("the old extension id flag no longer exists", () => {
   assert.equal(env, undefined);
 });
 
-test("the gate hook is installed by default and left out with --no-gate", () => {
+test("claude gets the post edit scan hook and no design gate", () => {
   const w = world();
   install(base(w, ["claude"]));
-  const settings = () => JSON.parse(readFileSync(join(w.home, ".claude/settings.json"), "utf8"));
-  assert.ok(settings().hooks.PreToolUse);
-  install({ ...base(w, ["claude"]), gate: false });
-  assert.equal(settings().hooks.PreToolUse, undefined);
-  assert.ok(settings().hooks.PostToolUse);
-  assert.equal(entryOf(w.home, "claude")?.gate, false);
-  const dry = cli(w, "install", "--agent", "claude", "--no-gate", "--dry-run");
-  assert.equal(dry.status, 0, dry.stderr);
+  const settings = JSON.parse(readFileSync(join(w.home, ".claude/settings.json"), "utf8"));
+  assert.equal(settings.hooks.PreToolUse, undefined);
+  assert.ok(settings.hooks.PostToolUse);
 });
 
 test("the plan names the scope and an option without a value is refused", () => {

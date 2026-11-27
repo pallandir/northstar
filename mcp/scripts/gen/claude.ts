@@ -45,18 +45,6 @@ export function hooksManifest(version: string): string {
   const matcher = "Edit|Write|MultiEdit|NotebookEdit";
   return formatJson({
     hooks: {
-      PreToolUse: [
-        {
-          matcher,
-          hooks: [
-            {
-              type: "command",
-              command: hookCommand({ version }, "claude", "pre-edit"),
-              timeout: 10,
-            },
-          ],
-        },
-      ],
       PostToolUse: [
         {
           matcher,

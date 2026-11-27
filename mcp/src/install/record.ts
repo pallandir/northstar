@@ -16,7 +16,6 @@ const agentRecordSchema = z.object({
   scope: z.enum(["user", "project"]),
   project: z.string().optional(),
   bin: z.string().optional(),
-  gate: z.boolean().optional(),
   files: z.array(installedFileSchema),
 });
 

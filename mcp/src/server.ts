@@ -23,8 +23,8 @@ export type Surface = (typeof SURFACES)[number];
 
 const DESIGN_INSTRUCTIONS = `\
 Northstar is a UI design advisory framework. For any UI design, redesign, polish, adapt or review work, use the \
-northstar skill and call northstar_context first when it is listed. Write DESIGN.md before any UI code and keep \
-the gate in northstar_context open. Work library first and avoid generic AI defaults. Without the skill, read \
+northstar skill and call northstar_context first when it is listed. Writing DESIGN.md before UI code is \
+recommended, northstar_context reports its state. Work library first and avoid generic AI defaults. Without the skill, read \
 the references at northstar://canon.`;
 
 const COMMENTS_INSTRUCTIONS = `\

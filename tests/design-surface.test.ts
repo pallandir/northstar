@@ -107,5 +107,5 @@ test("the stage prompts and the instructions put DESIGN.md first", async () => {
     const body = bodyOf(await client.getPrompt({ name: verb.name, arguments: {} }));
     assert.match(body, /DESIGN\.md comes first/, verb.name);
   }
-  assert.match(client.getInstructions() ?? "", /DESIGN\.md before any UI code/);
+  assert.match(client.getInstructions() ?? "", /DESIGN\.md before UI code/);
 });

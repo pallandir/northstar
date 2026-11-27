@@ -4,6 +4,23 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- Colour parsing in the extension and the design tools uses `culori`, so CSS Color 4
+  values such as `oklch()` and `color(srgb ...)` no longer stop the comment popup.
+
+### Fixed
+
+- The Attach screenshot and Plan as a separate task switches now show their state.
+
+### Removed
+
+- The design gate. No hook blocks UI edits without `DESIGN.md` any more. Writing it first
+  is a recommendation. `NORTHSTAR_GATE` and `install --no-gate` are gone, `hook pre-edit`
+  does nothing, and installing again removes an old gate hook.
+
 ## [2.6.1] - 2026-10-02
 
 ### Fixed

@@ -40,24 +40,16 @@ const LAUNCHER = [
   "process.exit(r.status)",
 ].join("");
 
-export function hookArgv(
-  ctx: Pick<PlanContext, "launch" | "version">,
-  agent: string,
-  event: "pre-edit" | "post-edit" = "post-edit",
-): string[] {
+export function hookArgv(ctx: Pick<PlanContext, "launch" | "version">, agent: string): string[] {
   const { command, args } = launchOf(ctx);
   const target = command === "node" ? args : [command, ...args];
-  return ["node", "-e", LAUNCHER, ...target, "hook", event, "--agent", agent];
+  return ["node", "-e", LAUNCHER, ...target, "hook", "post-edit", "--agent", agent];
 }
 
 const SAFE_ARG = /^[\w@./:=+-]+$/;
 
-export function hookCommand(
-  ctx: Pick<PlanContext, "launch" | "version">,
-  agent: string,
-  event: "pre-edit" | "post-edit" = "post-edit",
-): string {
-  return hookArgv(ctx, agent, event)
+export function hookCommand(ctx: Pick<PlanContext, "launch" | "version">, agent: string): string {
+  return hookArgv(ctx, agent)
     .map((part) => (SAFE_ARG.test(part) ? part : `"${part}"`))
     .join(" ");
 }
@@ -131,16 +123,6 @@ function claude(ctx: PlanContext): AgentPlan {
     matcher: "Edit|Write|MultiEdit|NotebookEdit",
     hooks: [{ type: "command", command: hookCommand(ctx, "claude"), timeout: 20 }],
   };
-  const gate: HookEntry = {
-    matcher: "Edit|Write|MultiEdit|NotebookEdit",
-    hooks: [
-      {
-        type: "command",
-        command: hookCommand(ctx, "claude", "pre-edit"),
-        timeout: 10,
-      },
-    ],
-  };
   const ops: Op[] = [];
   if (ctx.scope === "user") {
     for (const server of SERVERS) {
@@ -200,10 +182,9 @@ function claude(ctx: PlanContext): AgentPlan {
   ops.push(
     jsonMerge(
       settings,
-      "design gate and post edit scan hooks",
+      "post edit scan hook",
       (config) => {
-        if (ctx.gate === false) removeHook(config, "PreToolUse");
-        else upsertHook(config, "PreToolUse", gate);
+        removeHook(config, "PreToolUse");
         upsertHook(config, "PostToolUse", entry);
       },
       (config) => {
