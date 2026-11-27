@@ -47,3 +47,19 @@ test("NORTHSTAR_ROOT wins over the folder, and a missing one is an error", () =>
   assert.equal(projectRoot(dir("packages"), { NORTHSTAR_ROOT: other }), other);
   assert.throws(() => projectRoot(base, { NORTHSTAR_ROOT: join(base, "gone") }), /ENOENT/);
 });
+
+test("a marker in the home folder never makes the home folder the project", () => {
+  const home = dir("home");
+  mkdirSync(join(home, ".git"));
+  writeFileSync(join(home, "package.json"), "{}");
+  const work = dir("home", "work", "site");
+  assert.equal(projectRoot(work, {}, home), work);
+  assert.equal(projectRoot(home, {}, home), home);
+});
+
+test("a repository below the home folder is still found", () => {
+  const home = dir("home");
+  mkdirSync(join(home, ".git"));
+  dir("home", "work", ".git");
+  assert.equal(projectRoot(dir("home", "work", "site", "src"), {}, home), join(home, "work"));
+});
