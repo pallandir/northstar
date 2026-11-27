@@ -231,7 +231,7 @@ test("the hook command accepts every agent name and rejects an unknown or missin
   assert.match(unknown.stderr, /unknown agent nope/);
   const missing = run("--agent");
   assert.equal(missing.status, 1);
-  assert.match(missing.stderr, /unknown agent \(none\)/);
+  assert.match(missing.stderr, /--agent.*missing/);
   const event = spawnSync(process.execPath, ["--import", "tsx", CLI_ENTRY, "hook", "bogus"], {
     input: "{}",
     encoding: "utf8",

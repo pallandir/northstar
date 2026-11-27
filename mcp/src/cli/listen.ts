@@ -1,3 +1,4 @@
+import { parseArgs } from "node:util";
 import { type TemplateId, templateLine } from "@northstar/protocol";
 import { ensureDaemon } from "../daemon/client.js";
 import { fileLogger } from "../daemon/log.js";
@@ -11,9 +12,9 @@ const DEFAULT_TIMEOUT_SECONDS = 600;
 const MAX_TIMEOUT_SECONDS = 3600;
 
 function parseTimeout(args: string[]): number {
-  const flag = args.indexOf("--timeout");
-  if (flag === -1) return DEFAULT_TIMEOUT_SECONDS;
-  const seconds = Number(args[flag + 1]);
+  const { values } = parseArgs({ args, options: { timeout: { type: "string" } }, strict: true });
+  if (values.timeout === undefined) return DEFAULT_TIMEOUT_SECONDS;
+  const seconds = Number(values.timeout);
   if (!Number.isInteger(seconds) || seconds < 1 || seconds > MAX_TIMEOUT_SECONDS) {
     throw new Error(`--timeout takes whole seconds from 1 to ${MAX_TIMEOUT_SECONDS}.`);
   }
