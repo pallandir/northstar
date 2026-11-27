@@ -12,9 +12,9 @@ Northstar is the UI and UX orchestrator, so a project needs one design skill and
 
 Four workflow skills cover the common jobs, `northstar-build`, `northstar-refine`, `northstar-finish` and `northstar-review`, and they read the same canon as this one.
 
-## The DESIGN.md gate
+## DESIGN.md
 
-Write `DESIGN.md` before creating or editing UI files, and make sure it parses, has no unfilled placeholders and names a mode. This is a recommendation, nothing blocks an edit, and it holds for every task, including a small tweak, a polish pass and a browser comment. `northstar_context` reports it in the `gate` field. Fill it with `design_md_normalize` when the designer supplied a direction, or with `design_system_propose` or `design_tokens_generate` after the questions, then fix every error from `design_md_validate`. If the user asks to skip it, log that in `design/decisions.md`.
+For new UI, a redesign or a refine, write `DESIGN.md` first and make sure it parses, has no unfilled placeholders and names a mode. It is a recommendation, nothing blocks an edit, and a small tweak, a polish pass or a browser comment never needs it. `northstar_context` reports its state in the `design` field. Fill it with `design_md_normalize` when the designer supplied a direction, or with `design_system_propose` or `design_tokens_generate` after the questions, then fix every error from `design_md_validate`. If the user asks to skip it, log that in `design/decisions.md`.
 
 ## Stages
 
@@ -78,7 +78,7 @@ The designer may supply any freeform markdown: a mood description, a brand note,
 1. Ask at most 3 questions per turn.
 2. Give each question a recommended default, so "go" is a valid answer.
 3. Never ask what the repo can answer. Read `package.json`, `components.json` and DESIGN.md first.
-4. Small edits, such as one extension comment, skip the questions but never the DESIGN.md gate.
+4. Small edits, such as one extension comment, skip the questions and do not need DESIGN.md.
 5. Append every direction changing answer to `design/decisions.md`.
 
 ## Library first

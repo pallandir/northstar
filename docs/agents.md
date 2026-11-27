@@ -15,7 +15,7 @@ It prints a plan, asks before changing anything and backs up every file it overw
 
 | Agent | MCP server | Skill | Edit hooks | Context file |
 |---|---|---|---|---|
-| Claude Code | yes | yes | a DESIGN.md gate before UI edits and a scan after edits | `CLAUDE.md` in project scope |
+| Claude Code | yes | yes | a scan after edits | `CLAUDE.md` in project scope |
 | Codex | yes | yes | a scan after edits, which Codex asks you to trust once | `AGENTS.md` |
 | Cursor | yes | yes | none, Cursor has no hook that can return feedback | an always on rule in project scope |
 | Gemini CLI | yes | yes | a scan after edits | `GEMINI.md` |

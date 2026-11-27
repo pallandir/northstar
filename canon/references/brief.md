@@ -47,7 +47,7 @@ At most 3 questions per turn, each with a recommended default. Pick the three op
 | Brand | Is there a brand to follow? Default: none, derive from the subject in Direction. |
 | Content | Is real content available? Default: draft realistic copy and mark it for review. |
 
-Small edits skip these questions, not the DESIGN.md gate. If the request is a single comment or a one line change, proceed without asking, once DESIGN.md is valid.
+Small edits skip these questions. If the request is a single comment or a one line change, proceed without asking.
 
 ## Output: PRODUCT.md
 

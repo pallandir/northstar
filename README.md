@@ -130,7 +130,7 @@ normally would.
 
 | Skill | Use it for |
 |---|---|
-| `northstar` | The core: the DESIGN.md gate, the method, the rules and every reference |
+| `northstar` | The core: the method, the rules and every reference |
 | `northstar-build` | New UI from a brief |
 | `northstar-refine` | Improving UI that already exists |
 | `northstar-finish` | The last detail pass before shipping |
@@ -178,8 +178,8 @@ repeats, scans what it edited, and records what changed.
 **Before shipping.** `northstar-review` scores the screen from screenshots and the
 detector, and returns ranked findings without editing anything.
 
-In every case `DESIGN.md` comes first. It is a recommendation, nothing blocks an edit
-without it.
+For new UI, write `DESIGN.md` first. It is a recommendation, nothing blocks an edit
+without it, and a small tweak or a browser comment never needs it.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -521,7 +521,7 @@ The design tools, by group:
 
 | Group | Tools | Purpose |
 |---|---|---|
-| core | `northstar_context` | Project state, the gate, Chrome availability and the audit loop |
+| core | `northstar_context` | Project state, what is missing, Chrome availability and the audit loop |
 | core | `canon_find`, `canon_read` | Search the canon within a token budget, read one section or the reasoning for a rule |
 | research | `design_search` | Curated styles, palettes, pairings and UX guidance as candidates, or one row in full by id |
 | system | `design_tokens_generate`, `design_system_propose` | A generated, validated `DESIGN.md` from an archetype or a short brief |
