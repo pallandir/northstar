@@ -9,6 +9,7 @@ import {
 } from "node:fs";
 import { dirname, join } from "node:path";
 import { CHROME_EXTENSION_ID, FIREFOX_EXTENSION_ID, NATIVE_HOST_NAME } from "@northstar/protocol";
+import { readIfPresent } from "../lib/fs.js";
 import { binDir, stateDir } from "../lib/home.js";
 import { EXTENSION_IDS_FILE, extraExtensionIds } from "../native/host.js";
 import { findLocalExtensionIds } from "./chrome-extensions.js";
@@ -147,15 +148,6 @@ function hostFiles(options: HostOptions): HostFile[] {
     },
   ];
   return files;
-}
-
-function readIfPresent(path: string): string | undefined {
-  try {
-    return readFileSync(path, "utf8");
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
-    throw error;
-  }
 }
 
 function writeIfChanged(label: string, path: string, content: string, mode: number): HostResult {

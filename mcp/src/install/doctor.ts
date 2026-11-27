@@ -8,6 +8,7 @@ import { VERSION } from "../config.js";
 import { connectDaemon } from "../daemon/client.js";
 import { RpcError } from "../daemon/rpc.js";
 import { validateDesign } from "../design-md/index.js";
+import { readIfPresent } from "../lib/fs.js";
 import { northstarHome } from "../lib/home.js";
 import { extraExtensionIds } from "../native/host.js";
 import { probeChrome } from "../page/browser.js";
@@ -53,19 +54,6 @@ const FIXTURE_SOURCE = `export function Landing() {
   );
 }
 `;
-
-function isMissing(err: unknown): boolean {
-  return (err as NodeJS.ErrnoException).code === "ENOENT";
-}
-
-function readIfPresent(path: string): string | undefined {
-  try {
-    return readFileSync(path, "utf8");
-  } catch (err) {
-    if (isMissing(err)) return undefined;
-    throw err;
-  }
-}
 
 function skillVersion(dir: string): string | undefined {
   const text = readIfPresent(join(dir, "SKILL.md"));

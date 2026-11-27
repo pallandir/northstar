@@ -76,7 +76,7 @@ export function optedIn(root: string, path: string): boolean {
   return existsSync(join(root, "DESIGN.md")) || hasUiAncestor(root, path);
 }
 
-export function findProjectRoot(
+export function hookProjectRoot(
   start: string,
   env: NodeJS.ProcessEnv = process.env,
 ): string | undefined {

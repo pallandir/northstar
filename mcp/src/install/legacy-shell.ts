@@ -1,5 +1,6 @@
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { readIfPresent } from "../lib/fs.js";
 import { stateRoot } from "../lib/home.js";
 import type { HostResult } from "./native-manifest.js";
 
@@ -13,15 +14,6 @@ function withoutBlock(current: string): string {
   const end = current.indexOf(END);
   if (start < 0 || end < start) return current;
   return `${current.slice(0, start)}${current.slice(end + END.length).replace(/^\n/, "")}`;
-}
-
-function readIfPresent(path: string): string | undefined {
-  try {
-    return readFileSync(path, "utf8");
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
-    throw error;
-  }
 }
 
 export function removeLegacyShell(home: string, dryRun: boolean): HostResult[] {

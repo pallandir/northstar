@@ -4,7 +4,7 @@ import {
   type HookAgent,
   type HookInput,
   feedbackText,
-  findProjectRoot,
+  hookProjectRoot,
 } from "../lib/hook-feedback.js";
 
 export function render(agent: HookAgent, text: string): string {
@@ -74,7 +74,7 @@ export async function hook(args: string[]): Promise<number> {
   try {
     const { event, agent } = parseHookArgs(args);
     const input = parseInput(await readStdin());
-    const root = findProjectRoot(input.cwd ?? process.cwd());
+    const root = hookProjectRoot(input.cwd ?? process.cwd());
     if (!root) return 0;
     if (event === "pre-edit") return 0;
     const text = feedbackText(agent, input, root);
