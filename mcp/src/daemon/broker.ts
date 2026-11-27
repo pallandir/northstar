@@ -2,6 +2,8 @@ import type { DeferralNotice, HandoffOutcome, TemplateId } from "@northstar/prot
 
 const MAX_NOTICES = 20;
 
+export type HandoffSignal = "woken" | "queued" | "already-sent";
+
 export class Broker {
   readonly startedAt = new Date().toISOString();
   readonly pid = process.pid;
@@ -14,6 +16,7 @@ export class Broker {
   private listeners = new Set<(template: TemplateId) => void>();
   private queuedTemplate: TemplateId | null = null;
   private lastListenTime = 0;
+  private deliveredVersion = -1;
 
   get currentVersion(): number {
     return this.version;
@@ -41,6 +44,7 @@ export class Broker {
     if (this.queuedTemplate) {
       const template = this.queuedTemplate;
       this.queuedTemplate = null;
+      this.deliveredVersion = this.version;
       return Promise.resolve({ template });
     }
     return new Promise((resolve) => {
@@ -59,14 +63,16 @@ export class Broker {
     });
   }
 
-  signalHandoff(template: TemplateId): boolean {
+  signalHandoff(template: TemplateId): HandoffSignal {
     const [first] = this.listeners;
     if (first) {
+      this.deliveredVersion = this.version;
       first(template);
-      return true;
+      return "woken";
     }
+    if (this.deliveredVersion === this.version) return "already-sent";
     this.queuedTemplate = template;
-    return false;
+    return "queued";
   }
 
   activeWithin(ms: number): boolean {

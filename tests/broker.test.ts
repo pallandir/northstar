@@ -70,7 +70,7 @@ test("a listen whose connection already closed leaves no waiter and the handoff 
   ]);
   assert.deepEqual(settled, { template: null });
   assert.equal(broker.listening, false);
-  assert.equal(broker.signalHandoff("resolve"), false);
+  assert.equal(broker.signalHandoff("resolve"), "queued");
   assert.deepEqual(await broker.listen(5_000, new AbortController().signal), {
     template: "resolve",
   });
@@ -78,9 +78,19 @@ test("a listen whose connection already closed leaves no waiter and the handoff 
 
 test("an already closed listen does not take a queued handoff away from the next one", async () => {
   const broker = new Broker();
-  assert.equal(broker.signalHandoff("fix"), false);
+  assert.equal(broker.signalHandoff("fix"), "queued");
   const closed = new AbortController();
   closed.abort();
   assert.deepEqual(await broker.listen(5_000, closed.signal), { template: null });
   assert.deepEqual(await broker.listen(5_000, new AbortController().signal), { template: "fix" });
+});
+
+test("a send right after a delivery is not queued again until something changes", async () => {
+  const broker = new Broker();
+  const waiting = broker.listen(5_000, new AbortController().signal);
+  assert.equal(broker.signalHandoff("resolve"), "woken");
+  await waiting;
+  assert.equal(broker.signalHandoff("resolve"), "already-sent");
+  broker.bump();
+  assert.equal(broker.signalHandoff("resolve"), "queued");
 });

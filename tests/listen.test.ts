@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, test } from "node:test";
 import { pathToFileURL } from "node:url";
@@ -98,20 +99,32 @@ test("northstar listen refuses a bad timeout with its usage", async () => {
   assert.match(listener.output().stderr, /--timeout takes whole seconds from 1 to 3600/);
 });
 
-test("northstar listen started in a subfolder waits for the project root, not the subfolder", async () => {
+async function listenerReaches(extraArgs: string[], cwdOf: (nested: string) => string) {
   mkdirSync(join(project, ".git"));
   const nested = join(project, "packages", "web");
   mkdirSync(nested, { recursive: true });
   const peer = await browser();
-  const child = spawn(process.execPath, ["--import", TSX, CLI_ENTRY, "listen", "--timeout", "10"], {
-    cwd: nested,
-    env: {
-      ...process.env,
-      NORTHSTAR_HOME: home,
-      NORTHSTAR_ROOT: undefined,
-      CLAUDE_PROJECT_DIR: undefined,
+  const child = spawn(
+    process.execPath,
+    [
+      "--import",
+      TSX,
+      CLI_ENTRY,
+      "listen",
+      "--timeout",
+      "10",
+      ...extraArgs.map((a) => a.replace("NESTED", nested)),
+    ],
+    {
+      cwd: cwdOf(nested),
+      env: {
+        ...process.env,
+        NORTHSTAR_HOME: home,
+        NORTHSTAR_ROOT: undefined,
+        CLAUDE_PROJECT_DIR: undefined,
+      },
     },
-  });
+  );
   const exited = new Promise((resolve) => child.on("close", resolve));
   let ready = false;
   for (let attempt = 0; attempt < 80 && !ready; attempt += 1) {
@@ -123,5 +136,13 @@ test("northstar listen started in a subfolder waits for the project root, not th
   }
   child.kill();
   await exited;
-  assert.equal(ready, true);
+  return ready;
+}
+
+test("northstar listen started in a subfolder waits for the project root, not the subfolder", async () => {
+  assert.equal(await listenerReaches([], (nested) => nested), true);
+});
+
+test("northstar listen --from takes the project root of that folder, whatever the working folder", async () => {
+  assert.equal(await listenerReaches(["--from", "NESTED"], () => tmpdir()), true);
 });

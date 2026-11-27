@@ -14,13 +14,14 @@ export const register: Register = (on) => {
       "listen",
       "--timeout",
       String(WINDOW_SECONDS),
+      "--from",
+      e.cwd,
     ];
 
     const listen = async (): Promise<void> => {
       try {
         const { exitCode, stdout, stderr } = await $.process.run(argv, {
           cwd: $.plugin.root,
-          env: { NORTHSTAR_ROOT: e.cwd },
           timeoutMs: (WINDOW_SECONDS + 30) * 1000,
         });
         if (exitCode !== 0)

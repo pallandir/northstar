@@ -31,6 +31,10 @@ All notable changes to this project are documented here. The format follows
   `dom-accessibility-api` for roles and accessible names, `culori` for the colour
   picker, the Web Locks API for the extension queue and `node:util` `parseArgs` for the
   command line flags. An unknown flag is now refused with its name.
+- The daemon socket is named after the protocol version and speaks JSON-RPC framing, so a
+  daemon left running by 2.6.1 never blocks the new one, and exits on its own when idle.
+- `northstar listen --from <folder>` resolves the project root from that folder. The
+  Claude Code mod passes the session folder with it.
 - The project root is the nearest folder with `.git` or `DESIGN.md`, then `package.json`,
   never your home folder or `/`, and the same root is used by the hook, the MCP server
   and `northstar listen` from any subfolder.
@@ -39,8 +43,10 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
-- Two clicks on Send to AI at the same moment hand over one line. A listener that was
-  cancelled while waiting no longer swallows the next handoff.
+- Two clicks on Send to AI hand over one line, and the second one says the assistant
+  already has the batch. A comment added after a delivery is still queued for the next
+  `northstar listen`. A listener that was cancelled while waiting no longer swallows the
+  next handoff.
 - A corrupt `~/.northstar/state/projects.json` or a root that cannot be saved stops with
   the file and the fix, and is no longer logged and ignored.
 - The comment store refuses to write through a symlinked store file or `design-shots`

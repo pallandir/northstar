@@ -241,7 +241,7 @@ test("a send needs an open comment", async () => {
   assert.match(none.message, /no open comments/);
 });
 
-test("two sends at the same moment give exactly one delivery and one honest refusal", async () => {
+test("two sends at the same moment give one delivery, one honest refusal and nothing queued twice", async () => {
   const browser = await connect();
   await mcp();
   await post(browser, [draft()]);
@@ -261,6 +261,27 @@ test("two sends at the same moment give exactly one delivery and one honest refu
       : other?.value.blocked === "busy",
   );
   assert.deepEqual(await waiting, { template: "resolve" });
+  const next = await connect();
+  assert.deepEqual(await listenOnce(next, 50), { template: null });
+});
+
+test("a comment added after a delivery is queued for the next listen", async () => {
+  const browser = await connect();
+  await mcp();
+  await post(browser, [draft()]);
+  const listener = await connect();
+  const waiting = listenOnce(listener, 8_000);
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  await request<HandoffOutcome>(browser, "handoff.send", { root: project, template: "resolve" });
+  assert.deepEqual(await waiting, { template: "resolve" });
+  await post(browser, [draft({ cid: "second" })]);
+  const busy = await request<HandoffOutcome>(browser, "handoff.send", {
+    root: project,
+    template: "fix",
+  });
+  assert.equal(busy.delivered, false);
+  const next = await connect();
+  assert.deepEqual(await listenOnce(next, 50), { template: "fix" });
 });
 
 test("an unknown project root or action is refused and creates nothing", async () => {

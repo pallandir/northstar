@@ -116,7 +116,7 @@ describe("sending a selection", () => {
     expect(call(fake.calls, "handoff.send")?.params.template).toBe("resolve");
   });
 
-  it("shows why on the toolbar badge when the agent needs the user first", async () => {
+  it("shows why on the toolbar badge when the assistant is busy", async () => {
     const stub = chromeStub();
     stub.scripting.executeScript.mockResolvedValue(page("text"));
     host({
@@ -127,16 +127,16 @@ describe("sending a selection", () => {
       }),
       "handoff.send": () => ({
         delivered: false,
-        blocked: "prompt",
-        reason: "Northstar did not write to Codex, the agent is waiting on a prompt.",
-        fix: "Answer the prompt in the agent, then click Send to AI again.",
+        blocked: "busy",
+        reason: "Your assistant is busy. The comments are saved and queued.",
+        fix: "If it stopped listening, click Copy the line and paste it again.",
         at: "now",
       }),
     });
     const { runSend } = await import("../extensions/core/src/send-menu.js");
     await runSend(tab);
     expect(stub.action.setBadgeText).toHaveBeenCalledWith({ tabId: 7, text: "!" });
-    expect(stub.action.setTitle.mock.calls[0]?.[0].title).toContain("Answer the prompt");
+    expect(stub.action.setTitle.mock.calls[0]?.[0].title).toContain("Copy the line");
   });
 
   it("reports a refused selection and a missing session with their fixes", async () => {

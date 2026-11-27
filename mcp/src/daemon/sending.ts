@@ -52,18 +52,24 @@ export class Sender {
       });
       throw new RpcError("NOT_LISTENING", reason, fix);
     }
-    const woke = broker.signalHandoff(template);
+    const signal = broker.signalHandoff(template);
     const at = new Date().toISOString();
-    const handoff: HandoffOutcome = woke
-      ? { delivered: true, at }
-      : {
-          delivered: false,
-          blocked: "busy",
-          reason:
-            "Your assistant is busy. The comments are saved and queued, it picks them up when it runs northstar listen again.",
-          fix: "If it stopped listening, click Copy the line and paste it again.",
-          at,
-        };
+    const handoff: HandoffOutcome =
+      signal === "woken"
+        ? { delivered: true, at }
+        : {
+            delivered: false,
+            blocked: "busy",
+            reason:
+              signal === "queued"
+                ? "Your assistant is busy. The comments are saved and queued, it picks them up when it runs northstar listen again."
+                : "Your assistant already has this batch and is working on it.",
+            fix:
+              signal === "queued"
+                ? "If it stopped listening, click Copy the line and paste it again."
+                : "Wait for it to finish, then click Send to AI again if you added comments.",
+            at,
+          };
     broker.recordHandoff(handoff);
     this.log(`handoff.send delivered=${handoff.delivered}`);
     return handoff;
