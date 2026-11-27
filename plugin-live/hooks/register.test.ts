@@ -13,6 +13,8 @@ test("a handoff from listen is submitted once as the fixed line, never as commen
   let runs = 0;
   on("process.run", (_, e) => {
     runs += 1;
+    expect(e.init?.env).toEqual({ NORTHSTAR_ROOT: START.cwd });
+    expect(e.init?.cwd).not.toBe(START.cwd);
     expect(e.argv).toEqual([
       "npx",
       "-y",
