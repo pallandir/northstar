@@ -48,6 +48,7 @@
     "@emnapi/core": "^1.11.3",
     "@emnapi/runtime": "^1.11.3",
     "@types/chrome": "^0.0.287",
+    "@types/culori": "^4.0.1",
     "@types/node": "^22.10.5",
     "happy-dom": "^17.6.3",
     "husky": "^9.1.7",

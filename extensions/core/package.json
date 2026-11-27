@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@material-symbols/svg-400": "^0.45.4",
-    "@northstar/protocol": "*"
+    "@northstar/protocol": "*",
+    "culori": "^4.0.2"
   }
 }

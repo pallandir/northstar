@@ -154,7 +154,7 @@ test("css color 4 forms parse", () => {
     );
   near(parseColor("hsl(0 100% 50%)"), [1, 0, 0]);
   near(parseColor("hsl(0deg 100% 50% / 0.5)"), [1, 0, 0]);
-  near(parseColor("hsl(0, 100, 50)"), [1, 0, 0]);
+  assert.equal(parseColor("hsl(0, 100, 50)"), null);
   near(parseColor("hsl(0.5turn 100% 50%)"), [0, 1, 1]);
   near(parseColor("oklch(100% 0 0)"), [1, 1, 1]);
   near(parseColor("oklch(0 none none)"), [0, 0, 0]);
