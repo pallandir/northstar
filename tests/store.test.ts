@@ -427,3 +427,13 @@ test("two store instances on one root, as the daemon and an MCP server are, see 
   assert.equal((await daemon.list()).length, 3);
   assert.equal((await server.list()).length, 3);
 });
+
+test("a symlinked store file is refused and its target is left alone", async () => {
+  const outside = join(root, "outside.txt");
+  await writeFile(outside, "[]");
+  await mkdir(join(root, ".northstar"), { recursive: true });
+  await symlink(outside, join(root, ".northstar", "design-comments.json"));
+  const store = new CommentStore(root);
+  await assert.rejects(store.add(draft()), /symbolic link/);
+  assert.equal(await readFile(outside, "utf8"), "[]");
+});

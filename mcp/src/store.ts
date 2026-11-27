@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { copyFile, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { join, relative, resolve, sep } from "node:path";
 import { DRAFT_FIX, type Rejection, pageKey } from "@northstar/protocol";
 import { lock } from "proper-lockfile";
-import writeAtomic from "write-file-atomic";
+import writeFileAtomic from "write-file-atomic";
 import { resolveInside } from "./lib/paths.js";
 import type { Comment, CommentStatus, DeferredComment, Draft, Resolution } from "./types.js";
 
@@ -332,6 +332,7 @@ export class CommentStore {
 
   private async initStoreDir(): Promise<void> {
     if (this.storeDirInitialized) return;
+    await refuseSymlink(this.storeDir);
     await mkdir(this.storeDir, { recursive: true });
     const gitignore = join(this.storeDir, ".gitignore");
     try {
@@ -349,7 +350,7 @@ export class CommentStore {
     if (!match || !extension) throw new Error("The screenshot is not a png, jpeg or webp image.");
     await mkdir(this.shotsPath, { recursive: true });
     const file = join(this.shotsPath, `${id}.${extension}`);
-    await writeAtomic(file, Buffer.from(match[2] as string, "base64"));
+    await writeNoLinks(file, Buffer.from(match[2] as string, "base64"));
     return relative(this.root, file);
   }
 
@@ -436,7 +437,7 @@ export class CommentStore {
 
   private async writeComments(comments: Comment[]): Promise<void> {
     await this.initStoreDir();
-    await writeAtomic(this.storePath, JSON.stringify(comments, null, 2));
+    await writeNoLinks(this.storePath, JSON.stringify(comments, null, 2));
     this.commentsCache = {
       signature: signatureOf(await stat(this.storePath)),
       items: comments,
@@ -445,7 +446,7 @@ export class CommentStore {
 
   private async writeDeferred(entries: DeferredComment[]): Promise<void> {
     await this.initStoreDir();
-    await writeAtomic(this.deferredPath, JSON.stringify(entries, null, 2));
+    await writeNoLinks(this.deferredPath, JSON.stringify(entries, null, 2));
     this.deferredCache = {
       signature: signatureOf(await stat(this.deferredPath)),
       items: entries,
@@ -491,4 +492,21 @@ function buildComment(
   if (draft.page) comment.page = draft.page;
   if (draft.element) comment.element = draft.element;
   return comment;
+}
+
+async function refuseSymlink(path: string): Promise<void> {
+  const info = await lstat(path).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === "ENOENT") return null;
+    throw error;
+  });
+  if (info?.isSymbolicLink()) {
+    throw new Error(
+      `${path} is a symbolic link and Northstar will not write through it. Delete the link, then try again.`,
+    );
+  }
+}
+
+async function writeNoLinks(path: string, contents: string | Buffer): Promise<void> {
+  await refuseSymlink(path);
+  await writeFileAtomic(path, contents);
 }
