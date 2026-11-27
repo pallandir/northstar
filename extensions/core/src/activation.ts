@@ -16,7 +16,7 @@ interface TabState {
   message?: string;
 }
 
-const locked = createLock();
+const locked = createLock("northstar-activation");
 
 export function logFailure(label: string, task: Promise<unknown>): void {
   task.catch((err: unknown) => console.error(`[northstar] ${label}`, err));

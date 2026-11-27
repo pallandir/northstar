@@ -1,3 +1,9 @@
+import * as workerThreads from "node:worker_threads";
+
+const { locks } = workerThreads as unknown as { locks: LockManager };
+
+Object.defineProperty(navigator, "locks", { value: locks, configurable: true });
+
 const local = new Map<string, unknown>();
 const session = new Map<string, unknown>();
 

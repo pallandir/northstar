@@ -18,14 +18,14 @@ export function buildSelector(el: Element): string {
 function testIdSelector(el: Element): string | null {
   for (const attr of ["data-testid", "data-test-id", "data-test", "data-cy"]) {
     const value = el.getAttribute(attr);
-    if (value) return `[${attr}="${cssEscape(value)}"]`;
+    if (value) return `[${attr}="${CSS.escape(value)}"]`;
   }
   return null;
 }
 
 function idSelector(el: Element): string | null {
   if (!el.id || isGeneratedClass(el.id)) return null;
-  return `#${cssEscape(el.id)}`;
+  return `#${CSS.escape(el.id)}`;
 }
 
 function scopedSelector(el: Element): string | null {
@@ -51,7 +51,7 @@ function nearestStableAncestor(el: Element): Element | null {
 function ownSelector(el: Element): string {
   const tag = el.tagName.toLowerCase();
   const classes = filteredClasses(el);
-  const withClasses = classes.length > 0 ? `${tag}.${classes.map(cssEscape).join(".")}` : tag;
+  const withClasses = classes.length > 0 ? `${tag}.${classes.map(CSS.escape).join(".")}` : tag;
   if (isUnique(withClasses, el)) return withClasses;
 
   const parent = el.parentElement;
@@ -78,9 +78,4 @@ function isUnique(selector: string, el: Element): boolean {
   } catch {
     return false;
   }
-}
-
-function cssEscape(value: string): string {
-  if (typeof CSS !== "undefined" && CSS.escape) return CSS.escape(value);
-  return value.replace(/[^a-zA-Z0-9_-]/g, (ch) => `\\${ch}`);
 }

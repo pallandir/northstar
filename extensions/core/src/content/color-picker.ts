@@ -1,3 +1,7 @@
+import { converter, formatHex } from "culori";
+
+const toHsv = converter("hsv");
+
 interface ColorPicker {
   el: HTMLElement;
   set(hex: string): void;
@@ -12,32 +16,13 @@ interface Hsv {
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
 export function hexToHsv(hex: string): Hsv {
-  const value = Number.parseInt(hex.slice(1), 16);
-  const r = ((value >> 16) & 255) / 255;
-  const g = ((value >> 8) & 255) / 255;
-  const b = (value & 255) / 255;
-  const max = Math.max(r, g, b);
-  const delta = max - Math.min(r, g, b);
-  let h = 0;
-  if (delta !== 0) {
-    if (max === r) h = ((g - b) / delta) % 6;
-    else if (max === g) h = (b - r) / delta + 2;
-    else h = (r - g) / delta + 4;
-    h = (h * 60 + 360) % 360;
-  }
-  return { h, s: max === 0 ? 0 : delta / max, v: max };
+  const color = toHsv(hex);
+  if (!color) throw new Error(`${hex} is not a colour the picker can read`);
+  return { h: color.h ?? 0, s: color.s, v: color.v };
 }
 
 export function hsvToHex({ h, s, v }: Hsv): string {
-  const f = (n: number) => {
-    const k = (n + h / 60) % 6;
-    return v - v * s * Math.max(0, Math.min(k, 4 - k, 1));
-  };
-  const channel = (n: number) =>
-    Math.round(f(n) * 255)
-      .toString(16)
-      .padStart(2, "0");
-  return `#${channel(5)}${channel(3)}${channel(1)}`;
+  return formatHex({ mode: "hsv", h, s, v });
 }
 
 export function buildColorPicker(initial: string, onChange: (hex: string) => void): ColorPicker {
