@@ -42,8 +42,9 @@ Northstar ships no Figma connector. For a design system that lives in Figma, ins
 ## Browser comments
 
 The extension reaches Northstar through the browser helper that `northstar install`
-registers, so there is nothing to pair. Start your agent with `northstar run <agent>`, or
-run `northstar shell install` once so plain `claude` and `codex` do it for you. **Send to
-AI** then writes one fixed line into that session and presses Enter, as described in the
-[README](../README.md#step-3-start-your-agent-through-northstar-and-comment). Any CLI works,
-register your own with `northstar agent add <id> <path>`.
+registers, so there is nothing to pair. **Send to AI** wakes any assistant that is
+running `northstar listen`. In Claude Code, install the `northstar-live` mod once with
+`/plugin install northstar-live --marketplace pallandir/northstar`. In any other
+assistant, choose **Copy the line** in the toolbar and paste it, as described in the
+[README](../README.md#step-3-start-your-agent-and-comment). Any assistant that can run a
+shell command works.

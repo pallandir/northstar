@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx -y @pallandir/northstar@2.6.1 hook post-edit --agent claude",
+            "command": "npx -y @pallandir/northstar@2.7.0 hook post-edit --agent claude",
             "timeout": 20
           }
         ]

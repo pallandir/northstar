@@ -6,20 +6,59 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-11-27
+
+### Added
+
+- **`northstar-live`**, an optional Claude Code mod. Install it with
+  `/plugin install northstar-live --marketplace pallandir/northstar`. It keeps
+  `northstar listen` running in the session and submits the fixed line when Send to AI is
+  clicked and the session is idle. It runs from the plugin folder, so a project `.npmrc`
+  cannot redirect the package it starts.
+
 ### Changed
 
+- Send to AI reaches every assistant the same way: the assistant runs `northstar listen`
+  (or the Claude Code mod does), or you choose **Copy the line** and paste it once. The
+  toolbar says when no listener was seen in the last five minutes and never sends a
+  second way. The native protocol is version 6, so update the extension and the package
+  together.
 - Colour parsing in the extension and the design tools uses `culori`, so CSS Color 4
   values such as `oklch()` and `color(srgb ...)` no longer stop the comment popup.
+- Hand written code that a maintained library covers is replaced: `minisearch` for the
+  design data search, `csv-parse` for the data port script, `proper-lockfile` and
+  `write-file-atomic` for the comment store, `vscode-jsonrpc` for the daemon socket,
+  `dom-accessibility-api` for roles and accessible names, `culori` for the colour
+  picker, the Web Locks API for the extension queue and `node:util` `parseArgs` for the
+  command line flags. An unknown flag is now refused with its name.
+- The project root is the nearest folder with `.git` or `DESIGN.md`, then `package.json`,
+  never your home folder or `/`, and the same root is used by the hook, the MCP server
+  and `northstar listen` from any subfolder.
+- The edit hook gives the assistant its findings as added context, and no longer reports
+  a finished edit as blocked.
 
 ### Fixed
 
+- Two clicks on Send to AI at the same moment hand over one line. A listener that was
+  cancelled while waiting no longer swallows the next handoff.
+- A corrupt `~/.northstar/state/projects.json` or a root that cannot be saved stops with
+  the file and the fix, and is no longer logged and ignored.
+- The comment store refuses to write through a symlinked store file or `design-shots`
+  folder.
 - The Attach screenshot and Plan as a separate task switches now show their state.
 
 ### Removed
 
+- **`northstar run`, `northstar sessions`, `northstar shell` and `northstar agent`**, and
+  the pseudo terminal, the shell wrapper, the session picker and the preferred agent
+  setting. `northstar install` and `uninstall` remove the old shell block from `~/.zshrc`
+  and `~/.bashrc`, and `northstar doctor` reports a leftover wrapper. `install --no-shell`
+  is gone, and a config file that still has `agents` or `preferences.preferredAgent` is
+  still read and drops them on the next save.
+- `@lydell/node-pty` and `@xterm/headless`.
 - The design gate. No hook blocks UI edits without `DESIGN.md` any more. Writing it first
-  is a recommendation. `NORTHSTAR_GATE` and `install --no-gate` are gone, `hook pre-edit`
-  does nothing, and installing again removes an old gate hook.
+  is a recommendation for new UI. `NORTHSTAR_GATE` and `install --no-gate` are gone,
+  `hook pre-edit` does nothing, and installing again removes an old gate hook.
 
 ## [2.6.1] - 2026-10-02
 

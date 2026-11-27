@@ -7,7 +7,7 @@ assistant that reads the comments and the on-disk store they share. The design
 framework is described in [the method](./method.md) and in the last section of this
 page. The extension and the assistant never talk directly. A small daemon sits in
 the middle and bridges three channels: Native Messaging on the browser side, MCP over
-stdio on the assistant side, and the pseudo terminal the assistant runs in.
+stdio on the assistant side, and `northstar listen` run by the assistant.
 
 ## Component map
 
@@ -34,10 +34,10 @@ flowchart TB
       Core --> Store
     end
 
-    subgraph Session["northstar run (one per assistant)"]
-      Wrapper["PTY owner<br/>screen + delivery checks"]
+    subgraph Session["Assistant"]
+      Listener["northstar listen<br/>waits for Send to AI"]
       Assistant["AI coding assistant<br/>(Claude Code, Codex, Gemini, any CLI)"]
-      Wrapper --- Assistant
+      Listener --- Assistant
     end
 
     Mcp["MCP server<br/>stdio, 24 tools, 9 prompts"]
@@ -45,7 +45,7 @@ flowchart TB
 
     Transport -- "Native Messaging<br/>fixed actions" --> Host
     Host -- "Unix socket" --> Core
-    Core -- "deliver one template" --> Wrapper
+    Core -- "wakes the listener" --> Listener
     Assistant --- Mcp
     Mcp --> Store
     Mcp -- "polled, notices" --> Core
@@ -82,7 +82,7 @@ neither carries its own copy of the code, so a fix lands in both builds together
 - **Transport** is the only part that talks to Northstar or touches storage. It holds
   one persistent Native Messaging port, binds a page to a project, holds the comment
   queue in extension storage, and sends the whole batch in one message on Send.
-- **Options page** sets the preferred agent, the default template and which project a
+- **Options page** sets the default template and which project a
   site belongs to, through the same port.
 
 Everything reaches the browser API through a small namespace shim, because Firefox
@@ -101,23 +101,22 @@ kept under what the browser accepts from a helper.
 `northstar daemon` is one process per user, started on demand and exiting when idle. It
 is the single source of truth for what is running.
 
-- **Registry** holds the sessions (agent, command, folder, process id, last activity)
-  and the project folders it has seen. Session metadata is written to
-  `~/.northstar/state/`, never prompts.
-- **Router** picks the session for a send: the one you named, the only one in the
-  project, the preferred agent when it is unique, otherwise it asks you to pick.
+- **Registry** holds the project folders it has seen and which assistants are connected
+  through MCP. It is written to `~/.northstar/state/`, never prompts, and a corrupt file
+  stops the daemon with the path to delete.
+- **Handoff** wakes the `northstar listen` process of the project, or refuses with
+  `NOT_LISTENING` when none was seen in the last five minutes.
 - **Broker** keeps per project state: the version, the notices for comments parked as
   needing a plan, the last poll by the assistant, and the last handoff outcome.
 - **Comment store access** reads and writes the project's `.northstar/` folder, with
   every path confined under the project root and unknown roots refused.
 
-### Session
+### Listener
 
-`northstar run <agent>` starts the assistant in a pseudo terminal that Northstar owns,
-mirrors it to your terminal, and registers it with the daemon. A headless terminal
-emulator keeps a rendered copy of the screen so the wrapper can tell a prompt from an
-idle input. It is the only place a send can write, and it holds your own keystrokes
-while it writes.
+`northstar listen` is a short command the assistant runs in the background. It asks the
+daemon to wait for the next Send to AI and prints the fixed line with the open comments
+when it comes, then exits so the assistant can act and run it again. The optional
+`northstar-live` mod for Claude Code runs it for you.
 
 ### MCP server
 
@@ -152,16 +151,16 @@ flowchart LR
     Page["Web page<br/>(untrusted)"] -. "cannot reach" .-> Host["Native host"]
     Ext["Extension<br/>(allowed origin only)"] --> Host
     Host -- "fixed actions<br/>schema checked" --> Daemon["Daemon<br/>(owner only socket)"]
-    Daemon -- "one template" --> Session["northstar run"]
-    Session -- "fixed line only" --> Assistant["Assistant"]
+    Daemon -- "wakes the listener" --> Listener["northstar listen"]
+    Listener -- "fixed line only" --> Assistant["Assistant"]
 ```
 
 Two boundaries matter. The first is between any web page you are visiting and the
 helper: a page cannot reach a Native Messaging host at all, and the host only answers
 the one extension origin and extension id it was registered for. The second is between
-the daemon and your assistant: the line written there is one of a few **fixed
+the daemon and your assistant: the line handed over is one of a few **fixed
 constants**, so nothing that arrives from the browser can influence what your assistant
-is told to do, and the only terminal it can reach is the one Northstar started. The full
+is told to do, and Northstar never writes into a terminal. The full
 model, including what this design does not defend against, is in
 [SECURITY.md](../SECURITY.md).
 

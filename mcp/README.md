@@ -37,14 +37,11 @@ installed package, so use a global install rather than `npx` for it. Other comma
 
 | Command | Purpose |
 | --- | --- |
-| `northstar install [--agent a,b] [--all] [--scope user\|project] [--bin path] [--no-host] [--allow-extension id] [--home dir] [--project dir] [--dry-run] [--yes]` | Register the server, install the five skills and the edit scan hook. `--bin` points the server and hooks at a local build, `--no-gate` leaves out the design gate hook. |
+| `northstar install [--agent a,b] [--all] [--scope user\|project] [--bin path] [--no-host] [--allow-extension id] [--home dir] [--project dir] [--dry-run] [--yes]` | Register the server, install the five skills and the edit scan hook. `--bin` points the server and hooks at a local build, |
 | `northstar uninstall [--agent a,b] [--scope user\|project]` | Remove exactly what install added and restore what it replaced, including the browser helper once no agent is left. |
-| `northstar doctor` | Check installs, assets, hooks, the browser helper, the pseudo terminal module, the daemon, the shell integration, DESIGN.md and conflicts. |
-| `northstar run <agent> [args]` | Start an agent in a session Northstar owns. Install wraps your agents so plain `claude` does this for you. Any terminal program works. |
-| `northstar sessions` | List the running sessions. |
-| `northstar agent [list\|add <id> <path>]` | List the known agents, or register your own. |
-| `northstar shell install\|uninstall [--shell zsh\|bash\|fish]` | Add or remove shell functions so plain `claude` and `codex` start through `run`. |
-| `northstar config [set preferred-agent <id> \| set template <id> \| map <site> <dir> \| unmap <site>]` | Show or change the settings in `~/.northstar/config.yaml`. |
+| `northstar doctor` | Check installs, assets, hooks, the browser helper, the daemon, leftovers of the old shell wrapper, DESIGN.md and conflicts. |
+| `northstar listen [--timeout seconds]` | Wait until Send to AI is clicked in the browser, print the fixed line and the open comments, then your assistant runs it again. |
+| `northstar config [set template <id> \| map <site> <dir> \| unmap <site>]` | Show or change the settings in `~/.northstar/config.yaml`. |
 | `northstar daemon [stop\|status]` | Run the daemon in the foreground, stop it, or show its status. |
 | `northstar init [dir]` | Scaffold `DESIGN.md`, `PRODUCT.md` and `design/decisions.md` without overwriting. |
 | `northstar detect [paths] [--diff] [--format text\|json\|sarif] [--mode m]` | Scan UI files, exit 1 on errors. |
@@ -96,12 +93,12 @@ The other design tools are `design_md_init`, `design_md_normalize`, `design_md_v
 `design_md_export`, `design_search`, `resolve_library`, `resolve_font`, `resolve_icon`,
 `critique_rubric`, `record_critique`, and the page and design tools described in the README.
 
-There is no tool to start the work and no watch mode. When the developer clicks
-**Send to AI**, the extension sends `session.send` through the native host and the
-daemon has the session write one fixed line, chosen from six templates, into the
-assistant's pseudo terminal and press Enter. The daemon then waits up to 20 seconds for
-a `list_comments` call and reports whether it came. There is no push and no channel, and
-the server declares no experimental capability.
+There is no tool to start the work. When the developer clicks **Send to AI**, the extension
+sends `handoff.send` through the native host. If an assistant is waiting in
+`northstar listen`, the daemon wakes it and it prints one fixed line, chosen from six
+templates, plus the open comments. If none is listening the extension says so and offers
+**Copy the line**. There is no push and no channel, and the server declares no
+experimental capability.
 
 ## Native messaging actions
 
@@ -113,17 +110,15 @@ field that carries a command.
 | Action | Purpose |
 | --- | --- |
 | `system.info` | Version, protocol, process id and start time of the daemon. |
-| `agent.list` | The built in and custom agents and whether each is installed. |
-| `session.list` | The running sessions with agent, folder, process id and last activity. |
-| `session.send` | `{ root, template, sessionId? }`. Route to a session and write the fixed line. Returns the handoff outcome, or `NO_SESSION`, `PICK_SESSION`, `SESSION_NOT_FOUND`, `BLOCKED`. |
+| `handoff.send` | `{ root, template }`. Wake the listener of that project with the fixed line. Returns the handoff outcome, or `NOT_LISTENING`, `BLOCKED`. |
 | `project.list` / `project.resolve` | The known project folders, and which of them owns a set of source paths or a mapped site. |
-| `status.get` | Notices, session readiness with its reason and fix, the open comment count, the last poll and the last handoff outcome. |
+| `status.get` | Notices, listener readiness with its reason and fix, the open comment count, the last poll and the last handoff outcome. |
 | `comments.list` | Stored comments for one page, `page` is required. |
 | `comments.add` | Ingest an array of drafts, each with a `cid`. Returns `{ ids, accepted, rejected }`. It never writes to the assistant. |
 | `comments.clear` | Delete the comments of a page, or all of them with `all: true`. |
 | `comments.reopen` | Reopen a resolved comment with an optional note. |
 | `notices.dismiss` | Clear a deferral notice from the toolbar. |
-| `config.get` / `config.set` | Read or change the preferred agent, the default template and the site mappings. |
+| `config.get` / `config.set` | Read or change the default template and the site mappings. |
 
 Replies are kept under 900 KB and requests under 16 MB. See
 [SECURITY.md](../SECURITY.md) for the threat model.
@@ -132,8 +127,8 @@ Replies are kept under 900 KB and requests under 16 MB. See
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `NORTHSTAR_ROOT` | `process.cwd()` | Where the store is written and DESIGN.md is read. |
-| `NORTHSTAR_HOME` | the home directory | Parent of the `.northstar` folder that holds the config, the session state, the logs and the daemon socket. Keep it short, Unix sockets allow about 100 characters. |
+| `NORTHSTAR_ROOT` | the nearest folder with `.git` or `DESIGN.md`, then `package.json`, from the working folder | Where the store is written and DESIGN.md is read. |
+| `NORTHSTAR_HOME` | the home directory | Parent of the `.northstar` folder that holds the config, the known projects, the logs and the daemon socket. Keep it short, Unix sockets allow about 100 characters. |
 
 ## Develop
 

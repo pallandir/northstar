@@ -34,14 +34,12 @@ When you use **Send selection to AI** or the keyboard shortcut, the text you sel
 the page URL and the page title are saved as a comment in that same folder, in the
 same way.
 
-Sending a batch also makes Northstar write one line into the assistant session that
-you started with `northstar run`. That line is a fixed constant: none of the data above
-is ever written to the assistant, and Northstar only reads a rendered copy of that
-session's screen, in memory, to check that the assistant is idle before writing. The
-screen is not stored.
+Sending a batch also hands your assistant one line, through `northstar listen` or the line
+you paste. That line is a fixed constant: none of the data above is ever written to the
+assistant by Northstar, and Northstar never reads your terminal.
 
 Northstar keeps a small amount of state in `~/.northstar/`: your settings, the
-sessions that are running (agent, folder and process id), and logs of events with byte
+folders of recent projects, and logs of events with byte
 counts. The logs never contain comment text, selected text or anything typed.
 
 ## Page audits and reference search
