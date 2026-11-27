@@ -69,7 +69,7 @@ beforeEach(async () => {
   });
   const agent = await connectDaemon(() => {}, null, home);
   peers.push(agent);
-  await agent.call("mcp.hello", { root: project, ancestors: [] });
+  await agent.call("mcp.hello", { root: project });
 });
 
 afterEach(async () => {
@@ -152,11 +152,11 @@ test("a request goes through the host to the daemon and the answer carries the s
 
 test("a request split across chunks and two requests in one chunk are both answered", async () => {
   const h = host();
-  const wire = encodeFrame(JSON.stringify(envelope("a", "session.list")));
+  const wire = encodeFrame(JSON.stringify(envelope("a", "project.list")));
   h.sendRaw(wire.subarray(0, 3));
   h.sendRaw(wire.subarray(3, 9));
   h.sendRaw(
-    Buffer.concat([wire.subarray(9), encodeFrame(JSON.stringify(envelope("b", "agent.list")))]),
+    Buffer.concat([wire.subarray(9), encodeFrame(JSON.stringify(envelope("b", "config.get")))]),
   );
   const replies = [await h.next(), await h.next()];
   assert.deepEqual(replies.map((r) => r.id).sort(), ["a", "b"]);
@@ -217,9 +217,9 @@ test("an envelope with extra keys, a shell string or a fake session is refused",
   assert.equal((await h.next()).code, "BAD_REQUEST");
   h.send({ ...envelope("e2", "system.info"), command: "id" });
   assert.equal((await h.next()).code, "BAD_REQUEST");
-  h.send(envelope("e3", "session.send", { root: project, template: '"; rm -rf ..."' }));
+  h.send(envelope("e3", "handoff.send", { root: project, template: '"; rm -rf ..."' }));
   assert.equal((await h.next()).code, "BAD_REQUEST");
-  h.send(envelope("e4", "session.send", { root: project, template: "resolve", sessionId: "../x" }));
+  h.send(envelope("e4", "handoff.send", { root: project, template: "resolve", sessionId: "../x" }));
   const fake = await h.next();
   assert.ok(
     fake.code === "SESSION_NOT_FOUND" || fake.code === "BAD_REQUEST" || fake.code === "NO_SESSION",

@@ -12,14 +12,10 @@ const commands: Record<string, () => Promise<Command>> = {
   install: async () => (await import("./cli/setup.js")).installCommand,
   uninstall: async () => (await import("./cli/setup.js")).uninstallCommand,
   doctor: async () => (await import("./cli/setup.js")).doctorCommand,
-  run: async () => (await import("./cli/run.js")).run,
   listen: async () => (await import("./cli/listen.js")).listen,
   daemon: async () => (await import("./cli/daemon.js")).daemonCommand,
   "native-host": async () => (await import("./cli/native-host.js")).nativeHostCommand,
-  sessions: async () => (await import("./cli/bridge.js")).sessionsCommand,
-  agent: async () => (await import("./cli/bridge.js")).agentCommand,
-  shell: async () => (await import("./cli/bridge.js")).shellCommand,
-  config: async () => (await import("./cli/bridge.js")).configCommand,
+  config: async () => (await import("./cli/config.js")).configCommand,
 };
 
 const USAGE = `northstar ${VERSION}
@@ -36,13 +32,9 @@ Commands:
   conflicts   find overlapping design skills, --remove quarantines them
   install     set Northstar up in Claude Code, Codex, Cursor, Gemini CLI and OpenCode, and register the browser helper
   uninstall   remove what install added
-  doctor      check the install, hooks, assets, browser helper and shell integration
-  run <agent> start an agent in a Northstar session so Send to AI can reach it
+  doctor      check the install, hooks, assets and browser helper
   listen      wait until Send to AI is clicked in the browser, then print what to do
-  sessions    list the running agent sessions
-  agent       list the agents Northstar knows, or add your own
-  shell       install or uninstall shell functions so claude, codex and the rest start through run
-  config      show or change the preferred agent, the template and the project mappings
+  config      show or change the template and the project mappings
   daemon      run the local daemon, or stop it or show its status
   --version   print the version`;
 

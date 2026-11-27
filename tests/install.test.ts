@@ -55,7 +55,6 @@ const doctorOptions = (w: ReturnType<typeof world>): DoctorOptions => ({
   run: w.run,
   scanHook,
   host: { node: process.execPath, script: join(w.home, "cli.js") },
-  loadPty: async () => undefined,
   probeBrowser: async () => undefined,
 });
 
@@ -502,7 +501,7 @@ test("with the Northstar plugin installed claude gets no duplicate hooks, skill 
   assert.equal(existsSync(join(w.home, ".claude/settings.json")), false);
 });
 
-test("doctor reports the browser helper, the pty module and the shell integration", async () => {
+test("doctor reports the browser helper and an old shell wrapper", async () => {
   const w = world();
   install(base(w, ["cursor"]));
   const script = join(w.home, "cli.js");
@@ -520,7 +519,6 @@ test("doctor reports the browser helper, the pty module and the shell integratio
     named(checks, "firefox native host manifest")[0]?.detail ?? "",
     /run northstar install/,
   );
-  assert.equal(named(checks, "node-pty")[0]?.status, "ok");
 
   installHost({ home: w.home, node: process.execPath, script, extensionIds: [] });
   checks = await doctor(options);
@@ -528,14 +526,11 @@ test("doctor reports the browser helper, the pty module and the shell integratio
   assert.equal(named(checks, "firefox native host manifest")[0]?.status, "ok");
   assert.equal(named(checks, "native host launcher target")[0]?.status, "ok");
 
-  checks = await doctor({
-    ...options,
-    loadPty: async () => {
-      throw new Error("no prebuild for this platform");
-    },
-  });
-  assert.equal(named(checks, "node-pty")[0]?.status, "fail");
-  assert.match(named(checks, "node-pty")[0]?.detail ?? "", /no prebuild/);
+  mkdirSync(join(w.home, ".northstar/shell"), { recursive: true });
+  writeFileSync(join(w.home, ".northstar/shell/northstar.sh"), "function claude {}\n");
+  checks = await doctor(options);
+  assert.equal(named(checks, "shell integration")[0]?.status, "warn");
+  assert.match(named(checks, "shell integration")[0]?.detail ?? "", /run northstar install/);
 });
 
 test("a missing Chrome is reported as information and never fails doctor", async () => {
@@ -596,8 +591,14 @@ test("install writes the core skill and every workflow skill, doctor reads each 
     assert.equal(existsSync(join(w.home, ".claude/skills", name)), false, name);
 });
 
-test("install wraps every agent through the shell by default and --no-shell leaves it out", () => {
-  const withShell = world();
+test("install removes an old shell wrapper and leaves the rest of the rc file alone", () => {
+  const w = world();
+  mkdirSync(join(w.home, ".northstar/shell"), { recursive: true });
+  writeFileSync(join(w.home, ".northstar/shell/northstar.sh"), "function claude {}\n");
+  writeFileSync(
+    join(w.home, ".zshrc"),
+    'export A=1\n# >>> northstar >>>\n. "x"\n# <<< northstar <<<\nexport B=2\n',
+  );
   const applied = spawnSync(
     process.execPath,
     [
@@ -609,40 +610,15 @@ test("install wraps every agent through the shell by default and --no-shell leav
       "cursor",
       "--yes",
       "--home",
-      withShell.home,
+      w.home,
       "--project",
-      withShell.project,
+      w.project,
       "--no-host",
     ],
-    { encoding: "utf8", input: "", env: { ...process.env, SHELL: "/bin/zsh" } },
+    { encoding: "utf8", input: "" },
   );
   assert.equal(applied.status, 0, applied.stderr);
-  const script = readFileSync(join(withShell.home, ".northstar/shell/northstar.sh"), "utf8");
-  for (const agent of ["claude", "codex", "gemini", "opencode"]) {
-    assert.match(script, new RegExp(`command northstar run ${agent} "\\$@"`));
-  }
-  assert.match(readFileSync(join(withShell.home, ".zshrc"), "utf8"), /northstar/);
-
-  const without = world();
-  const skipped = spawnSync(
-    process.execPath,
-    [
-      "--import",
-      "tsx",
-      CLI_ENTRY,
-      "install",
-      "--agent",
-      "cursor",
-      "--yes",
-      "--home",
-      without.home,
-      "--project",
-      without.project,
-      "--no-host",
-      "--no-shell",
-    ],
-    { encoding: "utf8", input: "", env: { ...process.env, SHELL: "/bin/zsh" } },
-  );
-  assert.equal(skipped.status, 0, skipped.stderr);
-  assert.equal(existsSync(join(without.home, ".northstar/shell/northstar.sh")), false);
+  assert.equal(existsSync(join(w.home, ".northstar/shell/northstar.sh")), false);
+  assert.equal(readFileSync(join(w.home, ".zshrc"), "utf8"), "export A=1\nexport B=2\n");
+  assert.match(applied.stdout, /northstar listen/);
 });

@@ -137,7 +137,7 @@ async function dispatch(message: Message, sender: chrome.runtime.MessageSender):
     case "flush": {
       const tab = senderTab(sender);
       requireLocal(tab, "Send to AI");
-      const { status: st, send } = await sendToAgent(tab.origin, { sessionId: message.sessionId });
+      const { status: st, send } = await sendToAgent(tab.origin);
       return { ok: true, status: st, send };
     }
     case "copy-line": {

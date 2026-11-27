@@ -70,7 +70,6 @@ function host(answers: Answers = {}, projects: unknown[] = [PROJECT]) {
   return installFakeHost((action, params) => {
     if (action === "project.list") return projects;
     if (action === "config.get") return CONFIG;
-    if (action === "agent.list") return [];
     const answer = answers[action];
     if (!answer) throw new Error(`unexpected action ${action}`);
     return answer(params);
@@ -307,7 +306,6 @@ describe("page scoping", () => {
 describe("sendToAgent", () => {
   const delivered = {
     delivered: true,
-    session: { id: "s1", agent: "claude", name: "Claude Code" },
     at: "2026-01-01T00:00:00.000Z",
   };
 
@@ -321,39 +319,36 @@ describe("sendToAgent", () => {
         return { ids: ["c-1"], accepted: [{ cid: item.cid, id: "c-1" }], rejected: [] };
       },
       "status.get": () => statusBody(open),
-      "session.send": () => delivered,
+      "handoff.send": () => delivered,
     });
     const { send, status } = await mod.sendToAgent(ORIGIN);
     expect(send.sent).toBe(1);
-    expect(send.woke).toMatchObject({ delivered: true, session: { name: "Claude Code" } });
+    expect(send.woke).toMatchObject({ delivered: true });
     expect(status.queued).toBe(0);
     const order = fake.calls
-      .filter((c) => c.action === "comments.add" || c.action === "session.send")
+      .filter((c) => c.action === "comments.add" || c.action === "handoff.send")
       .map((c) => c.action);
-    expect(order).toEqual(["comments.add", "session.send"]);
-    expect(posted(fake.calls, "session.send")[0]?.params).toMatchObject({
+    expect(order).toEqual(["comments.add", "handoff.send"]);
+    expect(posted(fake.calls, "handoff.send")[0]?.params).toMatchObject({
       root: ROOT,
       template: "resolve",
     });
   });
 
-  it("sends the chosen session and template", async () => {
+  it("sends the chosen template", async () => {
     const mod = await import("../extensions/core/src/lib/transport.js");
-    const fake = host({ "status.get": () => statusBody(2), "session.send": () => delivered });
-    await mod.sendToAgent(ORIGIN, { sessionId: "s2", template: "review" });
-    expect(posted(fake.calls, "session.send")[0]?.params).toMatchObject({
-      sessionId: "s2",
-      template: "review",
-    });
+    const fake = host({ "status.get": () => statusBody(2), "handoff.send": () => delivered });
+    await mod.sendToAgent(ORIGIN, { template: "review" });
+    expect(posted(fake.calls, "handoff.send")[0]?.params).toMatchObject({ template: "review" });
   });
 
   it("sends even when nothing is queued but comments are open", async () => {
     const mod = await import("../extensions/core/src/lib/transport.js");
-    const fake = host({ "status.get": () => statusBody(2), "session.send": () => delivered });
+    const fake = host({ "status.get": () => statusBody(2), "handoff.send": () => delivered });
     const { send } = await mod.sendToAgent(ORIGIN);
     expect(send.sent).toBe(0);
     expect(send.woke?.delivered).toBe(true);
-    expect(posted(fake.calls, "session.send")).toHaveLength(1);
+    expect(posted(fake.calls, "handoff.send")).toHaveLength(1);
   });
 
   it("sends nothing when nothing is open", async () => {
@@ -361,16 +356,15 @@ describe("sendToAgent", () => {
     const fake = host({ "status.get": () => statusBody(0) });
     const { send } = await mod.sendToAgent(ORIGIN);
     expect(send.woke).toBeNull();
-    expect(posted(fake.calls, "session.send")).toHaveLength(0);
+    expect(posted(fake.calls, "handoff.send")).toHaveLength(0);
   });
 
   it("returns a blocked delivery with the reason, the block and the fix", async () => {
     const mod = await import("../extensions/core/src/lib/transport.js");
     host({
       "status.get": () => statusBody(1),
-      "session.send": () => ({
+      "handoff.send": () => ({
         delivered: false,
-        session: { id: "s1", agent: "claude", name: "Claude Code" },
         blocked: "prompt",
         reason: "Northstar did not write to Claude Code, the agent is waiting on a prompt.",
         fix: "Answer the prompt in the agent, then click Send to AI again.",
@@ -385,7 +379,7 @@ describe("sendToAgent", () => {
     const mod = await import("../extensions/core/src/lib/transport.js");
     host({
       "status.get": () => statusBody(1),
-      "session.send": () => {
+      "handoff.send": () => {
         throw new HostFailure(
           "BLOCKED",
           "A send to the agent is already in progress.",

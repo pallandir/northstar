@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
@@ -12,12 +11,7 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import { afterEach, beforeEach, test } from "node:test";
-import type {
-  Comment,
-  HandoffOutcome,
-  PostCommentsResponse,
-  SessionInfo,
-} from "@northstar/protocol";
+import type { Comment, HandoffOutcome, PostCommentsResponse } from "@northstar/protocol";
 import { connectDaemon, ensureDaemon } from "../mcp/src/daemon/client.js";
 import { RpcError, type RpcHandler, type RpcPeer } from "../mcp/src/daemon/rpc.js";
 import { type RunningDaemon, startDaemon } from "../mcp/src/daemon/server.js";
@@ -36,12 +30,11 @@ function shortDir(prefix: string): string {
   return mkdtempSync(join("/tmp", prefix));
 }
 
-async function boot(pickupTimeoutMs = 400): Promise<RunningDaemon> {
+async function boot(): Promise<RunningDaemon> {
   return startDaemon({
     home,
     version: "9.9.9",
     log: (message) => logs.push(message),
-    pickupTimeoutMs,
     idleExitMs: 60_000,
   });
 }
@@ -81,31 +74,9 @@ async function failure(promise: Promise<unknown>): Promise<RpcError> {
   throw new Error("expected the call to fail");
 }
 
-const delivered = async () => ({ delivered: true });
-
-async function session(
-  agent: string,
-  deliver: RpcHandler = delivered,
-  extra: { cwd?: string; pid?: number } = {},
-): Promise<{ peer: RpcPeer; id: string }> {
-  const peer = await connect(async (method, params) => {
-    assert.equal(method, "session.deliver");
-    return deliver(method, params);
-  });
-  const id = randomUUID();
-  await peer.call("session.register", {
-    id,
-    agent,
-    command: `/usr/bin/${agent}`,
-    cwd: extra.cwd ?? project,
-    pid: extra.pid ?? process.pid,
-  });
-  return { peer, id };
-}
-
 async function mcp(root = project): Promise<RpcPeer> {
   const peer = await connect();
-  await peer.call("mcp.hello", { root, ancestors: [process.pid] });
+  await peer.call("mcp.hello", { root });
   return peer;
 }
 
@@ -128,43 +99,15 @@ test("a second daemon refuses to start and a stale socket file is replaced", asy
   assert.equal(info.version, "9.9.9");
 });
 
-test("a registered session is listed with its metadata and dropped when it disconnects", async () => {
-  const peer = await connect();
-  const { peer: wrapper, id } = await session("claude");
-  const [info] = await request<SessionInfo[]>(peer, "session.list");
-  assert.equal(info?.id, id);
-  assert.equal(info?.agent, "claude");
-  assert.equal(info?.cwd, project);
-  assert.ok(existsSync(join(home, ".northstar", "state", "sessions.json")));
-  wrapper.close();
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  assert.deepEqual(await request(peer, "session.list"), []);
-});
-
-test("a duplicate session id is refused", async () => {
-  const { id } = await session("claude");
-  const second = await connect();
-  const error = await failure(
-    second.call("session.register", {
-      id,
-      agent: "codex",
-      command: "/x",
-      cwd: project,
-      pid: 1,
-    }),
-  );
-  assert.equal(error.code, "BAD_REQUEST");
-});
-
-test("a send with an assistant open but no session tells the designer to copy the line", async () => {
+test("a send with an assistant open but not listening tells the designer to copy the line", async () => {
   const peer = await connect();
   await mcp();
   await post(peer, [draft()]);
   const error = await failure(
-    request(peer, "session.send", { root: project, template: "resolve" }),
+    request(peer, "handoff.send", { root: project, template: "resolve" }),
   );
-  assert.equal(error.code, "NO_SESSION");
-  assert.match(error.message, /open in this project but Northstar cannot write to it/);
+  assert.equal(error.code, "NOT_LISTENING");
+  assert.match(error.message, /open in this project but is not running northstar listen/);
   assert.match(error.fix, /Copy the line/);
 });
 
@@ -186,7 +129,7 @@ test("an assistant that is working on comments is reported as working, not as un
   assert.equal(busy.readiness.working, true);
   assert.match(busy.readiness.reason ?? "", /working on your comments/);
   const error = await failure(
-    request(peer, "session.send", { root: project, template: "resolve" }),
+    request(peer, "handoff.send", { root: project, template: "resolve" }),
   );
   assert.match(error.message, /working on your comments/);
 });
@@ -205,12 +148,11 @@ test("a listening assistant is ready, receives the send and the toolbar learns i
     root: project,
   });
   assert.equal(status.readiness.ready, true);
-  const outcome = await request<HandoffOutcome>(browser, "session.send", {
+  const outcome = await request<HandoffOutcome>(browser, "handoff.send", {
     root: project,
     template: "implement",
   });
   assert.equal(outcome.delivered, true);
-  assert.equal(outcome.session, null);
   assert.deepEqual(await waiting, { template: "implement" });
 });
 
@@ -220,7 +162,7 @@ test("a send while the assistant is between listens is queued and the next liste
   await post(browser, [draft()]);
   const first = await connect();
   assert.deepEqual(await listenOnce(first, 50), { template: null });
-  const outcome = await request<HandoffOutcome>(browser, "session.send", {
+  const outcome = await request<HandoffOutcome>(browser, "handoff.send", {
     root: project,
     template: "resolve",
   });
@@ -233,7 +175,7 @@ test("a send while the assistant is between listens is queued and the next liste
   assert.ok(Date.now() - started < 2_000);
 });
 
-test("a listener that disconnects frees the wait and a session still wins over a listener", async () => {
+test("a listener that disconnects frees the wait and the next send is queued for the next listen", async () => {
   const browser = await connect();
   await mcp();
   await post(browser, [draft()]);
@@ -242,20 +184,15 @@ test("a listener that disconnects frees the wait and a session still wins over a
   await new Promise((resolve) => setTimeout(resolve, 100));
   listener.close();
   await new Promise((resolve) => setTimeout(resolve, 100));
-  const received: unknown[] = [];
-  await session("codex", async (_method, params) => {
-    received.push(params);
-    return { delivered: true };
-  });
-  const agent = await mcp();
-  setTimeout(() => void agent.call("broker.polled", {}), 20);
-  const outcome = await request<HandoffOutcome>(browser, "session.send", {
+  const outcome = await request<HandoffOutcome>(browser, "handoff.send", {
     root: project,
     template: "fix",
   });
-  assert.equal(outcome.delivered, true);
-  assert.deepEqual(received, [{ template: "fix" }]);
+  assert.equal(outcome.delivered, false);
+  assert.equal(outcome.blocked, "busy");
   assert.equal(await waiting, null);
+  const next = await connect();
+  assert.deepEqual(await listenOnce(next, 8_000), { template: "fix" });
 });
 
 test("an assistant starting allows an unpacked extension build the helper already refuses", async () => {
@@ -288,166 +225,20 @@ test("a send with no assistant connected says to open one", async () => {
   hello.close();
   await new Promise((resolve) => setTimeout(resolve, 100));
   const error = await failure(
-    request(peer, "session.send", { root: project, template: "resolve" }),
+    request(peer, "handoff.send", { root: project, template: "resolve" }),
   );
-  assert.equal(error.code, "NO_SESSION");
+  assert.equal(error.code, "NOT_LISTENING");
   assert.match(error.message, /No AI assistant is connected/);
   assert.match(error.fix, /Open your AI assistant/);
 });
 
-test("a send with one session is delivered and confirmed by the agent reading the comments", async () => {
-  const browser = await connect();
-  const agent = await mcp();
-  const received: unknown[] = [];
-  await session("codex", async (_method, params) => {
-    received.push(params);
-    setTimeout(() => void agent.call("broker.polled", {}), 20);
-    return { delivered: true };
-  });
-  await post(browser, [draft()]);
-  const outcome = await request<HandoffOutcome>(browser, "session.send", {
-    root: project,
-    template: "implement",
-  });
-  assert.equal(outcome.delivered, true);
-  assert.equal(outcome.session?.agent, "codex");
-  assert.deepEqual(received, [{ template: "implement" }]);
-  const status = await request<{ handoff: HandoffOutcome | null }>(browser, "status.get", {
-    root: project,
-  });
-  assert.equal(status.handoff?.delivered, true);
-});
-
-test("a delivery the agent never picks up is reported as failed with a fix", async () => {
+test("a send needs an open comment", async () => {
   const browser = await connect();
   await mcp();
-  await session("codex");
-  await post(browser, [draft()]);
-  const outcome = await request<HandoffOutcome>(browser, "session.send", {
-    root: project,
-    template: "resolve",
-  });
-  assert.equal(outcome.delivered, false);
-  assert.match(outcome.reason ?? "", /did not start on the comments/);
-  assert.ok(outcome.fix);
-});
-
-test("a blocked delivery is passed on with why and how to fix it", async () => {
-  const browser = await connect();
-  await mcp();
-  await session("claude", async () => ({
-    delivered: false,
-    blocked: "prompt",
-    reason: "the agent is waiting on a prompt, Northstar will not answer it for you",
-    fix: "Answer the prompt in the agent, then click Send to AI again.",
-  }));
-  await post(browser, [draft()]);
-  const outcome = await request<HandoffOutcome>(browser, "session.send", {
-    root: project,
-    template: "resolve",
-  });
-  assert.equal(outcome.delivered, false);
-  assert.equal(outcome.blocked, "prompt");
-  assert.match(outcome.reason ?? "", /Claude Code/);
-  assert.match(outcome.fix ?? "", /Answer the prompt/);
-});
-
-test("two sessions need a pick unless one agent is preferred or a session is named", async () => {
-  const browser = await connect();
-  const agent = await mcp();
-  const claude = await session("claude", async () => {
-    setTimeout(() => void agent.call("broker.polled", {}), 20);
-    return { delivered: true };
-  });
-  const codex = await session("codex", async () => {
-    setTimeout(() => void agent.call("broker.polled", {}), 20);
-    return { delivered: true };
-  });
-  await post(browser, [draft()]);
-
-  const status = await request<{ readiness: { needsPick: boolean; sessions: SessionInfo[] } }>(
-    browser,
-    "status.get",
-    { root: project },
-  );
-  assert.equal(status.readiness.needsPick, true);
-  assert.equal(status.readiness.sessions.length, 2);
-  const pick = await failure(
-    request(browser, "session.send", { root: project, template: "resolve" }),
-  );
-  assert.equal(pick.code, "PICK_SESSION");
-
-  const named = await request<HandoffOutcome>(browser, "session.send", {
-    root: project,
-    template: "resolve",
-    sessionId: codex.id,
-  });
-  assert.equal(named.session?.agent, "codex");
-
-  await request(browser, "config.set", { preferredAgent: "claude" });
-  const preferred = await request<HandoffOutcome>(browser, "session.send", {
-    root: project,
-    template: "resolve",
-  });
-  assert.equal(preferred.session?.id, claude.id);
-
-  const missing = await failure(
-    request(browser, "session.send", {
-      root: project,
-      template: "resolve",
-      sessionId: "nope-nope-nope",
-    }),
-  );
-  assert.equal(missing.code, "SESSION_NOT_FOUND");
-});
-
-test("sessions only receive sends for their own project", async () => {
-  const other = shortDir("ns-other-");
-  try {
-    const browser = await connect();
-    await session("claude", delivered, { cwd: other });
-    await session("codex");
-    const status = await request<{ readiness: { sessions: SessionInfo[]; target: string | null } }>(
-      browser,
-      "status.get",
-      { root: project },
-    );
-    assert.deepEqual(
-      status.readiness.sessions.map((s) => s.agent),
-      ["codex"],
-    );
-    const projects = await request<Array<{ root: string }>>(browser, "project.list");
-    assert.equal(projects.length, 2);
-  } finally {
-    rmSync(other, { recursive: true, force: true });
-  }
-});
-
-test("a send needs an open comment and only one runs at a time", async () => {
-  const browser = await connect();
-  await mcp();
-  const gate: { release: () => void } = { release: () => {} };
-  await session(
-    "codex",
-    () =>
-      new Promise((resolve) => {
-        gate.release = () => resolve({ delivered: false, blocked: "busy", reason: "r", fix: "f" });
-      }),
-  );
   const none = await failure(
-    request(browser, "session.send", { root: project, template: "resolve" }),
+    request(browser, "handoff.send", { root: project, template: "resolve" }),
   );
   assert.match(none.message, /no open comments/);
-
-  await post(browser, [draft()]);
-  const first = request(browser, "session.send", { root: project, template: "resolve" });
-  await new Promise((resolve) => setTimeout(resolve, 50));
-  const second = await failure(
-    request(browser, "session.send", { root: project, template: "resolve" }),
-  );
-  assert.equal(second.code, "BLOCKED");
-  gate.release();
-  await first;
 });
 
 test("two sends at the same moment give one delivery and one refusal, and nothing is queued twice", async () => {
@@ -458,8 +249,8 @@ test("two sends at the same moment give one delivery and one refusal, and nothin
   const waiting = listenOnce(listener, 8_000);
   await new Promise((resolve) => setTimeout(resolve, 100));
   const sends = await Promise.allSettled([
-    request<HandoffOutcome>(browser, "session.send", { root: project, template: "resolve" }),
-    request<HandoffOutcome>(browser, "session.send", { root: project, template: "resolve" }),
+    request<HandoffOutcome>(browser, "handoff.send", { root: project, template: "resolve" }),
+    request<HandoffOutcome>(browser, "handoff.send", { root: project, template: "resolve" }),
   ]);
   const refused = sends.filter((s) => s.status === "rejected");
   assert.equal(refused.length, 1);
@@ -483,7 +274,7 @@ test("an unknown project root or action is refused and creates nothing", async (
     const method = await failure(peer.call("exec", { command: "id" }));
     assert.equal(method.code, "UNSUPPORTED_ACTION");
     const shape = await failure(
-      request(peer, "session.send", { root: project, template: "rm -rf /" }),
+      request(peer, "handoff.send", { root: project, template: "rm -rf /" }),
     );
     assert.equal(shape.code, "BAD_REQUEST");
   } finally {
@@ -658,18 +449,10 @@ test("a mapped page resolves to its project directory", async () => {
 
 test("config round trips and an invalid file fails loudly with its path", async () => {
   const peer = await connect();
-  const set = await request<{ preferredAgent: string | null; template: string }>(
-    peer,
-    "config.set",
-    {
-      preferredAgent: "codex",
-      template: "fix",
-    },
-  );
-  assert.equal(set.preferredAgent, "codex");
+  const set = await request<{ template: string }>(peer, "config.set", { template: "fix" });
   assert.equal(set.template, "fix");
   const text = readFileSync(join(home, ".northstar", "config.yaml"), "utf8");
-  assert.match(text, /preferredAgent: codex/);
+  assert.match(text, /template: fix/);
   writeFileSync(join(home, ".northstar", "config.yaml"), "preferences:\n  template: nope\n");
   const error = await failure(request(peer, "config.get"));
   assert.equal(error.code, "BAD_REQUEST");

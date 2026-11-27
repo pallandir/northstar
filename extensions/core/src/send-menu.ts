@@ -119,7 +119,7 @@ async function sendSelection(
       "input",
     );
   }
-  return callProject<HandoffOutcome>(link, "session.send", { template });
+  return callProject<HandoffOutcome>(link, "handoff.send", { template });
 }
 
 async function sendPage(url: string, template: TemplateId): Promise<HandoffOutcome> {
@@ -173,7 +173,7 @@ export async function runSend(
   try {
     const outcome = await sendFromTab(tab, template);
     if (outcome.delivered) {
-      await report(tabId, "✓", `Northstar\nSent to ${outcome.session?.name ?? "your agent"}`);
+      await report(tabId, "✓", "Northstar\nSent to your assistant");
     } else {
       await report(
         tabId,

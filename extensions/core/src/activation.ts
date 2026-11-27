@@ -94,12 +94,7 @@ function statusLine(url: string | undefined, status: QueueStatus): string {
       if (status.problem) return `${status.problem.error} ${status.problem.fix}`;
       const readiness = status.readiness;
       if (!readiness) return "Connected, waiting for the agent status.";
-      if (readiness.needsPick)
-        return "Ready. Pick the session to send to in the Northstar toolbar.";
-      if (readiness.ready) {
-        const target = readiness.sessions.find((s) => s.id === readiness.target);
-        return `Ready. Send to AI reaches your ${target?.name ?? "agent"} session.`;
-      }
+      if (readiness.ready) return "Ready. Your AI assistant is listening for Send to AI.";
       return `Connected, but Send to AI is off. ${readiness.reason ?? ""} ${readiness.fix ?? ""}`.trim();
     }
   }

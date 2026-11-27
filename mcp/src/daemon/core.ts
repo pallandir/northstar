@@ -1,61 +1,37 @@
-import { randomUUID } from "node:crypto";
 import type { Socket } from "node:net";
 import {
   ACTIONS,
   type DeferralNotice,
   type NativeAction,
   PROTOCOL_VERSION,
-  type SessionInfo,
   type SystemInfo,
   type UserConfig,
   actionParams,
 } from "@northstar/protocol";
 import { z } from "zod";
-import { describeAgents, mergeAgents } from "../agents/definitions.js";
 import { allowLocalExtensions } from "../install/native-manifest.js";
-import { userPath } from "../lib/user-path.js";
-import type { DeliverOutcome } from "../pty/deliver.js";
 import { loadSettings, updateSettings } from "../user-config.js";
 import { ConfigError } from "../user-config.js";
 import { CommentActions } from "./comments.js";
-import { type SessionHandle, canonicalRoot } from "./registry.js";
+import { canonicalRoot } from "./registry.js";
 import { RpcError, RpcPeer, badRequest } from "./rpc.js";
 import { Sender } from "./sending.js";
 import { Workspace } from "./workspace.js";
-
-const SESSION_ID = /^[A-Za-z0-9-]{8,64}$/;
 
 interface DaemonOptions {
   home: string;
   version: string;
   log: (message: string) => void;
   onShutdown: () => void;
-  pickupTimeoutMs?: number;
 }
 
 interface PeerContext {
-  sessionIds: Set<string>;
   mcpRoot: string | null;
   releaseAssistant: (() => void) | null;
   aborts: AbortController;
 }
 
-const registerParams = z
-  .object({
-    id: z.string().regex(SESSION_ID).optional(),
-    agent: z.string().min(1).max(64),
-    command: z.string().min(1).max(4096),
-    cwd: z.string().min(1).max(4096),
-    pid: z.number().int().positive(),
-  })
-  .strict();
-
-const helloParams = z
-  .object({
-    root: z.string().min(1).max(4096),
-    ancestors: z.array(z.number().int().positive()).max(32),
-  })
-  .strict();
+const helloParams = z.object({ root: z.string().min(1).max(4096) }).strict();
 
 const noticeParams = z
   .object({
@@ -69,8 +45,6 @@ const noticeParams = z
 const listenParams = z
   .object({ root: z.string().min(1).max(4096), timeoutMs: z.number().int().min(1).max(3_600_000) })
   .strict();
-
-const activityParams = z.object({ id: z.string().regex(SESSION_ID) }).strict();
 
 const requestParams = z
   .object({ action: z.string().max(64), params: z.unknown().optional() })
@@ -114,7 +88,7 @@ export class Daemon {
   constructor(private readonly options: DaemonOptions) {
     this.workspace = new Workspace(options.home, options.log);
     this.comments = new CommentActions(this.workspace, options.log);
-    this.sender = new Sender(this.workspace, options, options.log);
+    this.sender = new Sender(this.workspace, options.log);
   }
 
   get peerCount(): number {
@@ -123,14 +97,13 @@ export class Daemon {
 
   attach(socket: Socket): RpcPeer {
     const context: PeerContext = {
-      sessionIds: new Set(),
       mcpRoot: null,
       releaseAssistant: null,
       aborts: new AbortController(),
     };
     const peer: RpcPeer = new RpcPeer(
       socket,
-      (method, params) => this.dispatch(peer, context, method, params),
+      (method, params) => this.dispatch(context, method, params),
       this.options.log,
     );
     this.peers.add(peer);
@@ -138,31 +111,15 @@ export class Daemon {
       this.peers.delete(peer);
       context.releaseAssistant?.();
       context.aborts.abort();
-      for (const id of context.sessionIds) {
-        this.workspace.registry.remove(id);
-        this.options.log(`session.closed session=${id}`);
-      }
     });
     return peer;
   }
 
-  private async dispatch(
-    peer: RpcPeer,
-    context: PeerContext,
-    method: string,
-    params: unknown,
-  ): Promise<unknown> {
+  private async dispatch(context: PeerContext, method: string, params: unknown): Promise<unknown> {
     switch (method) {
       case "request": {
         const { action, params: inner } = parseInternal(requestParams, method, params);
         return this.request(action, inner);
-      }
-      case "session.register":
-        return this.registerSession(peer, context, parseInternal(registerParams, method, params));
-      case "session.activity": {
-        const { id } = parseInternal(activityParams, method, params);
-        if (context.sessionIds.has(id)) this.workspace.registry.touch(id);
-        return {};
       }
       case "mcp.hello":
         return this.hello(context, parseInternal(helloParams, method, params));
@@ -205,52 +162,6 @@ export class Daemon {
     return this.workspace.broker(context.mcpRoot);
   }
 
-  private registerSession(
-    peer: RpcPeer,
-    context: PeerContext,
-    params: z.infer<typeof registerParams>,
-  ): { id: string; version: string; protocol: number } {
-    const id = params.id ?? randomUUID();
-    if (this.workspace.registry.get(id)) {
-      throw badRequest(
-        `A session with id ${id} is already registered.`,
-        "Start the agent again through northstar run.",
-      );
-    }
-    let root: string;
-    try {
-      root = canonicalRoot(params.cwd);
-    } catch (error) {
-      throw badRequest(
-        `The working directory ${params.cwd} cannot be read: ${(error as Error).message}.`,
-        "Run northstar run from an existing project directory.",
-      );
-    }
-    const settings = loadSettings(this.options.home);
-    const definition = mergeAgents(settings.agents).find((a) => a.id === params.agent);
-    const now = new Date().toISOString();
-    const info: SessionInfo = {
-      id,
-      agent: params.agent,
-      name: definition?.name ?? params.agent,
-      command: params.command,
-      cwd: params.cwd,
-      root,
-      pid: params.pid,
-      createdAt: now,
-      lastActivityAt: now,
-    };
-    const handle: SessionHandle = {
-      info,
-      deliver: async (template) =>
-        (await peer.call("session.deliver", { template })) as DeliverOutcome,
-    };
-    this.workspace.registry.add(handle);
-    context.sessionIds.add(id);
-    this.options.log(`session.created session=${id} agent=${params.agent} pid=${params.pid}`);
-    return { id, version: this.options.version, protocol: PROTOCOL_VERSION };
-  }
-
   private listenRoot(root: string): string {
     let canonical: string;
     try {
@@ -265,10 +176,7 @@ export class Daemon {
     return canonical;
   }
 
-  private hello(
-    context: PeerContext,
-    params: z.infer<typeof helloParams>,
-  ): { session: string | null } {
+  private hello(context: PeerContext, params: z.infer<typeof helloParams>): Record<string, never> {
     let root: string;
     try {
       root = canonicalRoot(params.root);
@@ -283,9 +191,8 @@ export class Daemon {
     context.releaseAssistant = this.workspace.registry.attachAssistant(root);
     context.mcpRoot = root;
     this.workspace.registry.rememberRoot(root);
-    const bound = this.workspace.registry.bindRoot(params.ancestors, root);
-    this.options.log(`mcp.hello root=${root} session=${bound?.id ?? "none"}`);
-    return { session: bound?.id ?? null };
+    this.options.log(`mcp.hello root=${root}`);
+    return {};
   }
 
   async request(action: string, params: unknown): Promise<unknown> {
@@ -321,12 +228,6 @@ export class Daemon {
           pid: process.pid,
           startedAt: this.startedAt,
         } satisfies SystemInfo;
-      case "agent.list":
-        parseParams("agent.list", params);
-        return describeAgents(mergeAgents(loadSettings(home).agents), userPath(home));
-      case "session.list":
-        parseParams("session.list", params);
-        return this.workspace.registry.list();
       case "project.list":
         parseParams("project.list", params);
         return this.workspace.projects();
@@ -334,8 +235,8 @@ export class Daemon {
         return this.workspace.resolveProject(parseParams("project.resolve", params));
       case "status.get":
         return this.comments.status(parseParams("status.get", params));
-      case "session.send":
-        return this.sender.send(parseParams("session.send", params));
+      case "handoff.send":
+        return this.sender.send(parseParams("handoff.send", params));
       case "comments.list":
         return this.comments.list(parseParams("comments.list", params));
       case "comments.add":
@@ -359,7 +260,6 @@ export class Daemon {
   private config(): UserConfig {
     const settings = loadSettings(this.options.home);
     return {
-      preferredAgent: settings.preferredAgent,
       template: settings.template,
       projects: settings.projects,
     };

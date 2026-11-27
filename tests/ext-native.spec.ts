@@ -40,10 +40,10 @@ describe("the native port", () => {
     const { request } = await import("../extensions/core/src/lib/native.js");
     const answers = await Promise.all([
       request("system.info"),
-      request("agent.list"),
-      request("session.list"),
+      request("project.list"),
+      request("config.get"),
     ]);
-    expect(answers).toEqual(["system.info", "agent.list", "session.list"]);
+    expect(answers).toEqual(["system.info", "project.list", "config.get"]);
     expect(fake.connections).toBe(1);
   });
 
@@ -52,7 +52,7 @@ describe("the native port", () => {
       if (action === "system.info") {
         throw new HostFailure("DAEMON_UNAVAILABLE", "The daemon is down.", "Run northstar daemon.");
       }
-      if (action === "agent.list") {
+      if (action === "project.list") {
         throw new HostFailure("VERSION_MISMATCH", "Versions differ.", "Update the extension.");
       }
       throw new HostFailure("BAD_REQUEST", "Bad.", "Fix it.");
@@ -63,8 +63,8 @@ describe("the native port", () => {
       kind: "offline",
       fix: "Run northstar daemon.",
     });
-    await expect(request("agent.list")).rejects.toMatchObject({ kind: "mismatch" });
-    await expect(request("session.list")).rejects.toMatchObject({
+    await expect(request("project.list")).rejects.toMatchObject({ kind: "mismatch" });
+    await expect(request("config.get")).rejects.toMatchObject({
       kind: "api",
       code: "BAD_REQUEST",
     });
@@ -97,10 +97,10 @@ describe("the native port", () => {
     const fake = installFakeHost(() => "ok");
     const { request } = await import("../extensions/core/src/lib/native.js");
     await expect(request("system.info")).resolves.toBe("ok");
-    const stuck = request("agent.list", {}, 5_000);
+    const stuck = request("project.list", {}, 5_000);
     fake.disconnect("Native host has exited.");
     await expect(stuck).rejects.toMatchObject({ code: "HELPER_STOPPED" });
-    await expect(request("session.list")).resolves.toBe("ok");
+    await expect(request("config.get")).resolves.toBe("ok");
     expect(fake.connections).toBe(2);
   });
 

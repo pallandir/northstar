@@ -98,12 +98,7 @@ interface StatusBody {
 }
 
 function parseReadiness(value: unknown): Readiness {
-  if (
-    !isRecord(value) ||
-    typeof value.ready !== "boolean" ||
-    !Array.isArray(value.sessions) ||
-    typeof value.needsPick !== "boolean"
-  ) {
+  if (!isRecord(value) || typeof value.ready !== "boolean") {
     throw unreadable("status");
   }
   return value as unknown as Readiness;
@@ -342,7 +337,6 @@ async function flushQueue(origin: string): Promise<FlushResult> {
 }
 
 interface SendOptions {
-  sessionId?: string;
   template?: TemplateId;
 }
 
@@ -361,8 +355,6 @@ export async function sendToAgent(
   }
   const link = requireConnected(await resolveLink(origin));
   const template = await templateFor(options);
-  const woke = parseHandoff(
-    await callProject(link, "session.send", { template, sessionId: options.sessionId }),
-  );
+  const woke = parseHandoff(await callProject(link, "handoff.send", { template }));
   return { status: await status(origin), send: { ...flushed.send, woke } };
 }

@@ -1,5 +1,4 @@
 import type { DeferralNotice } from "@northstar/protocol";
-import { ancestorPids } from "../pty/ancestors.js";
 import { ensureDaemon } from "./client.js";
 import type { RpcPeer } from "./rpc.js";
 
@@ -18,7 +17,6 @@ interface DaemonLinkOptions {
   home?: string;
   log: (message: string) => void;
   connect?: typeof ensureDaemon;
-  ancestors?: () => Promise<number[]>;
 }
 
 export class DaemonLink implements BrokerLink {
@@ -26,7 +24,6 @@ export class DaemonLink implements BrokerLink {
   private connecting: Promise<RpcPeer | null> | null = null;
   private failedAt = 0;
   private current: BridgeStatus = { state: "off", error: "the daemon link has not started yet" };
-  private ancestorList: number[] | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
 
   constructor(private readonly options: DaemonLinkOptions) {}
@@ -82,20 +79,13 @@ export class DaemonLink implements BrokerLink {
     const connect = this.options.connect ?? ensureDaemon;
     try {
       const peer = await connect(this.options.log, null, this.options.home);
-      this.ancestorList ??= await (this.options.ancestors ?? (() => ancestorPids()))();
-      const hello = await peer.call<{ session: string | null }>("mcp.hello", {
-        root: this.options.root,
-        ancestors: this.ancestorList,
-      });
+      await peer.call("mcp.hello", { root: this.options.root });
       peer.onClose(() => {
         this.current = { state: "off", error: "the Northstar daemon closed the connection" };
         this.scheduleReconnect();
       });
       this.peer = peer;
       this.current = { state: "on" };
-      if (hello.session === null) {
-        this.options.log(UNWRAPPED_AGENT);
-      }
       return peer;
     } catch (error) {
       this.failedAt = Date.now();
@@ -109,6 +99,3 @@ export class DaemonLink implements BrokerLink {
     }
   }
 }
-
-const UNWRAPPED_AGENT =
-  "Northstar cannot type into this assistant, so Send to AI offers Copy the line in the toolbar instead.";

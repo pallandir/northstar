@@ -56,22 +56,8 @@ test("pendingNotices hands out a copy, not the live array", () => {
 test("the last handoff outcome is remembered", () => {
   const broker = new Broker();
   assert.equal(broker.lastHandoff === null, true);
-  broker.recordHandoff({
-    delivered: true,
-    session: { id: "s1", agent: "codex", name: "Codex" },
-    at: "now",
-  });
-  assert.equal(broker.lastHandoff?.session?.agent, "codex");
-});
-
-test("waitForPoll resolves true on a poll after the mark and false on timeout", async () => {
-  const broker = new Broker();
-  const since = Date.now();
-  const waiting = broker.waitForPoll(since, 1000);
-  broker.markPolled();
-  assert.equal(await waiting, true);
-  assert.equal(await broker.waitForPoll(since, 1000), true);
-  assert.equal(await broker.waitForPoll(Date.now() + 60_000, 30), false);
+  broker.recordHandoff({ delivered: true, at: "now" });
+  assert.equal(broker.lastHandoff?.delivered, true);
 });
 
 test("a listen whose connection already closed leaves no waiter and the handoff stays queued", async () => {

@@ -98,12 +98,7 @@ export class Workspace {
   }
 
   projects(): ProjectInfo[] {
-    const sessions = this.registry.list();
-    return this.allRoots().map((root) => ({
-      root,
-      name: projectName(root),
-      sessions: sessions.filter((s) => s.root === root).length,
-    }));
+    return this.allRoots().map((root) => ({ root, name: projectName(root) }));
   }
 
   async resolveProject(

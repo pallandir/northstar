@@ -89,7 +89,7 @@ export type Message =
       planFirst?: boolean;
       screenshotDataUrl?: string | null;
     }
-  | { type: "flush"; sessionId?: string }
+  | { type: "flush" }
   | { type: "copy-line" }
   | { type: "report-sources"; paths: string[] }
   | { type: "dismiss-notice"; commentId: string }
@@ -176,14 +176,8 @@ export function parseMessage(raw: unknown): Message {
     case "clear-all":
     case "queue-status":
     case "copy-line":
+    case "flush":
       return { type: raw.type };
-    case "flush": {
-      const sessionId = raw.sessionId;
-      if (sessionId !== undefined && typeof sessionId !== "string") {
-        throw invalid("sessionId must be a string");
-      }
-      return { type: "flush", sessionId };
-    }
     case "report-sources": {
       const paths = raw.paths;
       if (!Array.isArray(paths) || !paths.every((p) => typeof p === "string")) {

@@ -1,4 +1,4 @@
-export const PROTOCOL_VERSION = 5;
+export const PROTOCOL_VERSION = 6;
 export const NATIVE_HOST_NAME = "com.northstar.bridge";
 export const CHROME_EXTENSION_ID = "mmpgoabhnlkcgboiiaebeahcbbeeaggb";
 export const FIREFOX_EXTENSION_ID = "northstar@pallandir.dev";

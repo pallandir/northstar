@@ -51,7 +51,7 @@ function runListen(...args: string[]) {
 async function browser(): Promise<RpcPeer> {
   const peer = await connectDaemon(() => {}, null, home);
   peers.push(peer);
-  await peer.call("mcp.hello", { root: project, ancestors: [] });
+  await peer.call("mcp.hello", { root: project });
   return peer;
 }
 
@@ -72,7 +72,7 @@ test("northstar listen blocks until Send to AI, prints the line and the open com
     if (status.readiness.ready) break;
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  const outcome = await request<HandoffOutcome>(peer, "session.send", {
+  const outcome = await request<HandoffOutcome>(peer, "handoff.send", {
     root: project,
     template: "resolve",
   });

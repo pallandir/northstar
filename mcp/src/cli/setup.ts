@@ -3,19 +3,16 @@ import { existsSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
-import { mergeAgents } from "../agents/definitions.js";
 import { findLocalExtensionIds } from "../install/chrome-extensions.js";
 import { doctor } from "../install/doctor.js";
 import { type InstallOutcome, type OpResult, install, uninstall } from "../install/install.js";
+import { removeLegacyShell } from "../install/legacy-shell.js";
 import { type HostResult, installHost, uninstallHost } from "../install/native-manifest.js";
 import { AGENT_NAMES, type AgentName, type Scope } from "../install/plans/index.js";
 import { northstarPluginInstalled } from "../install/plugin.js";
 import { readRecord } from "../install/record.js";
-import { type Shell, detectShell, installShell, uninstallShell } from "../install/shell.js";
 import { feedbackText } from "../lib/hook-feedback.js";
 import { projectRoot } from "../lib/paths.js";
-import { recordUserPath } from "../lib/user-path.js";
-import { loadSettings } from "../user-config.js";
 
 interface Options {
   agents: AgentName[];
@@ -27,7 +24,6 @@ interface Options {
   project: string;
   bin?: string;
   host: boolean;
-  shell: boolean;
   extensionIds: string[];
 }
 
@@ -41,7 +37,6 @@ function parse(args: string[]): Options {
     home: homedir(),
     project: projectRoot(),
     host: true,
-    shell: true,
     extensionIds: [],
   };
   for (let i = 0; i < args.length; i++) {
@@ -53,7 +48,6 @@ function parse(args: string[]): Options {
     };
     if (arg === "--all") options.all = true;
     else if (arg === "--no-host") options.host = false;
-    else if (arg === "--no-shell") options.shell = false;
     else if (arg === "--allow-extension") options.extensionIds.push(value());
     else if (arg === "--dry-run") options.dryRun = true;
     else if (arg === "--yes") options.yes = true;
@@ -105,23 +99,6 @@ function installBrowserHost(options: Options, dryRun: boolean): HostResult[] {
     node: process.execPath,
     script: real,
     extensionIds: [...new Set([...options.extensionIds, ...findLocalExtensionIds(options.home)])],
-    dryRun,
-  });
-}
-
-function installShellIntegration(options: Options, dryRun: boolean): HostResult[] {
-  let shell: Shell;
-  try {
-    shell = detectShell();
-  } catch (error) {
-    throw new Error(
-      `${(error as Error).message} Northstar wraps your agents through the shell so Send to AI can write to them. Pass --no-shell to skip it.`,
-    );
-  }
-  return installShell({
-    home: options.home,
-    shell,
-    agents: mergeAgents(loadSettings(options.home).agents).map((a) => a.id),
     dryRun,
   });
 }
@@ -196,7 +173,7 @@ export async function installCommand(args: string[]): Promise<number> {
   try {
     preview = install({ ...request, dryRun: true, run });
     if (options.host) hostPreview = installBrowserHost(options, true);
-    if (options.shell) hostPreview = [...hostPreview, ...installShellIntegration(options, true)];
+    hostPreview = [...hostPreview, ...removeLegacyShell(options.home, true)];
   } catch (err) {
     return failure(err);
   }
@@ -224,19 +201,16 @@ export async function installCommand(args: string[]): Promise<number> {
   try {
     outcome = install({ ...request, dryRun: false, run });
     if (options.host) applied = installBrowserHost(options, false);
-    if (options.shell) applied = [...applied, ...installShellIntegration(options, false)];
-    recordUserPath(options.home);
+    applied = [...applied, ...removeLegacyShell(options.home, false)];
   } catch (err) {
     return failure(err);
   }
   process.stdout.write("\n");
   print(outcome);
   printHost(applied);
-  if (options.shell && !options.dryRun) {
-    process.stdout.write(
-      "\nOpen a new terminal tab and start your AI assistant as usual. Comments from the browser will reach it.\n",
-    );
-  }
+  process.stdout.write(
+    "\nTo get browser comments into your assistant, click Send to AI while it runs northstar listen in the background, or click Copy the line and paste it.\n",
+  );
   return outcome.results.some((r) => r.status === "failed") ? 1 : 0;
 }
 
@@ -270,13 +244,8 @@ export async function uninstallCommand(args: string[]): Promise<number> {
     });
     if (options.host && remaining.length === 0) {
       removed = uninstallHost({ home: options.home, dryRun: options.dryRun });
-      if (options.shell) {
-        removed = [
-          ...removed,
-          ...uninstallShell({ home: options.home, shell: detectShell(), dryRun: options.dryRun }),
-        ];
-      }
     }
+    removed = [...removed, ...removeLegacyShell(options.home, options.dryRun)];
   } catch (err) {
     return failure(err);
   }

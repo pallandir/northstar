@@ -14,11 +14,11 @@ import { probeChrome } from "../page/browser.js";
 import { findLocalExtensionIds } from "./chrome-extensions.js";
 import { type Runner, findConflicts } from "./conflicts.js";
 import { contextForRecord } from "./install.js";
+import { removeLegacyShell } from "./legacy-shell.js";
 import { checkHost } from "./native-manifest.js";
 import { planAgent } from "./plans/index.js";
 import { northstarPluginInstalled } from "./plugin.js";
 import { readRecord } from "./record.js";
-import { detectShell, shellInstalled } from "./shell.js";
 
 interface Check {
   name: string;
@@ -38,7 +38,6 @@ export interface DoctorOptions {
   run: Runner;
   scanHook: (input: HookProbeInput) => string | undefined;
   host?: { node: string; script: string };
-  loadPty?: () => Promise<unknown>;
   probeBrowser?: () => Promise<void>;
 }
 
@@ -233,17 +232,6 @@ export async function doctor(options: DoctorOptions): Promise<Check[]> {
   }
 
   try {
-    await (options.loadPty ?? (() => import("@lydell/node-pty")))();
-    add("node-pty", "ok", "the pseudo terminal module loads");
-  } catch (err) {
-    add(
-      "node-pty",
-      "fail",
-      `the pseudo terminal module did not load: ${(err as Error).message}. Reinstall Northstar with npm install -g @pallandir/northstar`,
-    );
-  }
-
-  try {
     await (options.probeBrowser ?? probeChrome)();
     add(
       "chrome",
@@ -272,26 +260,18 @@ export async function doctor(options: DoctorOptions): Promise<Check[]> {
     }
   } catch (err) {
     if (err instanceof RpcError) {
-      add("daemon", "ok", "not running, it starts on demand when you run an agent");
+      add("daemon", "ok", "not running, it starts on demand when the browser or an agent needs it");
     } else {
       add("daemon", "fail", (err as Error).message);
     }
   }
 
-  let shell: ReturnType<typeof detectShell> | null = null;
-  try {
-    shell = detectShell();
-  } catch (err) {
-    add("shell integration", "warn", (err as Error).message);
-  }
-  if (shell) {
-    const installed = shellInstalled(options.home, shell);
+  const legacyShell = removeLegacyShell(options.home, true);
+  if (legacyShell.length) {
     add(
       "shell integration",
-      installed ? "ok" : "warn",
-      installed
-        ? `${shell} starts agents through northstar run`
-        : `not installed for ${shell}, run northstar shell install`,
+      "warn",
+      `an old northstar shell wrapper is still installed (${legacyShell.map((r) => r.target).join(", ")}), run northstar install to remove it`,
     );
   }
 
