@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { copyFile, mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
-import { dirname, join, relative, resolve, sep } from "node:path";
+import { copyFile, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { join, relative, resolve, sep } from "node:path";
 import { DRAFT_FIX, type Rejection, pageKey } from "@northstar/protocol";
+import { lock } from "proper-lockfile";
+import writeAtomic from "write-file-atomic";
 import { resolveInside } from "./lib/paths.js";
 import type { Comment, CommentStatus, DeferredComment, Draft, Resolution } from "./types.js";
 
@@ -38,8 +40,6 @@ interface Snapshot<T> {
   signature: string;
   items: T[];
 }
-
-const sleep = (ms: number) => new Promise((done) => setTimeout(done, ms));
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -296,36 +296,37 @@ export class CommentStore {
 
   private async withFileLock<T>(fn: () => Promise<T>): Promise<T> {
     await this.initStoreDir();
-    const deadline = Date.now() + LOCK_TIMEOUT_MS;
-    for (;;) {
-      try {
-        await mkdir(this.lockPath);
-        break;
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
-      }
-      const held = await stat(this.lockPath).then(
-        (info) => info,
-        (error: NodeJS.ErrnoException) => {
-          if (error.code === "ENOENT") return null;
-          throw error;
+    let compromised: Error | undefined;
+    let release: () => Promise<void>;
+    try {
+      release = await lock(this.storeDir, {
+        lockfilePath: this.lockPath,
+        realpath: false,
+        stale: LOCK_STALE_MS,
+        retries: {
+          retries: Math.ceil(LOCK_TIMEOUT_MS / LOCK_RETRY_MS),
+          factor: 1,
+          minTimeout: LOCK_RETRY_MS,
+          maxTimeout: LOCK_RETRY_MS,
         },
+        onCompromised: (error) => {
+          compromised = error;
+        },
+      });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ELOCKED") throw error;
+      throw new Error(
+        `Another Northstar process is writing the comment store at ${this.storeDir}. Wait a moment and try again, or delete ${this.lockPath} if no agent session is running.`,
       );
-      if (held && Date.now() - held.mtimeMs > LOCK_STALE_MS) {
-        await rm(this.lockPath, { recursive: true, force: true });
-        continue;
-      }
-      if (Date.now() > deadline) {
-        throw new Error(
-          `Another Northstar process is writing the comment store at ${this.storeDir}. Wait a moment and try again, or delete ${this.lockPath} if no agent session is running.`,
-        );
-      }
-      await sleep(LOCK_RETRY_MS);
     }
     try {
-      return await fn();
+      const result = await fn();
+      if (compromised) throw compromised;
+      return result;
     } finally {
-      await rm(this.lockPath, { recursive: true, force: true });
+      await release().catch((error) => {
+        if (!compromised) throw error;
+      });
     }
   }
 
@@ -348,7 +349,7 @@ export class CommentStore {
     if (!match || !extension) throw new Error("The screenshot is not a png, jpeg or webp image.");
     await mkdir(this.shotsPath, { recursive: true });
     const file = join(this.shotsPath, `${id}.${extension}`);
-    await writeFileAtomic(file, Buffer.from(match[2] as string, "base64"));
+    await writeAtomic(file, Buffer.from(match[2] as string, "base64"));
     return relative(this.root, file);
   }
 
@@ -435,7 +436,7 @@ export class CommentStore {
 
   private async writeComments(comments: Comment[]): Promise<void> {
     await this.initStoreDir();
-    await writeFileAtomic(this.storePath, JSON.stringify(comments, null, 2));
+    await writeAtomic(this.storePath, JSON.stringify(comments, null, 2));
     this.commentsCache = {
       signature: signatureOf(await stat(this.storePath)),
       items: comments,
@@ -444,7 +445,7 @@ export class CommentStore {
 
   private async writeDeferred(entries: DeferredComment[]): Promise<void> {
     await this.initStoreDir();
-    await writeFileAtomic(this.deferredPath, JSON.stringify(entries, null, 2));
+    await writeAtomic(this.deferredPath, JSON.stringify(entries, null, 2));
     this.deferredCache = {
       signature: signatureOf(await stat(this.deferredPath)),
       items: entries,
@@ -490,16 +491,4 @@ function buildComment(
   if (draft.page) comment.page = draft.page;
   if (draft.element) comment.element = draft.element;
   return comment;
-}
-
-async function writeFileAtomic(path: string, contents: string | Buffer): Promise<void> {
-  await mkdir(dirname(path), { recursive: true });
-  const temp = `${path}.${randomUUID().slice(0, 8)}.tmp`;
-  try {
-    await writeFile(temp, contents);
-    await rename(temp, path);
-  } catch (error) {
-    await rm(temp, { force: true });
-    throw error;
-  }
 }

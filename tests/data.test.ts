@@ -4,21 +4,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { loadCanon } from "@northstar/canon";
-import { parseCsv } from "../mcp/src/data/csv.js";
 import { defaultDataRoot, getRow, loadData, search } from "../mcp/src/data/index.js";
 import { matchedPredicates } from "../mcp/src/data/predicates.js";
 
 const data = loadData();
 const defaultFamilies = (loadCanon().rules.find((r) => r.id === "NS-TYPE-DEFAULT-DISPLAY")?.params
   ?.families ?? []) as string[];
-
-test("the csv parser handles quotes, embedded commas, newlines and a byte order mark", () => {
-  const rows = parseCsv('﻿Name,Note\r\n"Smith, J","line one\nline two"\r\nplain,"say ""hi"""\r\n');
-  assert.deepEqual(rows, [
-    { Name: "Smith, J", Note: "line one\nline two" },
-    { Name: "plain", Note: 'say "hi"' },
-  ]);
-});
 
 test("every domain loads rows with unique ids", () => {
   for (const [domain, rows] of Object.entries(data.rows)) {

@@ -1,12 +1,6 @@
-import {
-  mkdirSync,
-  readFileSync,
-  realpathSync,
-  renameSync,
-  statSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdirSync, readFileSync, realpathSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
+import writeAtomic from "write-file-atomic";
 import { stateDir } from "../lib/home.js";
 
 const MAX_ROOTS = 20;
@@ -99,10 +93,7 @@ export class Registry {
     const dir = stateDir(this.home);
     try {
       mkdirSync(dir, { recursive: true, mode: 0o700 });
-      const path = join(dir, name);
-      const staging = `${path}.${process.pid}.tmp`;
-      writeFileSync(staging, `${JSON.stringify(body, null, 2)}\n`, { mode: 0o600 });
-      renameSync(staging, path);
+      writeAtomic.sync(join(dir, name), `${JSON.stringify(body, null, 2)}\n`, { mode: 0o600 });
     } catch (error) {
       this.log(`could not write ${name}: ${(error as Error).message}`);
     }
