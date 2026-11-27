@@ -349,6 +349,7 @@ export class CommentStore {
     const extension = SHOT_EXTENSIONS[match?.[1] ?? ""];
     if (!match || !extension) throw new Error("The screenshot is not a png, jpeg or webp image.");
     await mkdir(this.shotsPath, { recursive: true });
+    await refuseSymlink(this.shotsPath);
     const file = join(this.shotsPath, `${id}.${extension}`);
     await writeNoLinks(file, Buffer.from(match[2] as string, "base64"));
     return relative(this.root, file);

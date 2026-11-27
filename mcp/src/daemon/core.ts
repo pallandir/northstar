@@ -86,7 +86,7 @@ export class Daemon {
   private readonly peers = new Set<RpcPeer>();
 
   constructor(private readonly options: DaemonOptions) {
-    this.workspace = new Workspace(options.home, options.log);
+    this.workspace = new Workspace(options.home);
     this.comments = new CommentActions(this.workspace, options.log);
     this.sender = new Sender(this.workspace, options.log);
   }

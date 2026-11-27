@@ -31,10 +31,7 @@ export class Registry {
   private roots: RootEntry[] = [];
   private readonly assistants = new Map<string, number>();
 
-  constructor(
-    private readonly home: string,
-    private readonly log: (message: string) => void,
-  ) {
+  constructor(private readonly home: string) {
     this.roots = this.loadRoots();
   }
 
@@ -84,8 +81,9 @@ export class Registry {
           typeof (entry as RootEntry).lastSeen === "string",
       );
     } catch (error) {
-      this.log(`ignoring unreadable ${path}: ${(error as Error).message}`);
-      return [];
+      throw new Error(
+        `${path} is not readable (${(error as Error).message}). Delete it, then start Northstar again.`,
+      );
     }
   }
 
@@ -95,7 +93,9 @@ export class Registry {
       mkdirSync(dir, { recursive: true, mode: 0o700 });
       writeAtomic.sync(join(dir, name), `${JSON.stringify(body, null, 2)}\n`, { mode: 0o600 });
     } catch (error) {
-      this.log(`could not write ${name}: ${(error as Error).message}`);
+      throw new Error(
+        `Northstar could not save ${join(dir, name)} (${(error as Error).message}). Check the folder is writable, then try again.`,
+      );
     }
   }
 }

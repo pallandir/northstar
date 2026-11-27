@@ -437,3 +437,13 @@ test("a symlinked store file is refused and its target is left alone", async () 
   await assert.rejects(store.add(draft()), /symbolic link/);
   assert.equal(await readFile(outside, "utf8"), "[]");
 });
+
+test("a symlinked screenshots folder is refused and nothing is written through it", async () => {
+  const outside = join(root, "elsewhere");
+  await mkdir(outside, { recursive: true });
+  await mkdir(join(root, ".northstar"), { recursive: true });
+  await symlink(outside, join(root, ".northstar", "design-shots"));
+  const store = new CommentStore(root);
+  await assert.rejects(store.add({ ...draft(), screenshotDataUrl: PNG }), /symbolic link/);
+  assert.deepEqual(await readdir(outside), []);
+});

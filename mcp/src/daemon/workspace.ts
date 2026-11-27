@@ -42,11 +42,8 @@ export class Workspace {
   private readonly brokers = new Map<string, Broker>();
   private readonly stores = new Map<string, CommentStore>();
 
-  constructor(
-    readonly home: string,
-    log: (message: string) => void,
-  ) {
-    this.registry = new Registry(home, log);
+  constructor(readonly home: string) {
+    this.registry = new Registry(home);
   }
 
   broker(root: string): Broker {
