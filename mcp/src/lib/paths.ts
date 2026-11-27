@@ -1,4 +1,4 @@
-import { realpathSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import {
   basename,
   dirname,
@@ -46,6 +46,27 @@ export function resolveInside(root: string, path: string): string {
   const full = realpathLoose(isAbsolute(path) ? resolve(path) : resolve(base, path));
   if (!isInside(base, full)) throw new Error(`path ${path} is outside the project root`);
   return toPosix(relative(base, full)) || ".";
+}
+
+export function findProjectRoot(start: string): string | undefined {
+  const chain: string[] = [];
+  for (let dir = resolve(start); ; dir = dirname(dir)) {
+    chain.push(dir);
+    if (dirname(dir) === dir) break;
+  }
+  const marked = chain.find(
+    (dir) => existsSync(join(dir, ".git")) || existsSync(join(dir, "DESIGN.md")),
+  );
+  if (marked) return marked;
+  return chain.find((dir) => existsSync(join(dir, "package.json")));
+}
+
+export function projectRoot(
+  start: string = process.cwd(),
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const found = env.NORTHSTAR_ROOT ?? findProjectRoot(start) ?? start;
+  return realpathSync.native(resolve(found));
 }
 
 export function relativeTarget(root: string, target: string): string | undefined {

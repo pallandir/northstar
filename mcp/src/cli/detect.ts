@@ -3,6 +3,7 @@ import { MODES, type Mode } from "@northstar/canon";
 import { VERSION } from "../config.js";
 import { runScan } from "../detect.js";
 import { formatJson, formatSarif, formatText } from "../detector/index.js";
+import { projectRoot } from "../lib/paths.js";
 
 interface Options {
   paths: string[];
@@ -16,7 +17,7 @@ function parse(args: string[]): Options {
   const options: Options = {
     paths: [],
     format: "text",
-    root: process.env.NORTHSTAR_ROOT ?? process.cwd(),
+    root: projectRoot(),
     diff: false,
   };
   for (let i = 0; i < args.length; i++) {

@@ -4,7 +4,7 @@ import { HOOK_FINDING_CAP, runScan } from "../detect.js";
 import { hookFeedback, kindOf } from "../detector/index.js";
 import { AGENT_NAMES, type AgentName } from "../install/plans/index.js";
 import { readJsonFile } from "../project.js";
-import { isInside, relativeTarget } from "./paths.js";
+import { findProjectRoot as findRootFrom, isInside, relativeTarget } from "./paths.js";
 
 export type HookAgent = AgentName;
 
@@ -81,17 +81,7 @@ export function findProjectRoot(
   env: NodeJS.ProcessEnv = process.env,
 ): string | undefined {
   const fromEnv = env.CLAUDE_PROJECT_DIR;
-  if (fromEnv) return resolve(fromEnv);
-  const chain: string[] = [];
-  for (let dir = resolve(start); ; dir = dirname(dir)) {
-    chain.push(dir);
-    if (dirname(dir) === dir) break;
-  }
-  const marked = chain.find(
-    (dir) => existsSync(join(dir, ".git")) || existsSync(join(dir, "DESIGN.md")),
-  );
-  if (marked) return marked;
-  return chain.find((dir) => existsSync(join(dir, "package.json")));
+  return fromEnv ? resolve(fromEnv) : findRootFrom(start);
 }
 
 function relativeTargets(agent: HookAgent, input: HookInput, root: string): string[] {

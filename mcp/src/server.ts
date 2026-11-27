@@ -5,6 +5,7 @@ import { VERSION } from "./config.js";
 import type { BrokerLink } from "./daemon/link.js";
 import type { DesignData } from "./data/index.js";
 import { RESOLVE_DIRECTIVE } from "./directive.js";
+import { projectRoot } from "./lib/paths.js";
 import { registerPrompts } from "./prompts.js";
 import { registerResources } from "./resources.js";
 import type { CommentStore } from "./store.js";
@@ -44,7 +45,7 @@ export function createDesignServer(
   registerPrompts(server);
   registerResources(server, canon);
 
-  const root = options.root ?? process.env.NORTHSTAR_ROOT ?? process.cwd();
+  const root = options.root ?? projectRoot();
   const data = () => options.data ?? getData();
   registerCore(server, root, canon);
   registerResearch(server, data);
@@ -79,7 +80,7 @@ export function createCommentsServer(
       ],
     }),
   );
-  const root = options.root ?? process.env.NORTHSTAR_ROOT ?? process.cwd();
+  const root = options.root ?? projectRoot();
   registerComments(server, store, broker, root, canon);
   return server;
 }

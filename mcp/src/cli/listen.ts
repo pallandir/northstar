@@ -3,6 +3,7 @@ import { ensureDaemon } from "../daemon/client.js";
 import { fileLogger } from "../daemon/log.js";
 import { RpcError } from "../daemon/rpc.js";
 import { northstarHome } from "../lib/home.js";
+import { projectRoot } from "../lib/paths.js";
 import { summarize } from "../render.js";
 import { CommentStore } from "../store.js";
 
@@ -29,7 +30,7 @@ export async function listen(args: string[]): Promise<number> {
     );
     return 2;
   }
-  const root = process.env.NORTHSTAR_ROOT ?? process.cwd();
+  const root = projectRoot();
   const home = northstarHome();
   let peer: Awaited<ReturnType<typeof ensureDaemon>>;
   try {

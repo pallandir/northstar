@@ -1,6 +1,7 @@
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { getCanon } from "./assets.js";
 import { DaemonLink } from "./daemon/link.js";
+import { projectRoot } from "./lib/paths.js";
 import { SURFACES, type Surface, createCommentsServer, createDesignServer } from "./server.js";
 import { CommentStore } from "./store.js";
 
@@ -18,7 +19,7 @@ async function main(surface: Surface): Promise<void> {
       "NORTHSTAR_PACKS was removed, every tool is always available now. Delete NORTHSTAR_PACKS from the northstar MCP server entry, or run northstar install to rewrite it.",
     );
   }
-  const root = process.env.NORTHSTAR_ROOT ?? process.cwd();
+  const root = projectRoot();
   const log = (msg: string) => process.stderr.write(`[northstar] ${msg}\n`);
   process.on("unhandledRejection", (reason) => {
     log(

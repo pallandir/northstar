@@ -13,6 +13,7 @@ import { northstarPluginInstalled } from "../install/plugin.js";
 import { readRecord } from "../install/record.js";
 import { type Shell, detectShell, installShell, uninstallShell } from "../install/shell.js";
 import { feedbackText } from "../lib/hook-feedback.js";
+import { projectRoot } from "../lib/paths.js";
 import { recordUserPath } from "../lib/user-path.js";
 import { loadSettings } from "../user-config.js";
 
@@ -38,7 +39,7 @@ function parse(args: string[]): Options {
     dryRun: false,
     yes: false,
     home: homedir(),
-    project: process.env.NORTHSTAR_ROOT ?? process.cwd(),
+    project: projectRoot(),
     host: true,
     shell: true,
     extensionIds: [],

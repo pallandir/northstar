@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { MODES, type Mode } from "@northstar/canon";
 import { getCanon } from "../assets.js";
+import { projectRoot } from "../lib/paths.js";
 import { closeBrowser } from "../page/browser.js";
 import { describeRun } from "../page/format.js";
 import { auditProject, captureProject } from "../page/service.js";
@@ -51,7 +52,7 @@ export async function audit(args: string[]): Promise<number> {
   try {
     const request = parse(args);
     const { record, top, repairs, dir, loop } = await auditProject({
-      root: process.cwd(),
+      root: projectRoot(),
       canon: getCanon(),
       ...request,
     });
@@ -69,7 +70,7 @@ export async function capture(args: string[]): Promise<number> {
   try {
     const request = parse(args);
     const { crops, notes } = await captureProject(request);
-    const out = join(process.cwd(), ".northstar", "design", "captures");
+    const out = join(projectRoot(), ".northstar", "design", "captures");
     mkdirSync(out, { recursive: true });
     const files = crops.map((crop) => {
       const file = join(
