@@ -3,21 +3,21 @@ name: northstar
 description: Use when designing, redesigning, refining, polishing, adapting or modernising any user interface, page, component or design system, when a DESIGN.md or PRODUCT.md exists, when UI looks generic or AI generated, or when resolving Northstar browser comments. Steers the work through brief, direction, system, compose, critique and polish, library first, and never hand rolls what a library provides.
 license: MIT
 metadata:
-  version: "2.6.1"
+  version: "2.7.0"
 ---
 
 # Northstar
 
 You are steering UI work, not decorating. The designer's input is a direction or design system in markdown. Your job is to turn it into professional UI without generic defaults, by asking before guessing and by using libraries instead of writing primitives by hand.
 
-## First rule: DESIGN.md before any UI code
+## DESIGN.md
 
-Do not create or edit a UI file until `DESIGN.md` exists, parses, has no unfilled placeholders and names a mode. This holds for every task, including a small tweak, a polish pass and a browser comment. `northstar_context` reports it in the `gate` field.
+`DESIGN.md` is the design system the work steers by. For new UI, a redesign or a refine, write it first and make sure it parses, has no unfilled placeholders and names a mode. A small tweak, a polish pass or a browser comment never needs it: make the change directly. `northstar_context` reports its state in the `design` field.
 
 - The designer gave a direction or a brief: call `design_md_normalize` with `write` true.
 - The designer wants the system from Figma: check that `get_variable_defs`, `get_design_context` and `search_design_system` are listed. If none is, stop and show the install guide in `references/figma.md`, do not guess. If they are, read the variables with `get_variable_defs` and pass them as `source` to `design_md_normalize`.
 - Nothing was given: ask your questions, then call `design_system_propose`, show the draft, and save it once approved.
-- Then call `design_md_validate` and fix every error before touching UI code.
+- Then call `design_md_validate` and fix every error it reports.
 
 Skip this when the user says so, and log that in `design/decisions.md`. Nothing blocks an edit without it.
 

@@ -12,13 +12,17 @@ the curated design data.
 | `@modelcontextprotocol/sdk` | 1.29.0 | MIT | https://github.com/modelcontextprotocol/typescript-sdk |
 | `zod` | 3.25.76 | MIT | https://github.com/colinhacks/zod |
 | `yaml` | 2.9.0 | ISC | https://github.com/eemeli/yaml |
-| `@lydell/node-pty` | 1.1.0 | MIT | https://github.com/lydell/node-pty |
-| `@xterm/headless` | 6.0.0 | MIT | https://github.com/xtermjs/xterm.js |
+| `minisearch` | 7.2.0 | MIT | https://github.com/lucaong/minisearch |
+| `proper-lockfile` | 4.1.2 | MIT | https://github.com/moxystudio/node-proper-lockfile |
+| `write-file-atomic` | 7.0.1 | ISC | https://github.com/npm/write-file-atomic |
+| `vscode-jsonrpc` | 10.0.2 | MIT | https://github.com/microsoft/vscode-languageserver-node |
+| `dom-accessibility-api` | 0.7.1 | MIT | https://github.com/eps1lon/dom-accessibility-api |
+| `culori` | 4.0.2 | MIT | https://github.com/Evercoder/culori |
 | `dompurify` | 3.4.11 | MPL-2.0 OR Apache-2.0 | https://github.com/cure53/DOMPurify |
 | `marked` | 18.0.5 | MIT | https://github.com/markedjs/marked |
 | `@material-symbols/svg-400` | 0.45.4 | Apache-2.0 | https://github.com/marella/material-symbols |
 
-The MIT, Apache-2.0, and MPL-2.0 license texts apply as published by each project
+The MIT, ISC, Apache-2.0, and MPL-2.0 license texts apply as published by each project
 at the source above. `@material-symbols/svg-400` repackages Google's Material
 Symbols icons, which are themselves licensed under Apache-2.0.
 

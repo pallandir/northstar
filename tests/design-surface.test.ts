@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, test } from "node:test";
+import { fileURLToPath } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { scaffold } from "../mcp/src/lib/scaffold.js";
@@ -102,10 +103,41 @@ test("init writes the scaffolds once and never overwrites without force", async 
   assert.deepEqual(scaffold(root, true).skipped, []);
 });
 
-test("the stage prompts and the instructions put DESIGN.md first", async () => {
+const REPO = fileURLToPath(new URL("..", import.meta.url));
+const GATING_WORDING = [
+  /before any UI code/i,
+  /DESIGN\.md comes first/i,
+  /do not create or edit (a )?UI/i,
+  /no UI file is created/i,
+  /DESIGN\.md gate/i,
+  /never the DESIGN\.md/i,
+  /keep the gate/i,
+];
+
+test("no prompt, instruction, skill or doc tells an agent to refuse UI work without DESIGN.md", async () => {
+  const texts = new Map<string, string>();
   for (const verb of VERBS) {
-    const body = bodyOf(await client.getPrompt({ name: verb.name, arguments: {} }));
-    assert.match(body, /DESIGN\.md comes first/, verb.name);
+    texts.set(
+      `prompt ${verb.name}`,
+      bodyOf(await client.getPrompt({ name: verb.name, arguments: {} })),
+    );
   }
-  assert.match(client.getInstructions() ?? "", /DESIGN\.md before UI code/);
+  texts.set("server instructions", client.getInstructions() ?? "");
+  const files = [
+    "README.md",
+    "mcp/README.md",
+    "canon/framework.md",
+    "canon/snippets/agents-md.md",
+    ...(await readdir(join(REPO, "docs"))).filter((f) => f.endsWith(".md")).map((f) => `docs/${f}`),
+    ...(await readdir(join(REPO, "canon", "references"))).map((f) => `canon/references/${f}`),
+    ...(await readdir(join(REPO, "plugin", "skills"), { recursive: true }))
+      .filter((f) => f.endsWith(".md"))
+      .map((f) => `plugin/skills/${f}`),
+  ];
+  for (const file of files) texts.set(file, await readFile(join(REPO, file), "utf8"));
+  for (const [name, body] of texts) {
+    for (const pattern of GATING_WORDING)
+      assert.doesNotMatch(body, pattern, `${name} matches ${pattern}`);
+  }
+  assert.match(client.getInstructions() ?? "", /recommended/);
 });

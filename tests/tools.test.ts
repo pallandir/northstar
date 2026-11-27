@@ -96,15 +96,18 @@ test("template placeholders keep the project at the system stage", async () => {
   assert.equal(state.design.ready, false);
 });
 
-test("northstar_context reports the DESIGN.md gate and how to open it", async () => {
+test("northstar_context reports the DESIGN.md state and how to write it, without gating", async () => {
   await writeFile(join(root, "package.json"), JSON.stringify({ dependencies: { react: "19" } }));
   await connect(coreServer());
   const closed = JSON.parse(
     text(await client.callTool({ name: "northstar_context", arguments: {} })),
   );
-  assert.equal(closed.gate.open, false);
-  assert.match(closed.gate.gap, /no DESIGN\.md/);
-  assert.match(closed.gate.next, /design_md_normalize/);
+  assert.equal(closed.gate, undefined);
+  assert.equal(closed.design.exists, false);
+  assert.match(
+    closed.missing.join("\n"),
+    /DESIGN\.md: no design direction yet.*design_md_normalize/,
+  );
 
   await writeFile(
     join(root, "DESIGN.md"),
@@ -113,7 +116,8 @@ test("northstar_context reports the DESIGN.md gate and how to open it", async ()
   const open = JSON.parse(
     text(await client.callTool({ name: "northstar_context", arguments: {} })),
   );
-  assert.deepEqual(open.gate, { open: true });
+  assert.equal(open.design.ready, true);
+  assert.deepEqual(open.missing, ["PRODUCT.md: audience, primary job, success, constraints"]);
 
   await writeFile(
     join(root, "DESIGN.md"),
@@ -122,8 +126,8 @@ test("northstar_context reports the DESIGN.md gate and how to open it", async ()
   const incomplete = JSON.parse(
     text(await client.callTool({ name: "northstar_context", arguments: {} })),
   );
-  assert.equal(incomplete.gate.open, false);
-  assert.match(incomplete.gate.gap, /not valid yet \(typography is required/);
+  assert.equal(incomplete.design.ready, false);
+  assert.match(incomplete.missing.join("\n"), /not valid yet \(typography is required/);
 });
 
 test("northstar_context surfaces a DESIGN.md that cannot be parsed and a broken package.json", async () => {
@@ -133,7 +137,7 @@ test("northstar_context surfaces a DESIGN.md that cannot be parsed and a broken 
     text(await client.callTool({ name: "northstar_context", arguments: {} })),
   );
   assert.match(state.design.error, /no YAML frontmatter/);
-  assert.match(state.gate.gap, /cannot be read/);
+  assert.match(state.missing.join("\n"), /cannot be read|no YAML frontmatter/);
   await writeFile(join(root, "package.json"), "{ broken");
   const broken = await client.callTool({ name: "northstar_context", arguments: {} });
   assert.equal(broken.isError, true);

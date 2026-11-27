@@ -1,4 +1,5 @@
-import { realpathSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
+import { homedir } from "node:os";
 import {
   basename,
   dirname,
@@ -46,6 +47,32 @@ export function resolveInside(root: string, path: string): string {
   const full = realpathLoose(isAbsolute(path) ? resolve(path) : resolve(base, path));
   if (!isInside(base, full)) throw new Error(`path ${path} is outside the project root`);
   return toPosix(relative(base, full)) || ".";
+}
+
+export function findProjectRoot(start: string, home: string = homedir()): string | undefined {
+  const chain: string[] = [];
+  // a dotfiles repo or a stray package.json in $HOME must never become the root of every folder below it
+  for (
+    let dir = resolve(start);
+    fold(dir) !== fold(resolve(home)) && dirname(dir) !== dir;
+    dir = dirname(dir)
+  ) {
+    chain.push(dir);
+  }
+  const marked = chain.find(
+    (dir) => existsSync(join(dir, ".git")) || existsSync(join(dir, "DESIGN.md")),
+  );
+  if (marked) return marked;
+  return chain.find((dir) => existsSync(join(dir, "package.json")));
+}
+
+export function projectRoot(
+  start: string = process.cwd(),
+  env: NodeJS.ProcessEnv = process.env,
+  home: string = homedir(),
+): string {
+  const found = env.NORTHSTAR_ROOT ?? findProjectRoot(start, home) ?? start;
+  return realpathSync.native(resolve(found));
 }
 
 export function relativeTarget(root: string, target: string): string | undefined {

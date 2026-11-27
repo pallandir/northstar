@@ -1,5 +1,6 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { PROTOCOL_VERSION } from "@northstar/protocol";
 
 const MAX_SOCKET_PATH = 100;
 
@@ -16,7 +17,7 @@ export function runtimeDir(home: string = northstarHome()): string {
 }
 
 export function socketPath(home: string = northstarHome()): string {
-  const path = join(runtimeDir(home), "northstar.sock");
+  const path = join(runtimeDir(home), `northstar-${PROTOCOL_VERSION}.sock`);
   if (path.length > MAX_SOCKET_PATH) {
     throw new Error(
       `The Northstar socket path ${path} is longer than ${MAX_SOCKET_PATH} characters, which Unix sockets do not allow. Set NORTHSTAR_HOME to a shorter directory.`,

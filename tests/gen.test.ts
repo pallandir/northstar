@@ -81,17 +81,16 @@ test("the plugin manifest carries the root package version", () => {
   assert.equal(manifest.name, "northstar");
 });
 
-test("the plugin hook scans edits through the pinned launcher and never chains a fallback", () => {
+test("the plugin hook scans edits through the pinned package and never chains a fallback", () => {
   const hooks = JSON.parse(generate(repoRoot).get("plugin/hooks/hooks.json") ?? "{}");
   const entry = hooks.hooks.PostToolUse[0];
   assert.equal(entry.matcher, "Edit|Write|MultiEdit|NotebookEdit");
   const command: string = entry.hooks[0].command;
-  assert.match(command, /^node -e "/);
   assert.match(
     command,
-    /npx -y @pallandir\/northstar@\d+\.\d+\.\d+ hook post-edit --agent claude$/,
+    /^npx -y @pallandir\/northstar@\d+\.\d+\.\d+ hook post-edit --agent claude$/,
   );
-  assert.doesNotMatch(command, /sh -c|\|\| true/);
+  assert.doesNotMatch(command, /node -e|sh -c|\|\| true/);
 });
 
 test("the plugin ships an mcp config pinned to the same version as the hooks", () => {

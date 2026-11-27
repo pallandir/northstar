@@ -5,9 +5,9 @@ Load when: a UI already exists, an engineer built it and it needs to look cleane
 
 Turn what exists into something polished with small, reviewable changes. Engineers build fast, designers refine what was built. Refine keeps both honest: it starts from numbers, changes one thing at a time and proves each change with a screenshot and a scan.
 
-## Gate and scope
+## Scope
 
-- `DESIGN.md` comes first. If it does not exist, build it from the code (see Bring it under a system below) before touching a style.
+- A refine of a whole screen starts from `DESIGN.md`. If it does not exist, build it from the code (see Bring it under a system below) before restyling. A single fix does not need it.
 - Classify the job. Preserve means keep the look and tidy it, so match the current values. Overhaul means a new look on the same behaviour, so the dials rise and the archetype changes.
 - Never change these silently: route paths, primary navigation labels, form field names and order, the logo or wordmark, and legal or consent copy. Ask first.
 - Keep the stack. Do not migrate a framework or a styling system to refine a screen. Express every fix in what the project already uses.

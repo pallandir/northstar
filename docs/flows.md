@@ -1,9 +1,9 @@
 # Flows
 
 These sequence diagrams show the message order for the three things Northstar does:
-sending a batch, resolving or deferring work, and the session declining to write. The
+sending a batch, resolving or deferring work, and Northstar refusing to hand over. The
 participants are the toolbar (in the content script), the extension transport layer, the
-native host, the daemon, the session wrapper, the comment store, and the AI assistant.
+native host, the daemon, the listener, the comment store, and the AI assistant.
 
 ## 1. Capture a comment and send the batch
 
@@ -18,7 +18,7 @@ sequenceDiagram
     participant H as Native host
     participant D as Daemon
     participant S as Store
-    participant W as Session
+    participant W as northstar listen
     participant A as Assistant
 
     U->>T: pick element, write comment, Save
@@ -30,15 +30,14 @@ sequenceDiagram
     H->>D: request over the socket
     D->>S: validate, save screenshots, upsert
     D-->>X: { ids, accepted, rejected }
-    X->>H: session.send (template)
-    H->>D: route to the session for this project
-    D->>W: deliver (template id only)
-    W->>W: wait for quiet, check for prompts and typed input
-    W->>A: write one fixed line, then Enter
+    X->>H: handoff.send (template)
+    H->>D: request over the socket
+    D->>W: wake the listener (template id only)
+    W->>A: print one fixed line and the open comments
+    D-->>X: { delivered }
+    X-->>T: flash "Sent to your assistant"
     A->>S: list_comments("open")
     A-->>D: polled
-    D-->>X: { delivered, session }
-    X-->>T: flash "Sent to Claude Code"
     A->>S: get_comment(id), claims it as in_progress
     A->>A: implement at the located place
     A->>S: resolve_comment(id, note, files)
@@ -80,45 +79,37 @@ Deferrals split into two kinds: `needs-plan` for changes that are too heavy to d
 inline, and `feedback` for comments too vague to act on. Both leave a notice in the
 toolbar so you know they were parked, not dropped, and a plan is yours to make.
 
-## 3. The session declines to write
+## 3. Nobody is listening
 
-The session never writes blind. If the assistant is showing a choice, has text in its
-input, or never goes quiet, your comments are still saved and the toolbar tells you the
-agent was not written to, with the reason and the fix.
+If no assistant has run `northstar listen` in the last five minutes, the comments are
+still saved and the toolbar says that nothing was handed over, with the reason and the
+fix. If the assistant is busy, the line is held for its next `northstar listen`.
 
 ```mermaid
 sequenceDiagram
     participant X as Transport
     participant D as Daemon
-    participant W as Session
-    participant P as Screen copy
+    participant T as Toolbar
 
-    X->>D: session.send
-    D->>W: deliver
-    loop up to 10s
-        W->>P: read the rendered screen
-        alt a numbered choice or a yes/no prompt is showing
-            Note over W: blocked, the agent is mid-question
-        else output moving or you are typing
-            Note over W: wait
-        else text sits in the input
-            Note over W: blocked, never write over it
-        else quiet and clear
-            Note over W: safe to write
-        end
+    X->>D: handoff.send
+    alt a listener waits
+        D-->>X: { delivered: true }
+    else a listener was seen but is busy
+        D-->>X: { delivered: false, blocked: busy, reason, fix }
+    else none seen in five minutes
+        D-->>X: NOT_LISTENING with the reason and the fix
     end
-    W-->>D: { delivered: false, blocked, reason, fix }
-    D-->>X: the outcome with the reason and the fix
+    X-->>T: show the outcome
     Note over X: comments are stored either way
 ```
 
-The check is positive: it writes only once it has seen the screen hold still and clear,
-rather than writing unless it recognises trouble.
+The refusal is explicit: nothing is retried and nothing is sent a second way.
 
-## 4. No session is running
+## 4. Starting the listener
 
-When no session runs in the project the toolbar says so, and offers two explicit
-choices instead of doing either on its own.
+When no listener runs in the project the toolbar says so and offers **Copy the line**,
+which you press yourself. In Claude Code the `northstar-live` mod starts the listener
+for you and this flow is never needed.
 
 ```mermaid
 sequenceDiagram
@@ -128,12 +119,12 @@ sequenceDiagram
     participant A as Assistant
 
     T->>D: status.get
-    D-->>T: no session, connected but not writable
+    D-->>T: not listening, with the reason and the fix
     U->>T: Copy the line
     T->>U: the start line on the clipboard
     U->>A: paste it into the assistant
     A->>D: northstar listen, blocks
     U->>T: Send to AI
-    T->>D: session.send
+    T->>D: handoff.send
     D-->>A: the template line and the open comments, listen returns
 ```

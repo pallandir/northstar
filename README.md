@@ -130,7 +130,7 @@ normally would.
 
 | Skill | Use it for |
 |---|---|
-| `northstar` | The core: the DESIGN.md gate, the method, the rules and every reference |
+| `northstar` | The core: the method, the rules and every reference |
 | `northstar-build` | New UI from a brief |
 | `northstar-refine` | Improving UI that already exists |
 | `northstar-finish` | The last detail pass before shipping |
@@ -178,8 +178,8 @@ repeats, scans what it edited, and records what changed.
 **Before shipping.** `northstar-review` scores the screen from screenshots and the
 detector, and returns ranked findings without editing anything.
 
-In every case `DESIGN.md` comes first. It is a recommendation, nothing blocks an edit
-without it.
+For new UI, write `DESIGN.md` first. It is a recommendation, nothing blocks an edit
+without it, and a small tweak or a browser comment never needs it.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -190,8 +190,7 @@ without it.
 | Node 20+ | runs the MCP server via `npx` | Yes |
 | An MCP-capable AI coding assistant | reads comments and edits your source (Codex, Claude Code, Gemini, or any MCP client) | Yes |
 | Chrome or Firefox 128+ | extension | Yes |
-| macOS or Linux | the local helper and the agent sessions use Unix sockets and a pseudo terminal | Yes |
-| Your assistant started from a new terminal after `northstar install` | the shell wraps it in a pseudo terminal Send to AI can write to | Yes |
+| macOS or Linux | the local helper and the daemon use Unix sockets | Yes |
 | React, Vue, Svelte, or Angular dev build | precise component, source and route resolution | No, automatic |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -268,21 +267,16 @@ helper only answers extensions it was told about. Copy the id from
 
 ### Step 3. Start your agent and comment
 
-`northstar install` wraps every known agent (and any you add with `northstar agent add`)
-in your shell, so you start them as usual in a new terminal, from the project folder:
+Open your assistant in the project folder as you always do, in any terminal, IDE or
+app. Northstar adds nothing around it and needs no restart.
 
-```sh
-claude
-codex
-```
+Then click **Send to AI** in the browser:
 
-Northstar runs the program inside a pseudo terminal it owns. That works for any
-program in any terminal, which is why Send to AI needs no terminal specific support and
-no macOS permission. It can only ever write into that terminal. `northstar run <agent>`
-does the same without the shell wrapper, and `--no-shell` skips the wrapper at install.
-
-An assistant that was already running, or that a GUI or an IDE started without your
-shell, has no session. Choose **Copy the line** once and it connects without a restart.
+- If your assistant is running `northstar listen`, it receives the fixed line at once.
+  In Claude Code, `/plugin install northstar-live --marketplace pallandir/northstar`
+  does this for every session.
+- Otherwise, choose **Copy the line** once and paste it into your assistant. It starts
+  `northstar listen` itself, and every later click reaches it.
 
 Unpacked builds of the extension are allowed automatically: when the daemon starts it
 finds the Northstar builds loaded in Chrome and allows them. Reload the page after
@@ -359,15 +353,15 @@ flowchart TD
     H["Native host\n(northstar native-host)"]
     D["Daemon\n(Unix socket, owner only)"]
     C["Comment store\n(.northstar/)"]
-    W["northstar run\n(owns the PTY)"]
+    W["northstar listen\n(waits for Send to AI)"]
     E["Assistant\nedits source"]
     M["MCP server\n(stdio)"]
 
     A -- "Native Messaging\n(fixed actions)" --> H
     H -- "socket" --> D
     D -- "writes" --> C
-    D -- "deliver one template" --> W
-    W -- "types one line + Enter" --> E
+    D -- "wakes the listener" --> W
+    W -- "prints one fixed line" --> E
     E --- M
     M -- "list_comments, get_comment" --> C
     M -- "polled, notices" --> D
@@ -386,12 +380,10 @@ through a local web server, so there is no port, no pairing token and nothing a 
 page can reach. The browser starts `northstar native-host`, which only answers the
 Northstar extension, validates every message against a fixed list of actions and
 forwards it to a small daemon over a Unix socket that only your user can open. The
-daemon keeps the list of running sessions, routes a send to the right one and holds
-the comment store access. Each session is a `northstar run` process that owns the
-assistant's pseudo terminal, so the write goes straight into that terminal and nowhere
-else.
+daemon holds the comment store access and wakes the `northstar listen` process that
+your assistant is running, which prints the fixed line for it to act on.
 
-The line written to the assistant is chosen from a short list of fixed templates
+The line handed to the assistant is chosen from a short list of fixed templates
 (resolve, implement, explain, fix, review, add to task). Your comment text, the
 selected text, the page URL and the page title are stored as comment data and read by
 the assistant through the MCP tools, they are never typed. Comments that need deeper
@@ -409,8 +401,8 @@ lives.
 
 ### Online: localhost dev server
 
-Your assistant runs in the repo through `northstar run` and comments flow to it live
-through the local helper.
+Your assistant runs in the repo with `northstar listen` active, or you paste the copied
+line once, and comments flow to it live through the local helper.
 
 1. **Leave comments.** Point at any element and one popover opens with three
    tabs: **Comment** to leave a note, **Text** to edit its copy, **Colour** to
@@ -474,26 +466,21 @@ The extension is Manifest V3 and builds for both engines from one source tree:
 `npm run build:chromium` for Chrome, `npm run build:firefox` for Firefox 128+. Plain `npm run build` builds both, plus the MCP server. Firefox
 128 is the floor because the overlay needs the Popover API to reach the top layer.
 
-### Sessions and agents
+### Commands
 
 | Command | What it does |
 |---|---|
-| `northstar run <agent> [arguments]` | Starts the agent in a session Northstar owns, all arguments go to the agent |
-| `northstar sessions` | Lists the running sessions with their project and last activity |
-| `northstar agent list` | Shows the agents Northstar knows and whether each is installed |
-| `northstar agent add <id> <path>` | Registers your own CLI |
-| `northstar shell install` / `uninstall` | Adds or removes the shell functions for zsh, bash or fish |
-| `northstar config` | Shows or sets the preferred agent, the default template and site mappings |
+| `northstar listen [--timeout seconds]` | Waits until Send to AI is clicked, prints the fixed line and the open comments, then your assistant runs it again |
+| `northstar config` | Shows or sets the default template and site mappings |
 | `northstar daemon [stop\|status]` | Runs, stops or inspects the daemon, it starts on demand |
-| `northstar doctor` | Checks the install, the browser helper, the pseudo terminal module and the shell |
+| `northstar doctor` | Checks the install, the browser helper and any leftover of the old shell wrapper |
 
-Claude Code, Codex, Gemini CLI, OpenCode, Aider and Goose are built in, and any other
-terminal program works the same way because Northstar never speaks an assistant's
-protocol, it only owns the terminal. State lives in `~/.northstar/`: `config.yaml`,
-`state/` (session metadata only, never prompts), `logs/` (events, session ids and byte
-counts, never comment text) and `run/` for the socket.
+Any assistant that can run a shell command can use `northstar listen`, because Northstar
+never speaks an assistant's protocol. State lives in `~/.northstar/`: `config.yaml`,
+`state/` (known projects only, never prompts), `logs/` (events and byte counts, never
+comment text) and `run/` for the socket.
 
-The extension options page sets the preferred agent, the default template and which
+The extension options page sets the default template and which
 project a site belongs to, for example `localhost:5173` or `github.com/acme/backend`.
 A mapped site sends to its project even from a page that is not on localhost.
 
@@ -521,7 +508,7 @@ The design tools, by group:
 
 | Group | Tools | Purpose |
 |---|---|---|
-| core | `northstar_context` | Project state, the gate, Chrome availability and the audit loop |
+| core | `northstar_context` | Project state, what is missing, Chrome availability and the audit loop |
 | core | `canon_find`, `canon_read` | Search the canon within a token budget, read one section or the reasoning for a rule |
 | research | `design_search` | Curated styles, palettes, pairings and UX guidance as candidates, or one row in full by id |
 | system | `design_tokens_generate`, `design_system_propose` | A generated, validated `DESIGN.md` from an archetype or a short brief |
@@ -576,11 +563,10 @@ an installed extension until you accept the new `nativeMessaging` permission. Op
 <details>
 <summary><strong>Can two projects run Northstar at once?</strong></summary>
 
-Yes. Every project's assistant is its own session, and one daemon routes between them.
+Yes. Every project has its own comments and its own listener, and one daemon routes between them.
 When more than one project is known, the toolbar binds the page to the project that
 owns its source files, then to a mapping you set, and only asks you to choose when
-neither decides. With two sessions in one project the toolbar lists them and sends to
-the one you pick, or to your preferred agent.
+neither decides.
 </details>
 
 <details>
@@ -617,9 +603,9 @@ Full details are in [SECURITY.md](./SECURITY.md).
 Everything stays on your machine. There is no local web server: the extension reaches
 Northstar through Native Messaging, and the helper it starts only answers the Northstar
 extension and accepts a fixed list of actions. The daemon behind it listens on a Unix
-socket that only your user can open. Send to AI writes one fixed line, never your
-comment text, and only into a session that `northstar run` started, so it cannot type
-into any other terminal and needs no accessibility permission. The extension has no
+socket that only your user can open. Send to AI hands over one fixed line, never your
+comment text, and only to a `northstar listen` process your assistant started, so it never
+types into a terminal and needs no accessibility permission. The extension has no
 standing access to any page. `activeTab` grants access to one tab for as long as it
 stays on the current URL, and that access is revoked on navigation.
 
@@ -639,8 +625,8 @@ Removing Northstar is three independent steps; do the ones that apply to you.
 2. **Remove the MCP server, the skills and the browser helper.**
    `northstar uninstall` removes the server registration, the five skills and the edit
    hook, restores the files it backed up and, once no agent is left, removes the
-   browser helper. Run `northstar shell install` in reverse with
-   `northstar shell uninstall`, and `northstar daemon stop` to close the daemon. Or
+   browser helper, and old shell wrappers from earlier versions. Run
+   `northstar daemon stop` to close the daemon. Or
    delete the `northstar` entry from your assistant's MCP configuration and the
    `northstar*` skill folders yourself.
 

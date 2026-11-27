@@ -80,7 +80,7 @@ export const VERBS: Verb[] = [
 function verbText(verb: Verb, request?: string): string {
   const lines = [
     `Run the Northstar ${verb.title} stage. ${verb.task}`,
-    "DESIGN.md comes first: do not create or edit UI files until it exists and is valid.",
+    "For new UI, write DESIGN.md first. Small edits and browser comments never need it.",
     `Load as little as possible: call canon_find with what you need and canon_read one section at a time, starting from ref:${verb.topic}. Without the tools, read references/INDEX.md and then only the needed section of references/${verb.topic}.md. If the northstar_context tool is available, call it before anything else.`,
     "Ask at most 3 questions per turn, each with a recommended default. Never ask what the repo can answer. Use libraries instead of hand rolling icons, fonts, overlays or primitives.",
   ];

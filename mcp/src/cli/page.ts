@@ -1,7 +1,9 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { parseArgs } from "node:util";
 import { MODES, type Mode } from "@northstar/canon";
 import { getCanon } from "../assets.js";
+import { projectRoot } from "../lib/paths.js";
 import { closeBrowser } from "../page/browser.js";
 import { describeRun } from "../page/format.js";
 import { auditProject, captureProject } from "../page/service.js";
@@ -18,31 +20,31 @@ interface PageArgs {
 }
 
 function parse(args: string[]): PageArgs {
-  const url = args[0];
-  if (!url || url.startsWith("--")) throw new Error(`The page address is missing. ${USAGE}`);
+  const { positionals, values } = parseArgs({
+    args,
+    options: {
+      viewport: { type: "string" },
+      mode: { type: "string" },
+      restart: { type: "boolean" },
+    },
+    allowPositionals: true,
+    strict: true,
+  });
+  const [url] = positionals;
+  if (!url) throw new Error(`The page address is missing. ${USAGE}`);
   const out: PageArgs = { url };
-  for (let i = 1; i < args.length; i += 1) {
-    const flag = args[i];
-    if (flag === "--restart") {
-      out.restart = true;
-      continue;
+  if (values.restart) out.restart = true;
+  if (values.viewport !== undefined) {
+    const names = values.viewport.split(",");
+    const bad = names.find((n) => !(VIEWPORT_NAMES as string[]).includes(n));
+    if (bad) throw new Error(`Unknown viewport ${bad}. Use ${VIEWPORT_NAMES.join(", ")}.`);
+    out.viewports = names as ViewportName[];
+  }
+  if (values.mode !== undefined) {
+    if (!(MODES as readonly string[]).includes(values.mode)) {
+      throw new Error(`Unknown mode ${values.mode}. Use ${MODES.join(", ")}.`);
     }
-    i += 1;
-    const value = args[i];
-    if (value === undefined) throw new Error(`${flag} needs a value. ${USAGE}`);
-    if (flag === "--viewport") {
-      const names = value.split(",");
-      const bad = names.find((n) => !(VIEWPORT_NAMES as string[]).includes(n));
-      if (bad) throw new Error(`Unknown viewport ${bad}. Use ${VIEWPORT_NAMES.join(", ")}.`);
-      out.viewports = names as ViewportName[];
-    } else if (flag === "--mode") {
-      if (!(MODES as readonly string[]).includes(value)) {
-        throw new Error(`Unknown mode ${value}. Use ${MODES.join(", ")}.`);
-      }
-      out.mode = value as Mode;
-    } else {
-      throw new Error(`Unknown option ${flag}. ${USAGE}`);
-    }
+    out.mode = values.mode as Mode;
   }
   return out;
 }
@@ -51,7 +53,7 @@ export async function audit(args: string[]): Promise<number> {
   try {
     const request = parse(args);
     const { record, top, repairs, dir, loop } = await auditProject({
-      root: process.cwd(),
+      root: projectRoot(),
       canon: getCanon(),
       ...request,
     });
@@ -69,7 +71,7 @@ export async function capture(args: string[]): Promise<number> {
   try {
     const request = parse(args);
     const { crops, notes } = await captureProject(request);
-    const out = join(process.cwd(), ".northstar", "design", "captures");
+    const out = join(projectRoot(), ".northstar", "design", "captures");
     mkdirSync(out, { recursive: true });
     const files = crops.map((crop) => {
       const file = join(

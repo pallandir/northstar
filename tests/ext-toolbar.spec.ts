@@ -54,19 +54,6 @@ function state(overrides: Partial<ToolbarState> = {}): ToolbarState {
   };
 }
 
-const SESSION = {
-  id: "s1",
-  agent: "codex",
-  name: "Codex",
-  command: "/bin/codex",
-  cwd: "/repo",
-  root: "/repo",
-  pid: 1,
-  createdAt: "2026-01-01T00:00:00Z",
-  lastActivityAt: "2026-01-01T00:00:00Z",
-  kind: "interactive" as const,
-};
-
 function reachableStatus(overrides: Partial<QueueStatus> = {}): QueueStatus {
   return {
     queued: 1,
@@ -75,7 +62,7 @@ function reachableStatus(overrides: Partial<QueueStatus> = {}): QueueStatus {
     serverReachable: true,
     root: "/repo",
     notices: [],
-    readiness: { ready: true, sessions: [SESSION], target: "s1", needsPick: false },
+    readiness: { ready: true },
     open: 0,
     lastPolledAt: null,
     handoff: null,
@@ -95,13 +82,10 @@ function offlineStatus(overrides: Partial<QueueStatus> = {}): QueueStatus {
   });
 }
 
-const NO_SESSION = {
+const NOT_LISTENING = {
   ready: false,
-  sessions: [],
-  target: null,
-  needsPick: false,
-  reason: "No agent session is running in this project.",
-  fix: "Start your agent with northstar run claude.",
+  reason: "Your AI assistant is open in this project but is not running northstar listen.",
+  fix: "Click Copy the line and paste it into your AI assistant.",
 };
 
 describe("Toolbar remote mode", () => {
@@ -176,9 +160,9 @@ describe("Toolbar failure strip", () => {
       state({
         status: reachableStatus({
           readiness: {
-            ...NO_SESSION,
+            ...NOT_LISTENING,
             reason: "no session found",
-            fix: "Run it with northstar run.",
+            fix: "Run northstar listen.",
           },
         }),
       }),
@@ -187,7 +171,7 @@ describe("Toolbar failure strip", () => {
       "Northstar cannot reach your assistant",
     );
     expect(document.querySelector(".ns-setup-hint")?.textContent).toBe(
-      "no session found Run it with northstar run.",
+      "no session found Run northstar listen.",
     );
   });
 });
@@ -216,43 +200,12 @@ describe("Toolbar connection strips", () => {
     expect(onChooseProject).toHaveBeenCalledWith("/work/blog");
   });
 
-  it("asks which session to send to when more than one runs, and sends to the one picked", () => {
-    const onSend = vi.fn();
-    const toolbar = new Toolbar(fakeSurface(), handlers({ onSend }));
-    const other = { ...SESSION, id: "s2", agent: "claude", name: "Claude Code", cwd: "/repo/web" };
-    toolbar.render(
-      state({
-        status: reachableStatus({
-          readiness: {
-            ready: true,
-            sessions: [SESSION, other],
-            target: null,
-            needsPick: true,
-            reason: "More than one agent session is running in this project.",
-            fix: "Pick the session to send to.",
-          },
-        }),
-      }),
-    );
-    const buttons = Array.from(
-      document.querySelectorAll<HTMLButtonElement>(".ns-setup-actions button"),
-    );
-    expect(buttons.map((b) => b.textContent)).toEqual(["Codex, repo", "Claude Code, web"]);
-    buttons[1].click();
-    expect(onSend).toHaveBeenCalledWith("s2");
-    const send = Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find((b) =>
-      b.textContent?.startsWith("Send"),
-    );
-    expect(send?.disabled).toBe(true);
-    expect(send?.dataset.tip).toBe("Pick the session to send to below");
-  });
-
   it("offers only Copy the line, with or without comments, so the connection can come first", () => {
     const onCopyLine = vi.fn();
     const toolbar = new Toolbar(fakeSurface(), handlers({ onCopyLine }));
     for (const queued of [0, 2]) {
       toolbar.render(
-        state({ status: reachableStatus({ queued, open: queued, readiness: NO_SESSION }) }),
+        state({ status: reachableStatus({ queued, open: queued, readiness: NOT_LISTENING }) }),
       );
       const buttons = Array.from(
         document.querySelectorAll<HTMLButtonElement>(".ns-setup-actions button"),
@@ -270,7 +223,7 @@ describe("Toolbar connection strips", () => {
         status: reachableStatus({
           queued: 1,
           readiness: {
-            ...NO_SESSION,
+            ...NOT_LISTENING,
             working: true,
             reason: "Your AI assistant is working on your comments.",
             fix: "Your new comments are saved.",
@@ -329,7 +282,6 @@ describe("Toolbar connection strips", () => {
         status: reachableStatus({
           handoff: {
             delivered: false,
-            session: { id: "s1", agent: "codex", name: "Codex" },
             reason: "Codex did not start on the comments within 20 seconds.",
             fix: "Check Codex.",
             at: "2026-01-01T00:00:00Z",
@@ -340,28 +292,6 @@ describe("Toolbar connection strips", () => {
     expect(document.querySelector(".ns-setup-title")?.textContent).toBe(
       "Comments saved, the agent did not start",
     );
-  });
-
-  it("tells the user when the agent needs them first, with why and how to fix it", () => {
-    const toolbar = new Toolbar(fakeSurface(), handlers());
-    toolbar.render(
-      state({
-        status: reachableStatus({
-          handoff: {
-            delivered: false,
-            session: { id: "s1", agent: "codex", name: "Codex" },
-            blocked: "prompt",
-            reason: "Northstar did not write to Codex, the agent is waiting on a prompt.",
-            fix: "Answer the prompt in the agent, then click Send to AI again.",
-            at: "2026-01-01T00:00:00Z",
-          },
-        }),
-      }),
-    );
-    expect(document.querySelector(".ns-setup-title")?.textContent).toBe(
-      "Comments saved, the agent needs you first",
-    );
-    expect(document.querySelector(".ns-setup-hint")?.textContent).toContain("Answer the prompt");
   });
 
   it("flashes Saved on the comments button, then restores the count", () => {
@@ -497,12 +427,12 @@ describe("Toolbar tooltips", () => {
 
     toolbar.render(
       state({
-        status: reachableStatus({ queued: 2, readiness: NO_SESSION }),
+        status: reachableStatus({ queued: 2, readiness: NOT_LISTENING }),
       }),
     );
     expect(send().disabled).toBe(true);
     expect(send().dataset.tip).toBe(
-      "Send to AI is off, No agent session is running in this project. Start your agent with northstar run claude.",
+      "Send to AI is off, Your AI assistant is open in this project but is not running northstar listen. Click Copy the line and paste it into your AI assistant.",
     );
 
     toolbar.setSending(true);
@@ -512,13 +442,9 @@ describe("Toolbar tooltips", () => {
     toolbar.flashSent({
       sent: 0,
       rejected: 0,
-      woke: {
-        delivered: true,
-        session: { id: "s1", agent: "claude", name: "Claude Code" },
-        at: "now",
-      },
+      woke: { delivered: true, at: "now" },
     });
-    expect(document.body.textContent).toContain("Sent to Claude Code");
+    expect(document.body.textContent).toContain("Sent to your assistant");
   });
 
   it("the dismiss button on a notice is named for screen readers and hover", () => {

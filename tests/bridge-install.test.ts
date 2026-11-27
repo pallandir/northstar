@@ -13,9 +13,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, test } from "node:test";
 import { CHROME_EXTENSION_ID, FIREFOX_EXTENSION_ID, NATIVE_HOST_NAME } from "@northstar/protocol";
-import { BUILTIN_AGENTS, findExecutable, mergeAgents } from "../mcp/src/agents/definitions.js";
 import { DaemonLink } from "../mcp/src/daemon/link.js";
 import { RpcError } from "../mcp/src/daemon/rpc.js";
+import { removeLegacyShell } from "../mcp/src/install/legacy-shell.js";
 import {
   checkHost,
   installHost,
@@ -23,12 +23,6 @@ import {
   syncAllowedExtensions,
   uninstallHost,
 } from "../mcp/src/install/native-manifest.js";
-import {
-  detectShell,
-  installShell,
-  shellInstalled,
-  uninstallShell,
-} from "../mcp/src/install/shell.js";
 import { loadSettings, updateSettings } from "../mcp/src/user-config.js";
 
 const dirs: string[] = [];
@@ -166,127 +160,61 @@ test("the host check says which file is missing, drifted or pointing at nothing"
   assert.equal(broken?.status, "fail");
 });
 
-test("shell functions start each agent through northstar run and fall back with a note when it is gone", () => {
+test("an old shell wrapper is removed from the rc files and the function files, and the rest is left alone", () => {
   const home = temp();
-  const agents = BUILTIN_AGENTS.map((a) => a.id);
-  const dry = installShell({ home, shell: "zsh", agents, dryRun: true });
+  mkdirSync(join(home, ".northstar/shell"), { recursive: true });
+  mkdirSync(join(home, ".config/fish/conf.d"), { recursive: true });
+  writeFileSync(join(home, ".northstar/shell/northstar.sh"), "function claude {}\n");
+  writeFileSync(join(home, ".config/fish/conf.d/northstar.fish"), "function claude\nend\n");
+  const block = '# >>> northstar >>>\n[ -f "x" ] && . "x"\n# <<< northstar <<<\n';
+  writeFileSync(join(home, ".zshrc"), `export A=1\n${block}export B=2\n`);
+  writeFileSync(join(home, ".bashrc"), "export C=3\n");
+
+  const dry = removeLegacyShell(home, true);
   assert.ok(dry.every((r) => r.status === "planned"));
-  assert.equal(existsSync(join(home, ".zshrc")), false);
+  assert.equal(dry.length, 3);
+  assert.match(readFileSync(join(home, ".zshrc"), "utf8"), />>> northstar >>>/);
 
-  const first = installShell({ home, shell: "zsh", agents });
-  assert.deepEqual(
-    first.map((r) => r.status),
-    ["created", "created"],
-  );
-  const script = readFileSync(join(home, ".northstar/shell/northstar.sh"), "utf8");
-  assert.match(script, /unalias claude 2>\/dev\/null\nfunction claude \{/);
-  assert.match(script, /command northstar run claude "\$@"/);
-  assert.match(script, /running claude without Send to AI/);
-  assert.ok(shellInstalled(home, "zsh"));
-  assert.ok(installShell({ home, shell: "zsh", agents }).every((r) => r.status === "unchanged"));
-
-  const rc = readFileSync(join(home, ".zshrc"), "utf8");
-  assert.equal(rc.match(/>>> northstar >>>/g)?.length, 1);
-
-  const out = execFileSync(
-    "bash",
-    [
-      "-c",
-      `. '${join(home, ".northstar/shell/northstar.sh")}'; PATH=/nonexistent; claude --version 2>&1 || true`,
-    ],
-    { encoding: "utf8" },
-  );
-  assert.match(out, /northstar is not on the PATH, running claude without Send to AI/);
-});
-
-test("an alias the user already has for an agent does not shadow or break the function", () => {
-  const home = temp();
-  installShell({ home, shell: "bash", agents: ["claude"] });
-  const script = join(home, ".northstar/shell/northstar.sh");
-  const out = execFileSync(
-    "bash",
-    ["-c", `shopt -s expand_aliases\nalias claude=/bin/echo\n. '${script}'\ntype claude`],
-    { encoding: "utf8" },
-  );
-  assert.match(out, /claude is a function/);
-});
-
-test("uninstalling the shell integration leaves the rest of the rc file alone", () => {
-  const home = temp();
-  writeFileSync(join(home, ".bashrc"), "export A=1\n");
-  installShell({ home, shell: "bash", agents: ["claude"] });
-  assert.match(readFileSync(join(home, ".bashrc"), "utf8"), /^export A=1\n# >>> northstar >>>/);
-  const removed = uninstallShell({ home, shell: "bash" });
-  assert.deepEqual(
-    removed.map((r) => r.status),
-    ["removed", "updated"],
-  );
-  assert.equal(readFileSync(join(home, ".bashrc"), "utf8"), "export A=1\n");
-  assert.equal(shellInstalled(home, "bash"), false);
-});
-
-test("fish gets a conf.d file and an agent id cannot smuggle shell syntax into a function name", () => {
-  const home = temp();
-  installShell({ home, shell: "fish", agents: ["claude"] });
-  assert.match(
-    readFileSync(join(home, ".config/fish/conf.d/northstar.fish"), "utf8"),
-    /function claude --wraps claude/,
-  );
-  assert.throws(
-    () => installShell({ home, shell: "zsh", agents: ["x; rm -rf ~"] }),
-    /not a valid agent id/,
-  );
-  assert.equal(detectShell("/bin/zsh"), "zsh");
-  assert.throws(() => detectShell("/usr/bin/nushell"), /does not know the shell/);
+  const removed = removeLegacyShell(home, false);
+  assert.deepEqual(removed.map((r) => r.status).sort(), ["removed", "removed", "updated"]);
+  assert.equal(readFileSync(join(home, ".zshrc"), "utf8"), "export A=1\nexport B=2\n");
+  assert.equal(readFileSync(join(home, ".bashrc"), "utf8"), "export C=3\n");
+  assert.equal(existsSync(join(home, ".northstar/shell/northstar.sh")), false);
+  assert.equal(existsSync(join(home, ".config/fish/conf.d/northstar.fish")), false);
+  assert.deepEqual(removeLegacyShell(home, false), []);
 });
 
 test("user settings load defaults, round trip and refuse a bad file with its path", () => {
   const home = temp();
-  assert.deepEqual(loadSettings(home), {
-    preferredAgent: null,
-    template: "resolve",
-    agents: [],
-    projects: {},
-  });
-  updateSettings(home, {
-    preferredAgent: "claude",
-    template: "review",
-    projects: { "localhost:3000": "~/work/app" },
-    agent: {
-      id: "company-ai",
-      definition: {
-        executable: "/usr/local/bin/company-ai",
-      },
-    },
-  });
+  assert.deepEqual(loadSettings(home), { template: "resolve", projects: {} });
+  updateSettings(home, { template: "review", projects: { "localhost:3000": "~/work/app" } });
   const loaded = loadSettings(home);
-  assert.equal(loaded.preferredAgent, "claude");
   assert.equal(loaded.template, "review");
   assert.equal(loaded.projects["localhost:3000"], join(home, "work/app"));
-  assert.equal(loaded.agents[0]?.id, "company-ai");
-  assert.deepEqual(
-    mergeAgents(loaded.agents)
-      .map((a) => a.id)
-      .slice(-1),
-    ["company-ai"],
-  );
 
   mkdirSync(join(home, ".northstar"), { recursive: true });
-  writeFileSync(join(home, ".northstar", "config.yaml"), "agents: [");
+  writeFileSync(join(home, ".northstar", "config.yaml"), "projects: [");
   assert.throws(() => loadSettings(home), /config\.yaml is not valid YAML/);
   writeFileSync(join(home, ".northstar", "config.yaml"), "unknown: 1\n");
   assert.throws(() => loadSettings(home), /config\.yaml is invalid/);
 });
 
-test("agents are found on the PATH without a shell", () => {
+test("a config written by an older version still loads and loses the removed agent settings on the next save", () => {
   const home = temp();
-  const bin = join(home, "bin");
-  mkdirSync(bin);
-  writeFileSync(join(bin, "codex"), "#!/bin/sh\n", { mode: 0o755 });
-  writeFileSync(join(bin, "claude"), "#!/bin/sh\n", { mode: 0o644 });
-  assert.equal(findExecutable("codex", bin), join(bin, "codex"));
-  assert.equal(findExecutable("claude", bin), null);
-  assert.equal(findExecutable("missing", bin), null);
+  mkdirSync(join(home, ".northstar"), { recursive: true });
+  const path = join(home, ".northstar", "config.yaml");
+  writeFileSync(
+    path,
+    "version: 1\npreferences:\n  preferredAgent: claude\n  template: fix\nagents:\n  mine:\n    executable: /usr/local/bin/mine\nprojects:\n  localhost:3000:\n    directory: /work/app\n",
+  );
+  assert.deepEqual(loadSettings(home), {
+    template: "fix",
+    projects: { "localhost:3000": "/work/app" },
+  });
+  updateSettings(home, { template: "explain" });
+  const rewritten = readFileSync(path, "utf8");
+  assert.doesNotMatch(rewritten, /preferredAgent|agents|mine/);
+  assert.match(rewritten, /template: explain/);
 });
 
 test("the daemon link reports an unreachable daemon once and never throws into a tool call", async () => {
@@ -301,7 +229,6 @@ test("the daemon link reports an unreachable daemon once and never throws into a
         "Start it.",
       );
     },
-    ancestors: async () => [1],
   });
   const status = await link.start();
   assert.equal(status.state, "off");

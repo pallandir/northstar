@@ -1,6 +1,6 @@
 {
   "name": "@pallandir/northstar",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "description": "UI design advisory framework for AI coding agents: MCP server, design canon, static detector and installer, plus the Northstar browser comment handoff.",
   "license": "MIT",
   "type": "module",
@@ -47,17 +47,22 @@
     "port": "tsx scripts/port-uupm.ts"
   },
   "dependencies": {
-    "@lydell/node-pty": "^1.1.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "@xterm/headless": "^6.0.0",
     "culori": "^4.0.2",
+    "minisearch": "^7.2.0",
     "playwright-core": "^1.63.0",
+    "proper-lockfile": "^4.1.2",
+    "vscode-jsonrpc": "^10.0.2",
+    "write-file-atomic": "^7.0.1",
     "yaml": "^2.8.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@northstar/canon": "*",
     "@northstar/protocol": "*",
+    "@types/proper-lockfile": "^4.1.4",
+    "@types/write-file-atomic": "^4.0.3",
+    "csv-parse": "^7.0.3",
     "tsup": "^8.3.5"
   }
 }

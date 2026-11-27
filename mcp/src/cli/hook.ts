@@ -1,15 +1,15 @@
+import { parseArgs } from "node:util";
 import {
   HOOK_AGENTS,
   type HookAgent,
   type HookInput,
   feedbackText,
-  findProjectRoot,
+  hookProjectRoot,
 } from "../lib/hook-feedback.js";
 
 export function render(agent: HookAgent, text: string): string {
   switch (agent) {
     case "claude":
-      return JSON.stringify({ decision: "block", reason: text });
     case "codex":
       return JSON.stringify({
         hookSpecificOutput: { hookEventName: "PostToolUse", additionalContext: text },
@@ -42,13 +42,20 @@ interface Parsed {
 }
 
 // pre-edit is a no-op kept so hooks written by older installs keep working
-function parseArgs(args: string[]): Parsed {
-  const [event, ...rest] = args;
+function parseHookArgs(args: string[]): Parsed {
+  const {
+    positionals: [event],
+    values,
+  } = parseArgs({
+    args,
+    options: { agent: { type: "string", default: "claude" } },
+    allowPositionals: true,
+    strict: true,
+  });
   if (event !== "post-edit" && event !== "pre-edit") {
     throw new Error(`unknown hook event ${event ?? "(none)"}, use post-edit or pre-edit`);
   }
-  const flag = rest.indexOf("--agent");
-  const named = flag === -1 ? "claude" : (rest[flag + 1] ?? "");
+  const named = values.agent ?? "";
   const agent = HOOK_AGENTS.find((candidate) => candidate === named);
   if (!agent) throw new Error(`unknown agent ${named || "(none)"}, use ${HOOK_AGENTS.join(", ")}`);
   return { event, agent };
@@ -65,9 +72,9 @@ function parseInput(raw: string): HookInput {
 
 export async function hook(args: string[]): Promise<number> {
   try {
-    const { event, agent } = parseArgs(args);
+    const { event, agent } = parseHookArgs(args);
     const input = parseInput(await readStdin());
-    const root = findProjectRoot(input.cwd ?? process.cwd());
+    const root = hookProjectRoot(input.cwd ?? process.cwd());
     if (!root) return 0;
     if (event === "pre-edit") return 0;
     const text = feedbackText(agent, input, root);

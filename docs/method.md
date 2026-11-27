@@ -27,9 +27,9 @@ Two people usually share a screen. An engineer builds it, a designer refines it.
 
 Refine starts with an audit, then critiques and polishes one lever at a time. Adapt carries a design to a new target such as a theme or a breakpoint. Modernise derives a brief and a system from existing code, then proposes changes in safe increments. The agent runs these as prompts: `brief`, `direct`, `system`, `compose`, `critique`, `polish`, `build`, `refine`, `finish`, `adapt` and `modernise`.
 
-## DESIGN.md comes first
+## DESIGN.md
 
-Write `DESIGN.md` before creating or editing UI files, and make sure it parses, has no unfilled placeholders and names a mode. This is a recommendation, not a block, but it applies to every task, including small edits and polish passes, because a design system that is written afterwards describes the result instead of steering it. `northstar_context` reports the state in its `gate` field and says how to fill it.
+For new UI, a redesign or a refine, write `DESIGN.md` first and make sure it parses, has no unfilled placeholders and names a mode, because a design system that is written afterwards describes the result instead of steering it. It is a recommendation, nothing blocks an edit, and a small tweak, a polish pass or a browser comment never needs it. `northstar_context` reports the state in its `design` and `missing` fields and says how to fill it.
 
 ## Modes
 

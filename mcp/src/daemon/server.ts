@@ -13,7 +13,6 @@ interface DaemonServerOptions {
   version: string;
   log: (message: string) => void;
   idleExitMs?: number;
-  pickupTimeoutMs?: number;
 }
 
 export interface RunningDaemon {
@@ -47,7 +46,6 @@ export async function startDaemon(options: DaemonServerOptions): Promise<Running
     home,
     version: options.version,
     log,
-    pickupTimeoutMs: options.pickupTimeoutMs,
     onShutdown: () => void close(),
   });
   const server = createServer((socket) => {

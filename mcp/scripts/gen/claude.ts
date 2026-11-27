@@ -1,4 +1,4 @@
-import { SERVERS, hookCommand, launchOf } from "../../src/install/plans/index.js";
+import { PACKAGE, SERVERS, launchOf } from "../../src/install/plans/index.js";
 import { formatJson } from "./json.js";
 
 export const AUTHOR = { name: "pallandir", url: "https://github.com/pallandir" };
@@ -20,6 +20,19 @@ export function pluginManifest(version: string): string {
   });
 }
 
+export function liveManifest(version: string): string {
+  return formatJson({
+    name: "northstar-live",
+    description:
+      "Hands Send to AI from the Northstar browser extension to this Claude Code session as soon as it is idle.",
+    version,
+    author: AUTHOR,
+    homepage: HOMEPAGE,
+    license: LICENSE,
+    keywords: ["ui", "design", "mod"],
+  });
+}
+
 export function marketplaceManifest(version: string): string {
   return formatJson({
     name: "northstar",
@@ -37,6 +50,18 @@ export function marketplaceManifest(version: string): string {
         keywords: ["ui", "design", "design-system", "frontend", "anti-slop"],
         category: "design",
       },
+      {
+        name: "northstar-live",
+        source: "./plugin-live",
+        description:
+          "Hands Send to AI from the Northstar browser extension to this Claude Code session as soon as it is idle.",
+        version,
+        author: AUTHOR,
+        homepage: HOMEPAGE,
+        license: LICENSE,
+        keywords: ["ui", "design", "mod"],
+        category: "design",
+      },
     ],
   });
 }
@@ -48,7 +73,13 @@ export function hooksManifest(version: string): string {
       PostToolUse: [
         {
           matcher,
-          hooks: [{ type: "command", command: hookCommand({ version }, "claude"), timeout: 20 }],
+          hooks: [
+            {
+              type: "command",
+              command: `npx -y ${PACKAGE}@${version} hook post-edit --agent claude`,
+              timeout: 20,
+            },
+          ],
         },
       ],
     },

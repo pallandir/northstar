@@ -154,7 +154,7 @@ Listing copy lives in [extensions/firefox/STORE.md](../extensions/firefox/STORE.
 - [ ] A release that adds a permission (`nativeMessaging`, `contextMenus`) states the
       reason in the store listing and in the notes for reviewers, and the release notes
       warn that Chrome disables an installed extension until its users accept it.
-- [ ] `npm install -g` of the packed tarball on macOS and Linux loads `@lydell/node-pty`,
+- [ ] `npm install -g` of the packed tarball on macOS and Linux works,
       `northstar install --dry-run` lists the browser helper files, and `northstar doctor`
       reports no failures.
 - [ ] `CHANGELOG.md` updated for the release.

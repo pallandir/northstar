@@ -33,7 +33,7 @@ function setTip(el: HTMLElement, tip: string): void {
 
 export interface ToolbarHandlers {
   onComments: () => void;
-  onSend: (sessionId?: string) => void;
+  onSend: () => void;
   onHandoff: () => void;
   onReset: () => void;
   onTogglePick: () => void;
@@ -219,13 +219,10 @@ export class Toolbar {
     this.reachable = reachable;
     this.pending = (status?.queued ?? 0) + (status?.open ?? 0);
     const readiness = status?.readiness;
-    this.blocked = !readiness
-      ? null
-      : readiness.needsPick
-        ? "Pick the session to send to below"
-        : !readiness.ready
-          ? `Send to AI is off, ${readiness.reason ?? ""} ${readiness.fix ?? ""}`.trim()
-          : null;
+    this.blocked =
+      readiness && !readiness.ready
+        ? `Send to AI is off, ${readiness.reason ?? ""} ${readiness.fix ?? ""}`.trim()
+        : null;
     this.syncSendButton();
     this.handoffBtn.classList.toggle("ns-action--primary", !reachable);
 
@@ -275,27 +272,15 @@ export class Toolbar {
         `handoff:${handoff.at}`,
         handoff.blocked === "busy"
           ? "Comments queued, your assistant is busy"
-          : handoff.blocked
-            ? "Comments saved, the agent needs you first"
-            : "Comments saved, the agent did not start",
+          : "Comments saved, the agent did not start",
         `${handoff.reason} ${handoff.fix ?? ""}`.trim(),
-      );
-    } else if (readiness?.needsPick && this.pending > 0) {
-      this.showFailure(
-        `pick:${readiness.sessions.map((session) => session.id).join(",")}`,
-        "More than one agent session is running here",
-        "Pick the session that should get the comments.",
-        readiness.sessions.map((session) => ({
-          label: `${session.name}, ${session.cwd.split(/[\\/]/).filter(Boolean).pop() ?? session.cwd}`,
-          run: () => this.handlers.onSend(session.id),
-        })),
       );
     } else if (readiness && !readiness.ready) {
       const quick: StripAction[] = [
         { label: "Copy the line", run: () => this.handlers.onCopyLine() },
       ];
       this.showFailure(
-        `no-session:${readiness.working === true}`,
+        `not-listening:${readiness.working === true}`,
         readiness.working ? "Your assistant is working" : "Northstar cannot reach your assistant",
         `${readiness.reason ?? ""} ${readiness.fix ?? ""}`.trim(),
         quick,
@@ -318,7 +303,7 @@ export class Toolbar {
   flashSent(send: SendOutcome): void {
     if (!send.woke?.delivered) return;
     window.clearTimeout(this.sentTimer);
-    this.sendLabel.textContent = `Sent to ${send.woke.session?.name ?? "the agent"}`;
+    this.sendLabel.textContent = "Sent to your assistant";
     this.sentTimer = window.setTimeout(() => {
       this.sendLabel.textContent = "Send to AI";
     }, 1600);

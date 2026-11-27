@@ -3,7 +3,7 @@ name: northstar-build
 description: Use when creating new UI from scratch, such as a page, screen, flow or component, or when a brief asks for a professional design. Picks an archetype, generates the tokens and builds with libraries. For UI that already exists use northstar-refine.
 license: MIT
 metadata:
-  version: "2.6.1"
+  version: "2.7.0"
 ---
 
 # Northstar build
@@ -12,7 +12,7 @@ Create new UI fast and make it look professional the first time. The method and 
 
 ## Steps
 
-1. Call `northstar_context`. It reports the stack, the mode, the gate and what is missing. No UI file is created until `DESIGN.md` exists and validates.
+1. Call `northstar_context`. It reports the stack, the mode, the state of `DESIGN.md` and what is missing. Write `DESIGN.md` before building new UI.
 2. Ask at most three questions, each with a default: who it is for, the mode (operate, read, persuade or experience) and the look. Skip anything the repo already answers.
 3. When the look is open, research it. Set `design_intent` from PRODUCT.md, run `references_search`, add the strongest with `references_add`, look at each image and record what it gives with `references_record`, then call `design_direction`. Skip this when the brief or an archetype already settles the look. Pick the archetype. Search with `canon_find` using `kind` archetype and the words of the brief, or read `references/archetypes.md` in the `northstar` skill. Blend two when the brief needs it.
 4. Generate the system with `design_tokens_generate`, passing `brand` when a brand colour exists. Show the draft, save it with `write` true and fix every error from `design_md_validate`. Record the choice in `design/decisions.md`.

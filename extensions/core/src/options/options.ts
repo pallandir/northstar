@@ -1,5 +1,4 @@
 import {
-  type AgentInfo,
   type SystemInfo,
   TEMPLATE_IDS,
   TEMPLATE_LABELS,
@@ -17,7 +16,6 @@ function element<T extends HTMLElement>(id: string): T {
 }
 
 const helper = element<HTMLParagraphElement>("helper");
-const agent = element<HTMLSelectElement>("agent");
 const template = element<HTMLSelectElement>("template");
 const projects = element<HTMLUListElement>("projects");
 const form = element<HTMLFormElement>("add");
@@ -45,12 +43,7 @@ function option(value: string, label: string): HTMLOptionElement {
   return node;
 }
 
-function renderConfig(config: UserConfig, agents: AgentInfo[]): void {
-  agent.replaceChildren(
-    option("", "No preference"),
-    ...agents.map((a) => option(a.id, a.installed ? a.name : `${a.name} (not installed)`)),
-  );
-  agent.value = config.preferredAgent ?? "";
+function renderConfig(config: UserConfig): void {
   template.replaceChildren(...TEMPLATE_IDS.map((id) => option(id, TEMPLATE_LABELS[id])));
   template.value = config.template;
   projects.replaceChildren(
@@ -77,11 +70,7 @@ async function load(): Promise<void> {
   const info = await request<SystemInfo>("system.info");
   helper.textContent = `The Northstar helper is running, version ${info.version}.`;
   helper.classList.remove("error");
-  const [config, agents] = await Promise.all([
-    request<UserConfig>("config.get"),
-    request<AgentInfo[]>("agent.list"),
-  ]);
-  renderConfig(config, agents);
+  renderConfig(await request<UserConfig>("config.get"));
 }
 
 async function save(change: Record<string, unknown>): Promise<void> {
@@ -95,7 +84,6 @@ async function save(change: Record<string, unknown>): Promise<void> {
   }
 }
 
-agent.addEventListener("change", () => void save({ preferredAgent: agent.value || null }));
 template.addEventListener("change", () => {
   const chosen: TemplateId = templateSchema.parse(template.value);
   void save({ template: chosen });

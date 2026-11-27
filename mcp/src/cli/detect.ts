@@ -1,8 +1,10 @@
 import { resolve } from "node:path";
+import { parseArgs } from "node:util";
 import { MODES, type Mode } from "@northstar/canon";
 import { VERSION } from "../config.js";
 import { runScan } from "../detect.js";
 import { formatJson, formatSarif, formatText } from "../detector/index.js";
+import { projectRoot } from "../lib/paths.js";
 
 interface Options {
   paths: string[];
@@ -13,35 +15,31 @@ interface Options {
 }
 
 function parse(args: string[]): Options {
-  const options: Options = {
-    paths: [],
-    format: "text",
-    root: process.env.NORTHSTAR_ROOT ?? process.cwd(),
-    diff: false,
-  };
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i] ?? "";
-    if (arg === "--diff") options.diff = true;
-    else if (arg === "--format") {
-      const value = args[++i];
-      if (value !== "text" && value !== "json" && value !== "sarif")
-        throw new Error(`unknown format ${value}`);
-      options.format = value;
-    } else if (arg === "--mode") {
-      const value = args[++i] ?? "";
-      if (!(MODES as readonly string[]).includes(value)) throw new Error(`unknown mode ${value}`);
-      options.mode = value as Mode;
-    } else if (arg === "--root") {
-      const value = args[++i];
-      if (!value) throw new Error("--root needs a directory");
-      options.root = resolve(value);
-    } else if (arg.startsWith("--")) {
-      throw new Error(`unknown option ${arg}`);
-    } else {
-      options.paths.push(arg);
-    }
+  const { positionals, values } = parseArgs({
+    args,
+    options: {
+      diff: { type: "boolean" },
+      format: { type: "string", default: "text" },
+      mode: { type: "string" },
+      root: { type: "string" },
+    },
+    allowPositionals: true,
+    strict: true,
+  });
+  const { format } = values;
+  if (format !== "text" && format !== "json" && format !== "sarif") {
+    throw new Error(`unknown format ${format}`);
   }
-  return options;
+  if (values.mode !== undefined && !(MODES as readonly string[]).includes(values.mode)) {
+    throw new Error(`unknown mode ${values.mode}`);
+  }
+  return {
+    paths: positionals,
+    format,
+    mode: values.mode as Mode | undefined,
+    root: values.root ? resolve(values.root) : projectRoot(),
+    diff: values.diff ?? false,
+  };
 }
 
 export async function detect(args: string[]): Promise<number> {

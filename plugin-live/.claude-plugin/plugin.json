@@ -1,0 +1,12 @@
+{
+  "name": "northstar-live",
+  "description": "Hands Send to AI from the Northstar browser extension to this Claude Code session as soon as it is idle.",
+  "version": "2.7.0",
+  "author": {
+    "name": "pallandir",
+    "url": "https://github.com/pallandir"
+  },
+  "homepage": "https://github.com/pallandir/northstar",
+  "license": "MIT",
+  "keywords": ["ui", "design", "mod"]
+}

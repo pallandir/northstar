@@ -3,8 +3,8 @@ import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadCanon } from "@northstar/canon";
+import { parse as parseCsv } from "csv-parse/sync";
 import { parse } from "yaml";
-import { parseCsv } from "../src/data/csv.js";
 import { matchedPredicates } from "../src/data/predicates.js";
 import type { Domain, Manifest, Mode, Row } from "../src/data/schema.js";
 
@@ -264,7 +264,17 @@ const undecided: string[] = [];
 mkdirSync(join(mcpRoot, "data", "json"), { recursive: true });
 
 for (const spec of SPECS) {
-  const records = parseCsv(readFileSync(join(sourceDir, spec.file), "utf8"));
+  const records: Array<Record<string, string>> = parseCsv(
+    readFileSync(join(sourceDir, spec.file), "utf8"),
+    {
+      bom: true,
+      columns: (header: string[]) => header.map((name) => name.trim()),
+      skip_empty_lines: true,
+      skip_records_with_empty_values: true,
+      trim: true,
+      relax_column_count: true,
+    },
+  );
   const seen = new Map<string, number>();
   const rows: Row[] = [];
   dropped[spec.domain] = 0;

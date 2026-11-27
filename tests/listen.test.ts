@@ -1,13 +1,18 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, test } from "node:test";
+import { pathToFileURL } from "node:url";
 import { type HandoffOutcome, templateLine } from "@northstar/protocol";
 import { connectDaemon } from "../mcp/src/daemon/client.js";
 import type { RpcPeer } from "../mcp/src/daemon/rpc.js";
 import { type RunningDaemon, startDaemon } from "../mcp/src/daemon/server.js";
 import { CLI_ENTRY, draft } from "./helpers.js";
+
+const TSX = pathToFileURL(createRequire(import.meta.url).resolve("tsx")).href;
 
 let home: string;
 let project: string;
@@ -47,7 +52,7 @@ function runListen(...args: string[]) {
 async function browser(): Promise<RpcPeer> {
   const peer = await connectDaemon(() => {}, null, home);
   peers.push(peer);
-  await peer.call("mcp.hello", { root: project, ancestors: [] });
+  await peer.call("mcp.hello", { root: project });
   return peer;
 }
 
@@ -68,7 +73,7 @@ test("northstar listen blocks until Send to AI, prints the line and the open com
     if (status.readiness.ready) break;
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  const outcome = await request<HandoffOutcome>(peer, "session.send", {
+  const outcome = await request<HandoffOutcome>(peer, "handoff.send", {
     root: project,
     template: "resolve",
   });
@@ -92,4 +97,52 @@ test("northstar listen refuses a bad timeout with its usage", async () => {
   const listener = runListen("--timeout", "0");
   assert.equal(await listener.exited, 2);
   assert.match(listener.output().stderr, /--timeout takes whole seconds from 1 to 3600/);
+});
+
+async function listenerReaches(extraArgs: string[], cwdOf: (nested: string) => string) {
+  mkdirSync(join(project, ".git"));
+  const nested = join(project, "packages", "web");
+  mkdirSync(nested, { recursive: true });
+  const peer = await browser();
+  const child = spawn(
+    process.execPath,
+    [
+      "--import",
+      TSX,
+      CLI_ENTRY,
+      "listen",
+      "--timeout",
+      "10",
+      ...extraArgs.map((a) => a.replace("NESTED", nested)),
+    ],
+    {
+      cwd: cwdOf(nested),
+      env: {
+        ...process.env,
+        NORTHSTAR_HOME: home,
+        NORTHSTAR_ROOT: undefined,
+        CLAUDE_PROJECT_DIR: undefined,
+      },
+    },
+  );
+  const exited = new Promise((resolve) => child.on("close", resolve));
+  let ready = false;
+  for (let attempt = 0; attempt < 80 && !ready; attempt += 1) {
+    const status = await request<{ readiness: { ready: boolean } }>(peer, "status.get", {
+      root: project,
+    });
+    ready = status.readiness.ready;
+    if (!ready) await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  child.kill();
+  await exited;
+  return ready;
+}
+
+test("northstar listen started in a subfolder waits for the project root, not the subfolder", async () => {
+  assert.equal(await listenerReaches([], (nested) => nested), true);
+});
+
+test("northstar listen --from takes the project root of that folder, whatever the working folder", async () => {
+  assert.equal(await listenerReaches(["--from", "NESTED"], () => tmpdir()), true);
 });

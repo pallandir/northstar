@@ -1,4 +1,4 @@
-export const version = "2.6.1";
+export const version = "2.7.0";
 
 const LOOPBACK_HOSTS = ["http://localhost/*", "http://127.0.0.1/*", "http://*.localhost/*"];
 

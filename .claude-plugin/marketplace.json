@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "A UI design advisory framework for AI agents: brief, direction, system, compose, critique and polish, library first and free of generic AI defaults.",
-    "version": "2.6.1"
+    "version": "2.7.0"
   },
   "plugins": [
     {
       "name": "northstar",
       "source": "./plugin",
       "description": "A UI design advisory framework for AI agents: brief, direction, system, compose, critique and polish, library first and free of generic AI defaults.",
-      "version": "2.6.1",
+      "version": "2.7.0",
       "author": {
         "name": "pallandir",
         "url": "https://github.com/pallandir"
@@ -21,6 +21,20 @@
       "homepage": "https://github.com/pallandir/northstar",
       "license": "MIT",
       "keywords": ["ui", "design", "design-system", "frontend", "anti-slop"],
+      "category": "design"
+    },
+    {
+      "name": "northstar-live",
+      "source": "./plugin-live",
+      "description": "Hands Send to AI from the Northstar browser extension to this Claude Code session as soon as it is idle.",
+      "version": "2.7.0",
+      "author": {
+        "name": "pallandir",
+        "url": "https://github.com/pallandir"
+      },
+      "homepage": "https://github.com/pallandir/northstar",
+      "license": "MIT",
+      "keywords": ["ui", "design", "mod"],
       "category": "design"
     }
   ]

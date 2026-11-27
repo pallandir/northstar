@@ -56,23 +56,18 @@ and to an assistant session that Northstar itself started.
   instructions. The assistant acts only on the design intent, binds edits to the
   located source, stays within UI changes, and sends no page content or comment
   data anywhere.
-- **Northstar can only write into sessions it started.** `northstar run` starts the
-  assistant in a pseudo terminal that Northstar owns, and that terminal is the only
-  place a send can write. Northstar does not use a terminal multiplexer, AppleScript, accessibility
-  permissions or any terminal automation, so it cannot type into another window, and
-  there is nothing to grant. There is also no channel and no development flag.
-- **What Northstar writes is a fixed constant.** A send makes the session write one
+- **Northstar never writes into a terminal.** Send to AI wakes a `northstar listen`
+  process that your assistant started, and that process prints the line on its own
+  standard output. Northstar does not use a pseudo terminal, a terminal multiplexer,
+  AppleScript, accessibility permissions or any terminal automation, so it cannot type
+  into another window, and there is nothing to grant. There is also no channel and no
+  development flag.
+- **What Northstar hands over is a fixed constant.** A send makes the listener print one
   line chosen from six templates compiled into the package (resolve, implement,
-  explain, fix, review, add to task). The wrapper re-checks that the line is exactly
-  one of them, printable ASCII, before it writes. No comment text, selected text, page
-  URL, page title, id or count is ever written. The assistant reads all of that through
+  explain, fix, review, add to task). The daemon re-checks that the line is exactly
+  one of them, printable ASCII, before it is released. No comment text, selected text, page
+  URL, page title, id or count is part of that line. The assistant reads all of that through
   the MCP tools, as data.
-- **Northstar will not answer a prompt for you.** The wrapper keeps a rendered copy
-  of the terminal screen. It refuses when a numbered choice or a yes or no question is
-  showing, when there is text in the assistant's input, when you typed in the last
-  moments, or when the output never goes quiet. Your own keystrokes are held while a
-  line is written and released after, so they cannot interleave with it. Each refusal
-  is shown in the toolbar with the reason and the fix.
 - **Copy the line is explicit too.** It copies a fixed start line to the clipboard when
   you press it. `northstar listen` only waits and prints one of the fixed template lines
   with the saved comment summaries. It writes into no terminal, and the daemon accepts
@@ -98,20 +93,17 @@ and to an assistant session that Northstar itself started.
   session, or to clear them.
 - **The browser enforces which extension may start the helper.** Northstar checks the
   caller again, but it relies on Chrome and Firefox for the first check.
-- **A session you start yourself is trusted with your files.** Northstar does not
-  sandbox the assistant. It sandboxes only what Northstar writes into it.
+- **An assistant you start yourself is trusted with your files.** Northstar does not
+  sandbox the assistant. It controls only the fixed line it hands over.
 
 If you do not want an assistant reachable from the browser on a shared or untrusted
-machine, run `northstar uninstall` to remove the helper, or do not start agents with
-`northstar run` there. Sessions end with the terminal, and `northstar daemon stop`
-closes the daemon.
+machine, run `northstar uninstall` to remove the helper, or do not run `northstar listen`
+there. A listener ends with its assistant, and `northstar daemon stop` closes the daemon.
 
 ## Supply chain
 
 - Production dependencies are small: `@modelcontextprotocol/sdk`, `zod`, `yaml`,
-  `@xterm/headless` for the rendered screen, and `@lydell/node-pty` for the pseudo
-  terminal. `@lydell/node-pty` ships prebuilt binaries for macOS and Linux as
-  optional packages, so installing it compiles nothing. Northstar shells out only to
+  `minisearch`, `proper-lockfile`, `write-file-atomic` and `vscode-jsonrpc`. Northstar shells out only to
   `ps`, always through `execFile` with an argument array and never through a shell.
 - `npm audit --omit=dev` currently reports advisories only in packages the MCP SDK
   brings in for its HTTP transports (`hono`, `@hono/node-server`, `qs`, `fast-uri` and

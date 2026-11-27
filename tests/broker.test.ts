@@ -56,20 +56,41 @@ test("pendingNotices hands out a copy, not the live array", () => {
 test("the last handoff outcome is remembered", () => {
   const broker = new Broker();
   assert.equal(broker.lastHandoff === null, true);
-  broker.recordHandoff({
-    delivered: true,
-    session: { id: "s1", agent: "codex", name: "Codex" },
-    at: "now",
-  });
-  assert.equal(broker.lastHandoff?.session?.agent, "codex");
+  broker.recordHandoff({ delivered: true, at: "now" });
+  assert.equal(broker.lastHandoff?.delivered, true);
 });
 
-test("waitForPoll resolves true on a poll after the mark and false on timeout", async () => {
+test("a listen whose connection already closed leaves no waiter and the handoff stays queued", async () => {
   const broker = new Broker();
-  const since = Date.now();
-  const waiting = broker.waitForPoll(since, 1000);
-  broker.markPolled();
-  assert.equal(await waiting, true);
-  assert.equal(await broker.waitForPoll(since, 1000), true);
-  assert.equal(await broker.waitForPoll(Date.now() + 60_000, 30), false);
+  const closed = new AbortController();
+  closed.abort();
+  const settled = await Promise.race([
+    broker.listen(5_000, closed.signal),
+    new Promise((resolve) => setTimeout(() => resolve("still waiting"), 200)),
+  ]);
+  assert.deepEqual(settled, { template: null });
+  assert.equal(broker.listening, false);
+  assert.equal(broker.signalHandoff("resolve"), "queued");
+  assert.deepEqual(await broker.listen(5_000, new AbortController().signal), {
+    template: "resolve",
+  });
+});
+
+test("an already closed listen does not take a queued handoff away from the next one", async () => {
+  const broker = new Broker();
+  assert.equal(broker.signalHandoff("fix"), "queued");
+  const closed = new AbortController();
+  closed.abort();
+  assert.deepEqual(await broker.listen(5_000, closed.signal), { template: null });
+  assert.deepEqual(await broker.listen(5_000, new AbortController().signal), { template: "fix" });
+});
+
+test("a send right after a delivery is not queued again until something changes", async () => {
+  const broker = new Broker();
+  const waiting = broker.listen(5_000, new AbortController().signal);
+  assert.equal(broker.signalHandoff("resolve"), "woken");
+  await waiting;
+  assert.equal(broker.signalHandoff("resolve"), "already-sent");
+  broker.bump();
+  assert.equal(broker.signalHandoff("resolve"), "queued");
 });

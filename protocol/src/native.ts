@@ -25,9 +25,7 @@ export const TEMPLATE_LABELS: Record<TemplateId, string> = {
 
 export const ACTIONS = [
   "system.info",
-  "agent.list",
-  "session.list",
-  "session.send",
+  "handoff.send",
   "project.list",
   "project.resolve",
   "status.get",
@@ -46,11 +44,7 @@ const pageParam = z.string().min(1).max(4000);
 
 export const actionParams = {
   "system.info": z.object({}).strict(),
-  "agent.list": z.object({}).strict(),
-  "session.list": z.object({}).strict(),
-  "session.send": z
-    .object({ root, template: templateSchema, sessionId: z.string().min(1).max(100).optional() })
-    .strict(),
+  "handoff.send": z.object({ root, template: templateSchema }).strict(),
   "project.list": z.object({}).strict(),
   "project.resolve": z
     .object({
@@ -71,7 +65,6 @@ export const actionParams = {
   "config.get": z.object({}).strict(),
   "config.set": z
     .object({
-      preferredAgent: z.string().min(1).max(64).nullable().optional(),
       template: templateSchema.optional(),
       projects: z.record(z.string().min(1).max(500), z.string().min(1).max(4096)).optional(),
     })
@@ -91,9 +84,7 @@ export type ErrorCode =
   | "UNSUPPORTED_ACTION"
   | "BAD_REQUEST"
   | "VERSION_MISMATCH"
-  | "NO_SESSION"
-  | "PICK_SESSION"
-  | "SESSION_NOT_FOUND"
+  | "NOT_LISTENING"
   | "BLOCKED"
   | "NO_PROJECT"
   | "REPLY_TOO_LARGE"
@@ -118,41 +109,16 @@ export interface NativeFailure {
 
 export type NativeResponse<T = unknown> = NativeSuccess<T> | NativeFailure;
 
-export interface AgentInfo {
-  id: string;
-  name: string;
-  installed: boolean;
-  path: string | null;
-}
-
-export interface SessionInfo {
-  id: string;
-  agent: string;
-  name: string;
-  command: string;
-  cwd: string;
-  root: string;
-  pid: number;
-  createdAt: string;
-  lastActivityAt: string;
-}
-
 export interface Readiness {
   ready: boolean;
-  sessions: SessionInfo[];
-  target: string | null;
-  needsPick: boolean;
   working?: boolean;
   reason?: string;
   fix?: string;
 }
 
-export type BlockedReason = "prompt" | "input" | "busy";
-
 export interface HandoffOutcome {
   delivered: boolean;
-  session: { id: string; agent: string; name: string } | null;
-  blocked?: BlockedReason;
+  blocked?: "busy";
   reason?: string;
   fix?: string;
   at: string;
@@ -161,7 +127,6 @@ export interface HandoffOutcome {
 export interface ProjectInfo {
   root: string;
   name: string;
-  sessions: number;
 }
 
 export interface ProjectOwnership {
@@ -184,7 +149,6 @@ export interface StatusResponse {
 }
 
 export interface UserConfig {
-  preferredAgent: string | null;
   template: TemplateId;
   projects: Record<string, string>;
 }

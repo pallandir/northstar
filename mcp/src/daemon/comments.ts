@@ -9,8 +9,7 @@ import {
   pageKey,
 } from "@northstar/protocol";
 import type { z } from "zod";
-import { loadSettings } from "../user-config.js";
-import { readinessFor } from "./router.js";
+import { readinessFor } from "./readiness.js";
 import { badRequest } from "./rpc.js";
 import { ASSISTANT_ACTIVE_MS } from "./sending.js";
 import type { Workspace } from "./workspace.js";
@@ -123,15 +122,12 @@ export class CommentActions {
   async status({ root }: Params<"status.get">): Promise<StatusResponse> {
     const canonical = this.workspace.requireRoot(root);
     const broker = this.workspace.broker(canonical);
-    const settings = loadSettings(this.workspace.home);
     return {
       notices: broker.pendingNotices,
-      readiness: readinessFor(this.workspace.registry.list(), {
-        root: canonical,
-        preferredAgent: settings.preferredAgent,
-        assistantConnected: this.workspace.registry.hasAssistant(canonical),
-        assistantWorking: broker.activeWithin(ASSISTANT_ACTIVE_MS),
-        assistantListening: broker.listenerSeenWithin(ASSISTANT_ACTIVE_MS),
+      readiness: readinessFor({
+        connected: this.workspace.registry.hasAssistant(canonical),
+        working: broker.activeWithin(ASSISTANT_ACTIVE_MS),
+        listening: broker.listenerSeenWithin(ASSISTANT_ACTIVE_MS),
       }),
       open: (await this.workspace.store(canonical).list("open")).length,
       lastPolledAt: broker.lastPolledAt,

@@ -12,9 +12,8 @@ toolbar appears. You point at an element and one popover opens: a Comment tab, a
 Text tab, and a Colour tab, so there is one surface for everything you might do to
 that element, not three separate menus. Text and colour edits preview live against
 the page as you type, and the note is pinned to the element once you save. When you
-are ready, you click **Send to AI**. Northstar writes the batch to disk and writes one
-fixed line into the assistant already running in your project, which you started with
-`northstar run`, and presses Enter for you.
+are ready, you click **Send to AI**. Northstar writes the batch to disk and wakes the assistant that is waiting in
+`northstar listen`, which prints one fixed line for it to act on.
 
 There is nothing to copy and nothing to pair. Nothing leaves your machine either: the
 browser talks to a local helper through Native Messaging, and there is no web server.
@@ -68,55 +67,30 @@ own shape, numeric and UUID-looking segments become `:id`, and marks it
 
 ## The handoff
 
-The assistant never polls and never runs a watch mode. It sits idle until you press
-**Send to AI**, and then Northstar writes to it by exactly one path: the pseudo
-terminal of the session it started. There is no push, no channel, no development flag
-and no second path behind the first.
+The assistant never polls and never runs a watch mode on its own. It waits in
+`northstar listen`, a command that blocks until you press **Send to AI**, then prints one
+fixed line and the open comments, and your assistant runs it again when it is done.
+There is no push, no channel, no development flag and no terminal automation.
 
-You start the assistant with `northstar run <agent>`, or with plain `claude` and
-`codex` after `northstar shell install`. The wrapper puts the assistant in a pseudo
-terminal it owns, passes your keystrokes and the output through unchanged, and
-registers the session with the daemon. Because Northstar owns that terminal, it is the
-only thing a send can write into. It cannot type into another window, and it needs no
-accessibility permission, AppleScript or terminal setting.
+Claude Code can run it for you: `/plugin install northstar-live --marketplace
+pallandir/northstar` adds a small mod that keeps `northstar listen` running in the
+session and submits the printed line whenever the session is idle. Any other assistant
+runs `northstar listen` as a background command after you paste the line the toolbar
+copies. Northstar never writes into a terminal, so it needs no accessibility
+permission, AppleScript or terminal setting.
 
-Every send is confirmed. After the write, the daemon waits up to 20 seconds for the
-assistant to call `list_comments`. If it does, the toolbar flashes **Sent to Claude
-Code** (or whichever assistant). If it does not, the toolbar says so with the reason and
-a fix, and nothing is retried or sent a second way.
+Every send is honest. If no assistant has run `northstar listen` in the last five
+minutes the toolbar says so with the reason and offers **Copy the line**, and nothing
+is sent a second way. If the assistant is busy, the line is held and printed the next
+time it runs `northstar listen`. Two clicks at the same moment hand over one line.
 
 The extension picks the project for a page by asking the daemon which project folder
 contains the source files the page was built from. A mapping you set in the options
 wins, then a project that owns the files, the deepest folder wins a tie, and the
-toolbar only asks you to choose when none decides. With two sessions in one project the
-daemon uses the one you name, then your preferred agent when it is unique, and
-otherwise the toolbar lists the sessions.
-
-Three details make the write reliable.
-
-**Reading the screen.** The wrapper feeds the assistant's output into a headless
-terminal emulator, so it knows what the screen looks like, not only the raw bytes. A
-numbered choice or a yes or no question means the assistant is mid-question, text after
-the prompt mark means something is half typed. In either case Northstar refuses, because
-an Enter there would answer a question you never saw or send half a sentence. Your
-comments are stored either way and the toolbar tells you why they were not announced.
-
-**Waiting for a safe moment.** It waits until the output has been quiet for half a
-second and you have not typed for a moment, up to ten seconds, and only then writes.
-Your own keystrokes are held while the line is written and released right after, so
-they cannot land inside it.
-
-**Pressing Enter separately.** An assistant TUI treats a fast burst of input as a
-paste and folds a trailing Enter into the text instead of submitting it. The Enter
-goes in as its own write, after the output has gone quiet again.
+toolbar only asks you to choose when none decides.
 
 Nothing in that path is specific to one assistant. Claude Code, Codex, Gemini, OpenCode,
-Aider, Goose and any other terminal program receive the same bytes.
-
-When Northstar cannot write to your assistant, the toolbar offers **Copy the line**. It
-copies a start line that makes the assistant run `northstar listen`, which blocks until
-Send to AI is clicked, as Impeccable's live mode does with its poll command. Nothing
-happens unless you click it.
+Aider, Goose and any other tool that can run a shell command receive the same text.
 
 ## What gets written
 

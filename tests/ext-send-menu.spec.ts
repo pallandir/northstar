@@ -6,7 +6,6 @@ const ROOT = "/work/shop";
 const PROJECT = { root: ROOT, name: "shop", sessions: 1 };
 const delivered = {
   delivered: true,
-  session: { id: "s1", agent: "codex", name: "Codex" },
   at: "2026-01-01T00:00:00.000Z",
 };
 
@@ -82,7 +81,7 @@ describe("sending a selection", () => {
         accepted: [{ cid: (params.drafts as Array<{ cid: string }>)[0]?.cid, id: "c1" }],
         rejected: [],
       }),
-      "session.send": () => delivered,
+      "handoff.send": () => delivered,
     });
     const { runSend } = await import("../extensions/core/src/send-menu.js");
     await runSend(tab, "fix");
@@ -96,9 +95,9 @@ describe("sending a selection", () => {
       operation: { type: "comment" },
       metadata: { page: "/acme/backend/issues/42", viewport: { w: 1280, h: 800 } },
     });
-    expect(call(fake.calls, "session.send")?.params).toEqual({ root: ROOT, template: "fix" });
+    expect(call(fake.calls, "handoff.send")?.params).toEqual({ root: ROOT, template: "fix" });
     expect(stub.action.setBadgeText).toHaveBeenCalledWith({ tabId: 7, text: "✓" });
-    expect(stub.action.setTitle.mock.calls[0]?.[0].title).toContain("Sent to Codex");
+    expect(stub.action.setTitle.mock.calls[0]?.[0].title).toContain("Sent to your assistant");
   });
 
   it("uses the default template from the options when none is chosen", async () => {
@@ -110,14 +109,14 @@ describe("sending a selection", () => {
         accepted: [{ cid: (params.drafts as Array<{ cid: string }>)[0]?.cid, id: "c1" }],
         rejected: [],
       }),
-      "session.send": () => delivered,
+      "handoff.send": () => delivered,
     });
     const { runSend } = await import("../extensions/core/src/send-menu.js");
     await runSend(tab);
-    expect(call(fake.calls, "session.send")?.params.template).toBe("resolve");
+    expect(call(fake.calls, "handoff.send")?.params.template).toBe("resolve");
   });
 
-  it("shows why on the toolbar badge when the agent needs the user first", async () => {
+  it("shows why on the toolbar badge when the assistant is busy", async () => {
     const stub = chromeStub();
     stub.scripting.executeScript.mockResolvedValue(page("text"));
     host({
@@ -126,19 +125,18 @@ describe("sending a selection", () => {
         accepted: [{ cid: (params.drafts as Array<{ cid: string }>)[0]?.cid, id: "c1" }],
         rejected: [],
       }),
-      "session.send": () => ({
+      "handoff.send": () => ({
         delivered: false,
-        session: { id: "s1", agent: "codex", name: "Codex" },
-        blocked: "prompt",
-        reason: "Northstar did not write to Codex, the agent is waiting on a prompt.",
-        fix: "Answer the prompt in the agent, then click Send to AI again.",
+        blocked: "busy",
+        reason: "Your assistant is busy. The comments are saved and queued.",
+        fix: "If it stopped listening, click Copy the line and paste it again.",
         at: "now",
       }),
     });
     const { runSend } = await import("../extensions/core/src/send-menu.js");
     await runSend(tab);
     expect(stub.action.setBadgeText).toHaveBeenCalledWith({ tabId: 7, text: "!" });
-    expect(stub.action.setTitle.mock.calls[0]?.[0].title).toContain("Answer the prompt");
+    expect(stub.action.setTitle.mock.calls[0]?.[0].title).toContain("Copy the line");
   });
 
   it("reports a refused selection and a missing session with their fixes", async () => {
@@ -171,17 +169,17 @@ describe("sending a selection", () => {
         accepted: [{ cid: (params.drafts as Array<{ cid: string }>)[0]?.cid, id: "c1" }],
         rejected: [],
       }),
-      "session.send": () => {
+      "handoff.send": () => {
         throw new HostFailure(
-          "NO_SESSION",
-          "No agent session is running in this project.",
-          "Start your agent with northstar run.",
+          "NOT_LISTENING",
+          "Your AI assistant is not running northstar listen.",
+          "Ask it to run northstar listen.",
         );
       },
     });
     const second = await import("../extensions/core/src/send-menu.js");
     await second.runSend(tab);
-    expect(again.action.setTitle.mock.calls[0]?.[0].title).toContain("northstar run");
+    expect(again.action.setTitle.mock.calls[0]?.[0].title).toContain("northstar listen");
   });
 
   it("asks to select text on a page that is not local", async () => {
@@ -220,19 +218,18 @@ describe("sending the comments on a local page", () => {
     const stub = chromeStub();
     stub.scripting.executeScript.mockResolvedValue(page(""));
     const fake = host({
-      "agent.list": () => [],
       "status.get": () => ({
         notices: [],
-        readiness: { ready: true, sessions: [], target: null, needsPick: false },
+        readiness: { ready: true },
         open: 2,
         lastPolledAt: null,
         handoff: null,
       }),
-      "session.send": () => delivered,
+      "handoff.send": () => delivered,
     });
     const { runSend } = await import("../extensions/core/src/send-menu.js");
     await runSend({ id: 9, url: "http://localhost:3000/" } as chrome.tabs.Tab, "review");
-    expect(call(fake.calls, "session.send")?.params).toEqual({ root: ROOT, template: "review" });
+    expect(call(fake.calls, "handoff.send")?.params).toEqual({ root: ROOT, template: "review" });
     expect(stub.action.setBadgeText).toHaveBeenCalledWith({ tabId: 9, text: "✓" });
   });
 });

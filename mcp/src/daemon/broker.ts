@@ -2,6 +2,8 @@ import type { DeferralNotice, HandoffOutcome, TemplateId } from "@northstar/prot
 
 const MAX_NOTICES = 20;
 
+export type HandoffSignal = "woken" | "queued" | "already-sent";
+
 export class Broker {
   readonly startedAt = new Date().toISOString();
   readonly pid = process.pid;
@@ -11,10 +13,10 @@ export class Broker {
   private lastPolledTime = 0;
   private notices: DeferralNotice[] = [];
   private handoff: HandoffOutcome | null = null;
-  private pollWaiters = new Set<() => void>();
   private listeners = new Set<(template: TemplateId) => void>();
   private queuedTemplate: TemplateId | null = null;
   private lastListenTime = 0;
+  private deliveredVersion = -1;
 
   get currentVersion(): number {
     return this.version;
@@ -38,9 +40,11 @@ export class Broker {
 
   listen(timeoutMs: number, aborted: AbortSignal): Promise<{ template: TemplateId | null }> {
     this.lastListenTime = Date.now();
+    if (aborted.aborted) return Promise.resolve({ template: null });
     if (this.queuedTemplate) {
       const template = this.queuedTemplate;
       this.queuedTemplate = null;
+      this.deliveredVersion = this.version;
       return Promise.resolve({ template });
     }
     return new Promise((resolve) => {
@@ -59,14 +63,16 @@ export class Broker {
     });
   }
 
-  signalHandoff(template: TemplateId): boolean {
+  signalHandoff(template: TemplateId): HandoffSignal {
     const [first] = this.listeners;
     if (first) {
+      this.deliveredVersion = this.version;
       first(template);
-      return true;
+      return "woken";
     }
+    if (this.deliveredVersion === this.version) return "already-sent";
     this.queuedTemplate = template;
-    return false;
+    return "queued";
   }
 
   activeWithin(ms: number): boolean {
@@ -88,23 +94,6 @@ export class Broker {
   markPolled(): void {
     this.lastPolledTime = Date.now();
     this.lastPolled = new Date(this.lastPolledTime).toISOString();
-    for (const wake of this.pollWaiters) wake();
-  }
-
-  waitForPoll(since: number, timeoutMs: number): Promise<boolean> {
-    if (this.lastPolledTime >= since) return Promise.resolve(true);
-    return new Promise((resolve) => {
-      const done = (polled: boolean) => {
-        clearTimeout(timer);
-        this.pollWaiters.delete(check);
-        resolve(polled);
-      };
-      const check = () => {
-        if (this.lastPolledTime >= since) done(true);
-      };
-      const timer = setTimeout(() => done(false), timeoutMs);
-      this.pollWaiters.add(check);
-    });
   }
 
   bump(): void {

@@ -31,12 +31,6 @@ export interface DesignRead extends DesignDoc {
   frontmatter?: Record<string, unknown>;
 }
 
-interface Gate {
-  open: boolean;
-  gap?: string;
-  next?: string;
-}
-
 const MAX_GAPS = 3;
 
 function errorLines(issues: Issue[]): string[] {
@@ -65,23 +59,12 @@ function designGap(design: DesignDoc): string | undefined {
   return parts.join(", ");
 }
 
-function gateOf(design: DesignDoc): Gate {
-  const gap = designGap(design);
-  if (!gap) return { open: true };
-  return {
-    open: false,
-    gap,
-    next: "Write DESIGN.md before any UI code: design_md_normalize with the designer's direction and write true, or design_system_propose, then design_md_validate until it is ready. If the designer wants the system from Figma, follow northstar://canon/references/figma first.",
-  };
-}
-
 interface ProjectState {
   root: string;
   stack: StackName;
   shadcn: boolean;
   tailwind: boolean;
   design: DesignDoc;
-  gate: Gate;
   product: boolean;
   decisions: boolean;
   stage: "brief" | "direction" | "system" | "compose";
@@ -155,8 +138,11 @@ export function inspectProject(root: string): ProjectState {
 
   const missing: string[] = [];
   if (!product) missing.push("PRODUCT.md: audience, primary job, success, constraints");
-  if (!design.exists) missing.push("DESIGN.md: no design direction yet");
-  else if (design.error) missing.push(`DESIGN.md: ${design.error}`);
+  if (!design.exists) {
+    missing.push(
+      "DESIGN.md: no design direction yet, for new UI write it with design_md_normalize or design_system_propose, or follow northstar://canon/references/figma first when the designer wants the system from Figma",
+    );
+  } else if (design.error) missing.push(`DESIGN.md: ${design.error}`);
   else if (!design.ready) missing.push(`DESIGN.md: ${designGap(design)}`);
 
   const stage = !product
@@ -173,7 +159,6 @@ export function inspectProject(root: string): ProjectState {
     shadcn: existsSync(join(root, "components.json")),
     tailwind: deps.has("tailwindcss"),
     design,
-    gate: gateOf(design),
     product,
     decisions: existsSync(join(root, "design", "decisions.md")),
     stage,

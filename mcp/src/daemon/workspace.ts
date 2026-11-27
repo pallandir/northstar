@@ -42,11 +42,8 @@ export class Workspace {
   private readonly brokers = new Map<string, Broker>();
   private readonly stores = new Map<string, CommentStore>();
 
-  constructor(
-    readonly home: string,
-    log: (message: string) => void,
-  ) {
-    this.registry = new Registry(home, log);
+  constructor(readonly home: string) {
+    this.registry = new Registry(home);
   }
 
   broker(root: string): Broker {
@@ -98,12 +95,7 @@ export class Workspace {
   }
 
   projects(): ProjectInfo[] {
-    const sessions = this.registry.list();
-    return this.allRoots().map((root) => ({
-      root,
-      name: projectName(root),
-      sessions: sessions.filter((s) => s.root === root).length,
-    }));
+    return this.allRoots().map((root) => ({ root, name: projectName(root) }));
   }
 
   async resolveProject(

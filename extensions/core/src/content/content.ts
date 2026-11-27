@@ -206,7 +206,7 @@ function init(): Instance {
       st.problem = null;
       toolbar = new Toolbar(surface, {
         onComments: toggleDrawer,
-        onSend: (sessionId) => void run(() => handleSend(sessionId)),
+        onSend: () => void run(handleSend),
         onHandoff: () => void run(handleHandoff),
         onReset: handleReset,
         onTogglePick: () => setPicking(!st.picking),
@@ -394,8 +394,8 @@ function init(): Instance {
     }
   }
 
-  function handleSend(sessionId?: string): Promise<void> {
-    return sendWith({ type: "flush", sessionId });
+  function handleSend(): Promise<void> {
+    return sendWith({ type: "flush" });
   }
 
   async function handleCopyLine(): Promise<void> {

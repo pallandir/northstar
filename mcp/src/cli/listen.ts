@@ -1,35 +1,46 @@
+import { parseArgs } from "node:util";
 import { type TemplateId, templateLine } from "@northstar/protocol";
 import { ensureDaemon } from "../daemon/client.js";
 import { fileLogger } from "../daemon/log.js";
 import { RpcError } from "../daemon/rpc.js";
 import { northstarHome } from "../lib/home.js";
+import { projectRoot } from "../lib/paths.js";
 import { summarize } from "../render.js";
 import { CommentStore } from "../store.js";
 
 const DEFAULT_TIMEOUT_SECONDS = 600;
 const MAX_TIMEOUT_SECONDS = 3600;
 
-function parseTimeout(args: string[]): number {
-  const flag = args.indexOf("--timeout");
-  if (flag === -1) return DEFAULT_TIMEOUT_SECONDS;
-  const seconds = Number(args[flag + 1]);
+interface ListenOptions {
+  seconds: number;
+  from: string;
+}
+
+function parseOptions(args: string[]): ListenOptions {
+  const { values } = parseArgs({
+    args,
+    options: { timeout: { type: "string" }, from: { type: "string" } },
+    strict: true,
+  });
+  const seconds = values.timeout === undefined ? DEFAULT_TIMEOUT_SECONDS : Number(values.timeout);
   if (!Number.isInteger(seconds) || seconds < 1 || seconds > MAX_TIMEOUT_SECONDS) {
     throw new Error(`--timeout takes whole seconds from 1 to ${MAX_TIMEOUT_SECONDS}.`);
   }
-  return seconds;
+  return { seconds, from: values.from ?? process.cwd() };
 }
 
 export async function listen(args: string[]): Promise<number> {
-  let seconds: number;
+  let options: ListenOptions;
   try {
-    seconds = parseTimeout(args);
+    options = parseOptions(args);
   } catch (error) {
     process.stderr.write(
-      `${(error as Error).message}\nUsage: northstar listen [--timeout seconds]\n`,
+      `${(error as Error).message}\nUsage: northstar listen [--timeout seconds] [--from folder]\n`,
     );
     return 2;
   }
-  const root = process.env.NORTHSTAR_ROOT ?? process.cwd();
+  const { seconds } = options;
+  const root = projectRoot(options.from);
   const home = northstarHome();
   let peer: Awaited<ReturnType<typeof ensureDaemon>>;
   try {
