@@ -43,6 +43,7 @@ export class Sender {
         "Wait for it to finish.",
       );
     }
+    this.sending.add(root);
   }
 
   private async requireOpenComments(root: string): Promise<void> {
@@ -57,6 +58,14 @@ export class Sender {
   async send(params: Params<"session.send">): Promise<HandoffOutcome> {
     const root = this.workspace.requireRoot(params.root);
     this.begin(root);
+    try {
+      return await this.route(root, params);
+    } finally {
+      this.sending.delete(root);
+    }
+  }
+
+  private async route(root: string, params: Params<"session.send">): Promise<HandoffOutcome> {
     await this.requireOpenComments(root);
     const settings = loadSettings(this.workspace.home);
     const registry = this.workspace.registry;
@@ -96,44 +105,34 @@ export class Sender {
       );
     }
     const handle = registry.get(route.session.id) as SessionHandle;
-    this.sending.add(root);
-    try {
-      const started = Date.now();
-      const outcome = await this.deliver(handle, params.template);
-      const handoff = await this.confirm(root, handle.info, outcome, started);
-      this.workspace.broker(root).recordHandoff(handoff);
-      this.log(
-        `session.send session=${handle.info.id} agent=${handle.info.agent} delivered=${handoff.delivered} duration=${Date.now() - started}ms`,
-      );
-      return handoff;
-    } finally {
-      this.sending.delete(root);
-    }
+    const started = Date.now();
+    const outcome = await this.deliver(handle, params.template);
+    const handoff = await this.confirm(root, handle.info, outcome, started);
+    this.workspace.broker(root).recordHandoff(handoff);
+    this.log(
+      `session.send session=${handle.info.id} agent=${handle.info.agent} delivered=${handoff.delivered} duration=${Date.now() - started}ms`,
+    );
+    return handoff;
   }
 
-  private async handOffToListener(root: string, template: TemplateId): Promise<HandoffOutcome> {
+  private handOffToListener(root: string, template: TemplateId): HandoffOutcome {
     const broker = this.workspace.broker(root);
-    this.sending.add(root);
-    try {
-      const woke = broker.signalHandoff(template);
-      const at = new Date().toISOString();
-      const handoff: HandoffOutcome = woke
-        ? { delivered: true, session: null, at }
-        : {
-            delivered: false,
-            session: null,
-            blocked: "busy",
-            reason:
-              "Your assistant is busy. The comments are saved and queued, it picks them up when it runs northstar listen again.",
-            fix: "If it stopped listening, click Copy the line and paste it again.",
-            at,
-          };
-      broker.recordHandoff(handoff);
-      this.log(`session.send listener delivered=${handoff.delivered}`);
-      return handoff;
-    } finally {
-      this.sending.delete(root);
-    }
+    const woke = broker.signalHandoff(template);
+    const at = new Date().toISOString();
+    const handoff: HandoffOutcome = woke
+      ? { delivered: true, session: null, at }
+      : {
+          delivered: false,
+          session: null,
+          blocked: "busy",
+          reason:
+            "Your assistant is busy. The comments are saved and queued, it picks them up when it runs northstar listen again.",
+          fix: "If it stopped listening, click Copy the line and paste it again.",
+          at,
+        };
+    broker.recordHandoff(handoff);
+    this.log(`session.send listener delivered=${handoff.delivered}`);
+    return handoff;
   }
 
   private async deliver(handle: SessionHandle, template: TemplateId): Promise<DeliverOutcome> {

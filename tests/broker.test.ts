@@ -73,3 +73,28 @@ test("waitForPoll resolves true on a poll after the mark and false on timeout", 
   assert.equal(await broker.waitForPoll(since, 1000), true);
   assert.equal(await broker.waitForPoll(Date.now() + 60_000, 30), false);
 });
+
+test("a listen whose connection already closed leaves no waiter and the handoff stays queued", async () => {
+  const broker = new Broker();
+  const closed = new AbortController();
+  closed.abort();
+  const settled = await Promise.race([
+    broker.listen(5_000, closed.signal),
+    new Promise((resolve) => setTimeout(() => resolve("still waiting"), 200)),
+  ]);
+  assert.deepEqual(settled, { template: null });
+  assert.equal(broker.listening, false);
+  assert.equal(broker.signalHandoff("resolve"), false);
+  assert.deepEqual(await broker.listen(5_000, new AbortController().signal), {
+    template: "resolve",
+  });
+});
+
+test("an already closed listen does not take a queued handoff away from the next one", async () => {
+  const broker = new Broker();
+  assert.equal(broker.signalHandoff("fix"), false);
+  const closed = new AbortController();
+  closed.abort();
+  assert.deepEqual(await broker.listen(5_000, closed.signal), { template: null });
+  assert.deepEqual(await broker.listen(5_000, new AbortController().signal), { template: "fix" });
+});

@@ -38,6 +38,7 @@ export class Broker {
 
   listen(timeoutMs: number, aborted: AbortSignal): Promise<{ template: TemplateId | null }> {
     this.lastListenTime = Date.now();
+    if (aborted.aborted) return Promise.resolve({ template: null });
     if (this.queuedTemplate) {
       const template = this.queuedTemplate;
       this.queuedTemplate = null;

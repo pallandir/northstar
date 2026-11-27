@@ -450,6 +450,25 @@ test("a send needs an open comment and only one runs at a time", async () => {
   await first;
 });
 
+test("two sends at the same moment give one delivery and one refusal, and nothing is queued twice", async () => {
+  const browser = await connect();
+  await mcp();
+  await post(browser, [draft()]);
+  const listener = await connect();
+  const waiting = listenOnce(listener, 8_000);
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  const sends = await Promise.allSettled([
+    request<HandoffOutcome>(browser, "session.send", { root: project, template: "resolve" }),
+    request<HandoffOutcome>(browser, "session.send", { root: project, template: "resolve" }),
+  ]);
+  const refused = sends.filter((s) => s.status === "rejected");
+  assert.equal(refused.length, 1);
+  assert.equal((refused[0] as PromiseRejectedResult).reason.code, "BLOCKED");
+  assert.deepEqual(await waiting, { template: "resolve" });
+  const next = await connect();
+  assert.deepEqual(await listenOnce(next, 50), { template: null });
+});
+
 test("an unknown project root or action is refused and creates nothing", async () => {
   const peer = await connect();
   const outside = shortDir("ns-outside-");
