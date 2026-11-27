@@ -1,3 +1,4 @@
+import { computeAccessibleName, getRole } from "dom-accessibility-api";
 import type {
   ComponentInfo,
   Intent,
@@ -10,15 +11,15 @@ import type {
   Target,
 } from "../types.js";
 
-const LANDMARK_ROLES: Record<string, string> = {
-  header: "banner",
-  nav: "navigation",
-  main: "main",
-  aside: "complementary",
-  footer: "contentinfo",
-  form: "form",
-  section: "region",
-};
+const LANDMARK_ROLES = new Set([
+  "banner",
+  "navigation",
+  "main",
+  "complementary",
+  "contentinfo",
+  "form",
+  "region",
+]);
 
 function clip(value: string | null | undefined, max: number): string | null {
   const text = (value ?? "").replace(/\s+/g, " ").trim();
@@ -26,28 +27,14 @@ function clip(value: string | null | undefined, max: number): string | null {
 }
 
 function accessibleName(el: Element): string | null {
-  const label = clip(el.getAttribute("aria-label"), 200);
-  if (label) return label;
-  const labelledBy = el.getAttribute("aria-labelledby");
-  if (labelledBy) {
-    const text = labelledBy
-      .split(/\s+/)
-      .map((id) => el.ownerDocument.getElementById(id)?.textContent ?? "")
-      .join(" ");
-    const named = clip(text, 200);
-    if (named) return named;
-  }
-  const alt = clip(el.getAttribute("alt") ?? el.getAttribute("title"), 200);
-  if (alt) return alt;
-  return clip(el.textContent, 120);
+  return clip(computeAccessibleName(el), 200);
 }
 
 function landmarkOf(el: Element): string | null {
   for (let node = el.parentElement; node; node = node.parentElement) {
-    const explicit = node.getAttribute("role");
-    const role = explicit ?? LANDMARK_ROLES[node.tagName.toLowerCase()];
-    if (!role || !Object.values(LANDMARK_ROLES).includes(role)) continue;
-    const name = clip(node.getAttribute("aria-label"), 80);
+    const role = getRole(node);
+    if (!role || !LANDMARK_ROLES.has(role)) continue;
+    const name = clip(computeAccessibleName(node), 80);
     return name ? `${role} "${name}"` : role;
   }
   return null;

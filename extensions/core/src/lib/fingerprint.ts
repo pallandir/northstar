@@ -1,3 +1,4 @@
+import { getRole } from "dom-accessibility-api";
 import type { Rect, Target, TargetAncestor } from "../types.js";
 import { buildSelector, filteredClasses } from "./selector.js";
 
@@ -19,7 +20,7 @@ export function captureTarget(el: Element, rect: Rect): Target {
     tag: el.tagName.toLowerCase(),
     id: el.id || null,
     testId: testId(el),
-    role: el.getAttribute("role") || implicitRole(el),
+    role: getRole(el),
     ariaLabel: el.getAttribute("aria-label"),
     classes: filteredClasses(el),
     attributes: collectAttributes(el),
@@ -36,33 +37,6 @@ function testId(el: Element): string | null {
     if (value) return value;
   }
   return null;
-}
-
-function implicitRole(el: Element): string | null {
-  const tag = el.tagName.toLowerCase();
-  if (tag === "button") return "button";
-  if (tag === "a" && el.hasAttribute("href")) return "link";
-  if (tag === "input") return inputRole((el as HTMLInputElement).type);
-  if (tag === "select") return "combobox";
-  if (tag === "textarea") return "textbox";
-  return null;
-}
-
-const INPUT_ROLES: Record<string, string | null> = {
-  checkbox: "checkbox",
-  radio: "radio",
-  range: "slider",
-  number: "spinbutton",
-  search: "searchbox",
-  button: "button",
-  submit: "button",
-  reset: "button",
-  image: "button",
-  hidden: null,
-};
-
-function inputRole(type: string): string | null {
-  return type in INPUT_ROLES ? INPUT_ROLES[type] : "textbox";
 }
 
 function collectAttributes(el: Element): Record<string, string> {
