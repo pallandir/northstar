@@ -1,7 +1,13 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
 import { buildCatalog, loadCanon, renderIndex } from "@northstar/canon";
-import { hooksManifest, marketplaceManifest, mcpManifest, pluginManifest } from "./claude.js";
+import {
+  hooksManifest,
+  liveManifest,
+  marketplaceManifest,
+  mcpManifest,
+  pluginManifest,
+} from "./claude.js";
 import { renderRuleIndex, renderSkill } from "./render.js";
 
 import { CORE_SKILL, SKILLS_DIR, WORKFLOW_SKILLS } from "../../src/install/plans/index.js";
@@ -64,6 +70,7 @@ export function generate(repoRoot: string): Outputs {
     "plugin/agents/northstar-critic.md",
     readFileSync(join(canonRoot, "agents", "critic.md"), "utf8"),
   );
+  outputs.set("plugin-live/.claude-plugin/plugin.json", liveManifest(version));
   outputs.set(".claude-plugin/marketplace.json", marketplaceManifest(version));
   outputs.set("docs/canon.md", renderRuleIndex(canon));
   return outputs;

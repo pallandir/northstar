@@ -117,6 +117,9 @@ const skillOps = (path: string): Op[] =>
     label: name === CORE_SKILL ? "skill" : `skill ${name}`,
   }));
 
+const LIVE_NOTE =
+  "For Send to AI to reach Claude Code without pasting, run /plugin install northstar-live --marketplace pallandir/northstar inside Claude Code. Other assistants run northstar listen in the background.";
+
 function claude(ctx: PlanContext): AgentPlan {
   const root = ctx.scope === "user" ? join(ctx.home, ".claude") : join(ctx.project, ".claude");
   const entry: HookEntry = {
@@ -176,6 +179,7 @@ function claude(ctx: PlanContext): AgentPlan {
       ops,
       notes: [
         "The Northstar Claude plugin is installed, so its hooks, skill and critic agent are used and not registered twice.",
+        LIVE_NOTE,
       ],
     };
   }
@@ -201,7 +205,7 @@ function claude(ctx: PlanContext): AgentPlan {
     ...skillOps(join(root, "skills")),
   );
   if (ctx.scope === "project") ops.push(blockMerge(join(ctx.project, "CLAUDE.md"), ctx));
-  return { agent: "claude", ops, notes: [] };
+  return { agent: "claude", ops, notes: [LIVE_NOTE] };
 }
 
 function codex(ctx: PlanContext): AgentPlan {

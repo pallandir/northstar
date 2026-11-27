@@ -20,6 +20,19 @@ export function pluginManifest(version: string): string {
   });
 }
 
+export function liveManifest(version: string): string {
+  return formatJson({
+    name: "northstar-live",
+    description:
+      "Hands Send to AI from the Northstar browser extension to this Claude Code session as soon as it is idle.",
+    version,
+    author: AUTHOR,
+    homepage: HOMEPAGE,
+    license: LICENSE,
+    keywords: ["ui", "design", "mod"],
+  });
+}
+
 export function marketplaceManifest(version: string): string {
   return formatJson({
     name: "northstar",
@@ -35,6 +48,18 @@ export function marketplaceManifest(version: string): string {
         homepage: HOMEPAGE,
         license: LICENSE,
         keywords: ["ui", "design", "design-system", "frontend", "anti-slop"],
+        category: "design",
+      },
+      {
+        name: "northstar-live",
+        source: "./plugin-live",
+        description:
+          "Hands Send to AI from the Northstar browser extension to this Claude Code session as soon as it is idle.",
+        version,
+        author: AUTHOR,
+        homepage: HOMEPAGE,
+        license: LICENSE,
+        keywords: ["ui", "design", "mod"],
         category: "design",
       },
     ],

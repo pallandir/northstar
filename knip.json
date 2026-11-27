@@ -4,6 +4,7 @@
     ".": {
       "entry": ["tests/*.test.ts", "tests/*.spec.ts", "scripts/*.mjs"],
       "project": ["tests/**/*.ts", "scripts/*.mjs"],
+      "ignore": ["plugin-live/**"],
       "ignoreDependencies": ["@modelcontextprotocol/sdk", "@emnapi/core", "@emnapi/runtime"]
     },
     "mcp": {

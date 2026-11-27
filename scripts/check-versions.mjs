@@ -26,6 +26,10 @@ for (const path of manifests) record(path, readJson(path).version);
 
 const plugin = readJson("plugin/.claude-plugin/plugin.json");
 record("plugin/.claude-plugin/plugin.json", plugin.version);
+record(
+  "plugin-live/.claude-plugin/plugin.json",
+  readJson("plugin-live/.claude-plugin/plugin.json").version,
+);
 
 const marketplace = readJson(".claude-plugin/marketplace.json");
 record(".claude-plugin/marketplace.json metadata", marketplace.metadata?.version);
