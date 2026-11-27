@@ -1,4 +1,4 @@
-import { SERVERS, hookCommand, launchOf } from "../../src/install/plans/index.js";
+import { PACKAGE, SERVERS, launchOf } from "../../src/install/plans/index.js";
 import { formatJson } from "./json.js";
 
 export const AUTHOR = { name: "pallandir", url: "https://github.com/pallandir" };
@@ -48,7 +48,13 @@ export function hooksManifest(version: string): string {
       PostToolUse: [
         {
           matcher,
-          hooks: [{ type: "command", command: hookCommand({ version }, "claude"), timeout: 20 }],
+          hooks: [
+            {
+              type: "command",
+              command: `npx -y ${PACKAGE}@${version} hook post-edit --agent claude`,
+              timeout: 20,
+            },
+          ],
         },
       ],
     },

@@ -9,7 +9,6 @@ import {
 export function render(agent: HookAgent, text: string): string {
   switch (agent) {
     case "claude":
-      return JSON.stringify({ decision: "block", reason: text });
     case "codex":
       return JSON.stringify({
         hookSpecificOutput: { hookEventName: "PostToolUse", additionalContext: text },

@@ -121,15 +121,16 @@ test("the detect command reports a failed scan with a clear message and exit cod
   assert.match(result.stderr, /^northstar detect: git /);
 });
 
-test("the claude hook blocks on errors, stays silent on clean edits and ignores other tools", () => {
+test("the claude hook advises on errors without blocking, stays silent on clean edits and ignores other tools", () => {
   const blocked = claudeFeedback(
     { tool_name: "Edit", tool_input: { file_path: join(root, "src/Hero.tsx") }, cwd: root },
     root,
   );
   assert.ok(blocked);
   const parsed = JSON.parse(blocked);
-  assert.equal(parsed.decision, "block");
-  assert.match(parsed.reason, /NS-SLOP-GRADIENT-TEXT/);
+  assert.equal(parsed.decision, undefined);
+  assert.equal(parsed.hookSpecificOutput.hookEventName, "PostToolUse");
+  assert.match(parsed.hookSpecificOutput.additionalContext, /NS-SLOP-GRADIENT-TEXT/);
 
   assert.equal(
     claudeFeedback(
